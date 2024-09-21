@@ -1,0 +1,48 @@
+namespace ast_generated;
+
+using System;
+using System.Collections.Generic;
+
+<#
+foreach (var t in concreteTypes)
+{
+    //Console.WriteLine($"type {t.Name}");
+    var allProps = t.GetProperties();
+
+#>
+public partial class <#= t.Name #>Builder : BaseBuilder<<#= t.Name #>Builder,<#= t.FullName #>>
+{
+    public <#= t.Name #>Builder()
+    {
+        Model = new();
+    }
+
+<#
+    foreach (var prop in allProps)
+    {
+        //Console.WriteLine($"prop {prop.Name}");
+#>
+    public <#= t.Name #>Builder With<#= prop.Name #>(<#= prop.PropertyType.BuildTypeName() #> value){
+        Model.<#= prop.Name #> = value;
+        return this;
+    }
+
+<#
+        if (prop.PropertyType.IsCollectionType())
+        {
+            var llAdjust = prop.PropertyType.IsLinkedListCollectionType() ? "Last" : "";
+#>
+    public <#= t.Name #>Builder AddingItemTo<#= prop.Name #>(<#= prop.PropertyType.BuildInstanceTypeName() #> value){
+        if(Model.<#= prop.Name #> is null)
+            Model.<#= prop.Name #> = [];
+        Model.<#= prop.Name #>.Add<#= llAdjust #>(value);
+        return this;
+    }
+<#
+        }  /*if (prop.IsCollection)*/
+#>
+<#
+    } /* foreach prop */
+#>
+}
+<# } /*for each ast*/ #>
