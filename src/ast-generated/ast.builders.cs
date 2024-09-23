@@ -42,6 +42,11 @@ public partial class AssemblyDefBuilder : BaseBuilder<AssemblyDefBuilder,ast_mod
         Model.ClassDefs.AddLast(value);
         return this;
     }
+    public AssemblyDefBuilder WithVisibility(ast_model.Visibility value){
+        Model.Visibility = value;
+        return this;
+    }
+
     public AssemblyDefBuilder WithType(ast_model.TypeMetadata value){
         Model.Type = value;
         return this;
@@ -91,11 +96,42 @@ public partial class AssemblyRefBuilder : BaseBuilder<AssemblyRefBuilder,ast_mod
     }
 
 }
+public partial class AssertionObjectBuilder : BaseBuilder<AssertionObjectBuilder,ast_model.AssertionObject>
+{
+    public AssertionObjectBuilder()
+    {
+        Model = new();
+    }
+
+}
+public partial class AssertionPredicateBuilder : BaseBuilder<AssertionPredicateBuilder,ast_model.AssertionPredicate>
+{
+    public AssertionPredicateBuilder()
+    {
+        Model = new();
+    }
+
+}
 public partial class AssertionStatementBuilder : BaseBuilder<AssertionStatementBuilder,ast_model.AssertionStatement>
 {
     public AssertionStatementBuilder()
     {
         Model = new();
+    }
+
+    public AssertionStatementBuilder WithAssertionSubject(ast_model.AssertionSubject value){
+        Model.AssertionSubject = value;
+        return this;
+    }
+
+    public AssertionStatementBuilder WithAssertionPredicate(ast_model.AssertionPredicate value){
+        Model.AssertionPredicate = value;
+        return this;
+    }
+
+    public AssertionStatementBuilder WithAssertionObject(ast_model.AssertionObject value){
+        Model.AssertionObject = value;
+        return this;
     }
 
     public AssertionStatementBuilder WithType(ast_model.TypeMetadata value){
@@ -111,6 +147,14 @@ public partial class AssertionStatementBuilder : BaseBuilder<AssertionStatementB
     public AssertionStatementBuilder WithParent(ast_model.AstThing value){
         Model.Parent = value;
         return this;
+    }
+
+}
+public partial class AssertionSubjectBuilder : BaseBuilder<AssertionSubjectBuilder,ast_model.AssertionSubject>
+{
+    public AssertionSubjectBuilder()
+    {
+        Model = new();
     }
 
 }
@@ -263,6 +307,11 @@ public partial class ClassDefBuilder : BaseBuilder<ClassDefBuilder,ast_model.Cla
         Model.MemberDefs.AddLast(value);
         return this;
     }
+    public ClassDefBuilder WithVisibility(ast_model.Visibility value){
+        Model.Visibility = value;
+        return this;
+    }
+
     public ClassDefBuilder WithType(ast_model.TypeMetadata value){
         Model.Type = value;
         return this;
@@ -286,6 +335,11 @@ public partial class ExpStatementBuilder : BaseBuilder<ExpStatementBuilder,ast_m
         Model = new();
     }
 
+    public ExpStatementBuilder WithRHS(ast_model.Expression value){
+        Model.RHS = value;
+        return this;
+    }
+
     public ExpStatementBuilder WithType(ast_model.TypeMetadata value){
         Model.Type = value;
         return this;
@@ -307,6 +361,11 @@ public partial class FieldDefBuilder : BaseBuilder<FieldDefBuilder,ast_model.Fie
     public FieldDefBuilder()
     {
         Model = new();
+    }
+
+    public FieldDefBuilder WithAccessConstraints(ast_model.AccessConstraint[] value){
+        Model.AccessConstraints = value;
+        return this;
     }
 
     public FieldDefBuilder WithVisibility(ast_model.Visibility value){
@@ -342,6 +401,21 @@ public partial class ForeachStatementBuilder : BaseBuilder<ForeachStatementBuild
         Model = new();
     }
 
+    public ForeachStatementBuilder WithCollection(ast_model.Expression value){
+        Model.Collection = value;
+        return this;
+    }
+
+    public ForeachStatementBuilder WithLoopVariable(ast_model.VariableDecl value){
+        Model.LoopVariable = value;
+        return this;
+    }
+
+    public ForeachStatementBuilder WithBody(ast_model.BlockStatement value){
+        Model.Body = value;
+        return this;
+    }
+
     public ForeachStatementBuilder WithType(ast_model.TypeMetadata value){
         Model.Type = value;
         return this;
@@ -363,6 +437,31 @@ public partial class ForStatementBuilder : BaseBuilder<ForStatementBuilder,ast_m
     public ForStatementBuilder()
     {
         Model = new();
+    }
+
+    public ForStatementBuilder WithInitialValue(ast_model.Expression value){
+        Model.InitialValue = value;
+        return this;
+    }
+
+    public ForStatementBuilder WithConstraint(ast_model.Expression value){
+        Model.Constraint = value;
+        return this;
+    }
+
+    public ForStatementBuilder WithIncrementExpression(ast_model.Expression value){
+        Model.IncrementExpression = value;
+        return this;
+    }
+
+    public ForStatementBuilder WithLoopVariable(ast_model.VariableDecl value){
+        Model.LoopVariable = value;
+        return this;
+    }
+
+    public ForStatementBuilder WithBody(ast_model.BlockStatement value){
+        Model.Body = value;
+        return this;
     }
 
     public ForStatementBuilder WithType(ast_model.TypeMetadata value){
@@ -434,18 +533,13 @@ public partial class GraphNamespaceAliasBuilder : BaseBuilder<GraphNamespaceAlia
         Model = new();
     }
 
-    public GraphNamespaceAliasBuilder WithType(ast_model.TypeMetadata value){
-        Model.Type = value;
-        return this;
-    }
-
     public GraphNamespaceAliasBuilder WithName(System.String value){
         Model.Name = value;
         return this;
     }
 
-    public GraphNamespaceAliasBuilder WithParent(ast_model.AstThing value){
-        Model.Parent = value;
+    public GraphNamespaceAliasBuilder WithUri(System.Uri value){
+        Model.Uri = value;
         return this;
     }
 
@@ -455,6 +549,11 @@ public partial class GuardStatementBuilder : BaseBuilder<GuardStatementBuilder,a
     public GuardStatementBuilder()
     {
         Model = new();
+    }
+
+    public GuardStatementBuilder WithCondition(ast_model.Expression value){
+        Model.Condition = value;
+        return this;
     }
 
     public GuardStatementBuilder WithType(ast_model.TypeMetadata value){
@@ -480,6 +579,21 @@ public partial class IfElseStatementBuilder : BaseBuilder<IfElseStatementBuilder
         Model = new();
     }
 
+    public IfElseStatementBuilder WithCondition(ast_model.Expression value){
+        Model.Condition = value;
+        return this;
+    }
+
+    public IfElseStatementBuilder WithThenBlock(ast_model.BlockStatement value){
+        Model.ThenBlock = value;
+        return this;
+    }
+
+    public IfElseStatementBuilder WithElseBlock(ast_model.BlockStatement value){
+        Model.ElseBlock = value;
+        return this;
+    }
+
     public IfElseStatementBuilder WithType(ast_model.TypeMetadata value){
         Model.Type = value;
         return this;
@@ -503,6 +617,21 @@ public partial class InferenceRuleDefBuilder : BaseBuilder<InferenceRuleDefBuild
         Model = new();
     }
 
+    public InferenceRuleDefBuilder WithAntecedent(ast_model.Expression value){
+        Model.Antecedent = value;
+        return this;
+    }
+
+    public InferenceRuleDefBuilder WithConsequent(ast_model.KnowledgeManagementBlock value){
+        Model.Consequent = value;
+        return this;
+    }
+
+    public InferenceRuleDefBuilder WithVisibility(ast_model.Visibility value){
+        Model.Visibility = value;
+        return this;
+    }
+
     public InferenceRuleDefBuilder WithType(ast_model.TypeMetadata value){
         Model.Type = value;
         return this;
@@ -519,24 +648,43 @@ public partial class InferenceRuleDefBuilder : BaseBuilder<InferenceRuleDefBuild
     }
 
 }
-public partial class LambdaDefBuilder : BaseBuilder<LambdaDefBuilder,ast_model.LambdaDef>
+public partial class KnowledgeManagementBlockBuilder : BaseBuilder<KnowledgeManagementBlockBuilder,ast_model.KnowledgeManagementBlock>
 {
-    public LambdaDefBuilder()
+    public KnowledgeManagementBlockBuilder()
     {
         Model = new();
     }
 
-    public LambdaDefBuilder WithType(ast_model.TypeMetadata value){
+    public KnowledgeManagementBlockBuilder WithStatements(List<ast_model.KnowledgeManagementStatement> value){
+        Model.Statements = value;
+        return this;
+    }
+
+    public KnowledgeManagementBlockBuilder AddingItemToStatements(ast_model.KnowledgeManagementStatement value){
+        if(Model.Statements is null)
+            Model.Statements = [];
+        Model.Statements.Add(value);
+        return this;
+    }
+}
+public partial class LambdaExpBuilder : BaseBuilder<LambdaExpBuilder,ast_model.LambdaExp>
+{
+    public LambdaExpBuilder()
+    {
+        Model = new();
+    }
+
+    public LambdaExpBuilder WithType(ast_model.TypeMetadata value){
         Model.Type = value;
         return this;
     }
 
-    public LambdaDefBuilder WithName(System.String value){
+    public LambdaExpBuilder WithName(System.String value){
         Model.Name = value;
         return this;
     }
 
-    public LambdaDefBuilder WithParent(ast_model.AstThing value){
+    public LambdaExpBuilder WithParent(ast_model.AstThing value){
         Model.Parent = value;
         return this;
     }
@@ -651,6 +799,11 @@ public partial class MemberRefBuilder : BaseBuilder<MemberRefBuilder,ast_model.M
         Model = new();
     }
 
+    public MemberRefBuilder WithMemberDef(ast_model.MemberDef value){
+        Model.MemberDef = value;
+        return this;
+    }
+
     public MemberRefBuilder WithType(ast_model.TypeMetadata value){
         Model.Type = value;
         return this;
@@ -756,6 +909,11 @@ public partial class ParamDefBuilder : BaseBuilder<ParamDefBuilder,ast_model.Par
         return this;
     }
 
+    public ParamDefBuilder WithVisibility(ast_model.Visibility value){
+        Model.Visibility = value;
+        return this;
+    }
+
     public ParamDefBuilder WithType(ast_model.TypeMetadata value){
         Model.Type = value;
         return this;
@@ -790,6 +948,11 @@ public partial class ParamDestructureDefBuilder : BaseBuilder<ParamDestructureDe
         Model.Bindings.AddLast(value);
         return this;
     }
+    public ParamDestructureDefBuilder WithVisibility(ast_model.Visibility value){
+        Model.Visibility = value;
+        return this;
+    }
+
     public ParamDestructureDefBuilder WithType(ast_model.TypeMetadata value){
         Model.Type = value;
         return this;
@@ -828,6 +991,11 @@ public partial class PropertyBindingDefBuilder : BaseBuilder<PropertyBindingDefB
         return this;
     }
 
+    public PropertyBindingDefBuilder WithVisibility(ast_model.Visibility value){
+        Model.Visibility = value;
+        return this;
+    }
+
     public PropertyBindingDefBuilder WithType(ast_model.TypeMetadata value){
         Model.Type = value;
         return this;
@@ -849,6 +1017,11 @@ public partial class PropertyDefBuilder : BaseBuilder<PropertyDefBuilder,ast_mod
     public PropertyDefBuilder()
     {
         Model = new();
+    }
+
+    public PropertyDefBuilder WithAccessConstraints(ast_model.AccessConstraint[] value){
+        Model.AccessConstraints = value;
+        return this;
     }
 
     public PropertyDefBuilder WithIsWriteOnly(System.Boolean value){
@@ -932,6 +1105,11 @@ public partial class ReturnStatementBuilder : BaseBuilder<ReturnStatementBuilder
         Model = new();
     }
 
+    public ReturnStatementBuilder WithReturnValue(ast_model.Expression value){
+        Model.ReturnValue = value;
+        return this;
+    }
+
     public ReturnStatementBuilder WithType(ast_model.TypeMetadata value){
         Model.Type = value;
         return this;
@@ -943,40 +1121,6 @@ public partial class ReturnStatementBuilder : BaseBuilder<ReturnStatementBuilder
     }
 
     public ReturnStatementBuilder WithParent(ast_model.AstThing value){
-        Model.Parent = value;
-        return this;
-    }
-
-}
-public partial class StructDefBuilder : BaseBuilder<StructDefBuilder,ast_model.StructDef>
-{
-    public StructDefBuilder()
-    {
-        Model = new();
-    }
-
-    public StructDefBuilder WithMemberDefs(LinkedList<ast_model.MemberDef> value){
-        Model.MemberDefs = value;
-        return this;
-    }
-
-    public StructDefBuilder AddingItemToMemberDefs(ast_model.MemberDef value){
-        if(Model.MemberDefs is null)
-            Model.MemberDefs = [];
-        Model.MemberDefs.AddLast(value);
-        return this;
-    }
-    public StructDefBuilder WithType(ast_model.TypeMetadata value){
-        Model.Type = value;
-        return this;
-    }
-
-    public StructDefBuilder WithName(System.String value){
-        Model.Name = value;
-        return this;
-    }
-
-    public StructDefBuilder WithParent(ast_model.AstThing value){
         Model.Parent = value;
         return this;
     }
@@ -1010,6 +1154,11 @@ public partial class TypeDefBuilder : BaseBuilder<TypeDefBuilder,ast_model.TypeD
     public TypeDefBuilder()
     {
         Model = new();
+    }
+
+    public TypeDefBuilder WithVisibility(ast_model.Visibility value){
+        Model.Visibility = value;
+        return this;
     }
 
     public TypeDefBuilder WithType(ast_model.TypeMetadata value){
@@ -1109,6 +1258,16 @@ public partial class VariableDeclBuilder : BaseBuilder<VariableDeclBuilder,ast_m
         Model = new();
     }
 
+    public VariableDeclBuilder WithInitialValue(ast_model.Expression value){
+        Model.InitialValue = value;
+        return this;
+    }
+
+    public VariableDeclBuilder WithVisibility(ast_model.Visibility value){
+        Model.Visibility = value;
+        return this;
+    }
+
     public VariableDeclBuilder WithType(ast_model.TypeMetadata value){
         Model.Type = value;
         return this;
@@ -1130,6 +1289,11 @@ public partial class VarRefBuilder : BaseBuilder<VarRefBuilder,ast_model.VarRef>
     public VarRefBuilder()
     {
         Model = new();
+    }
+
+    public VarRefBuilder WithVarDecl(ast_model.VarDeclStatement value){
+        Model.VarDecl = value;
+        return this;
     }
 
     public VarRefBuilder WithType(ast_model.TypeMetadata value){
@@ -1176,6 +1340,16 @@ public partial class WhileStatementBuilder : BaseBuilder<WhileStatementBuilder,a
     public WhileStatementBuilder()
     {
         Model = new();
+    }
+
+    public WhileStatementBuilder WithCondition(ast_model.Expression value){
+        Model.Condition = value;
+        return this;
+    }
+
+    public WhileStatementBuilder WithBody(ast_model.BlockStatement value){
+        Model.Body = value;
+        return this;
     }
 
     public WhileStatementBuilder WithType(ast_model.TypeMetadata value){
