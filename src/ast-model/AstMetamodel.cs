@@ -106,56 +106,55 @@ public record struct SourceLocationMetadata(
 
 public record struct TypeMetadata(TypeId TypeId, Symbol Symbol);
 
-public abstract class AstThing
+public abstract record AstThing
 {
-    public TypeMetadata Type { get; set; }
-    public string Name { get; set; }
-    public AstThing Parent { get; set; }
+    public required TypeMetadata Type { get; init; }
+    public required string Name { get; init; }
+    public required AstThing Parent { get; init; }
 }
 
 #endregion
 
 #region Definitions
 
-public abstract class Definition : AstThing
+public abstract record Definition : AstThing
 {
-    public Visibility Visibility { get; set; } = Visibility.Internal;
+    public required Visibility Visibility { get; init; } = Visibility.Internal;
 }
 
-public class AssemblyDef : Definition
+public record AssemblyDef : Definition
 {
-    public string PublicKeyToken { get; set; }
-    public string Version { get; set; }
-    public LinkedList<AssemblyRef> AssemblyRefs { get; set; }
-    public LinkedList<ClassDef> ClassDefs { get; set; }
+    public required string PublicKeyToken { get; init; }
+    public required string Version { get; init; }
+    public required LinkedList<AssemblyRef> AssemblyRefs { get; init; }
+    public required LinkedList<ClassDef> ClassDefs { get; init; }
 }
 
-public class MemberDef : Definition
+public record MemberDef : Definition
 {
-    public Visibility Visibility { get; set; }
-    public bool IsReadOnly { get; set; }
+    public required bool IsReadOnly { get; init; }
 }
 
-public class FieldDef : MemberDef
+public record FieldDef : MemberDef
 {
-    public AccessConstraint[] AccessConstraints { get; set; } = [];
+    public required AccessConstraint[] AccessConstraints { get; init; } = [];
 }
 
-public class PropertyDef : MemberDef
+public record PropertyDef : MemberDef
 {
-    public AccessConstraint[] AccessConstraints { get; set; } = [];
-    public bool IsWriteOnly { get; set; }
-    public FieldDef? BackingField { get; set; }
-    public MethodDef? Getter { get; set; }
-    public MethodDef? Setter { get; set; }
-    public bool CtorOnlySetter { get; set; }
+    public required AccessConstraint[] AccessConstraints { get; init; } = [];
+    public required bool IsWriteOnly { get; init; }
+    public required FieldDef? BackingField { get; init; }
+    public required MethodDef? Getter { get; init; }
+    public required MethodDef? Setter { get; init; }
+    public required bool CtorOnlySetter { get; init; }
 }
 
-public class MethodDef : MemberDef
+public record MethodDef : MemberDef
 {
     // todo: need the possibility of type parameters here.
-    public List<ParamDef> Params { get; set; } = [];
-    public BlockStatement Body { get; set; }
+    public required List<ParamDef> Params { get; init; } = [];
+    public required BlockStatement Body { get; init; }
 }
 
 /// <summary>
@@ -173,175 +172,175 @@ public class MethodDef : MemberDef
 /// <remarks>
 /// <see cref="obsidian://open?vault=notes&file=me%2Factive%2Fprojects%2Ffifthlang%2FLanguage%20Samples"/>
 /// </remarks>
-public class InferenceRuleDef : Definition
+public record InferenceRuleDef : Definition
 {
-    public Expression Antecedent { get; set; }
+    public required Expression Antecedent { get; init; }
 
-    public KnowledgeManagementBlock Consequent { get; set; }
+    public required KnowledgeManagementBlock Consequent { get; init; }
 }
 
-public class ParamDef : Definition
+public record ParamDef : Definition
 {
-    public Expression? ParameterConstraint { get; set; }
-    public ParamDestructureDef? DestructureDef { get; set; }
+    public required Expression? ParameterConstraint { get; init; }
+    public required ParamDestructureDef? DestructureDef { get; init; }
 }
 
-public class ParamDestructureDef : Definition
+public record ParamDestructureDef : Definition
 {
-    public LinkedList<PropertyBindingDef> Bindings { get; set; }
+    public required LinkedList<PropertyBindingDef> Bindings { get; init; }
 }
 
-public class PropertyBindingDef : Definition
+public record PropertyBindingDef : Definition
 {
-    public VariableDecl IntroducedVariable { get; set; }
-    public PropertyDef ReferencedProperty { get; set; }
-    public ParamDestructureDef? DestructureDef { get; set; }
+    public required VariableDecl IntroducedVariable { get; init; }
+    public required PropertyDef ReferencedProperty { get; init; }
+    public required ParamDestructureDef? DestructureDef { get; init; }
 }
 
-public class TypeDef : Definition
+public record TypeDef : Definition
 {
 }
 
-public class ClassDef : Definition
+public record ClassDef : Definition
 {
-    public LinkedList<MemberDef> MemberDefs { get; set; }
+    public required LinkedList<MemberDef> MemberDefs { get; init; }
 }
 
 // out of scope for now...
-//public class StructDef : Definition
+//public record StructDef : Definition
 //{
-//    public LinkedList<MemberDef> MemberDefs { get; set; }
+//    public required LinkedList<MemberDef> MemberDefs { get; init; }
 //}
 
 
-public class VariableDecl : Definition
+public record VariableDecl : Definition
 {
-    public Expression? InitialValue { get; set; }
+    public required Expression? InitialValue { get; init; }
 }
 
 #endregion
 
 #region References
 
-public abstract class Reference : AstThing
+public abstract record Reference : AstThing
 {
 }
 
-public class AssemblyRef : Reference
+public record AssemblyRef : Reference
 {
-    public string PublicKeyToken{get;set;}
-    public string Version{get;set;}
+    public required string PublicKeyToken{get;set;}
+    public required string Version{get;set;}
 
 }
 
-public class MemberRef : Reference
+public record MemberRef : Reference
 {
-    public MemberDef MemberDef { get; set; }
+    public required MemberDef MemberDef { get; init; }
 }
 
-public class TypeRef : Reference
+public record TypeRef : Reference
 {
 }
 
-public class VarRef : Reference
+public record VarRef : Reference
 {
-    public VarDeclStatement VarDecl { get; set; }
+    public required VarDeclStatement VarDecl { get; init; }
 }
 
-public class GraphNamespaceAlias /*: Reference*/
+public record GraphNamespaceAlias /*: Reference*/
 {
-    public string Name { get; set; }
-    public Uri Uri { get; set; }
+    public required string Name { get; init; }
+    public required Uri Uri { get; init; }
 }
 
 #endregion
 
 #region Statements
 
-public abstract class Statement : AstThing
+public abstract record Statement : AstThing
 {
 }
 
-public class AssignmentStatement : Statement
+public record AssignmentStatement : Statement
 {
-    public Expression RHS { get; set; }
+    public required Expression RHS { get; init; }
 }
 
-public class BlockStatement : Statement
+public record BlockStatement : Statement
 {
-    public List<Statement> Statements { get; set; } = [];
+    public required List<Statement> Statements { get; init; } = [];
 }
-public class KnowledgeManagementBlock
+public record KnowledgeManagementBlock
 {
-    public List<KnowledgeManagementStatement> Statements { get; set; } = [];
+    public required List<KnowledgeManagementStatement> Statements { get; init; } = [];
 }
 
 /// <summary>
 /// A statement containing a bare expression where the result is discarded
 /// </summary>
-public class ExpStatement : Statement
+public record ExpStatement : Statement
 {
-    public Expression RHS { get; set; }
+    public required Expression RHS { get; init; }
 }
 
-public class ForStatement : Statement
+public record ForStatement : Statement
 {
-    public Expression InitialValue { get; set; }
-    public Expression Constraint { get; set; }
-    public Expression IncrementExpression { get; set; }
-    public VariableDecl LoopVariable { get; set; }
-    public BlockStatement Body { get; set; }
+    public required Expression InitialValue { get; init; }
+    public required Expression Constraint { get; init; }
+    public required Expression IncrementExpression { get; init; }
+    public required VariableDecl LoopVariable { get; init; }
+    public required BlockStatement Body { get; init; }
 }
 
-public class ForeachStatement : Statement
+public record ForeachStatement : Statement
 {
-    public Expression Collection { get; set; }
-    public VariableDecl LoopVariable { get; set; }
-    public BlockStatement Body { get; set; }
+    public required Expression Collection { get; init; }
+    public required VariableDecl LoopVariable { get; init; }
+    public required BlockStatement Body { get; init; }
 }
 
 // TODO: work out what I meant by this
 // see here: obsidian://open?vault=notes&file=me%2Factive%2Fprojects%2Ffifthlang%2Fprojects.fifthlang.ast.guardstmt
-public class GuardStatement : Statement
+public record GuardStatement : Statement
 {
-    public Expression Condition { get; set; }
+    public required Expression Condition { get; init; }
 }
 
-public class IfElseStatement : Statement
+public record IfElseStatement : Statement
 {
-    public Expression Condition { get; set; }
-    public BlockStatement ThenBlock { get; set; }
-    public BlockStatement ElseBlock { get; set; }
+    public required Expression Condition { get; init; }
+    public required BlockStatement ThenBlock { get; init; }
+    public required BlockStatement ElseBlock { get; init; }
 }
 
-public class ReturnStatement : Statement
+public record ReturnStatement : Statement
 {
-    public Expression ReturnValue { get; set; }
+    public required Expression ReturnValue { get; init; }
 }
 
-public class VarDeclStatement : Statement
+public record VarDeclStatement : Statement
 {
-    public VariableDecl VariableDecl { get; set; }
+    public required VariableDecl VariableDecl { get; init; }
 }
 
-public class WhileStatement : Statement
+public record WhileStatement : Statement
 {
-    public Expression Condition { get; set; }
-    public BlockStatement Body { get; set; }
+    public required Expression Condition { get; init; }
+    public required BlockStatement Body { get; init; }
 }
 
-public abstract class KnowledgeManagementStatement : Statement
+public abstract record KnowledgeManagementStatement : Statement
 {
 }
 
 /// <summary>
 /// Asserts some statement to be true, for addition to the knowledge base
 /// </summary>
-public class AssertionStatement : Statement
+public record AssertionStatement : Statement
 {
-    public AssertionSubject AssertionSubject { get; set; }
-    public AssertionPredicate AssertionPredicate { get; set; }
-    public AssertionObject AssertionObject { get; set; }
+    public required AssertionSubject AssertionSubject { get; init; }
+    public required AssertionPredicate AssertionPredicate { get; init; }
+    public required AssertionObject AssertionObject { get; init; }
 }
 
 /// <summary>
@@ -353,7 +352,7 @@ public class AssertionStatement : Statement
 /// - A class definition only mentioned in the knowledge base
 /// - an instance of some type of class
 /// </remarks>
-public class AssertionObject
+public record AssertionObject
 {
     //todo: need to work out how to represent the choices available to this (perhaps as some sort of discriminated union or polymorphic type)
 }
@@ -361,22 +360,22 @@ public class AssertionObject
 /// <summary>
 /// The predicate of an assertion, the thing that is asserted about the subject.
 /// </summary>
-public class AssertionPredicate
+public record AssertionPredicate
 {
 }
 
 /// <summary>
 /// The subject of an assertion, the thing said about the object.
 /// </summary>
-public class AssertionSubject
+public record AssertionSubject
 {
 }
 
-public class RetractionStatement : Statement
+public record RetractionStatement : Statement
 {
 }
 
-public class WithScopeStatement : Statement
+public record WithScopeStatement : Statement
 {
 }
 
@@ -384,58 +383,58 @@ public class WithScopeStatement : Statement
 
 #region Expressions
 
-public abstract class Expression : AstThing
+public abstract record Expression : AstThing
 {
 }
 
-public class BinaryExp : Expression
+public record BinaryExp : Expression
 {
 }
 
-public class CastExp : Expression
+public record CastExp : Expression
 {
 }
-public class LambdaExp : Expression
-{
-}
-
-public class FuncCallExp : Expression
+public record LambdaExp : Expression
 {
 }
 
-public class LiteralExp : Expression
+public record FuncCallExp : Expression
 {
 }
 
-public class MemberAccessExp : Expression
+public record LiteralExp : Expression
 {
 }
 
-public class ObjectInstantiationExp : Expression
+public record MemberAccessExp : Expression
 {
 }
 
-public class UnaryExp : Expression
+public record ObjectInstantiationExp : Expression
 {
 }
 
-public class VarRefExp : Expression
+public record UnaryExp : Expression
 {
 }
 
-public class List : Expression
+public record VarRefExp : Expression
 {
 }
 
-public class Atom : Expression
+public record List : Expression
 {
 }
 
-public class Triple : Expression
+public record Atom : Expression
 {
 }
 
-public class Graph : Expression
+public record Triple : Expression
+{
+}
+
+public record Graph : Expression
 {
 }
 

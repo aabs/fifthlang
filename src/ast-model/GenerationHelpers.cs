@@ -26,6 +26,7 @@ public static class GenerationHelpers
     }
     public static string BuildInstanceTypeName(this Type type)
     {
+        ArgumentNullException.ThrowIfNull(type);
         if ( !type.IsCollectionType())
         {
             return BuildTypeName(type);
@@ -36,15 +37,15 @@ public static class GenerationHelpers
             return BuildTypeName(type.GetGenericArguments().First());
         }
 
-        return type.FullName;
+        return type.FullName!;
     }
     public static string BuildTypeName(this Type type)
     {
+        ArgumentNullException.ThrowIfNull(type);
         // Console.WriteLine($"Building type name for {type}");
         var sb = new StringBuilder();
         if (type.IsGenericType)
         {
-            var collectionTypeName = "List";
             if (type.GetGenericTypeDefinition() == typeof(LinkedList<>))
             {
                 sb.Append("LinkedList<");
@@ -81,7 +82,7 @@ public static class GenerationHelpers
             return sb.ToString();
         }
 
-        return type.FullName;
+        return type.FullName!;
     }
 
 

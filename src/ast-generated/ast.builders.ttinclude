@@ -1,7 +1,7 @@
 namespace ast_generated;
 
-using System;
 using System.Collections.Generic;
+#nullable disable
 
 <#
 foreach (var t in concreteTypes)
@@ -10,20 +10,40 @@ foreach (var t in concreteTypes)
     var allProps = t.GetProperties();
 
 #>
-public partial class <#= t.Name #>Builder : BaseBuilder<<#= t.Name #>Builder,<#= t.FullName #>>
+public partial class <#= t.Name #>Builder : IBuilder<<#= t.FullName #>>
 {
-    public <#= t.Name #>Builder()
-    {
-        Model = new();
-    }
 
+<#
+    foreach (var prop in allProps)
+    {
+#>
+    private <#= prop.PropertyType.BuildTypeName() #> _<#= prop.Name #>;
+<#
+    }
+#>
+    
+    public <#= t.FullName #> Build()
+    {
+        return new <#= t.FullName #>(){
+<#
+    string sep = " ";
+    foreach (var prop in allProps)
+    {
+#>
+           <#= sep#> <#= prop.Name #> = this._<#= prop.Name #>
+<#
+    sep = ",";
+    }
+#>
+        };
+    }
 <#
     foreach (var prop in allProps)
     {
         //Console.WriteLine($"prop {prop.Name}");
 #>
     public <#= t.Name #>Builder With<#= prop.Name #>(<#= prop.PropertyType.BuildTypeName() #> value){
-        Model.<#= prop.Name #> = value;
+        _<#= prop.Name #> = value;
         return this;
     }
 
@@ -33,9 +53,8 @@ public partial class <#= t.Name #>Builder : BaseBuilder<<#= t.Name #>Builder,<#=
             var llAdjust = prop.PropertyType.IsLinkedListCollectionType() ? "Last" : "";
 #>
     public <#= t.Name #>Builder AddingItemTo<#= prop.Name #>(<#= prop.PropertyType.BuildInstanceTypeName() #> value){
-        if(Model.<#= prop.Name #> is null)
-            Model.<#= prop.Name #> = [];
-        Model.<#= prop.Name #>.Add<#= llAdjust #>(value);
+        _<#= prop.Name #>  ??= [];
+        _<#= prop.Name #>.Add<#= llAdjust #>(value);
         return this;
     }
 <#
@@ -46,3 +65,5 @@ public partial class <#= t.Name #>Builder : BaseBuilder<<#= t.Name #>Builder,<#=
 #>
 }
 <# } /*for each ast*/ #>
+
+#nullable restore

@@ -1,10 +1,6 @@
-namespace Fifth.Metamodel.AST2;
-
-using System.IO;
+namespace ast_generated;
 
 public interface IBuilder<TModel>
 {
-    TModel Model { get; set; }
-
-    TModel New();
+    TModel Build();
 }
