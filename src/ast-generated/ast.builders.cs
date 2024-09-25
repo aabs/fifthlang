@@ -3,7 +3,7 @@ namespace ast_generated;
 using System.Collections.Generic;
 #nullable disable
 
-public partial class AssemblyDefBuilder : IBuilder<ast_model.AssemblyDef>
+public class AssemblyDefBuilder : IBuilder<ast_model.AssemblyDef>
 {
 
     private System.String _PublicKeyToken;
@@ -79,7 +79,7 @@ public partial class AssemblyDefBuilder : IBuilder<ast_model.AssemblyDef>
     }
 
 }
-public partial class AssemblyRefBuilder : IBuilder<ast_model.AssemblyRef>
+public class AssemblyRefBuilder : IBuilder<ast_model.AssemblyRef>
 {
 
     private System.String _PublicKeyToken;
@@ -124,7 +124,7 @@ public partial class AssemblyRefBuilder : IBuilder<ast_model.AssemblyRef>
     }
 
 }
-public partial class AssertionObjectBuilder : IBuilder<ast_model.AssertionObject>
+public class AssertionObjectBuilder : IBuilder<ast_model.AssertionObject>
 {
 
     
@@ -134,7 +134,7 @@ public partial class AssertionObjectBuilder : IBuilder<ast_model.AssertionObject
         };
     }
 }
-public partial class AssertionPredicateBuilder : IBuilder<ast_model.AssertionPredicate>
+public class AssertionPredicateBuilder : IBuilder<ast_model.AssertionPredicate>
 {
 
     
@@ -144,7 +144,7 @@ public partial class AssertionPredicateBuilder : IBuilder<ast_model.AssertionPre
         };
     }
 }
-public partial class AssertionStatementBuilder : IBuilder<ast_model.AssertionStatement>
+public class AssertionStatementBuilder : IBuilder<ast_model.AssertionStatement>
 {
 
     private ast_model.AssertionSubject _AssertionSubject;
@@ -196,7 +196,7 @@ public partial class AssertionStatementBuilder : IBuilder<ast_model.AssertionSta
     }
 
 }
-public partial class AssertionSubjectBuilder : IBuilder<ast_model.AssertionSubject>
+public class AssertionSubjectBuilder : IBuilder<ast_model.AssertionSubject>
 {
 
     
@@ -206,7 +206,7 @@ public partial class AssertionSubjectBuilder : IBuilder<ast_model.AssertionSubje
         };
     }
 }
-public partial class AssignmentStatementBuilder : IBuilder<ast_model.AssignmentStatement>
+public class AssignmentStatementBuilder : IBuilder<ast_model.AssignmentStatement>
 {
 
     private ast_model.Expression _RHS;
@@ -244,7 +244,7 @@ public partial class AssignmentStatementBuilder : IBuilder<ast_model.AssignmentS
     }
 
 }
-public partial class AtomBuilder : IBuilder<ast_model.Atom>
+public class AtomBuilder : IBuilder<ast_model.Atom>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -275,7 +275,7 @@ public partial class AtomBuilder : IBuilder<ast_model.Atom>
     }
 
 }
-public partial class BinaryExpBuilder : IBuilder<ast_model.BinaryExp>
+public class BinaryExpBuilder : IBuilder<ast_model.BinaryExp>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -306,7 +306,7 @@ public partial class BinaryExpBuilder : IBuilder<ast_model.BinaryExp>
     }
 
 }
-public partial class BlockStatementBuilder : IBuilder<ast_model.BlockStatement>
+public class BlockStatementBuilder : IBuilder<ast_model.BlockStatement>
 {
 
     private List<ast_model.Statement> _Statements;
@@ -349,7 +349,7 @@ public partial class BlockStatementBuilder : IBuilder<ast_model.BlockStatement>
     }
 
 }
-public partial class CastExpBuilder : IBuilder<ast_model.CastExp>
+public class CastExpBuilder : IBuilder<ast_model.CastExp>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -380,7 +380,7 @@ public partial class CastExpBuilder : IBuilder<ast_model.CastExp>
     }
 
 }
-public partial class ClassDefBuilder : IBuilder<ast_model.ClassDef>
+public class ClassDefBuilder : IBuilder<ast_model.ClassDef>
 {
 
     private LinkedList<ast_model.MemberDef> _MemberDefs;
@@ -430,7 +430,7 @@ public partial class ClassDefBuilder : IBuilder<ast_model.ClassDef>
     }
 
 }
-public partial class ExpStatementBuilder : IBuilder<ast_model.ExpStatement>
+public class ExpStatementBuilder : IBuilder<ast_model.ExpStatement>
 {
 
     private ast_model.Expression _RHS;
@@ -468,7 +468,7 @@ public partial class ExpStatementBuilder : IBuilder<ast_model.ExpStatement>
     }
 
 }
-public partial class FieldDefBuilder : IBuilder<ast_model.FieldDef>
+public class FieldDefBuilder : IBuilder<ast_model.FieldDef>
 {
 
     private ast_model.AccessConstraint[] _AccessConstraints;
@@ -520,7 +520,7 @@ public partial class FieldDefBuilder : IBuilder<ast_model.FieldDef>
     }
 
 }
-public partial class ForeachStatementBuilder : IBuilder<ast_model.ForeachStatement>
+public class ForeachStatementBuilder : IBuilder<ast_model.ForeachStatement>
 {
 
     private ast_model.Expression _Collection;
@@ -572,7 +572,7 @@ public partial class ForeachStatementBuilder : IBuilder<ast_model.ForeachStateme
     }
 
 }
-public partial class ForStatementBuilder : IBuilder<ast_model.ForStatement>
+public class ForStatementBuilder : IBuilder<ast_model.ForStatement>
 {
 
     private ast_model.Expression _InitialValue;
@@ -638,7 +638,7 @@ public partial class ForStatementBuilder : IBuilder<ast_model.ForStatement>
     }
 
 }
-public partial class FuncCallExpBuilder : IBuilder<ast_model.FuncCallExp>
+public class FuncCallExpBuilder : IBuilder<ast_model.FuncCallExp>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -669,7 +669,7 @@ public partial class FuncCallExpBuilder : IBuilder<ast_model.FuncCallExp>
     }
 
 }
-public partial class GraphBuilder : IBuilder<ast_model.Graph>
+public class GraphBuilder : IBuilder<ast_model.Graph>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -700,7 +700,7 @@ public partial class GraphBuilder : IBuilder<ast_model.Graph>
     }
 
 }
-public partial class GraphNamespaceAliasBuilder : IBuilder<ast_model.GraphNamespaceAlias>
+public class GraphNamespaceAliasBuilder : IBuilder<ast_model.GraphNamespaceAlias>
 {
 
     private System.String _Name;
@@ -724,7 +724,7 @@ public partial class GraphNamespaceAliasBuilder : IBuilder<ast_model.GraphNamesp
     }
 
 }
-public partial class GuardStatementBuilder : IBuilder<ast_model.GuardStatement>
+public class GuardStatementBuilder : IBuilder<ast_model.GuardStatement>
 {
 
     private ast_model.Expression _Condition;
@@ -762,7 +762,7 @@ public partial class GuardStatementBuilder : IBuilder<ast_model.GuardStatement>
     }
 
 }
-public partial class IfElseStatementBuilder : IBuilder<ast_model.IfElseStatement>
+public class IfElseStatementBuilder : IBuilder<ast_model.IfElseStatement>
 {
 
     private ast_model.Expression _Condition;
@@ -814,7 +814,7 @@ public partial class IfElseStatementBuilder : IBuilder<ast_model.IfElseStatement
     }
 
 }
-public partial class InferenceRuleDefBuilder : IBuilder<ast_model.InferenceRuleDef>
+public class InferenceRuleDefBuilder : IBuilder<ast_model.InferenceRuleDef>
 {
 
     private ast_model.Expression _Antecedent;
@@ -866,7 +866,7 @@ public partial class InferenceRuleDefBuilder : IBuilder<ast_model.InferenceRuleD
     }
 
 }
-public partial class KnowledgeManagementBlockBuilder : IBuilder<ast_model.KnowledgeManagementBlock>
+public class KnowledgeManagementBlockBuilder : IBuilder<ast_model.KnowledgeManagementBlock>
 {
 
     private List<ast_model.KnowledgeManagementStatement> _Statements;
@@ -888,7 +888,7 @@ public partial class KnowledgeManagementBlockBuilder : IBuilder<ast_model.Knowle
         return this;
     }
 }
-public partial class LambdaExpBuilder : IBuilder<ast_model.LambdaExp>
+public class LambdaExpBuilder : IBuilder<ast_model.LambdaExp>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -919,7 +919,7 @@ public partial class LambdaExpBuilder : IBuilder<ast_model.LambdaExp>
     }
 
 }
-public partial class ListBuilder : IBuilder<ast_model.List>
+public class ListBuilder : IBuilder<ast_model.List>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -950,7 +950,7 @@ public partial class ListBuilder : IBuilder<ast_model.List>
     }
 
 }
-public partial class LiteralExpBuilder : IBuilder<ast_model.LiteralExp>
+public class LiteralExpBuilder : IBuilder<ast_model.LiteralExp>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -981,7 +981,7 @@ public partial class LiteralExpBuilder : IBuilder<ast_model.LiteralExp>
     }
 
 }
-public partial class MemberAccessExpBuilder : IBuilder<ast_model.MemberAccessExp>
+public class MemberAccessExpBuilder : IBuilder<ast_model.MemberAccessExp>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -1012,7 +1012,7 @@ public partial class MemberAccessExpBuilder : IBuilder<ast_model.MemberAccessExp
     }
 
 }
-public partial class MemberDefBuilder : IBuilder<ast_model.MemberDef>
+public class MemberDefBuilder : IBuilder<ast_model.MemberDef>
 {
 
     private System.Boolean _IsReadOnly;
@@ -1057,7 +1057,7 @@ public partial class MemberDefBuilder : IBuilder<ast_model.MemberDef>
     }
 
 }
-public partial class MemberRefBuilder : IBuilder<ast_model.MemberRef>
+public class MemberRefBuilder : IBuilder<ast_model.MemberRef>
 {
 
     private ast_model.MemberDef _MemberDef;
@@ -1095,7 +1095,7 @@ public partial class MemberRefBuilder : IBuilder<ast_model.MemberRef>
     }
 
 }
-public partial class MethodDefBuilder : IBuilder<ast_model.MethodDef>
+public class MethodDefBuilder : IBuilder<ast_model.MethodDef>
 {
 
     private List<ast_model.ParamDef> _Params;
@@ -1159,7 +1159,7 @@ public partial class MethodDefBuilder : IBuilder<ast_model.MethodDef>
     }
 
 }
-public partial class ObjectInstantiationExpBuilder : IBuilder<ast_model.ObjectInstantiationExp>
+public class ObjectInstantiationExpBuilder : IBuilder<ast_model.ObjectInstantiationExp>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -1190,7 +1190,7 @@ public partial class ObjectInstantiationExpBuilder : IBuilder<ast_model.ObjectIn
     }
 
 }
-public partial class ParamDefBuilder : IBuilder<ast_model.ParamDef>
+public class ParamDefBuilder : IBuilder<ast_model.ParamDef>
 {
 
     private ast_model.Expression _ParameterConstraint;
@@ -1242,7 +1242,7 @@ public partial class ParamDefBuilder : IBuilder<ast_model.ParamDef>
     }
 
 }
-public partial class ParamDestructureDefBuilder : IBuilder<ast_model.ParamDestructureDef>
+public class ParamDestructureDefBuilder : IBuilder<ast_model.ParamDestructureDef>
 {
 
     private LinkedList<ast_model.PropertyBindingDef> _Bindings;
@@ -1292,7 +1292,7 @@ public partial class ParamDestructureDefBuilder : IBuilder<ast_model.ParamDestru
     }
 
 }
-public partial class PropertyBindingDefBuilder : IBuilder<ast_model.PropertyBindingDef>
+public class PropertyBindingDefBuilder : IBuilder<ast_model.PropertyBindingDef>
 {
 
     private ast_model.VariableDecl _IntroducedVariable;
@@ -1351,7 +1351,7 @@ public partial class PropertyBindingDefBuilder : IBuilder<ast_model.PropertyBind
     }
 
 }
-public partial class PropertyDefBuilder : IBuilder<ast_model.PropertyDef>
+public class PropertyDefBuilder : IBuilder<ast_model.PropertyDef>
 {
 
     private ast_model.AccessConstraint[] _AccessConstraints;
@@ -1438,7 +1438,7 @@ public partial class PropertyDefBuilder : IBuilder<ast_model.PropertyDef>
     }
 
 }
-public partial class RetractionStatementBuilder : IBuilder<ast_model.RetractionStatement>
+public class RetractionStatementBuilder : IBuilder<ast_model.RetractionStatement>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -1469,7 +1469,7 @@ public partial class RetractionStatementBuilder : IBuilder<ast_model.RetractionS
     }
 
 }
-public partial class ReturnStatementBuilder : IBuilder<ast_model.ReturnStatement>
+public class ReturnStatementBuilder : IBuilder<ast_model.ReturnStatement>
 {
 
     private ast_model.Expression _ReturnValue;
@@ -1507,7 +1507,7 @@ public partial class ReturnStatementBuilder : IBuilder<ast_model.ReturnStatement
     }
 
 }
-public partial class TripleBuilder : IBuilder<ast_model.Triple>
+public class TripleBuilder : IBuilder<ast_model.Triple>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -1538,7 +1538,7 @@ public partial class TripleBuilder : IBuilder<ast_model.Triple>
     }
 
 }
-public partial class TypeDefBuilder : IBuilder<ast_model.TypeDef>
+public class TypeDefBuilder : IBuilder<ast_model.TypeDef>
 {
 
     private ast_model.Visibility _Visibility;
@@ -1576,7 +1576,7 @@ public partial class TypeDefBuilder : IBuilder<ast_model.TypeDef>
     }
 
 }
-public partial class TypeRefBuilder : IBuilder<ast_model.TypeRef>
+public class TypeRefBuilder : IBuilder<ast_model.TypeRef>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -1607,7 +1607,7 @@ public partial class TypeRefBuilder : IBuilder<ast_model.TypeRef>
     }
 
 }
-public partial class UnaryExpBuilder : IBuilder<ast_model.UnaryExp>
+public class UnaryExpBuilder : IBuilder<ast_model.UnaryExp>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -1638,7 +1638,7 @@ public partial class UnaryExpBuilder : IBuilder<ast_model.UnaryExp>
     }
 
 }
-public partial class VarDeclStatementBuilder : IBuilder<ast_model.VarDeclStatement>
+public class VarDeclStatementBuilder : IBuilder<ast_model.VarDeclStatement>
 {
 
     private ast_model.VariableDecl _VariableDecl;
@@ -1676,7 +1676,7 @@ public partial class VarDeclStatementBuilder : IBuilder<ast_model.VarDeclStateme
     }
 
 }
-public partial class VariableDeclBuilder : IBuilder<ast_model.VariableDecl>
+public class VariableDeclBuilder : IBuilder<ast_model.VariableDecl>
 {
 
     private ast_model.Expression _InitialValue;
@@ -1721,7 +1721,7 @@ public partial class VariableDeclBuilder : IBuilder<ast_model.VariableDecl>
     }
 
 }
-public partial class VarRefBuilder : IBuilder<ast_model.VarRef>
+public class VarRefBuilder : IBuilder<ast_model.VarRef>
 {
 
     private ast_model.VarDeclStatement _VarDecl;
@@ -1759,7 +1759,7 @@ public partial class VarRefBuilder : IBuilder<ast_model.VarRef>
     }
 
 }
-public partial class VarRefExpBuilder : IBuilder<ast_model.VarRefExp>
+public class VarRefExpBuilder : IBuilder<ast_model.VarRefExp>
 {
 
     private ast_model.TypeMetadata _Type;
@@ -1790,7 +1790,7 @@ public partial class VarRefExpBuilder : IBuilder<ast_model.VarRefExp>
     }
 
 }
-public partial class WhileStatementBuilder : IBuilder<ast_model.WhileStatement>
+public class WhileStatementBuilder : IBuilder<ast_model.WhileStatement>
 {
 
     private ast_model.Expression _Condition;
@@ -1835,7 +1835,7 @@ public partial class WhileStatementBuilder : IBuilder<ast_model.WhileStatement>
     }
 
 }
-public partial class WithScopeStatementBuilder : IBuilder<ast_model.WithScopeStatement>
+public class WithScopeStatementBuilder : IBuilder<ast_model.WithScopeStatement>
 {
 
     private ast_model.TypeMetadata _Type;

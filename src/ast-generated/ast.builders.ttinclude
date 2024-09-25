@@ -10,7 +10,7 @@ foreach (var t in concreteTypes)
     var allProps = t.GetProperties();
 
 #>
-public partial class <#= t.Name #>Builder : IBuilder<<#= t.FullName #>>
+public class <#= t.Name #>Builder : IBuilder<<#= t.FullName #>>
 {
 
 <#
