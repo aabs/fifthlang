@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ast_model.Attributes
+﻿namespace ast_model
 {
-   
     [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
     public class IgnoreAttribute : Attribute
+    {
+    }
+    [AttributeUsage(AttributeTargets.Property|AttributeTargets.Field)]
+    public class IgnoreDuringVisitAttribute : Attribute
     {
     }
 }

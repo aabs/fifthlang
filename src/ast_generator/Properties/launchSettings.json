@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ast_generator": {
+      "commandName": "Project",
+      "commandLineArgs": "--folder $(SolutionDir)src\\ast-generated"
+    }
+  }
+}

@@ -1,33 +1,11 @@
-﻿using System.Text;
-
-namespace ast_model;
+﻿namespace ast_model;
 
 public static class GenerationHelpers
 {
-    public static bool IsCollectionType(this Type t)
-    {
-        if (t.IsGenericType)
-        {
-            return t.GetGenericTypeDefinition() == typeof(List<>)
-                   || t.GetGenericTypeDefinition() == typeof(LinkedList<>);
-        }
-
-        return false;
-    }
-
-    public static bool IsLinkedListCollectionType(this Type t)
-    {
-        if (t.IsGenericType)
-        {
-            return t.GetGenericTypeDefinition() == typeof(LinkedList<>);
-        }
-
-        return false;
-    }
     public static string BuildInstanceTypeName(this Type type)
     {
         ArgumentNullException.ThrowIfNull(type);
-        if ( !type.IsCollectionType())
+        if (!type.IsCollectionType())
         {
             return BuildTypeName(type);
         }
@@ -39,6 +17,7 @@ public static class GenerationHelpers
 
         return type.FullName!;
     }
+
     public static string BuildTypeName(this Type type)
     {
         ArgumentNullException.ThrowIfNull(type);
@@ -46,6 +25,19 @@ public static class GenerationHelpers
         var sb = new StringBuilder();
         if (type.IsGenericType)
         {
+            if (type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            {
+                sb.Append("Dictionary<");
+                var sep = "";
+                foreach (var typeArgument in type.GenericTypeArguments)
+                {
+                    sb.Append(sep);
+                    sb.Append(BuildTypeName(typeArgument));
+                    sep = ", ";
+                }
+
+                sb.Append(">");
+            }
             if (type.GetGenericTypeDefinition() == typeof(LinkedList<>))
             {
                 sb.Append("LinkedList<");
@@ -85,5 +77,24 @@ public static class GenerationHelpers
         return type.FullName!;
     }
 
+    public static bool IsCollectionType(this Type t)
+    {
+        if (t.IsGenericType)
+        {
+            return t.GetGenericTypeDefinition() == typeof(List<>)
+                   || t.GetGenericTypeDefinition() == typeof(LinkedList<>);
+        }
 
+        return false;
+    }
+
+    public static bool IsLinkedListCollectionType(this Type t)
+    {
+        if (t.IsGenericType)
+        {
+            return t.GetGenericTypeDefinition() == typeof(LinkedList<>);
+        }
+
+        return false;
+    }
 }

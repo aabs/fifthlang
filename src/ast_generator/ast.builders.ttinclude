@@ -1,5 +1,5 @@
 namespace ast_generated;
-
+using ast;
 using System.Collections.Generic;
 #nullable disable
 
@@ -7,7 +7,7 @@ using System.Collections.Generic;
 foreach (var t in concreteTypes)
 {
     //Console.WriteLine($"type {t.Name}");
-    var allProps = t.GetProperties();
+    var allProps = t.BuildableProperties();
 
 #>
 public class <#= t.Name #>Builder : IBuilder<<#= t.FullName #>>
@@ -30,7 +30,7 @@ public class <#= t.Name #>Builder : IBuilder<<#= t.FullName #>>
     foreach (var prop in allProps)
     {
 #>
-           <#= sep#> <#= prop.Name #> = this._<#= prop.Name #>
+           <#= sep#> <#= prop.Name #> = this._<#= prop.Name #> // from <#= prop.DeclaringType.Name #>
 <#
     sep = ",";
     }

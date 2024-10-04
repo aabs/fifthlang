@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ast-model", "src\ast-model\ast-model.csproj", "{0A9F69CE-8E4F-47F6-874B-919A755ED45A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ast_model", "src\ast-model\ast_model.csproj", "{0A9F69CE-8E4F-47F6-874B-919A755ED45A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ast-generated", "src\ast-generated\ast-generated.csproj", "{CD135A66-16F2-4BEF-99B7-C5DF5CDCEFF6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ast_generated", "src\ast-generated\ast_generated.csproj", "{CD135A66-16F2-4BEF-99B7-C5DF5CDCEFF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ast-tests", "test\ast-tests\ast-tests.csproj", "{24A26446-477B-4729-BBEC-EADDB2D0468A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ast_tests", "test\ast-tests\ast_tests.csproj", "{24A26446-477B-4729-BBEC-EADDB2D0468A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ast_generator", "src\ast_generator\ast_generator.csproj", "{332F1686-9DE1-497E-BD96-ABE0B4EA83C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{24A26446-477B-4729-BBEC-EADDB2D0468A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{24A26446-477B-4729-BBEC-EADDB2D0468A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{24A26446-477B-4729-BBEC-EADDB2D0468A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{332F1686-9DE1-497E-BD96-ABE0B4EA83C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{332F1686-9DE1-497E-BD96-ABE0B4EA83C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{332F1686-9DE1-497E-BD96-ABE0B4EA83C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{332F1686-9DE1-497E-BD96-ABE0B4EA83C5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

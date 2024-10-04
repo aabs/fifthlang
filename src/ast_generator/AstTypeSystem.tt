@@ -1,0 +1,2 @@
+<#@ include file="ast.metamodel.ttinclude"#>
+<#@ include file="ast.typesystem.ttinclude"#>

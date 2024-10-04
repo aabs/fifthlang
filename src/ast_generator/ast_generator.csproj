@@ -1,0 +1,67 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TransformOnBuild>true</TransformOnBuild>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v17.0\TextTemplating\Microsoft.TextTemplating.targets" />
+
+  <ItemGroup>
+    <PackageReference Include="System.CodeDom" Version="9.0.0-rc.1.24431.7" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ast-model\ast_model.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="AstMutatorVisitors.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>AstMutatorVisitors.cs</LastGenOutput>
+    </None>
+    <None Update="AstTypeSystem.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>AstTypeSystem.cs</LastGenOutput>
+    </None>
+    <None Update="AstVisitors.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>AstVisitors.cs</LastGenOutput>
+    </None>
+    <None Update="AstBuilderGenerator.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>AstBuilderGenerator.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="AstMutatorVisitors.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AstMutatorVisitors.tt</DependentUpon>
+    </Compile>
+    <Compile Update="AstTypeSystem.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AstTypeSystem.tt</DependentUpon>
+    </Compile>
+    <Compile Update="AstVisitors.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AstVisitors.tt</DependentUpon>
+    </Compile>
+    <Compile Update="AstBuilderGenerator.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AstBuilderGenerator.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

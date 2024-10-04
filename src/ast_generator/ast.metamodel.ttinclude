@@ -1,19 +1,20 @@
 <#@ template debug="true" hostspecific="false" language="C#" compilerOptions="/langversion:12"  #>
 <#@ output extension=".cs" #>
-<#@ assembly name="System.Core" #>
-<#@ assembly name="System.Runtime" #>
-<#@ assembly name="System.Collections" #>
+
 <#@ assembly name="Microsoft.CSharp" #>
 <#@ import namespace="System" #>
 <#@ import namespace="System.Dynamic" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Reflection" #>
 <#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.Json" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="ast_model" #>
+<#@ import namespace="ast" #>
 <#
     // TextTemplatingFileGenerator
     var allTypes = ast_model.AstMetamodelProvider.AllAstTypes;
     var nonIgnoredTypes = ast_model.AstMetamodelProvider.NonIgnoredTypes;
     var concreteTypes = ast_model.AstMetamodelProvider.ConcreteTypes;
+    var asts = concreteTypes;
 #>

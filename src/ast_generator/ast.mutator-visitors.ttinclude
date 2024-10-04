@@ -1,0 +1,95 @@
+namespace ast_generated;
+
+public interface IAstMutatorVisitor<TContext>
+{
+<# foreach (var ast in asts)  { #>
+    <#= ast.Name #> Process<#= ast.Name #>(<#= ast.Name #> node, TContext ctx);
+<# } #>
+}
+
+public partial class NullMutatorVisitor<TContext> : IAstMutatorVisitor<TContext>
+{
+<# foreach (var ast in asts)  { #>
+    public virtual <#= ast.Name #> Process<#= ast.Name #>(<#= ast.Name #> node, TContext ctx)=>node;
+<# } #>
+
+}
+
+public partial class DefaultMutatorVisitor<TContext> : IAstMutatorVisitor<TContext>
+{
+    public AstThing Process(AstThing x, TContext ctx)
+    {
+        if (x == null) return x;
+        AstThing result = x switch
+        {
+<# foreach (var ast in asts)  { #>
+            <#= ast.Name #> node => Process<#= ast.Name #>(node, ctx),
+<# } #>
+
+            { } node => node,
+        };
+
+        // in case result is totally new, copy in the metadata, so we don't lose any that's been generated previously
+        return result with {SourceContext = x.SourceContext, Type = x.Type};
+    }
+
+
+<#
+foreach (var ast in asts)
+{
+    var allProps = ast.BuildableProperties();
+
+ #>
+    public virtual <#= ast.Name #> Process<#= ast.Name #>(<#= ast.Name #> node, TContext ctx)
+    {
+        return node;
+    }
+
+<#
+} /* for each ast */
+#>
+} // end class DefaultMutatorVisitor<TContext>
+
+
+public interface IAstMutatorVisitor2<TContext>
+{
+<# foreach (var ast in asts)  { #>
+    <#= ast.Name #> Process<#= ast.Name #>(<#= ast.Name #> node, TContext ctx);
+<# } #>
+}
+
+public partial class DefaultMutatorVisitor2<TContext> : IAstMutatorVisitor2<TContext>
+{
+    public AstThing Process(AstThing x, TContext ctx)
+    {
+        if (x == null) return x;
+        var result = x switch
+        {
+<# foreach (var ast in asts)  { #>
+            <#= ast.Name #> node => Process<#= ast.Name #>(node, ctx),
+<# } #>
+
+            { } node => node,
+        };
+
+        // in case result is totally new, copy in the metadata, so we don't lose any that's been generated previously
+        return result with {SourceContext = x.SourceContext, Type = x.Type};
+    }
+
+
+<#
+foreach (var ast in asts)
+{
+    var allProps = ast.BuildableProperties();
+
+ #>
+    public virtual <#= ast.Name #> Process<#= ast.Name #>(<#= ast.Name #> node, TContext ctx)
+    {
+        return node; // now the AST nodes are immutable, a good default is just to return the node.
+    }
+
+<#
+} /* for each ast */
+#>
+
+}

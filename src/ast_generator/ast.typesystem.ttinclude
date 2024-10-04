@@ -1,0 +1,31 @@
+namespace ast_generated;
+using ast_model;
+using ast_model.Symbols;
+using ast_model.TypeSystem;
+
+public interface ITypeChecker
+{
+<# foreach (string astNodeType in asts.Select(a=>a.Name))  { #>
+    public IType Infer(IScope scope, <#= astNodeType #> node);
+<# } #>
+}
+
+public partial class FunctionalTypeChecker
+{
+
+    public IType Infer(AstThing exp)
+    {
+        if (exp == null) return default;
+        var scope = exp.NearestScope();
+        return exp switch
+        {
+<# foreach (string astNodeType in asts.Select(a=>a.Name))  { #>
+            <#= astNodeType #> node => Infer(scope, node),
+<# } #>
+
+            { } node => Infer(scope, node),
+        };
+    }
+
+
+}
