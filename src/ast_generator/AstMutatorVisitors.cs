@@ -184,8 +184,7 @@ foreach (var ast in asts)
             
             #line default
             #line hidden
-            this.Write(" node, TContext ctx)\r\n    {\r\n        return node; // now the AST nodes are immuta" +
-                    "ble, a good default is just to return the node.\r\n    }\r\n\r\n");
+            this.Write(" node, TContext ctx)\r\n    {\r\n        return node;\r\n    }\r\n\r\n");
             
             #line 48 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.mutator-visitors.ttinclude"
 

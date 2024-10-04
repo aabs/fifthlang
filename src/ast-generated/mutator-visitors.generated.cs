@@ -173,242 +173,242 @@ public partial class DefaultMutatorVisitor<TContext> : IAstMutatorVisitor<TConte
 
     public virtual UserDefinedType ProcessUserDefinedType(UserDefinedType node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual AssemblyDef ProcessAssemblyDef(AssemblyDef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual FunctionDef ProcessFunctionDef(FunctionDef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual FieldDef ProcessFieldDef(FieldDef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual PropertyDef ProcessPropertyDef(PropertyDef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual MethodDef ProcessMethodDef(MethodDef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual InferenceRuleDef ProcessInferenceRuleDef(InferenceRuleDef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual ParamDef ProcessParamDef(ParamDef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual ParamDestructureDef ProcessParamDestructureDef(ParamDestructureDef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual PropertyBindingDef ProcessPropertyBindingDef(PropertyBindingDef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual TypeDef ProcessTypeDef(TypeDef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual ClassDef ProcessClassDef(ClassDef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual VariableDecl ProcessVariableDecl(VariableDecl node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual AssemblyRef ProcessAssemblyRef(AssemblyRef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual MemberRef ProcessMemberRef(MemberRef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual TypeRef ProcessTypeRef(TypeRef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual VarRef ProcessVarRef(VarRef node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual GraphNamespaceAlias ProcessGraphNamespaceAlias(GraphNamespaceAlias node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual AssignmentStatement ProcessAssignmentStatement(AssignmentStatement node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual BlockStatement ProcessBlockStatement(BlockStatement node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual KnowledgeManagementBlock ProcessKnowledgeManagementBlock(KnowledgeManagementBlock node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual ExpStatement ProcessExpStatement(ExpStatement node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual ForStatement ProcessForStatement(ForStatement node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual ForeachStatement ProcessForeachStatement(ForeachStatement node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual GuardStatement ProcessGuardStatement(GuardStatement node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual IfElseStatement ProcessIfElseStatement(IfElseStatement node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual ReturnStatement ProcessReturnStatement(ReturnStatement node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual VarDeclStatement ProcessVarDeclStatement(VarDeclStatement node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual WhileStatement ProcessWhileStatement(WhileStatement node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual AssertionStatement ProcessAssertionStatement(AssertionStatement node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual AssertionObject ProcessAssertionObject(AssertionObject node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual AssertionPredicate ProcessAssertionPredicate(AssertionPredicate node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual AssertionSubject ProcessAssertionSubject(AssertionSubject node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual RetractionStatement ProcessRetractionStatement(RetractionStatement node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual WithScopeStatement ProcessWithScopeStatement(WithScopeStatement node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual BinaryExp ProcessBinaryExp(BinaryExp node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual CastExp ProcessCastExp(CastExp node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual LambdaExp ProcessLambdaExp(LambdaExp node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual FuncCallExp ProcessFuncCallExp(FuncCallExp node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual LiteralExp ProcessLiteralExp(LiteralExp node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual MemberAccessExp ProcessMemberAccessExp(MemberAccessExp node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual ObjectInstantiationExp ProcessObjectInstantiationExp(ObjectInstantiationExp node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual UnaryExp ProcessUnaryExp(UnaryExp node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual VarRefExp ProcessVarRefExp(VarRefExp node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual List ProcessList(List node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual Atom ProcessAtom(Atom node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual Triple ProcessTriple(Triple node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
     public virtual Graph ProcessGraph(Graph node, TContext ctx)
     {
-        return node; // now the AST nodes are immutable, a good default is just to return the node.
+        return node;
     }
 
 } // end class DefaultMutatorVisitor<TContext>
