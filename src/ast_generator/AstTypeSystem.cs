@@ -51,48 +51,80 @@ namespace ast_generator
                     "odel.TypeSystem;\r\n\r\npublic interface ITypeChecker\r\n{\r\n");
             
             #line 8 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
- foreach (string astNodeType in asts.Select(a=>a.Name))  { 
+
+foreach (string astNodeType in asts.Select(a=>a.Name))
+{
+
             
             #line default
             #line hidden
-            this.Write("    public IType Infer(IScope scope, ");
+            this.Write("    public IType Infer(ScopeAstThing scope, ");
             
-            #line 9 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            #line 12 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(astNodeType));
             
             #line default
             #line hidden
             this.Write(" node);\r\n");
             
-            #line 10 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
- } 
+            #line 13 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+
+}
+
             
             #line default
             #line hidden
-            this.Write("}\r\n\r\npublic partial class FunctionalTypeChecker\r\n{\r\n\r\n    public IType Infer(AstT" +
-                    "hing exp)\r\n    {\r\n        if (exp == null) return default;\r\n        var scope = " +
-                    "exp.NearestScope();\r\n        return exp switch\r\n        {\r\n");
+            this.Write("}\r\n\r\npublic abstract class FunctionalTypeChecker : ITypeChecker\r\n{\r\n\r\n    public " +
+                    "IType Infer(AstThing exp)\r\n    {\r\n        if (exp == null) return default;\r\n    " +
+                    "    var scope = exp.NearestScope();\r\n        return exp switch\r\n        {\r\n");
             
-            #line 22 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            #line 26 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
  foreach (string astNodeType in asts.Select(a=>a.Name))  { 
             
             #line default
             #line hidden
             this.Write("            ");
             
-            #line 23 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            #line 27 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(astNodeType));
             
             #line default
             #line hidden
             this.Write(" node => Infer(scope, node),\r\n");
             
-            #line 24 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            #line 28 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
  } 
             
             #line default
             #line hidden
-            this.Write("\r\n            { } node => Infer(scope, node),\r\n        };\r\n    }\r\n\r\n\r\n}\r\n");
+            this.Write("\r\n            { } node => throw new TypeCheckingException(\"Unrecognised type\")\r\n " +
+                    "       };\r\n    }\r\n\r\n");
+            
+            #line 34 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+
+foreach (string astNodeType in asts.Select(a=>a.Name))
+{
+
+            
+            #line default
+            #line hidden
+            this.Write("    public abstract IType Infer(ScopeAstThing scope, ");
+            
+            #line 38 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            this.Write(this.ToStringHelper.ToStringWithCulture(astNodeType));
+            
+            #line default
+            #line hidden
+            this.Write(" node);\r\n");
+            
+            #line 39 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+
+}
+
+            
+            #line default
+            #line hidden
+            this.Write("\r\n}\r\n");
             this.Write("\r\n");
             return this.GenerationEnvironment.ToString();
         }

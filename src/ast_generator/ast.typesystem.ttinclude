@@ -5,12 +5,17 @@ using ast_model.TypeSystem;
 
 public interface ITypeChecker
 {
-<# foreach (string astNodeType in asts.Select(a=>a.Name))  { #>
-    public IType Infer(IScope scope, <#= astNodeType #> node);
-<# } #>
+<#
+foreach (string astNodeType in asts.Select(a=>a.Name))
+{
+#>
+    public IType Infer(ScopeAstThing scope, <#= astNodeType #> node);
+<#
+}
+#>
 }
 
-public partial class FunctionalTypeChecker
+public abstract class FunctionalTypeChecker : ITypeChecker
 {
 
     public IType Infer(AstThing exp)
@@ -23,9 +28,17 @@ public partial class FunctionalTypeChecker
             <#= astNodeType #> node => Infer(scope, node),
 <# } #>
 
-            { } node => Infer(scope, node),
+            { } node => throw new TypeCheckingException("Unrecognised type")
         };
     }
 
+<#
+foreach (string astNodeType in asts.Select(a=>a.Name))
+{
+#>
+    public abstract IType Infer(ScopeAstThing scope, <#= astNodeType #> node);
+<#
+}
+#>
 
 }

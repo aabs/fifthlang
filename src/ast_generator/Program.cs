@@ -22,6 +22,7 @@ static async Task GenerateSource(DirectoryInfo folder)
 {
     await WriteSourceToFile(Path.Combine(folder.FullName, "builders.generated.cs"), new AstBuilderGenerator().TransformText());
     await WriteSourceToFile(Path.Combine(folder.FullName, "visitors.generated.cs"), new AstVisitors().TransformText());
+    await WriteSourceToFile(Path.Combine(folder.FullName, "typeinference.generated.cs"), new AstTypeSystem().TransformText());
 }
 
 static async Task WriteSourceToFile(string path, string source)
