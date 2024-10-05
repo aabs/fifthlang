@@ -1,6 +1,8 @@
-namespace ast_generated;
-//ploppy
-using ast_model;
+<#
+    var genNs = ns + "_generated";
+#>
+namespace <#=genNs#>;
+using <#=ns#>;
 using System.Collections.Generic;
 
 public interface IAstVisitor

@@ -2,6 +2,7 @@
 
 using System.CommandLine;
 using ast_generator;
+using ast_model;
 
 var folderOption = new Option<DirectoryInfo?>(
     name: "--folder",
@@ -20,9 +21,13 @@ return await rootCommand.InvokeAsync(args);
 
 static async Task GenerateSource(DirectoryInfo folder)
 {
-    await WriteSourceToFile(Path.Combine(folder.FullName, "builders.generated.cs"), new AstBuilderGenerator().TransformText());
-    await WriteSourceToFile(Path.Combine(folder.FullName, "visitors.generated.cs"), new AstVisitors().TransformText());
-    await WriteSourceToFile(Path.Combine(folder.FullName, "typeinference.generated.cs"), new AstTypeSystem().TransformText());
+    var astTypeProvider = new TypeProvider() { NamespaceScope = "ast" };
+    await WriteSourceToFile(Path.Combine(folder.FullName, "builders.generated.cs"), new AstBuilderGenerator(astTypeProvider).TransformText());
+    await WriteSourceToFile(Path.Combine(folder.FullName, "visitors.generated.cs"), new AstVisitors(astTypeProvider).TransformText());
+    await WriteSourceToFile(Path.Combine(folder.FullName, "typeinference.generated.cs"), new AstTypeCheckerGenerator(astTypeProvider).TransformText());
+    var ilAstTypeProvider = new TypeProvider() { NamespaceScope = "il_ast" };
+    await WriteSourceToFile(Path.Combine(folder.FullName, "il.builders.generated.cs"), new AstBuilderGenerator(ilAstTypeProvider).TransformText());
+    await WriteSourceToFile(Path.Combine(folder.FullName, "il.visitors.generated.cs"), new AstVisitors(ilAstTypeProvider).TransformText());
 }
 
 static async Task WriteSourceToFile(string path, string source)

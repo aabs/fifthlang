@@ -2,6 +2,28 @@
 
 namespace ast_model;
 
+public class TypeProvider
+{
+    public IEnumerable<Type> AllAstTypes =>
+        from t in AllTypes
+        where t.Namespace == NamespaceScope && !t.Name.EndsWith("SystemTextJsonConverter")
+        select t;
+
+    public IEnumerable<Type> AllTypes => typeof(AstTypeProvider).Assembly.ExportedTypes;
+
+    public IEnumerable<Type> ConcreteTypes =>
+      from t in NonIgnoredTypes
+      where t.IsClass && !t.IsAbstract // && !t.IsGenericType //&& !t.IsGenericTypeParameter
+      select t;
+
+    public string NamespaceScope { get; set; }
+
+    public IEnumerable<Type> NonIgnoredTypes =>
+      from t in AllAstTypes
+      where !t.HavingAttribute<IgnoreAttribute>() || t.Name.Contains("IgnoreAttribute")
+      select t;
+}
+
 public static class AstTypeProvider
 {
     public static IEnumerable<Type> AllAstTypes =>
@@ -25,48 +47,6 @@ public static class AstTypeProvider
     {
         _ = t ?? throw new ArgumentNullException(nameof(t));
         return (from pi in t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
-                select pi).ToList();
-    }
-
-
-    public static IEnumerable<PropertyInfo> InitialisedProperties(this Type t)
-    => from p in t.BuildableProperties()
-       where p.IsInitOnly() && !p.HavingAttribute<IgnoreAttribute>()
-       select p;
-
-    /// <summary>
-    /// Determines if this property is marked as init-only.
-    /// </summary>
-    /// <param name="property">The property.</param>
-    /// <returns>True if the property is init-only, false otherwise.</returns>
-    /// <remarks>
-    /// <see cref="https://alistairevans.co.uk/2020/11/01/detecting-init-only-properties-with-reflection-in-c-9/"/> for more info
-    /// </remarks>
-    public static bool IsInitOnly(this PropertyInfo property)
-    {
-        if (!property.CanWrite)
-        {
-            return false;
-        }
-
-        if (property.HavingAttribute<RequiredMemberAttribute>())
-        {
-            return true;
-        }
-        var setMethod = property.SetMethod;
-
-        // Get the modifiers applied to the return parameter.
-        var setMethodReturnParameterModifiers = setMethod.ReturnParameter.GetRequiredCustomModifiers();
-
-        // Init-only properties are marked with the IsExternalInit type.
-        return setMethodReturnParameterModifiers.Contains(typeof(System.Runtime.CompilerServices.IsExternalInit));
-    }
-
-    public static IEnumerable<PropertyInfo> VisitableProperties(this Type t)
-    {
-        _ = t ?? throw new ArgumentNullException(nameof(t));
-        return (from pi in t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
-                where !pi.IgnoreDuringVisit() && (pi.PropertyType.IsAnAstThing() || (pi.PropertyType.IsGenericType && pi.PropertyType.TypeParameter(0).IsAnAstThing()))
                 select pi).ToList();
     }
 
@@ -162,6 +142,14 @@ public static class AstTypeProvider
     public static bool IncludeInVisit(this MemberInfo memberInfo)
         => memberInfo.HavingAttribute<IncludeInVisitAttribute>();
 
+    public static IEnumerable<PropertyInfo> InitialisedProperties(this Type t)
+                                => from p in t.BuildableProperties()
+                                   where p.IsInitOnly() && !p.HavingAttribute<IgnoreAttribute>()
+                                   select p;
+
+    public static bool IsAnAstThing(this Type t)
+            => t.IsAssignableTo(typeof(AstThing));
+
     public static bool IsCollectionType(this Type t)
     {
         if (t.IsGenericType)
@@ -178,8 +166,35 @@ public static class AstTypeProvider
         return false;
     }
 
-    public static bool IsAnAstThing(this Type t)
-        => t.IsAssignableTo(typeof(AstThing));
+    /// <summary>
+    /// Determines if this property is marked as init-only.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <returns>True if the property is init-only, false otherwise.</returns>
+    /// <remarks>
+    /// <see
+    /// cref="https://alistairevans.co.uk/2020/11/01/detecting-init-only-properties-with-reflection-in-c-9/"/>
+    /// for more info
+    /// </remarks>
+    public static bool IsInitOnly(this PropertyInfo property)
+    {
+        if (!property.CanWrite)
+        {
+            return false;
+        }
+
+        if (property.HavingAttribute<RequiredMemberAttribute>())
+        {
+            return true;
+        }
+        var setMethod = property.SetMethod;
+
+        // Get the modifiers applied to the return parameter.
+        var setMethodReturnParameterModifiers = setMethod.ReturnParameter.GetRequiredCustomModifiers();
+
+        // Init-only properties are marked with the IsExternalInit type.
+        return setMethodReturnParameterModifiers.Contains(typeof(System.Runtime.CompilerServices.IsExternalInit));
+    }
 
     public static bool IsLinkedListCollectionType(this Type t)
     {
@@ -203,4 +218,12 @@ public static class AstTypeProvider
 
     public static IEnumerable<Type> TypeParameters(this Type type)
                                                 => type.GenericTypeArguments;
+
+    public static IEnumerable<PropertyInfo> VisitableProperties(this Type t)
+    {
+        _ = t ?? throw new ArgumentNullException(nameof(t));
+        return (from pi in t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
+                where !pi.IgnoreDuringVisit() && (pi.PropertyType.IsAnAstThing() || (pi.PropertyType.IsGenericType && pi.PropertyType.TypeParameter(0).IsAnAstThing()))
+                select pi).ToList();
+    }
 }

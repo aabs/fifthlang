@@ -1,6 +1,7 @@
 
 
 namespace ast_generated;
+using ast_generated;
 using ast;
 using System.Collections.Generic;
 #nullable disable

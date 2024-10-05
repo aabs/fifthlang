@@ -13,8 +13,9 @@
 <#@ import namespace="ast" #>
 <#
     // TextTemplatingFileGenerator
-    var allTypes = ast_model.AstTypeProvider.AllAstTypes;
-    var nonIgnoredTypes = ast_model.AstTypeProvider.NonIgnoredTypes;
-    var concreteTypes = ast_model.AstTypeProvider.ConcreteTypes;
+    var ns = TypeProvider.NamespaceScope;
+    var allTypes = TypeProvider.AllAstTypes;
+    var nonIgnoredTypes = TypeProvider.NonIgnoredTypes;
+    var concreteTypes = TypeProvider.ConcreteTypes;
     var asts = concreteTypes;
 #>

@@ -38,19 +38,35 @@ namespace ast_generator
             #line 14 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.metamodel.ttinclude"
 
     // TextTemplatingFileGenerator
-    var allTypes = ast_model.AstTypeProvider.AllAstTypes;
-    var nonIgnoredTypes = ast_model.AstTypeProvider.NonIgnoredTypes;
-    var concreteTypes = ast_model.AstTypeProvider.ConcreteTypes;
+    var ns = TypeProvider.NamespaceScope;
+    var allTypes = TypeProvider.AllAstTypes;
+    var nonIgnoredTypes = TypeProvider.NonIgnoredTypes;
+    var concreteTypes = TypeProvider.ConcreteTypes;
     var asts = concreteTypes;
 
             
             #line default
             #line hidden
             this.Write("\r\n");
-            this.Write("namespace ast_generated;\r\nusing ast;\r\nusing System.Collections.Generic;\r\n#nullabl" +
-                    "e disable\r\n\r\n");
             
-            #line 6 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 1 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+
+    var genNs = ns + "_generated";
+
+            
+            #line default
+            #line hidden
+            this.Write("namespace ");
+            
+            #line 4 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            this.Write(this.ToStringHelper.ToStringWithCulture(genNs));
+            
+            #line default
+            #line hidden
+            this.Write(";\r\nusing ast_generated;\r\nusing ast;\r\nusing System.Collections.Generic;\r\n#nullable" +
+                    " disable\r\n\r\n");
+            
+            #line 10 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
 
 foreach (var t in concreteTypes)
 {
@@ -63,21 +79,21 @@ foreach (var t in concreteTypes)
             #line hidden
             this.Write("public class ");
             
-            #line 13 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 17 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(t.Name));
             
             #line default
             #line hidden
             this.Write("Builder : IBuilder<");
             
-            #line 13 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 17 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(t.FullName));
             
             #line default
             #line hidden
             this.Write(">\r\n{\r\n\r\n");
             
-            #line 16 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 20 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
 
     foreach (var prop in allProps)
     {
@@ -87,21 +103,21 @@ foreach (var t in concreteTypes)
             #line hidden
             this.Write("    private ");
             
-            #line 20 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 24 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.PropertyType.BuildTypeName()));
             
             #line default
             #line hidden
             this.Write(" _");
             
-            #line 20 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 24 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 21 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 25 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
 
     }
 
@@ -110,21 +126,21 @@ foreach (var t in concreteTypes)
             #line hidden
             this.Write("    \r\n    public ");
             
-            #line 25 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 29 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(t.FullName));
             
             #line default
             #line hidden
             this.Write(" Build()\r\n    {\r\n        return new ");
             
-            #line 27 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 31 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(t.FullName));
             
             #line default
             #line hidden
             this.Write("(){\r\n");
             
-            #line 28 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 32 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
 
     string sep = " ";
     foreach (var prop in allProps)
@@ -135,35 +151,35 @@ foreach (var t in concreteTypes)
             #line hidden
             this.Write("           ");
             
-            #line 33 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 37 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(sep));
             
             #line default
             #line hidden
             this.Write(" ");
             
-            #line 33 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 37 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(" = this._");
             
-            #line 33 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 37 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(" // from ");
             
-            #line 33 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 37 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.DeclaringType.Name));
             
             #line default
             #line hidden
             this.Write("\r\n");
             
-            #line 34 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 38 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
 
     sep = ",";
     }
@@ -173,7 +189,7 @@ foreach (var t in concreteTypes)
             #line hidden
             this.Write("        };\r\n    }\r\n");
             
-            #line 40 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 44 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
 
     foreach (var prop in allProps)
     {
@@ -184,35 +200,35 @@ foreach (var t in concreteTypes)
             #line hidden
             this.Write("    public ");
             
-            #line 45 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 49 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(t.Name));
             
             #line default
             #line hidden
             this.Write("Builder With");
             
-            #line 45 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 49 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 45 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 49 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.PropertyType.BuildTypeName()));
             
             #line default
             #line hidden
             this.Write(" value){\r\n        _");
             
-            #line 46 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 50 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(" = value;\r\n        return this;\r\n    }\r\n\r\n");
             
-            #line 50 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 54 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
 
         if (prop.PropertyType.IsCollectionType())
         {
@@ -223,49 +239,49 @@ foreach (var t in concreteTypes)
             #line hidden
             this.Write("    public ");
             
-            #line 55 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 59 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(t.Name));
             
             #line default
             #line hidden
             this.Write("Builder AddingItemTo");
             
-            #line 55 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 59 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 55 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 59 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.PropertyType.BuildInstanceTypeName()));
             
             #line default
             #line hidden
             this.Write(" value){\r\n        _");
             
-            #line 56 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 60 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write("  ??= [];\r\n        _");
             
-            #line 57 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 61 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(".Add");
             
-            #line 57 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 61 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(llAdjust));
             
             #line default
             #line hidden
             this.Write("(value);\r\n        return this;\r\n    }\r\n");
             
-            #line 60 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 64 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
 
         }  /*if (prop.IsCollection)*/
 
@@ -273,7 +289,7 @@ foreach (var t in concreteTypes)
             #line default
             #line hidden
             
-            #line 63 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 67 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
 
     } /* foreach prop */
 
@@ -282,7 +298,7 @@ foreach (var t in concreteTypes)
             #line hidden
             this.Write("}\r\n");
             
-            #line 67 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
+            #line 71 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.builders.ttinclude"
  } /*for each ast*/ 
             
             #line default

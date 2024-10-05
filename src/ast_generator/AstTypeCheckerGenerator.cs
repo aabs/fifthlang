@@ -23,9 +23,9 @@ namespace ast_generator
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\AstTypeSystem.tt"
+    #line 1 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\AstTypeCheckerGenerator.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "17.0.0.0")]
-    public partial class AstTypeSystem : AstTypeSystemBase
+    public partial class AstTypeCheckerGenerator : AstTypeCheckerGeneratorBase
     {
 #line hidden
         /// <summary>
@@ -38,19 +38,42 @@ namespace ast_generator
             #line 14 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.metamodel.ttinclude"
 
     // TextTemplatingFileGenerator
-    var allTypes = ast_model.AstTypeProvider.AllAstTypes;
-    var nonIgnoredTypes = ast_model.AstTypeProvider.NonIgnoredTypes;
-    var concreteTypes = ast_model.AstTypeProvider.ConcreteTypes;
+    var ns = TypeProvider.NamespaceScope;
+    var allTypes = TypeProvider.AllAstTypes;
+    var nonIgnoredTypes = TypeProvider.NonIgnoredTypes;
+    var concreteTypes = TypeProvider.ConcreteTypes;
     var asts = concreteTypes;
 
             
             #line default
             #line hidden
             this.Write("\r\n");
-            this.Write("namespace ast_generated;\r\nusing ast_model;\r\nusing ast_model.Symbols;\r\nusing ast_m" +
-                    "odel.TypeSystem;\r\n\r\npublic interface ITypeChecker\r\n{\r\n");
             
-            #line 8 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            #line 1 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+
+    var genNs = ns + "_generated";
+
+            
+            #line default
+            #line hidden
+            this.Write("namespace ");
+            
+            #line 4 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            this.Write(this.ToStringHelper.ToStringWithCulture(genNs));
+            
+            #line default
+            #line hidden
+            this.Write(";\r\nusing ");
+            
+            #line 5 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            this.Write(this.ToStringHelper.ToStringWithCulture(ns));
+            
+            #line default
+            #line hidden
+            this.Write(";\r\nusing ast_model.Symbols;\r\nusing ast_model.TypeSystem;\r\n\r\npublic interface ITyp" +
+                    "eChecker\r\n{\r\n");
+            
+            #line 11 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
 
 foreach (string astNodeType in asts.Select(a=>a.Name))
 {
@@ -60,14 +83,14 @@ foreach (string astNodeType in asts.Select(a=>a.Name))
             #line hidden
             this.Write("    public IType Infer(ScopeAstThing scope, ");
             
-            #line 12 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            #line 15 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(astNodeType));
             
             #line default
             #line hidden
             this.Write(" node);\r\n");
             
-            #line 13 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            #line 16 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
 
 }
 
@@ -78,29 +101,29 @@ foreach (string astNodeType in asts.Select(a=>a.Name))
                     "IType Infer(AstThing exp)\r\n    {\r\n        if (exp == null) return default;\r\n    " +
                     "    var scope = exp.NearestScope();\r\n        return exp switch\r\n        {\r\n");
             
-            #line 26 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            #line 29 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
  foreach (string astNodeType in asts.Select(a=>a.Name))  { 
             
             #line default
             #line hidden
             this.Write("            ");
             
-            #line 27 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            #line 30 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(astNodeType));
             
             #line default
             #line hidden
             this.Write(" node => Infer(scope, node),\r\n");
             
-            #line 28 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            #line 31 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
  } 
             
             #line default
             #line hidden
-            this.Write("\r\n            { } node => throw new TypeCheckingException(\"Unrecognised type\")\r\n " +
-                    "       };\r\n    }\r\n\r\n");
+            this.Write("\r\n            { } node => throw new ast_model.TypeCheckingException(\"Unrecognised" +
+                    " type\")\r\n        };\r\n    }\r\n\r\n");
             
-            #line 34 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            #line 37 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
 
 foreach (string astNodeType in asts.Select(a=>a.Name))
 {
@@ -110,14 +133,14 @@ foreach (string astNodeType in asts.Select(a=>a.Name))
             #line hidden
             this.Write("    public abstract IType Infer(ScopeAstThing scope, ");
             
-            #line 38 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            #line 41 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(astNodeType));
             
             #line default
             #line hidden
             this.Write(" node);\r\n");
             
-            #line 39 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
+            #line 42 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
 
 }
 
@@ -137,7 +160,7 @@ foreach (string astNodeType in asts.Select(a=>a.Name))
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "17.0.0.0")]
-    public class AstTypeSystemBase
+    public class AstTypeCheckerGeneratorBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

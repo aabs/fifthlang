@@ -38,96 +38,118 @@ namespace ast_generator
             #line 14 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.metamodel.ttinclude"
 
     // TextTemplatingFileGenerator
-    var allTypes = ast_model.AstTypeProvider.AllAstTypes;
-    var nonIgnoredTypes = ast_model.AstTypeProvider.NonIgnoredTypes;
-    var concreteTypes = ast_model.AstTypeProvider.ConcreteTypes;
+    var ns = TypeProvider.NamespaceScope;
+    var allTypes = TypeProvider.AllAstTypes;
+    var nonIgnoredTypes = TypeProvider.NonIgnoredTypes;
+    var concreteTypes = TypeProvider.ConcreteTypes;
     var asts = concreteTypes;
 
             
             #line default
             #line hidden
             this.Write("\r\n");
-            this.Write("namespace ast_generated;\r\n//ploppy\r\nusing ast_model;\r\nusing System.Collections.Ge" +
-                    "neric;\r\n\r\npublic interface IAstVisitor\r\n{\r\n");
             
-            #line 8 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 1 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+
+    var genNs = ns + "_generated";
+
+            
+            #line default
+            #line hidden
+            this.Write("namespace ");
+            
+            #line 4 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            this.Write(this.ToStringHelper.ToStringWithCulture(genNs));
+            
+            #line default
+            #line hidden
+            this.Write(";\r\nusing ");
+            
+            #line 5 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            this.Write(this.ToStringHelper.ToStringWithCulture(ns));
+            
+            #line default
+            #line hidden
+            this.Write(";\r\nusing System.Collections.Generic;\r\n\r\npublic interface IAstVisitor\r\n{\r\n");
+            
+            #line 10 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
  foreach (var ast in asts)  { 
             
             #line default
             #line hidden
             this.Write("    public void Enter");
             
-            #line 9 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 11 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 9 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 11 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write(" ctx);\r\n    public void Leave");
             
-            #line 10 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 12 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 10 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 12 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write(" ctx);\r\n");
             
-            #line 11 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 13 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
  } 
             
             #line default
             #line hidden
             this.Write("}\r\n\r\npublic partial class BaseAstVisitor : IAstVisitor\r\n{\r\n");
             
-            #line 16 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 18 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
  foreach (var ast in asts)  { 
             
             #line default
             #line hidden
             this.Write("    public virtual void Enter");
             
-            #line 17 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 19 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 17 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 19 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write(" ctx){}\r\n    public virtual void Leave");
             
-            #line 18 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 20 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 18 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 20 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write(" ctx){}\r\n");
             
-            #line 19 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 21 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
  } 
             
             #line default
@@ -135,35 +157,35 @@ namespace ast_generator
             this.Write("}\r\n\r\n\r\npublic interface IAstRecursiveDescentVisitor\r\n{\r\n    public AstThing Visit" +
                     "(AstThing ctx);\r\n");
             
-            #line 26 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 28 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
  foreach (var ast in asts)  { 
             
             #line default
             #line hidden
             this.Write("    public ");
             
-            #line 27 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 29 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write(" Visit");
             
-            #line 27 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 29 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 27 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 29 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write(" ctx);\r\n");
             
-            #line 28 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 30 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
  } 
             
             #line default
@@ -172,35 +194,35 @@ namespace ast_generator
                     "\r\n    public virtual AstThing Visit(AstThing ctx){\r\n        if(ctx == null) retu" +
                     "rn ctx;\r\n        return ctx switch\r\n        {\r\n");
             
-            #line 37 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 39 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
  foreach (string astNodeType in asts.Select(a=>a.Name))  { 
             
             #line default
             #line hidden
             this.Write("             ");
             
-            #line 38 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 40 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(astNodeType));
             
             #line default
             #line hidden
             this.Write(" node => Visit");
             
-            #line 38 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 40 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(astNodeType));
             
             #line default
             #line hidden
             this.Write("(node),\r\n");
             
-            #line 39 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 41 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
  } 
             
             #line default
             #line hidden
             this.Write("\r\n            { } node => null,\r\n        };\r\n    }\r\n\r\n");
             
-            #line 45 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 47 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
 
 
 foreach (var ast in asts)
@@ -212,28 +234,28 @@ foreach (var ast in asts)
             #line hidden
             this.Write("    public virtual ");
             
-            #line 51 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 53 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write(" Visit");
             
-            #line 51 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 53 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 51 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 53 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(ast.Name));
             
             #line default
             #line hidden
             this.Write(" ctx)\r\n    {\r\n");
             
-            #line 53 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 55 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
 
     foreach(var prop in allProps.Where(p => p.PropertyType.IsCollectionType()))
     {
@@ -246,42 +268,42 @@ foreach (var ast in asts)
             #line hidden
             this.Write("        ");
             
-            #line 60 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 62 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(propTypeName));
             
             #line default
             #line hidden
             this.Write(" ");
             
-            #line 60 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 62 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(varName));
             
             #line default
             #line hidden
             this.Write(" = [];\r\n        ");
             
-            #line 61 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 63 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(varName));
             
             #line default
             #line hidden
             this.Write(".AddRange(ctx.");
             
-            #line 61 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 63 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(".Select(x => (");
             
-            #line 61 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 63 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(propInstTypeName));
             
             #line default
             #line hidden
             this.Write(")Visit(x)));\r\n");
             
-            #line 62 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 64 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
 
     } // for all collection properties
 
@@ -290,7 +312,7 @@ foreach (var ast in asts)
             #line hidden
             this.Write("     return ctx with {\r\n");
             
-            #line 66 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 68 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
 
     string sep = " ";
     foreach (var prop in allProps)
@@ -304,27 +326,27 @@ foreach (var ast in asts)
             #line hidden
             this.Write("        ");
             
-            #line 74 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 76 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(sep));
             
             #line default
             #line hidden
             
-            #line 74 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 76 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(" = ");
             
-            #line 74 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 76 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(varName));
             
             #line default
             #line hidden
             this.Write("\r\n");
             
-            #line 75 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 77 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
 
         }
         else
@@ -336,34 +358,34 @@ foreach (var ast in asts)
             #line hidden
             this.Write("        ");
             
-            #line 81 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 83 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(sep));
             
             #line default
             #line hidden
             
-            #line 81 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 83 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(" = (");
             
-            #line 81 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 83 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(propTypeName));
             
             #line default
             #line hidden
             this.Write(")Visit((AstThing)ctx.");
             
-            #line 81 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 83 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(")\r\n");
             
-            #line 82 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 84 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
 
         }
         sep = ",";
@@ -375,7 +397,7 @@ foreach (var ast in asts)
             #line hidden
             this.Write("        };\r\n    }\r\n");
             
-            #line 90 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
+            #line 92 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.visitors.ttinclude"
 
 } // foreach ast
 

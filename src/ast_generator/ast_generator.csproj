@@ -21,9 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="AstTypeSystem.tt">
+    <None Update="AstTypeCheckerGenerator.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>AstTypeSystem.cs</LastGenOutput>
+      <LastGenOutput>AstTypeCheckerGenerator.cs</LastGenOutput>
     </None>
     <None Update="AstVisitors.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
@@ -40,10 +40,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="AstTypeSystem.cs">
+    <Compile Update="AstTypeCheckerGenerator.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>AstTypeSystem.tt</DependentUpon>
+      <DependentUpon>AstTypeCheckerGenerator.tt</DependentUpon>
     </Compile>
     <Compile Update="AstVisitors.cs">
       <DesignTime>True</DesignTime>

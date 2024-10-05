@@ -1,8 +1,7 @@
 
 
 namespace ast_generated;
-//ploppy
-using ast_model;
+using ast;
 using System.Collections.Generic;
 
 public interface IAstVisitor

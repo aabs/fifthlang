@@ -1,7 +1,7 @@
 
 
 namespace ast_generated;
-using ast_model;
+using ast;
 using ast_model.Symbols;
 using ast_model.TypeSystem;
 
@@ -115,7 +115,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             Triple node => Infer(scope, node),
             Graph node => Infer(scope, node),
 
-            { } node => throw new TypeCheckingException("Unrecognised type")
+            { } node => throw new ast_model.TypeCheckingException("Unrecognised type")
         };
     }
 

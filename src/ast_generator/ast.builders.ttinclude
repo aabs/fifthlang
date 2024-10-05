@@ -1,4 +1,8 @@
-namespace ast_generated;
+<#
+    var genNs = ns + "_generated";
+#>
+namespace <#=genNs#>;
+using ast_generated;
 using ast;
 using System.Collections.Generic;
 #nullable disable

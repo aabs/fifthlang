@@ -6,3 +6,4 @@ global using System.Runtime.Serialization;
 global using System.Text;
 global using Vogen;
 global using ast;
+global using ast_model;
