@@ -218,8 +218,8 @@ public record AssemblyDef : Definition
     public required AssemblyName Name { get; init; }
     public required string PublicKeyToken { get; init; }
     public required string Version { get; init; }
-    public required LinkedList<AssemblyRef> AssemblyRefs { get; init; }
-    public required LinkedList<ClassDef> ClassDefs { get; init; }
+    public required List<AssemblyRef> AssemblyRefs { get; init; }
+    public required List<ClassDef> ClassDefs { get; init; }
 }
 
 /// <summary>
@@ -289,7 +289,7 @@ public record ParamDef : Definition
 
 public record ParamDestructureDef : Definition
 {
-    public required LinkedList<PropertyBindingDef> Bindings { get; set; }
+    public required List<PropertyBindingDef> Bindings { get; set; }
 }
 
 public record PropertyBindingDef : Definition
@@ -306,13 +306,13 @@ public record TypeDef : Definition
 public record ClassDef : Definition
 {
     public required string Namespace { get; set; }
-    public required LinkedList<MemberDef> MemberDefs { get; set; }
+    public required List<MemberDef> MemberDefs { get; set; }
 }
 
 // out of scope for now...
 //public record StructDef : Definition
 //{
-//    public required LinkedList<MemberDef> MemberDefs { get; set; }
+//    public required List<MemberDef> MemberDefs { get; set; }
 //}
 
 

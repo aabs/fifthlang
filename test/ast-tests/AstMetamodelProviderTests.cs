@@ -1,31 +1,32 @@
 ﻿using ast_model;
+using ast;
 using FluentAssertions;
 
 namespace ast_tests;
 
-public class AstMetamodelProviderTests
+public class AstTypeProviderTests
 {
   [Fact]
   public void some_types_should_be_exported()
   {
-    AstMetamodelProvider.AllTypes.Should().NotBeEmpty();
+    AstTypeProvider.AllTypes.Should().NotBeEmpty();
   }
 
   [Fact]
   public void some_ast_types_should_be_found()
   {
-    AstMetamodelProvider.AllAstTypes.Should().NotBeEmpty();
+    AstTypeProvider.AllAstTypes.Should().NotBeEmpty();
   }
 
   [Fact]
   public void non_ignored_types_should_not_include_ignore_attribute()
   {
-    AstMetamodelProvider.NonIgnoredTypes.Should().NotContain(type => type.Name.Contains("IgnoreAttribute"));
+    AstTypeProvider.NonIgnoredTypes.Should().NotContain(type => type.Name.Contains("IgnoreAttribute"));
   }
   [Fact]
   public void concrete_types_should_not_include_ignore_attribute()
   {
-    AstMetamodelProvider.ConcreteTypes.Should().NotContain(type => type.Name.StartsWith("IgnoreAttribute"));
+    AstTypeProvider.ConcreteTypes.Should().NotContain(type => type.Name.StartsWith("IgnoreAttribute"));
   }
 
   [Fact]
@@ -40,5 +41,17 @@ public class AstMetamodelProviderTests
   }
 
     void dummy_method_with_no_attributes(){}
+
+    [Theory]
+    [InlineData(typeof(string), false)]
+    [InlineData(typeof(int), false)]
+    [InlineData(typeof(AstThing), true)]
+    [InlineData(typeof(ast.AssemblyName), false)]
+    [InlineData(typeof(ast.TypeName), false)]
+    public void IsAnAstThing_should_only_return_true_on_genuine_ast_types(Type t, bool shouldSucceed)
+    {
+        t.IsAnAstThing().Should().Be(shouldSucceed);
+    }
+
 }
 

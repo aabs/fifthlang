@@ -38,9 +38,9 @@ namespace ast_generator
             #line 14 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.metamodel.ttinclude"
 
     // TextTemplatingFileGenerator
-    var allTypes = ast_model.AstMetamodelProvider.AllAstTypes;
-    var nonIgnoredTypes = ast_model.AstMetamodelProvider.NonIgnoredTypes;
-    var concreteTypes = ast_model.AstMetamodelProvider.ConcreteTypes;
+    var allTypes = ast_model.AstTypeProvider.AllAstTypes;
+    var nonIgnoredTypes = ast_model.AstTypeProvider.NonIgnoredTypes;
+    var concreteTypes = ast_model.AstTypeProvider.ConcreteTypes;
     var asts = concreteTypes;
 
             
@@ -55,7 +55,7 @@ namespace ast_generator
 foreach (var t in concreteTypes)
 {
     //Console.WriteLine($"type {t.Name}");
-    var allProps = t.BuildableProperties();
+    var allProps = t.InitialisedProperties();
 
 
             

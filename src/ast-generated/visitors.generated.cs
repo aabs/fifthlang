@@ -1,7 +1,7 @@
 
 
 namespace ast_generated;
-
+//ploppy
 using ast_model;
 using System.Collections.Generic;
 
@@ -319,101 +319,306 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     }
 
     public virtual UserDefinedType VisitUserDefinedType(UserDefinedType ctx)
-        => ctx;
+    {
+     return ctx with {
+         ClassDef = (ast.ClassDef)Visit((AstThing)ctx.ClassDef)
+        };
+    }
     public virtual AssemblyDef VisitAssemblyDef(AssemblyDef ctx)
-        => ctx;
+    {
+        List<ast.AssemblyRef> tmpAssemblyRefs = [];
+        tmpAssemblyRefs.AddRange(ctx.AssemblyRefs.Select(x => (ast.AssemblyRef)Visit(x)));
+        List<ast.ClassDef> tmpClassDefs = [];
+        tmpClassDefs.AddRange(ctx.ClassDefs.Select(x => (ast.ClassDef)Visit(x)));
+     return ctx with {
+         AssemblyRefs = tmpAssemblyRefs
+        ,ClassDefs = tmpClassDefs
+        };
+    }
     public virtual FunctionDef VisitFunctionDef(FunctionDef ctx)
-        => ctx;
+    {
+        List<ast.ParamDef> tmpParams = [];
+        tmpParams.AddRange(ctx.Params.Select(x => (ast.ParamDef)Visit(x)));
+     return ctx with {
+         Params = tmpParams
+        ,Body = (ast.BlockStatement)Visit((AstThing)ctx.Body)
+        };
+    }
     public virtual FieldDef VisitFieldDef(FieldDef ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual PropertyDef VisitPropertyDef(PropertyDef ctx)
-        => ctx;
+    {
+     return ctx with {
+         BackingField = (ast.FieldDef)Visit((AstThing)ctx.BackingField)
+        ,Getter = (ast.MethodDef)Visit((AstThing)ctx.Getter)
+        ,Setter = (ast.MethodDef)Visit((AstThing)ctx.Setter)
+        };
+    }
     public virtual MethodDef VisitMethodDef(MethodDef ctx)
-        => ctx;
+    {
+     return ctx with {
+         FunctionDef = (ast.FunctionDef)Visit((AstThing)ctx.FunctionDef)
+        };
+    }
     public virtual InferenceRuleDef VisitInferenceRuleDef(InferenceRuleDef ctx)
-        => ctx;
+    {
+     return ctx with {
+         Antecedent = (ast.Expression)Visit((AstThing)ctx.Antecedent)
+        ,Consequent = (ast.KnowledgeManagementBlock)Visit((AstThing)ctx.Consequent)
+        };
+    }
     public virtual ParamDef VisitParamDef(ParamDef ctx)
-        => ctx;
+    {
+     return ctx with {
+         ParameterConstraint = (ast.Expression)Visit((AstThing)ctx.ParameterConstraint)
+        ,DestructureDef = (ast.ParamDestructureDef)Visit((AstThing)ctx.DestructureDef)
+        };
+    }
     public virtual ParamDestructureDef VisitParamDestructureDef(ParamDestructureDef ctx)
-        => ctx;
+    {
+        List<ast.PropertyBindingDef> tmpBindings = [];
+        tmpBindings.AddRange(ctx.Bindings.Select(x => (ast.PropertyBindingDef)Visit(x)));
+     return ctx with {
+         Bindings = tmpBindings
+        };
+    }
     public virtual PropertyBindingDef VisitPropertyBindingDef(PropertyBindingDef ctx)
-        => ctx;
+    {
+     return ctx with {
+         IntroducedVariable = (ast.VariableDecl)Visit((AstThing)ctx.IntroducedVariable)
+        ,ReferencedProperty = (ast.PropertyDef)Visit((AstThing)ctx.ReferencedProperty)
+        ,DestructureDef = (ast.ParamDestructureDef)Visit((AstThing)ctx.DestructureDef)
+        };
+    }
     public virtual TypeDef VisitTypeDef(TypeDef ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual ClassDef VisitClassDef(ClassDef ctx)
-        => ctx;
+    {
+        List<ast.MemberDef> tmpMemberDefs = [];
+        tmpMemberDefs.AddRange(ctx.MemberDefs.Select(x => (ast.MemberDef)Visit(x)));
+     return ctx with {
+         MemberDefs = tmpMemberDefs
+        };
+    }
     public virtual VariableDecl VisitVariableDecl(VariableDecl ctx)
-        => ctx;
+    {
+     return ctx with {
+         InitialValue = (ast.Expression)Visit((AstThing)ctx.InitialValue)
+        };
+    }
     public virtual AssemblyRef VisitAssemblyRef(AssemblyRef ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual MemberRef VisitMemberRef(MemberRef ctx)
-        => ctx;
+    {
+     return ctx with {
+         MemberDef = (ast.MemberDef)Visit((AstThing)ctx.MemberDef)
+        };
+    }
     public virtual TypeRef VisitTypeRef(TypeRef ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual VarRef VisitVarRef(VarRef ctx)
-        => ctx;
+    {
+     return ctx with {
+         VarDecl = (ast.VarDeclStatement)Visit((AstThing)ctx.VarDecl)
+        };
+    }
     public virtual GraphNamespaceAlias VisitGraphNamespaceAlias(GraphNamespaceAlias ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual AssignmentStatement VisitAssignmentStatement(AssignmentStatement ctx)
-        => ctx;
+    {
+     return ctx with {
+         RHS = (ast.Expression)Visit((AstThing)ctx.RHS)
+        };
+    }
     public virtual BlockStatement VisitBlockStatement(BlockStatement ctx)
-        => ctx;
+    {
+        List<ast.Statement> tmpStatements = [];
+        tmpStatements.AddRange(ctx.Statements.Select(x => (ast.Statement)Visit(x)));
+     return ctx with {
+         Statements = tmpStatements
+        };
+    }
     public virtual KnowledgeManagementBlock VisitKnowledgeManagementBlock(KnowledgeManagementBlock ctx)
-        => ctx;
+    {
+        List<ast.KnowledgeManagementStatement> tmpStatements = [];
+        tmpStatements.AddRange(ctx.Statements.Select(x => (ast.KnowledgeManagementStatement)Visit(x)));
+     return ctx with {
+         Statements = tmpStatements
+        };
+    }
     public virtual ExpStatement VisitExpStatement(ExpStatement ctx)
-        => ctx;
+    {
+     return ctx with {
+         RHS = (ast.Expression)Visit((AstThing)ctx.RHS)
+        };
+    }
     public virtual ForStatement VisitForStatement(ForStatement ctx)
-        => ctx;
+    {
+     return ctx with {
+         InitialValue = (ast.Expression)Visit((AstThing)ctx.InitialValue)
+        ,Constraint = (ast.Expression)Visit((AstThing)ctx.Constraint)
+        ,IncrementExpression = (ast.Expression)Visit((AstThing)ctx.IncrementExpression)
+        ,LoopVariable = (ast.VariableDecl)Visit((AstThing)ctx.LoopVariable)
+        ,Body = (ast.BlockStatement)Visit((AstThing)ctx.Body)
+        };
+    }
     public virtual ForeachStatement VisitForeachStatement(ForeachStatement ctx)
-        => ctx;
+    {
+     return ctx with {
+         Collection = (ast.Expression)Visit((AstThing)ctx.Collection)
+        ,LoopVariable = (ast.VariableDecl)Visit((AstThing)ctx.LoopVariable)
+        ,Body = (ast.BlockStatement)Visit((AstThing)ctx.Body)
+        };
+    }
     public virtual GuardStatement VisitGuardStatement(GuardStatement ctx)
-        => ctx;
+    {
+     return ctx with {
+         Condition = (ast.Expression)Visit((AstThing)ctx.Condition)
+        };
+    }
     public virtual IfElseStatement VisitIfElseStatement(IfElseStatement ctx)
-        => ctx;
+    {
+     return ctx with {
+         Condition = (ast.Expression)Visit((AstThing)ctx.Condition)
+        ,ThenBlock = (ast.BlockStatement)Visit((AstThing)ctx.ThenBlock)
+        ,ElseBlock = (ast.BlockStatement)Visit((AstThing)ctx.ElseBlock)
+        };
+    }
     public virtual ReturnStatement VisitReturnStatement(ReturnStatement ctx)
-        => ctx;
+    {
+     return ctx with {
+         ReturnValue = (ast.Expression)Visit((AstThing)ctx.ReturnValue)
+        };
+    }
     public virtual VarDeclStatement VisitVarDeclStatement(VarDeclStatement ctx)
-        => ctx;
+    {
+     return ctx with {
+         VariableDecl = (ast.VariableDecl)Visit((AstThing)ctx.VariableDecl)
+        };
+    }
     public virtual WhileStatement VisitWhileStatement(WhileStatement ctx)
-        => ctx;
+    {
+     return ctx with {
+         Condition = (ast.Expression)Visit((AstThing)ctx.Condition)
+        ,Body = (ast.BlockStatement)Visit((AstThing)ctx.Body)
+        };
+    }
     public virtual AssertionStatement VisitAssertionStatement(AssertionStatement ctx)
-        => ctx;
+    {
+     return ctx with {
+         AssertionSubject = (ast.AssertionSubject)Visit((AstThing)ctx.AssertionSubject)
+        ,AssertionPredicate = (ast.AssertionPredicate)Visit((AstThing)ctx.AssertionPredicate)
+        ,AssertionObject = (ast.AssertionObject)Visit((AstThing)ctx.AssertionObject)
+        };
+    }
     public virtual AssertionObject VisitAssertionObject(AssertionObject ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual AssertionPredicate VisitAssertionPredicate(AssertionPredicate ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual AssertionSubject VisitAssertionSubject(AssertionSubject ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual RetractionStatement VisitRetractionStatement(RetractionStatement ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual WithScopeStatement VisitWithScopeStatement(WithScopeStatement ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual BinaryExp VisitBinaryExp(BinaryExp ctx)
-        => ctx;
+    {
+     return ctx with {
+         Left = (ast.Expression)Visit((AstThing)ctx.Left)
+        ,Right = (ast.Expression)Visit((AstThing)ctx.Right)
+        };
+    }
     public virtual CastExp VisitCastExp(CastExp ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual LambdaExp VisitLambdaExp(LambdaExp ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual FuncCallExp VisitFuncCallExp(FuncCallExp ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual LiteralExp VisitLiteralExp(LiteralExp ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual ObjectInstantiationExp VisitObjectInstantiationExp(ObjectInstantiationExp ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual UnaryExp VisitUnaryExp(UnaryExp ctx)
-        => ctx;
+    {
+     return ctx with {
+         Operand = (ast.Expression)Visit((AstThing)ctx.Operand)
+        };
+    }
     public virtual VarRefExp VisitVarRefExp(VarRefExp ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual List VisitList(List ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual Atom VisitAtom(Atom ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual Triple VisitTriple(Triple ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
     public virtual Graph VisitGraph(Graph ctx)
-        => ctx;
+    {
+     return ctx with {
+        };
+    }
 
 }
 

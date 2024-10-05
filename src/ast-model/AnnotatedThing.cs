@@ -4,7 +4,7 @@ namespace ast;
 
 public abstract record AnnotatedThing : IAnnotated
 {
-    [Ignore]
+    [Ignore, IgnoreDuringVisit]
     public object this[string index]
     {
         get
@@ -22,6 +22,7 @@ public abstract record AnnotatedThing : IAnnotated
         }
     }
 
+    [IgnoreDuringVisit]
     public Dictionary<string, object> Annotations { get; init; }
 
     public bool HasAnnotation(string key)

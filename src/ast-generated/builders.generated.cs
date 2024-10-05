@@ -77,8 +77,8 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
     private ast.AssemblyName _Name;
     private System.String _PublicKeyToken;
     private System.String _Version;
-    private LinkedList<ast.AssemblyRef> _AssemblyRefs;
-    private LinkedList<ast.ClassDef> _ClassDefs;
+    private List<ast.AssemblyRef> _AssemblyRefs;
+    private List<ast.ClassDef> _ClassDefs;
     private ast.Visibility _Visibility;
     private ast_model.SourceContext _SourceContext;
     private ast.TypeMetadata _Type;
@@ -115,24 +115,24 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
         return this;
     }
 
-    public AssemblyDefBuilder WithAssemblyRefs(LinkedList<ast.AssemblyRef> value){
+    public AssemblyDefBuilder WithAssemblyRefs(List<ast.AssemblyRef> value){
         _AssemblyRefs = value;
         return this;
     }
 
     public AssemblyDefBuilder AddingItemToAssemblyRefs(ast.AssemblyRef value){
         _AssemblyRefs  ??= [];
-        _AssemblyRefs.AddLast(value);
+        _AssemblyRefs.Add(value);
         return this;
     }
-    public AssemblyDefBuilder WithClassDefs(LinkedList<ast.ClassDef> value){
+    public AssemblyDefBuilder WithClassDefs(List<ast.ClassDef> value){
         _ClassDefs = value;
         return this;
     }
 
     public AssemblyDefBuilder AddingItemToClassDefs(ast.ClassDef value){
         _ClassDefs  ??= [];
-        _ClassDefs.AddLast(value);
+        _ClassDefs.Add(value);
         return this;
     }
     public AssemblyDefBuilder WithVisibility(ast.Visibility value){
@@ -409,7 +409,6 @@ public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
 public class MethodDefBuilder : IBuilder<ast.MethodDef>
 {
 
-    private ast.FunctionDef _FunctionDef;
     private ast.MemberName _Name;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
@@ -421,8 +420,7 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
     public ast.MethodDef Build()
     {
         return new ast.MethodDef(){
-             FunctionDef = this._FunctionDef // from MethodDef
-           , Name = this._Name // from MemberDef
+             Name = this._Name // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
            , SourceContext = this._SourceContext // from AstThing
@@ -431,11 +429,6 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public MethodDefBuilder WithFunctionDef(ast.FunctionDef value){
-        _FunctionDef = value;
-        return this;
-    }
-
     public MethodDefBuilder WithName(ast.MemberName value){
         _Name = value;
         return this;
@@ -593,7 +586,7 @@ public class ParamDefBuilder : IBuilder<ast.ParamDef>
 public class ParamDestructureDefBuilder : IBuilder<ast.ParamDestructureDef>
 {
 
-    private LinkedList<ast.PropertyBindingDef> _Bindings;
+    private List<ast.PropertyBindingDef> _Bindings;
     private ast.Visibility _Visibility;
     private ast_model.SourceContext _SourceContext;
     private ast.TypeMetadata _Type;
@@ -611,14 +604,14 @@ public class ParamDestructureDefBuilder : IBuilder<ast.ParamDestructureDef>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ParamDestructureDefBuilder WithBindings(LinkedList<ast.PropertyBindingDef> value){
+    public ParamDestructureDefBuilder WithBindings(List<ast.PropertyBindingDef> value){
         _Bindings = value;
         return this;
     }
 
     public ParamDestructureDefBuilder AddingItemToBindings(ast.PropertyBindingDef value){
         _Bindings  ??= [];
-        _Bindings.AddLast(value);
+        _Bindings.Add(value);
         return this;
     }
     public ParamDestructureDefBuilder WithVisibility(ast.Visibility value){
@@ -762,7 +755,7 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
 {
 
     private System.String _Namespace;
-    private LinkedList<ast.MemberDef> _MemberDefs;
+    private List<ast.MemberDef> _MemberDefs;
     private ast.Visibility _Visibility;
     private ast_model.SourceContext _SourceContext;
     private ast.TypeMetadata _Type;
@@ -786,14 +779,14 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
         return this;
     }
 
-    public ClassDefBuilder WithMemberDefs(LinkedList<ast.MemberDef> value){
+    public ClassDefBuilder WithMemberDefs(List<ast.MemberDef> value){
         _MemberDefs = value;
         return this;
     }
 
     public ClassDefBuilder AddingItemToMemberDefs(ast.MemberDef value){
         _MemberDefs  ??= [];
-        _MemberDefs.AddLast(value);
+        _MemberDefs.Add(value);
         return this;
     }
     public ClassDefBuilder WithVisibility(ast.Visibility value){

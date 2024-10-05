@@ -7,7 +7,9 @@ namespace ast_model
 {
     public abstract record ScopeAstThing : AstThing, IScope
     {
+        [IgnoreDuringVisit]
         public IScope EnclosingScope { get; init; }
+        [IgnoreDuringVisit]
         public ISymbolTable SymbolTable { get; init; }
 
         public bool TryResolve(Symbol symbol, out ISymbolTableEntry result)

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 foreach (var t in concreteTypes)
 {
     //Console.WriteLine($"type {t.Name}");
-    var allProps = t.BuildableProperties();
+    var allProps = t.InitialisedProperties();
 
 #>
 public class <#= t.Name #>Builder : IBuilder<<#= t.FullName #>>
