@@ -9,7 +9,7 @@ namespace ast_model.TypeSystem.PrimitiveTypes
 
         public static PrimitiveString Default { get; } = new();
 
-        [Operation(Operator.Add)]
+        [Operation(Operator.StringConcatenate)]
         public static string add_string_string(string left, string right)
         {
             return left + right;

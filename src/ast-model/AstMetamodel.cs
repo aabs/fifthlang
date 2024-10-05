@@ -35,29 +35,38 @@ public enum AccessConstraint
 
 public enum Operator : ushort
 {
+    // Unary Operators
+    ArithmeticNegative, // as opposed to Subtract, which is different
+    LogicalNot, // bitwise complement...
+
     // ArithmeticOperator
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
-    Rem,
-    Mod,
+    ArithmeticAdd,
+    ArithmeticSubtract,
+    ArithmeticMultiply,
+    ArithmeticDivide,
+    ArithmeticRem,
+    ArithmeticMod,
 
     // LogicalOperators
-    And,
-    Or,
-    Not,
-    Nand,
-    Nor,
-    Xor,
+    LogicalAnd,
+    LogicalOr,
+    LogicalNand,
+    LogicalNor,
+    LogicalXor,
+    TernaryCondition, // ?:
 
     // RelationalOperators
-    Equal,
-    NotEqual,
-    LessThan,
-    GreaterThan,
-    LessThanOrEqual,
-    GreaterThanOrEqual
+    ArithmeticEqual,
+    ArithmeticNotEqual,
+    ArithmeticLessThan,
+    ArithmeticGreaterThan,
+    ArithmeticLessThanOrEqual,
+    ArithmeticGreaterThanOrEqual,
+
+    BitwiseLeftShift,
+    BitwiseRightShift,
+
+    StringConcatenate,
 }
 
 public enum OperatorPosition
@@ -431,7 +440,12 @@ public record AssemblyRef : Reference
 
 public record MemberRef : Reference
 {
-    public required MemberDef MemberDef { get; set; }
+    public required MemberDef Member { get; set; }
+}
+
+public record PropertyRef : Reference
+{
+    public required PropertyDef Property { get; set; }
 }
 
 public record TypeRef : Reference
@@ -584,9 +598,9 @@ public abstract record Expression : AstThing
 
 public record BinaryExp : Expression
 {
-    public required Expression Left { get; set; }
-    public required Operator Op { get; set; }
-    public required Expression Right { get; set; }
+    public required Expression LHS { get; set; }
+    public required Operator Operator { get; set; }
+    public required Expression RHS { get; set; }
 }
 
 public record CastExp : Expression
@@ -651,39 +665,125 @@ public record UriLiteralExp : LiteralExpression<Uri>;
 /// </summary>
 public record AtomLiteralExp : LiteralExpression<string>;
 
-
+/// <summary>
+/// Accessing a member of an object
+/// </summary>
+/// <example>
+/// The member access expression can be treated as a binary operator
+/// <code title="accessing the member someProp">var x = inst.someProp;</code>
+/// </example>
 public record MemberAccessExp : Expression
 {
+    public Expression LHS { get; set; }
+    public Expression RHS { get; set; }
 }
 
-public record ObjectInstantiationExp : Expression
+/// <summary>An expression that supplies a set of values to the properties of an object being created</summary>
+/// <example>
+///   <code title="Initializing a Person Instance">var p = new Person()
+/// { // the initializer starts here
+///     FirstName = "Eric",
+///     LastName = "Morecombe",
+///     Profession = "Comedian"
+/// };</code>
+/// </example>
+public record ObjectInitializerExp : Expression
 {
+    public TypeMetadata TypeToInitialize{get;set;}
+    public List<PropertyInitializerExp> PropertyInitialisers{get;set;}
 }
 
+/// <summary>A part of the expression supplying a value for a specific property of an object being created</summary>
+/// <example>
+///   <code title="Initializing a Person Instance">var p = new Person()
+/// {
+///     FirstName = "Eric",    // This is a property initializer
+///     LastName = "Morecombe", // so is this...
+///     Profession = "Comedian"// and this
+/// };</code>
+/// </example>
+public record PropertyInitializerExp : Expression
+{
+    public PropertyRef PropertyToInitialize{get;set;}
+    public Expression RHS{get;set;}
+}
+
+/// <summary>
+/// A unary operator applied to an expression
+/// </summary>
+/// <seealso cref="ast.Expression" />
+/// <seealso cref="ast.IAnnotated" />
+/// <seealso cref="System.IEquatable&lt;ast.AnnotatedThing&gt;" />
+/// <seealso cref="ast.IAstThing" />
+/// <seealso cref="ast_model.IVisitable" />
+/// <seealso cref="System.IEquatable&lt;ast.AstThing&gt;" />
+/// <seealso cref="System.IEquatable&lt;ast.Expression&gt;" />
+/// <seealso cref="System.IEquatable&lt;ast.UnaryExp&gt;" />
 public record UnaryExp : Expression
 {
-    public required Operator Op { get; set; }
+    public required Operator Operator { get; set; }
     public required Expression Operand { get; set; }
 }
 
+
+/// <summary>
+/// A reference to a variable within an expression
+/// </summary>
+/// <seealso cref="ast.Expression" />
+/// <seealso cref="ast.IAnnotated" />
+/// <seealso cref="System.IEquatable&lt;ast.AnnotatedThing&gt;" />
+/// <seealso cref="ast.IAstThing" />
+/// <seealso cref="ast_model.IVisitable" />
+/// <seealso cref="System.IEquatable&lt;ast.AstThing&gt;" />
+/// <seealso cref="System.IEquatable&lt;ast.Expression&gt;" />
+/// <seealso cref="System.IEquatable&lt;ast.VarRefExp&gt;" />
 public record VarRefExp : Expression
 {
+    public VariableDecl VariableDecl { get; set; }
 }
 
+/// <summary>
+/// A list instantiation expression
+/// </summary>
+/// <seealso cref="ast.Expression" />
+/// <seealso cref="ast.IAnnotated" />
+/// <seealso cref="System.IEquatable&lt;ast.AnnotatedThing&gt;" />
+/// <seealso cref="ast.IAstThing" />
+/// <seealso cref="ast_model.IVisitable" />
+/// <seealso cref="System.IEquatable&lt;ast.AstThing&gt;" />
+/// <seealso cref="System.IEquatable&lt;ast.Expression&gt;" />
+/// <seealso cref="System.IEquatable&lt;ast.List&gt;" />
 public record List : Expression
 {
+    public TypeMetadata ElementType { get; set; }
+    /// <summary>
+    /// The set of expressions that supply values to insert into the list on creation.
+    /// </summary>
+    /// <value>
+    /// The element expressions.
+    /// </value>
+    /// <remarks>
+    /// All expressions must have the same type
+    /// </remarks>
+    public List<Expression> ElementExpressions { get; set; }
 }
 
 public record Atom : Expression
 {
+    public AtomLiteralExp AtomExp { get; set; }
 }
 
 public record Triple : Expression
 {
+    public UriLiteralExp SubjectExp { get; set; }
+    public UriLiteralExp PredicateExp { get; set; }
+    public Expression ObjectExp { get; set; }
 }
 
 public record Graph : Expression
 {
+    public UriLiteralExp GraphUri { get; set; }
+    public List<Triple> Triples { get; set; }
 }
 
 #endregion

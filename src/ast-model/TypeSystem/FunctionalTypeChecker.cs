@@ -118,10 +118,10 @@ namespace ast_model.TypeSystem
 
         public IType Infer(IScope scope, BinaryExpression be)
         {
-            var lhsTid = Infer(be.Left);
-            var rhsTid = Infer(be.Right);
+            var lhsTid = Infer(be.LHS);
+            var rhsTid = Infer(be.RHS);
             var (tid, lhsCoercion, rhsCoercion) =
-                OperatorPrecedenceCalculator.GetResultType(be.Op, lhsTid.DeclaringType, rhsTid.DeclaringType);
+                OperatorPrecedenceCalculator.GetResultType(be.Operator, lhsTid.DeclaringType, rhsTid.DeclaringType);
             TypeInferred(be, tid.Lookup());
             return tid.Lookup();
         }

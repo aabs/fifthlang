@@ -38,6 +38,8 @@ public interface IAstVisitor
     public void LeaveAssemblyRef(AssemblyRef ctx);
     public void EnterMemberRef(MemberRef ctx);
     public void LeaveMemberRef(MemberRef ctx);
+    public void EnterPropertyRef(PropertyRef ctx);
+    public void LeavePropertyRef(PropertyRef ctx);
     public void EnterTypeRef(TypeRef ctx);
     public void LeaveTypeRef(TypeRef ctx);
     public void EnterVarRef(VarRef ctx);
@@ -128,8 +130,10 @@ public interface IAstVisitor
     public void LeaveAtomLiteralExp(AtomLiteralExp ctx);
     public void EnterMemberAccessExp(MemberAccessExp ctx);
     public void LeaveMemberAccessExp(MemberAccessExp ctx);
-    public void EnterObjectInstantiationExp(ObjectInstantiationExp ctx);
-    public void LeaveObjectInstantiationExp(ObjectInstantiationExp ctx);
+    public void EnterObjectInitializerExp(ObjectInitializerExp ctx);
+    public void LeaveObjectInitializerExp(ObjectInitializerExp ctx);
+    public void EnterPropertyInitializerExp(PropertyInitializerExp ctx);
+    public void LeavePropertyInitializerExp(PropertyInitializerExp ctx);
     public void EnterUnaryExp(UnaryExp ctx);
     public void LeaveUnaryExp(UnaryExp ctx);
     public void EnterVarRefExp(VarRefExp ctx);
@@ -178,6 +182,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveAssemblyRef(AssemblyRef ctx){}
     public virtual void EnterMemberRef(MemberRef ctx){}
     public virtual void LeaveMemberRef(MemberRef ctx){}
+    public virtual void EnterPropertyRef(PropertyRef ctx){}
+    public virtual void LeavePropertyRef(PropertyRef ctx){}
     public virtual void EnterTypeRef(TypeRef ctx){}
     public virtual void LeaveTypeRef(TypeRef ctx){}
     public virtual void EnterVarRef(VarRef ctx){}
@@ -268,8 +274,10 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveAtomLiteralExp(AtomLiteralExp ctx){}
     public virtual void EnterMemberAccessExp(MemberAccessExp ctx){}
     public virtual void LeaveMemberAccessExp(MemberAccessExp ctx){}
-    public virtual void EnterObjectInstantiationExp(ObjectInstantiationExp ctx){}
-    public virtual void LeaveObjectInstantiationExp(ObjectInstantiationExp ctx){}
+    public virtual void EnterObjectInitializerExp(ObjectInitializerExp ctx){}
+    public virtual void LeaveObjectInitializerExp(ObjectInitializerExp ctx){}
+    public virtual void EnterPropertyInitializerExp(PropertyInitializerExp ctx){}
+    public virtual void LeavePropertyInitializerExp(PropertyInitializerExp ctx){}
     public virtual void EnterUnaryExp(UnaryExp ctx){}
     public virtual void LeaveUnaryExp(UnaryExp ctx){}
     public virtual void EnterVarRefExp(VarRefExp ctx){}
@@ -304,6 +312,7 @@ public interface IAstRecursiveDescentVisitor
     public VariableDecl VisitVariableDecl(VariableDecl ctx);
     public AssemblyRef VisitAssemblyRef(AssemblyRef ctx);
     public MemberRef VisitMemberRef(MemberRef ctx);
+    public PropertyRef VisitPropertyRef(PropertyRef ctx);
     public TypeRef VisitTypeRef(TypeRef ctx);
     public VarRef VisitVarRef(VarRef ctx);
     public GraphNamespaceAlias VisitGraphNamespaceAlias(GraphNamespaceAlias ctx);
@@ -349,7 +358,8 @@ public interface IAstRecursiveDescentVisitor
     public UriLiteralExp VisitUriLiteralExp(UriLiteralExp ctx);
     public AtomLiteralExp VisitAtomLiteralExp(AtomLiteralExp ctx);
     public MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx);
-    public ObjectInstantiationExp VisitObjectInstantiationExp(ObjectInstantiationExp ctx);
+    public ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx);
+    public PropertyInitializerExp VisitPropertyInitializerExp(PropertyInitializerExp ctx);
     public UnaryExp VisitUnaryExp(UnaryExp ctx);
     public VarRefExp VisitVarRefExp(VarRefExp ctx);
     public List VisitList(List ctx);
@@ -380,6 +390,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              VariableDecl node => VisitVariableDecl(node),
              AssemblyRef node => VisitAssemblyRef(node),
              MemberRef node => VisitMemberRef(node),
+             PropertyRef node => VisitPropertyRef(node),
              TypeRef node => VisitTypeRef(node),
              VarRef node => VisitVarRef(node),
              GraphNamespaceAlias node => VisitGraphNamespaceAlias(node),
@@ -425,7 +436,8 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              UriLiteralExp node => VisitUriLiteralExp(node),
              AtomLiteralExp node => VisitAtomLiteralExp(node),
              MemberAccessExp node => VisitMemberAccessExp(node),
-             ObjectInstantiationExp node => VisitObjectInstantiationExp(node),
+             ObjectInitializerExp node => VisitObjectInitializerExp(node),
+             PropertyInitializerExp node => VisitPropertyInitializerExp(node),
              UnaryExp node => VisitUnaryExp(node),
              VarRefExp node => VisitVarRefExp(node),
              List node => VisitList(node),
@@ -545,7 +557,13 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual MemberRef VisitMemberRef(MemberRef ctx)
     {
      return ctx with {
-         MemberDef = (ast.MemberDef)Visit((AstThing)ctx.MemberDef)
+         Member = (ast.MemberDef)Visit((AstThing)ctx.Member)
+        };
+    }
+    public virtual PropertyRef VisitPropertyRef(PropertyRef ctx)
+    {
+     return ctx with {
+         Property = (ast.PropertyDef)Visit((AstThing)ctx.Property)
         };
     }
     public virtual TypeRef VisitTypeRef(TypeRef ctx)
@@ -679,8 +697,8 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual BinaryExp VisitBinaryExp(BinaryExp ctx)
     {
      return ctx with {
-         Left = (ast.Expression)Visit((AstThing)ctx.Left)
-        ,Right = (ast.Expression)Visit((AstThing)ctx.Right)
+         LHS = (ast.Expression)Visit((AstThing)ctx.LHS)
+        ,RHS = (ast.Expression)Visit((AstThing)ctx.RHS)
         };
     }
     public virtual CastExp VisitCastExp(CastExp ctx)
@@ -806,11 +824,23 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx)
     {
      return ctx with {
+         LHS = (ast.Expression)Visit((AstThing)ctx.LHS)
+        ,RHS = (ast.Expression)Visit((AstThing)ctx.RHS)
         };
     }
-    public virtual ObjectInstantiationExp VisitObjectInstantiationExp(ObjectInstantiationExp ctx)
+    public virtual ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx)
+    {
+        List<ast.PropertyInitializerExp> tmpPropertyInitialisers = [];
+        tmpPropertyInitialisers.AddRange(ctx.PropertyInitialisers.Select(x => (ast.PropertyInitializerExp)Visit(x)));
+     return ctx with {
+         PropertyInitialisers = tmpPropertyInitialisers
+        };
+    }
+    public virtual PropertyInitializerExp VisitPropertyInitializerExp(PropertyInitializerExp ctx)
     {
      return ctx with {
+         PropertyToInitialize = (ast.PropertyRef)Visit((AstThing)ctx.PropertyToInitialize)
+        ,RHS = (ast.Expression)Visit((AstThing)ctx.RHS)
         };
     }
     public virtual UnaryExp VisitUnaryExp(UnaryExp ctx)
@@ -822,26 +852,38 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual VarRefExp VisitVarRefExp(VarRefExp ctx)
     {
      return ctx with {
+         VariableDecl = (ast.VariableDecl)Visit((AstThing)ctx.VariableDecl)
         };
     }
     public virtual List VisitList(List ctx)
     {
+        List<ast.Expression> tmpElementExpressions = [];
+        tmpElementExpressions.AddRange(ctx.ElementExpressions.Select(x => (ast.Expression)Visit(x)));
      return ctx with {
+         ElementExpressions = tmpElementExpressions
         };
     }
     public virtual Atom VisitAtom(Atom ctx)
     {
      return ctx with {
+         AtomExp = (ast.AtomLiteralExp)Visit((AstThing)ctx.AtomExp)
         };
     }
     public virtual Triple VisitTriple(Triple ctx)
     {
      return ctx with {
+         SubjectExp = (ast.UriLiteralExp)Visit((AstThing)ctx.SubjectExp)
+        ,PredicateExp = (ast.UriLiteralExp)Visit((AstThing)ctx.PredicateExp)
+        ,ObjectExp = (ast.Expression)Visit((AstThing)ctx.ObjectExp)
         };
     }
     public virtual Graph VisitGraph(Graph ctx)
     {
+        List<ast.Triple> tmpTriples = [];
+        tmpTriples.AddRange(ctx.Triples.Select(x => (ast.Triple)Visit(x)));
      return ctx with {
+         GraphUri = (ast.UriLiteralExp)Visit((AstThing)ctx.GraphUri)
+        ,Triples = tmpTriples
         };
     }
 

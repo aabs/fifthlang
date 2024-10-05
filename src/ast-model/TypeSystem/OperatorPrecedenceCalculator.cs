@@ -54,18 +54,18 @@ public static class OperatorPrecedenceCalculator
     {
         return op switch
         {
-            Operator.And => true,
-            Operator.Or => true,
-            Operator.Not => true,
-            Operator.Nand => true,
-            Operator.Nor => true,
-            Operator.Xor => true,
-            Operator.Equal => true,
-            Operator.NotEqual => true,
-            Operator.LessThan => true,
-            Operator.GreaterThan => true,
-            Operator.LessThanOrEqual => true,
-            Operator.GreaterThanOrEqual => true,
+            Operator.LogicalAnd => true,
+            Operator.LogicalOr => true,
+            Operator.LogicalNot => true,
+            Operator.LogicalNand => true,
+            Operator.LogicalNor => true,
+            Operator.LogicalXor => true,
+            Operator.ArithmeticEqual => true,
+            Operator.ArithmeticNotEqual => true,
+            Operator.ArithmeticLessThan => true,
+            Operator.ArithmeticGreaterThan => true,
+            Operator.ArithmeticLessThanOrEqual => true,
+            Operator.ArithmeticGreaterThanOrEqual => true,
             _ => false
         };
     }

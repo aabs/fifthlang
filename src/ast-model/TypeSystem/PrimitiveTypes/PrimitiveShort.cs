@@ -10,49 +10,49 @@ namespace ast_model.TypeSystem.PrimitiveTypes
 
         public static PrimitiveShort Default { get; set; } = new();
 
-        [Operation(Operator.Add)]
+        [Operation(Operator.ArithmeticAdd)]
         public static short add_short_short(short left, short right)
         {
             return (short)(left + right);
         }
 
-        [Operation(Operator.Divide)]
+        [Operation(Operator.ArithmeticDivide)]
         public static short divide_short_short(short left, short right)
         {
             return (short)(left / right);
         }
 
-        [Operation(Operator.GreaterThanOrEqual)]
+        [Operation(Operator.ArithmeticGreaterThanOrEqual)]
         public static bool greater_than_or_equal_short_short(short left, short right)
         {
             return left >= right;
         }
 
-        [Operation(Operator.GreaterThan)]
+        [Operation(Operator.ArithmeticGreaterThan)]
         public static bool greater_than_short_short(short left, short right)
         {
             return left > right;
         }
 
-        [Operation(Operator.LessThanOrEqual)]
+        [Operation(Operator.ArithmeticLessThanOrEqual)]
         public static bool less_than_or_equal_short_short(short left, short right)
         {
             return left <= right;
         }
 
-        [Operation(Operator.LessThan)]
+        [Operation(Operator.ArithmeticLessThan)]
         public static bool less_than_short_short(short left, short right)
         {
             return left < right;
         }
 
-        [Operation(Operator.Multiply)]
+        [Operation(Operator.ArithmeticMultiply)]
         public static short multiply_short_short(short left, short right)
         {
             return (short)(left * right);
         }
 
-        [Operation(Operator.Subtract)]
+        [Operation(Operator.ArithmeticSubtract)]
         public static short subtract_short_short(short left, short right)
         {
             return (short)(left - right);

@@ -23,6 +23,7 @@ public interface ITypeChecker
     public IType Infer(ScopeAstThing scope, VariableDecl node);
     public IType Infer(ScopeAstThing scope, AssemblyRef node);
     public IType Infer(ScopeAstThing scope, MemberRef node);
+    public IType Infer(ScopeAstThing scope, PropertyRef node);
     public IType Infer(ScopeAstThing scope, TypeRef node);
     public IType Infer(ScopeAstThing scope, VarRef node);
     public IType Infer(ScopeAstThing scope, GraphNamespaceAlias node);
@@ -68,7 +69,8 @@ public interface ITypeChecker
     public IType Infer(ScopeAstThing scope, UriLiteralExp node);
     public IType Infer(ScopeAstThing scope, AtomLiteralExp node);
     public IType Infer(ScopeAstThing scope, MemberAccessExp node);
-    public IType Infer(ScopeAstThing scope, ObjectInstantiationExp node);
+    public IType Infer(ScopeAstThing scope, ObjectInitializerExp node);
+    public IType Infer(ScopeAstThing scope, PropertyInitializerExp node);
     public IType Infer(ScopeAstThing scope, UnaryExp node);
     public IType Infer(ScopeAstThing scope, VarRefExp node);
     public IType Infer(ScopeAstThing scope, List node);
@@ -102,6 +104,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             VariableDecl node => Infer(scope, node),
             AssemblyRef node => Infer(scope, node),
             MemberRef node => Infer(scope, node),
+            PropertyRef node => Infer(scope, node),
             TypeRef node => Infer(scope, node),
             VarRef node => Infer(scope, node),
             GraphNamespaceAlias node => Infer(scope, node),
@@ -147,7 +150,8 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             UriLiteralExp node => Infer(scope, node),
             AtomLiteralExp node => Infer(scope, node),
             MemberAccessExp node => Infer(scope, node),
-            ObjectInstantiationExp node => Infer(scope, node),
+            ObjectInitializerExp node => Infer(scope, node),
+            PropertyInitializerExp node => Infer(scope, node),
             UnaryExp node => Infer(scope, node),
             VarRefExp node => Infer(scope, node),
             List node => Infer(scope, node),
@@ -175,6 +179,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract IType Infer(ScopeAstThing scope, VariableDecl node);
     public abstract IType Infer(ScopeAstThing scope, AssemblyRef node);
     public abstract IType Infer(ScopeAstThing scope, MemberRef node);
+    public abstract IType Infer(ScopeAstThing scope, PropertyRef node);
     public abstract IType Infer(ScopeAstThing scope, TypeRef node);
     public abstract IType Infer(ScopeAstThing scope, VarRef node);
     public abstract IType Infer(ScopeAstThing scope, GraphNamespaceAlias node);
@@ -220,7 +225,8 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract IType Infer(ScopeAstThing scope, UriLiteralExp node);
     public abstract IType Infer(ScopeAstThing scope, AtomLiteralExp node);
     public abstract IType Infer(ScopeAstThing scope, MemberAccessExp node);
-    public abstract IType Infer(ScopeAstThing scope, ObjectInstantiationExp node);
+    public abstract IType Infer(ScopeAstThing scope, ObjectInitializerExp node);
+    public abstract IType Infer(ScopeAstThing scope, PropertyInitializerExp node);
     public abstract IType Infer(ScopeAstThing scope, UnaryExp node);
     public abstract IType Infer(ScopeAstThing scope, VarRefExp node);
     public abstract IType Infer(ScopeAstThing scope, List node);

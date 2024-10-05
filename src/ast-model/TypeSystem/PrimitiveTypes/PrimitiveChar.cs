@@ -4,7 +4,7 @@ namespace ast_model.TypeSystem.PrimitiveTypes
     {
         public static PrimitiveChar Default { get; set; } = new();
 
-        [Operation(Operator.Add)]
+        [Operation(Operator.ArithmeticAdd)]
         public static string Add(char left, char right)
         {
             return $"{left}{right}";

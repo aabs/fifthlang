@@ -10,25 +10,25 @@ namespace ast_model.TypeSystem.PrimitiveTypes
 
         public static PrimitiveFloat Default { get; set; } = new();
 
-        [Operation(Operator.Add)]
+        [Operation(Operator.ArithmeticAdd)]
         public static float add_float_float(float left, float right)
         {
             return left + right;
         }
 
-        [Operation(Operator.Divide)]
+        [Operation(Operator.ArithmeticDivide)]
         public static float divide_float_float(float left, float right)
         {
             return left / right;
         }
 
-        [Operation(Operator.Multiply)]
+        [Operation(Operator.ArithmeticMultiply)]
         public static float multiply_float_float(float left, float right)
         {
             return left * right;
         }
 
-        [Operation(Operator.Subtract)]
+        [Operation(Operator.ArithmeticSubtract)]
         public static float subtract_float_float(float left, float right)
         {
             return left - right;

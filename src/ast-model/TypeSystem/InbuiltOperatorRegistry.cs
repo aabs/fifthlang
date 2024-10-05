@@ -52,7 +52,7 @@ namespace ast_model.TypeSystem;
                                 var t = args[0].ParameterType;
                                 if (TypeRegistry.PrimitiveMappings.TryGetValue(t, out var operand))
                                 {
-                                    if (TypeHelpers.TryPack(out var ord, (ushort)attr.Op, operand.DeclaringType.Value))
+                                    if (TypeHelpers.TryPack(out var ord, (ushort)attr.Operator, operand.DeclaringType.Value))
                                     {
                                         opId = new OperatorId(ord);
                                         operationRegister[opId] = m.Wrap();
@@ -76,7 +76,7 @@ namespace ast_model.TypeSystem;
                                 }
 
                                 if (TypeHelpers.TryPack(out var ord,
-                                    (ushort)attr.Op,
+                                    (ushort)attr.Operator,
                                     leftFifthType.DeclaringType.Value,
                                     rightFifthType.DeclaringType.Value))
                                 {

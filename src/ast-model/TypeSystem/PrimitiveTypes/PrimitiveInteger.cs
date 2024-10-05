@@ -12,49 +12,49 @@ namespace ast_model.TypeSystem.PrimitiveTypes
 
         public static PrimitiveInteger Default { get; set; } = new();
 
-        [Operation(Operator.Add)]
+        [Operation(Operator.ArithmeticAdd)]
         public static int add_int_int(int left, int right)
         {
             return left + right;
         }
 
-        [Operation(Operator.Divide)]
+        [Operation(Operator.ArithmeticDivide)]
         public static int divide_int_int(int left, int right)
         {
             return left / right;
         }
 
-        [Operation(Operator.Multiply)]
+        [Operation(Operator.ArithmeticMultiply)]
         public static int multiply_int_int(int left, int right)
         {
             return left * right;
         }
 
-        [Operation(Operator.Subtract)]
+        [Operation(Operator.ArithmeticSubtract)]
         public static int subtract_int_int(int left, int right)
         {
             return left - right;
         }
 
-        [Operation(Operator.GreaterThanOrEqual)]
+        [Operation(Operator.ArithmeticGreaterThanOrEqual)]
         public static bool greater_than_or_equal_int_int(int left, int right)
         {
             return left >= right;
         }
 
-        [Operation(Operator.LessThanOrEqual)]
+        [Operation(Operator.ArithmeticLessThanOrEqual)]
         public static bool less_than_or_equal_int_int(int left, int right)
         {
             return left <= right;
         }
 
-        [Operation(Operator.GreaterThan)]
+        [Operation(Operator.ArithmeticGreaterThan)]
         public static bool greater_than_int_int(int left, int right)
         {
             return left > right;
         }
 
-        [Operation(Operator.LessThan)]
+        [Operation(Operator.ArithmeticLessThan)]
         public static bool less_than_int_int(int left, int right)
         {
             return left < right;

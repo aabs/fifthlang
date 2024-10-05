@@ -10,25 +10,25 @@ namespace ast_model.TypeSystem.PrimitiveTypes
 
         public static PrimitiveLong Default { get; set; } = new();
 
-        [Operation(Operator.Add)]
+        [Operation(Operator.ArithmeticAdd)]
         public static long Add(long left, long right)
         {
             return left + right;
         }
 
-        [Operation(Operator.Divide)]
+        [Operation(Operator.ArithmeticDivide)]
         public static long Divide(long left, long right)
         {
             return left / right;
         }
 
-        [Operation(Operator.Multiply)]
+        [Operation(Operator.ArithmeticMultiply)]
         public static long Multiply(long left, long right)
         {
             return left * right;
         }
 
-        [Operation(Operator.Subtract)]
+        [Operation(Operator.ArithmeticSubtract)]
         public static long Subtract(long left, long right)
         {
             return left - right;

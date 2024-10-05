@@ -176,12 +176,12 @@ public static class TypeHelpers
 
     public static bool TryEncode(this BinaryExp be, out ulong encoded)
     {
-        return TryPack(out encoded, (ushort)be.Op!, be.Left.Type.TypeId.Value, be.Right.Type.TypeId.Value);
+        return TryPack(out encoded, (ushort)be.Operator!, be.LHS.Type.TypeId.Value, be.RHS.Type.TypeId.Value);
     }
 
     public static bool TryEncode(this UnaryExp ue, out ulong encoded)
     {
-        return TryPack(out encoded, (ushort)ue.Op, ue.Operand.Type.TypeId.Value);
+        return TryPack(out encoded, (ushort)ue.Operator, ue.Operand.Type.TypeId.Value);
     }
 
     public static bool TryGetAttribute<T>(this Type t, out T attr)

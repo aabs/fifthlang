@@ -982,7 +982,7 @@ public class AssemblyRefBuilder : IBuilder<ast.AssemblyRef>
 public class MemberRefBuilder : IBuilder<ast.MemberRef>
 {
 
-    private ast.MemberDef _MemberDef;
+    private ast.MemberDef _Member;
     private ast_model.SourceContext _SourceContext;
     private ast.TypeMetadata _Type;
     private ast.IAstThing _Parent;
@@ -991,15 +991,15 @@ public class MemberRefBuilder : IBuilder<ast.MemberRef>
     public ast.MemberRef Build()
     {
         return new ast.MemberRef(){
-             MemberDef = this._MemberDef // from MemberRef
+             Member = this._Member // from MemberRef
            , SourceContext = this._SourceContext // from AstThing
            , Type = this._Type // from AstThing
            , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public MemberRefBuilder WithMemberDef(ast.MemberDef value){
-        _MemberDef = value;
+    public MemberRefBuilder WithMember(ast.MemberDef value){
+        _Member = value;
         return this;
     }
 
@@ -1019,6 +1019,51 @@ public class MemberRefBuilder : IBuilder<ast.MemberRef>
     }
 
     public MemberRefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class PropertyRefBuilder : IBuilder<ast.PropertyRef>
+{
+
+    private ast.PropertyDef _Property;
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.PropertyRef Build()
+    {
+        return new ast.PropertyRef(){
+             Property = this._Property // from PropertyRef
+           , SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public PropertyRefBuilder WithProperty(ast.PropertyDef value){
+        _Property = value;
+        return this;
+    }
+
+    public PropertyRefBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public PropertyRefBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public PropertyRefBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public PropertyRefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
@@ -1972,9 +2017,9 @@ public class WithScopeStatementBuilder : IBuilder<ast.WithScopeStatement>
 public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
 {
 
-    private ast.Expression _Left;
-    private ast.Operator _Op;
-    private ast.Expression _Right;
+    private ast.Expression _LHS;
+    private ast.Operator _Operator;
+    private ast.Expression _RHS;
     private ast_model.SourceContext _SourceContext;
     private ast.TypeMetadata _Type;
     private ast.IAstThing _Parent;
@@ -1983,27 +2028,27 @@ public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
     public ast.BinaryExp Build()
     {
         return new ast.BinaryExp(){
-             Left = this._Left // from BinaryExp
-           , Op = this._Op // from BinaryExp
-           , Right = this._Right // from BinaryExp
+             LHS = this._LHS // from BinaryExp
+           , Operator = this._Operator // from BinaryExp
+           , RHS = this._RHS // from BinaryExp
            , SourceContext = this._SourceContext // from AstThing
            , Type = this._Type // from AstThing
            , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public BinaryExpBuilder WithLeft(ast.Expression value){
-        _Left = value;
+    public BinaryExpBuilder WithLHS(ast.Expression value){
+        _LHS = value;
         return this;
     }
 
-    public BinaryExpBuilder WithOp(ast.Operator value){
-        _Op = value;
+    public BinaryExpBuilder WithOperator(ast.Operator value){
+        _Operator = value;
         return this;
     }
 
-    public BinaryExpBuilder WithRight(ast.Expression value){
-        _Right = value;
+    public BinaryExpBuilder WithRHS(ast.Expression value){
+        _RHS = value;
         return this;
     }
 
@@ -2947,7 +2992,7 @@ public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
     }
 
 }
-public class ObjectInstantiationExpBuilder : IBuilder<ast.ObjectInstantiationExp>
+public class ObjectInitializerExpBuilder : IBuilder<ast.ObjectInitializerExp>
 {
 
     private ast_model.SourceContext _SourceContext;
@@ -2955,31 +3000,69 @@ public class ObjectInstantiationExpBuilder : IBuilder<ast.ObjectInstantiationExp
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
-    public ast.ObjectInstantiationExp Build()
+    public ast.ObjectInitializerExp Build()
     {
-        return new ast.ObjectInstantiationExp(){
+        return new ast.ObjectInitializerExp(){
              SourceContext = this._SourceContext // from AstThing
            , Type = this._Type // from AstThing
            , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ObjectInstantiationExpBuilder WithSourceContext(ast_model.SourceContext value){
+    public ObjectInitializerExpBuilder WithSourceContext(ast_model.SourceContext value){
         _SourceContext = value;
         return this;
     }
 
-    public ObjectInstantiationExpBuilder WithType(ast.TypeMetadata value){
+    public ObjectInitializerExpBuilder WithType(ast.TypeMetadata value){
         _Type = value;
         return this;
     }
 
-    public ObjectInstantiationExpBuilder WithParent(ast.IAstThing value){
+    public ObjectInitializerExpBuilder WithParent(ast.IAstThing value){
         _Parent = value;
         return this;
     }
 
-    public ObjectInstantiationExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+    public ObjectInitializerExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class PropertyInitializerExpBuilder : IBuilder<ast.PropertyInitializerExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.PropertyInitializerExp Build()
+    {
+        return new ast.PropertyInitializerExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public PropertyInitializerExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public PropertyInitializerExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public PropertyInitializerExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public PropertyInitializerExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
@@ -2988,7 +3071,7 @@ public class ObjectInstantiationExpBuilder : IBuilder<ast.ObjectInstantiationExp
 public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
 {
 
-    private ast.Operator _Op;
+    private ast.Operator _Operator;
     private ast.Expression _Operand;
     private ast_model.SourceContext _SourceContext;
     private ast.TypeMetadata _Type;
@@ -2998,7 +3081,7 @@ public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
     public ast.UnaryExp Build()
     {
         return new ast.UnaryExp(){
-             Op = this._Op // from UnaryExp
+             Operator = this._Operator // from UnaryExp
            , Operand = this._Operand // from UnaryExp
            , SourceContext = this._SourceContext // from AstThing
            , Type = this._Type // from AstThing
@@ -3006,8 +3089,8 @@ public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnaryExpBuilder WithOp(ast.Operator value){
-        _Op = value;
+    public UnaryExpBuilder WithOperator(ast.Operator value){
+        _Operator = value;
         return this;
     }
 

@@ -10,25 +10,25 @@ namespace ast_model.TypeSystem.PrimitiveTypes
 
         public static PrimitiveDecimal Default { get; set; } = new();
 
-        [Operation(Operator.Add)]
+        [Operation(Operator.ArithmeticAdd)]
         public static decimal Add(decimal left, decimal right)
         {
             return left + right;
         }
 
-        [Operation(Operator.Divide)]
+        [Operation(Operator.ArithmeticDivide)]
         public static decimal Divide(decimal left, decimal right)
         {
             return left / right;
         }
 
-        [Operation(Operator.Multiply)]
+        [Operation(Operator.ArithmeticMultiply)]
         public static decimal Multiply(decimal left, decimal right)
         {
             return left * right;
         }
 
-        [Operation(Operator.Subtract)]
+        [Operation(Operator.ArithmeticSubtract)]
         public static decimal Subtract(decimal left, decimal right)
         {
             return left - right;
