@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\ast-generated\ast_generated.csproj" />
     <ProjectReference Include="..\..\src\ast-model\ast_model.csproj" />
   </ItemGroup>
 
