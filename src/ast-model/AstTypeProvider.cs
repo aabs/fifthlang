@@ -1,9 +1,25 @@
 ﻿using System.Runtime.CompilerServices;
 
 namespace ast_model;
-
-public class TypeProvider
+public interface ITypeProvider
 {
+    Type BaseType { get; set; }
+    IEnumerable<Type> AllAstTypes { get; }
+    IEnumerable<Type> AllTypes { get; }
+    IEnumerable<Type> ConcreteTypes { get; }
+    string NamespaceScope { get; set; }
+    IEnumerable<Type> NonIgnoredTypes { get; }
+}
+public class TypeProvider<T> : ITypeProvider
+{
+    public TypeProvider()
+    {
+        NamespaceScope = typeof(T).Namespace;
+        BaseType = typeof(T);
+    }
+
+    public Type BaseType { get; set; }
+
     public IEnumerable<Type> AllAstTypes =>
         from t in AllTypes
         where t.Namespace == NamespaceScope && !t.Name.EndsWith("SystemTextJsonConverter")
@@ -26,23 +42,6 @@ public class TypeProvider
 
 public static class AstTypeProvider
 {
-    public static IEnumerable<Type> AllAstTypes =>
-        from t in AllTypes
-        where t.Namespace == "ast" && !t.Name.EndsWith("SystemTextJsonConverter")
-        select t;
-
-    public static IEnumerable<Type> AllTypes => typeof(AstTypeProvider).Assembly.ExportedTypes;
-
-    public static IEnumerable<Type> ConcreteTypes =>
-      from t in NonIgnoredTypes
-      where t.IsClass && !t.IsAbstract // && !t.IsGenericType //&& !t.IsGenericTypeParameter
-      select t;
-
-    public static IEnumerable<Type> NonIgnoredTypes =>
-      from t in AllAstTypes
-      where !t.HavingAttribute<IgnoreAttribute>() || t.Name.Contains("IgnoreAttribute")
-      select t;
-
     public static IEnumerable<PropertyInfo> BuildableProperties(this Type t)
     {
         _ = t ?? throw new ArgumentNullException(nameof(t));
@@ -147,8 +146,8 @@ public static class AstTypeProvider
                                    where p.IsInitOnly() && !p.HavingAttribute<IgnoreAttribute>()
                                    select p;
 
-    public static bool IsAnAstThing(this Type t)
-            => t.IsAssignableTo(typeof(AstThing));
+    public static bool IsAnAstThing(this Type t, Type baseType)
+            => t.IsAssignableTo(baseType);
 
     public static bool IsCollectionType(this Type t)
     {
@@ -219,11 +218,11 @@ public static class AstTypeProvider
     public static IEnumerable<Type> TypeParameters(this Type type)
                                                 => type.GenericTypeArguments;
 
-    public static IEnumerable<PropertyInfo> VisitableProperties(this Type t)
+    public static IEnumerable<PropertyInfo> VisitableProperties(this Type t, Type baseType)
     {
         _ = t ?? throw new ArgumentNullException(nameof(t));
         return (from pi in t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
-                where !pi.IgnoreDuringVisit() && (pi.PropertyType.IsAnAstThing() || (pi.PropertyType.IsGenericType && pi.PropertyType.TypeParameter(0).IsAnAstThing()))
+                where !pi.IgnoreDuringVisit() && (pi.PropertyType.IsAnAstThing(baseType) || (pi.PropertyType.IsGenericType && pi.PropertyType.TypeParameter(0).IsAnAstThing(baseType)))
                 select pi).ToList();
     }
 }

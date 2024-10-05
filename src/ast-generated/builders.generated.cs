@@ -240,6 +240,65 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
     }
 
 }
+public class FunctorDefBuilder : IBuilder<ast.FunctorDef>
+{
+
+    private ast.FunctionDef _InvocationFuncDev;
+    private ast_model.Symbols.IScope _EnclosingScope;
+    private ast_model.Symbols.ISymbolTable _SymbolTable;
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.FunctorDef Build()
+    {
+        return new ast.FunctorDef(){
+             InvocationFuncDev = this._InvocationFuncDev // from FunctorDef
+           , EnclosingScope = this._EnclosingScope // from ScopeAstThing
+           , SymbolTable = this._SymbolTable // from ScopeAstThing
+           , SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public FunctorDefBuilder WithInvocationFuncDev(ast.FunctionDef value){
+        _InvocationFuncDev = value;
+        return this;
+    }
+
+    public FunctorDefBuilder WithEnclosingScope(ast_model.Symbols.IScope value){
+        _EnclosingScope = value;
+        return this;
+    }
+
+    public FunctorDefBuilder WithSymbolTable(ast_model.Symbols.ISymbolTable value){
+        _SymbolTable = value;
+        return this;
+    }
+
+    public FunctorDefBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public FunctorDefBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public FunctorDefBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public FunctorDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class FieldDefBuilder : IBuilder<ast.FieldDef>
 {
 
@@ -1972,6 +2031,7 @@ public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
 public class CastExpBuilder : IBuilder<ast.CastExp>
 {
 
+    private ast.TypeMetadata _TargetType;
     private ast_model.SourceContext _SourceContext;
     private ast.TypeMetadata _Type;
     private ast.IAstThing _Parent;
@@ -1980,12 +2040,18 @@ public class CastExpBuilder : IBuilder<ast.CastExp>
     public ast.CastExp Build()
     {
         return new ast.CastExp(){
-             SourceContext = this._SourceContext // from AstThing
+             TargetType = this._TargetType // from CastExp
+           , SourceContext = this._SourceContext // from AstThing
            , Type = this._Type // from AstThing
            , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
+    public CastExpBuilder WithTargetType(ast.TypeMetadata value){
+        _TargetType = value;
+        return this;
+    }
+
     public CastExpBuilder WithSourceContext(ast_model.SourceContext value){
         _SourceContext = value;
         return this;
@@ -2083,7 +2149,7 @@ public class FuncCallExpBuilder : IBuilder<ast.FuncCallExp>
     }
 
 }
-public class LiteralExpBuilder : IBuilder<ast.LiteralExp>
+public class Int8LiteralExpBuilder : IBuilder<ast.Int8LiteralExp>
 {
 
     private ast_model.SourceContext _SourceContext;
@@ -2091,31 +2157,753 @@ public class LiteralExpBuilder : IBuilder<ast.LiteralExp>
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
-    public ast.LiteralExp Build()
+    public ast.Int8LiteralExp Build()
     {
-        return new ast.LiteralExp(){
+        return new ast.Int8LiteralExp(){
              SourceContext = this._SourceContext // from AstThing
            , Type = this._Type // from AstThing
            , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public LiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+    public Int8LiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
         _SourceContext = value;
         return this;
     }
 
-    public LiteralExpBuilder WithType(ast.TypeMetadata value){
+    public Int8LiteralExpBuilder WithType(ast.TypeMetadata value){
         _Type = value;
         return this;
     }
 
-    public LiteralExpBuilder WithParent(ast.IAstThing value){
+    public Int8LiteralExpBuilder WithParent(ast.IAstThing value){
         _Parent = value;
         return this;
     }
 
-    public LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+    public Int8LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class Int16LiteralExpBuilder : IBuilder<ast.Int16LiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.Int16LiteralExp Build()
+    {
+        return new ast.Int16LiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public Int16LiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public Int16LiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public Int16LiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public Int16LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class Int32LiteralExpBuilder : IBuilder<ast.Int32LiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.Int32LiteralExp Build()
+    {
+        return new ast.Int32LiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public Int32LiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public Int32LiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public Int32LiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public Int32LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class Int64LiteralExpBuilder : IBuilder<ast.Int64LiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.Int64LiteralExp Build()
+    {
+        return new ast.Int64LiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public Int64LiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public Int64LiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public Int64LiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public Int64LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class UnsignedInt8LiteralExpBuilder : IBuilder<ast.UnsignedInt8LiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.UnsignedInt8LiteralExp Build()
+    {
+        return new ast.UnsignedInt8LiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public UnsignedInt8LiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public UnsignedInt8LiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public UnsignedInt8LiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public UnsignedInt8LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class UnsignedInt16LiteralExpBuilder : IBuilder<ast.UnsignedInt16LiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.UnsignedInt16LiteralExp Build()
+    {
+        return new ast.UnsignedInt16LiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public UnsignedInt16LiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public UnsignedInt16LiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public UnsignedInt16LiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public UnsignedInt16LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class UnsignedInt32LiteralExpBuilder : IBuilder<ast.UnsignedInt32LiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.UnsignedInt32LiteralExp Build()
+    {
+        return new ast.UnsignedInt32LiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public UnsignedInt32LiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public UnsignedInt32LiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public UnsignedInt32LiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public UnsignedInt32LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class UnsignedInt64LiteralExpBuilder : IBuilder<ast.UnsignedInt64LiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.UnsignedInt64LiteralExp Build()
+    {
+        return new ast.UnsignedInt64LiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public UnsignedInt64LiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public UnsignedInt64LiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public UnsignedInt64LiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public UnsignedInt64LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class Float4LiteralExpBuilder : IBuilder<ast.Float4LiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.Float4LiteralExp Build()
+    {
+        return new ast.Float4LiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public Float4LiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public Float4LiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public Float4LiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public Float4LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class Float8LiteralExpBuilder : IBuilder<ast.Float8LiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.Float8LiteralExp Build()
+    {
+        return new ast.Float8LiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public Float8LiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public Float8LiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public Float8LiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public Float8LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class Float16LiteralExpBuilder : IBuilder<ast.Float16LiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.Float16LiteralExp Build()
+    {
+        return new ast.Float16LiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public Float16LiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public Float16LiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public Float16LiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public Float16LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class BooleanLiteralExpBuilder : IBuilder<ast.BooleanLiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.BooleanLiteralExp Build()
+    {
+        return new ast.BooleanLiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public BooleanLiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public BooleanLiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public BooleanLiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public BooleanLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class CharLiteralExpBuilder : IBuilder<ast.CharLiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.CharLiteralExp Build()
+    {
+        return new ast.CharLiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public CharLiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public CharLiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public CharLiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public CharLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class StringLiteralExpBuilder : IBuilder<ast.StringLiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.StringLiteralExp Build()
+    {
+        return new ast.StringLiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public StringLiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public StringLiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public StringLiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public StringLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class DateLiteralExpBuilder : IBuilder<ast.DateLiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.DateLiteralExp Build()
+    {
+        return new ast.DateLiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public DateLiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public DateLiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public DateLiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public DateLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class TimeLiteralExpBuilder : IBuilder<ast.TimeLiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.TimeLiteralExp Build()
+    {
+        return new ast.TimeLiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public TimeLiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public TimeLiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public TimeLiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public TimeLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class DateTimeLiteralExpBuilder : IBuilder<ast.DateTimeLiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.DateTimeLiteralExp Build()
+    {
+        return new ast.DateTimeLiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public DateTimeLiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public DateTimeLiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public DateTimeLiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public DateTimeLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class DurationLiteralExpBuilder : IBuilder<ast.DurationLiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.DurationLiteralExp Build()
+    {
+        return new ast.DurationLiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public DurationLiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public DurationLiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public DurationLiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public DurationLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class UriLiteralExpBuilder : IBuilder<ast.UriLiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.UriLiteralExp Build()
+    {
+        return new ast.UriLiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public UriLiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public UriLiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public UriLiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public UriLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class AtomLiteralExpBuilder : IBuilder<ast.AtomLiteralExp>
+{
+
+    private ast_model.SourceContext _SourceContext;
+    private ast.TypeMetadata _Type;
+    private ast.IAstThing _Parent;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.AtomLiteralExp Build()
+    {
+        return new ast.AtomLiteralExp(){
+             SourceContext = this._SourceContext // from AstThing
+           , Type = this._Type // from AstThing
+           , Parent = this._Parent // from AstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public AtomLiteralExpBuilder WithSourceContext(ast_model.SourceContext value){
+        _SourceContext = value;
+        return this;
+    }
+
+    public AtomLiteralExpBuilder WithType(ast.TypeMetadata value){
+        _Type = value;
+        return this;
+    }
+
+    public AtomLiteralExpBuilder WithParent(ast.IAstThing value){
+        _Parent = value;
+        return this;
+    }
+
+    public AtomLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }

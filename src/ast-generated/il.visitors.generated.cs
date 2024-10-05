@@ -313,17 +313,29 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
 
     public virtual AssemblyDeclaration VisitAssemblyDeclaration(AssemblyDeclaration ctx)
     {
+        List<il_ast.AssemblyReference> tmpAssemblyReferences = [];
+        tmpAssemblyReferences.AddRange(ctx.AssemblyReferences.Select(x => (il_ast.AssemblyReference)Visit(x)));
      return ctx with {
+         Version = (il_ast.Version)Visit((AstThing)ctx.Version)
+        ,PrimeModule = (il_ast.ModuleDeclaration)Visit((AstThing)ctx.PrimeModule)
+        ,AssemblyReferences = tmpAssemblyReferences
         };
     }
     public virtual AssemblyReference VisitAssemblyReference(AssemblyReference ctx)
     {
      return ctx with {
+         Version = (il_ast.Version)Visit((AstThing)ctx.Version)
         };
     }
     public virtual ModuleDeclaration VisitModuleDeclaration(ModuleDeclaration ctx)
     {
+        List<il_ast.ClassDefinition> tmpClasses = [];
+        tmpClasses.AddRange(ctx.Classes.Select(x => (il_ast.ClassDefinition)Visit(x)));
+        List<il_ast.MethodDefinition> tmpFunctions = [];
+        tmpFunctions.AddRange(ctx.Functions.Select(x => (il_ast.MethodDefinition)Visit(x)));
      return ctx with {
+         Classes = tmpClasses
+        ,Functions = tmpFunctions
         };
     }
     public virtual Version VisitVersion(Version ctx)
@@ -333,12 +345,27 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     }
     public virtual ClassDefinition VisitClassDefinition(ClassDefinition ctx)
     {
+        List<il_ast.FieldDefinition> tmpFields = [];
+        tmpFields.AddRange(ctx.Fields.Select(x => (il_ast.FieldDefinition)Visit(x)));
+        List<il_ast.PropertyDefinition> tmpProperties = [];
+        tmpProperties.AddRange(ctx.Properties.Select(x => (il_ast.PropertyDefinition)Visit(x)));
+        List<il_ast.MethodDefinition> tmpMethods = [];
+        tmpMethods.AddRange(ctx.Methods.Select(x => (il_ast.MethodDefinition)Visit(x)));
+        List<il_ast.ClassDefinition> tmpBaseClasses = [];
+        tmpBaseClasses.AddRange(ctx.BaseClasses.Select(x => (il_ast.ClassDefinition)Visit(x)));
      return ctx with {
+         Fields = tmpFields
+        ,Properties = tmpProperties
+        ,Methods = tmpMethods
+        ,BaseClasses = tmpBaseClasses
+        ,ParentAssembly = (il_ast.AssemblyDeclaration)Visit((AstThing)ctx.ParentAssembly)
         };
     }
     public virtual MemberAccessExpression VisitMemberAccessExpression(MemberAccessExpression ctx)
     {
      return ctx with {
+         Lhs = (il_ast.Expression)Visit((AstThing)ctx.Lhs)
+        ,Rhs = (il_ast.Expression)Visit((AstThing)ctx.Rhs)
         };
     }
     public virtual ParameterDeclaration VisitParameterDeclaration(ParameterDeclaration ctx)
@@ -349,11 +376,16 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual ParameterSignature VisitParameterSignature(ParameterSignature ctx)
     {
      return ctx with {
+         TypeReference = (il_ast.TypeReference)Visit((AstThing)ctx.TypeReference)
         };
     }
     public virtual MethodSignature VisitMethodSignature(MethodSignature ctx)
     {
+        List<il_ast.ParameterSignature> tmpParameterSignatures = [];
+        tmpParameterSignatures.AddRange(ctx.ParameterSignatures.Select(x => (il_ast.ParameterSignature)Visit(x)));
      return ctx with {
+         ParameterSignatures = tmpParameterSignatures
+        ,ReturnTypeSignature = (il_ast.TypeReference)Visit((AstThing)ctx.ReturnTypeSignature)
         };
     }
     public virtual MethodHeader VisitMethodHeader(MethodHeader ctx)
@@ -364,16 +396,26 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual MethodRef VisitMethodRef(MethodRef ctx)
     {
      return ctx with {
+         ClassDefinition = (il_ast.ClassDefinition)Visit((AstThing)ctx.ClassDefinition)
+        ,Sig = (il_ast.MethodSignature)Visit((AstThing)ctx.Sig)
+        ,Field = (il_ast.FieldDefinition)Visit((AstThing)ctx.Field)
         };
     }
     public virtual MethodImpl VisitMethodImpl(MethodImpl ctx)
     {
      return ctx with {
+         Body = (il_ast.Block)Visit((AstThing)ctx.Body)
         };
     }
     public virtual MethodDefinition VisitMethodDefinition(MethodDefinition ctx)
     {
      return ctx with {
+         Header = (il_ast.MethodHeader)Visit((AstThing)ctx.Header)
+        ,Signature = (il_ast.MethodSignature)Visit((AstThing)ctx.Signature)
+        ,Impl = (il_ast.MethodImpl)Visit((AstThing)ctx.Impl)
+        ,TheType = (il_ast.TypeReference)Visit((AstThing)ctx.TheType)
+        ,ParentClass = (il_ast.ClassDefinition)Visit((AstThing)ctx.ParentClass)
+        ,AssociatedProperty = (il_ast.PropertyDefinition)Visit((AstThing)ctx.AssociatedProperty)
         };
     }
     public virtual TypeReference VisitTypeReference(TypeReference ctx)
@@ -384,61 +426,86 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual MemberRef VisitMemberRef(MemberRef ctx)
     {
      return ctx with {
+         ClassDefinition = (il_ast.ClassDefinition)Visit((AstThing)ctx.ClassDefinition)
+        ,Sig = (il_ast.MethodSignature)Visit((AstThing)ctx.Sig)
+        ,Field = (il_ast.FieldDefinition)Visit((AstThing)ctx.Field)
         };
     }
     public virtual FieldDefinition VisitFieldDefinition(FieldDefinition ctx)
     {
      return ctx with {
+         TheType = (il_ast.TypeReference)Visit((AstThing)ctx.TheType)
+        ,ParentClass = (il_ast.ClassDefinition)Visit((AstThing)ctx.ParentClass)
+        ,AssociatedProperty = (il_ast.PropertyDefinition)Visit((AstThing)ctx.AssociatedProperty)
         };
     }
     public virtual PropertyDefinition VisitPropertyDefinition(PropertyDefinition ctx)
     {
      return ctx with {
+         FieldDefinition = (il_ast.FieldDefinition)Visit((AstThing)ctx.FieldDefinition)
+        ,TheType = (il_ast.TypeReference)Visit((AstThing)ctx.TheType)
+        ,ParentClass = (il_ast.ClassDefinition)Visit((AstThing)ctx.ParentClass)
+        ,AssociatedProperty = (il_ast.PropertyDefinition)Visit((AstThing)ctx.AssociatedProperty)
         };
     }
     public virtual Block VisitBlock(Block ctx)
     {
+        List<il_ast.Statement> tmpStatements = [];
+        tmpStatements.AddRange(ctx.Statements.Select(x => (il_ast.Statement)Visit(x)));
      return ctx with {
+         Statements = tmpStatements
         };
     }
     public virtual IfStatement VisitIfStatement(IfStatement ctx)
     {
      return ctx with {
+         Conditional = (il_ast.Expression)Visit((AstThing)ctx.Conditional)
+        ,IfBlock = (il_ast.Block)Visit((AstThing)ctx.IfBlock)
+        ,ElseBlock = (il_ast.Block)Visit((AstThing)ctx.ElseBlock)
         };
     }
     public virtual VariableAssignmentStatement VisitVariableAssignmentStatement(VariableAssignmentStatement ctx)
     {
      return ctx with {
+         RHS = (il_ast.Expression)Visit((AstThing)ctx.RHS)
         };
     }
     public virtual VariableDeclarationStatement VisitVariableDeclarationStatement(VariableDeclarationStatement ctx)
     {
      return ctx with {
+         InitialisationExpression = (il_ast.Expression)Visit((AstThing)ctx.InitialisationExpression)
         };
     }
     public virtual ReturnStatement VisitReturnStatement(ReturnStatement ctx)
     {
      return ctx with {
+         Exp = (il_ast.Expression)Visit((AstThing)ctx.Exp)
         };
     }
     public virtual WhileStatement VisitWhileStatement(WhileStatement ctx)
     {
      return ctx with {
+         Conditional = (il_ast.Expression)Visit((AstThing)ctx.Conditional)
+        ,LoopBlock = (il_ast.Block)Visit((AstThing)ctx.LoopBlock)
         };
     }
     public virtual ExpressionStatement VisitExpressionStatement(ExpressionStatement ctx)
     {
      return ctx with {
+         Expression = (il_ast.Expression)Visit((AstThing)ctx.Expression)
         };
     }
     public virtual UnaryExpression VisitUnaryExpression(UnaryExpression ctx)
     {
      return ctx with {
+         Exp = (il_ast.Expression)Visit((AstThing)ctx.Exp)
         };
     }
     public virtual BinaryExpression VisitBinaryExpression(BinaryExpression ctx)
     {
      return ctx with {
+         LHS = (il_ast.Expression)Visit((AstThing)ctx.LHS)
+        ,RHS = (il_ast.Expression)Visit((AstThing)ctx.RHS)
         };
     }
     public virtual VariableReferenceExpression VisitVariableReferenceExpression(VariableReferenceExpression ctx)
@@ -449,11 +516,16 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual TypeCastExpression VisitTypeCastExpression(TypeCastExpression ctx)
     {
      return ctx with {
+         Expression = (il_ast.Expression)Visit((AstThing)ctx.Expression)
         };
     }
     public virtual FuncCallExp VisitFuncCallExp(FuncCallExp ctx)
     {
+        List<il_ast.Expression> tmpArgs = [];
+        tmpArgs.AddRange(ctx.Args.Select(x => (il_ast.Expression)Visit(x)));
      return ctx with {
+         Args = tmpArgs
+        ,ClassDefinition = (il_ast.ClassDefinition)Visit((AstThing)ctx.ClassDefinition)
         };
     }
     public virtual BoolLiteral VisitBoolLiteral(BoolLiteral ctx)

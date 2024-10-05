@@ -48,7 +48,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
 
 foreach (var ast in asts)
 {
-    var allProps = ast.VisitableProperties();
+    var allProps = ast.VisitableProperties(TypeProvider.BaseType);
 #>
     public virtual <#= ast.Name #> Visit<#= ast.Name #>(<#= ast.Name #> ctx)
     {

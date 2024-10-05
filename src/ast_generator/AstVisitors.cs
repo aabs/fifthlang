@@ -227,7 +227,7 @@ namespace ast_generator
 
 foreach (var ast in asts)
 {
-    var allProps = ast.VisitableProperties();
+    var allProps = ast.VisitableProperties(TypeProvider.BaseType);
 
             
             #line default

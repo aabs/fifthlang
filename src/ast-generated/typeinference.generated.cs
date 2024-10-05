@@ -10,6 +10,7 @@ public interface ITypeChecker
     public IType Infer(ScopeAstThing scope, UserDefinedType node);
     public IType Infer(ScopeAstThing scope, AssemblyDef node);
     public IType Infer(ScopeAstThing scope, FunctionDef node);
+    public IType Infer(ScopeAstThing scope, FunctorDef node);
     public IType Infer(ScopeAstThing scope, FieldDef node);
     public IType Infer(ScopeAstThing scope, PropertyDef node);
     public IType Infer(ScopeAstThing scope, MethodDef node);
@@ -46,7 +47,26 @@ public interface ITypeChecker
     public IType Infer(ScopeAstThing scope, CastExp node);
     public IType Infer(ScopeAstThing scope, LambdaExp node);
     public IType Infer(ScopeAstThing scope, FuncCallExp node);
-    public IType Infer(ScopeAstThing scope, LiteralExp node);
+    public IType Infer(ScopeAstThing scope, Int8LiteralExp node);
+    public IType Infer(ScopeAstThing scope, Int16LiteralExp node);
+    public IType Infer(ScopeAstThing scope, Int32LiteralExp node);
+    public IType Infer(ScopeAstThing scope, Int64LiteralExp node);
+    public IType Infer(ScopeAstThing scope, UnsignedInt8LiteralExp node);
+    public IType Infer(ScopeAstThing scope, UnsignedInt16LiteralExp node);
+    public IType Infer(ScopeAstThing scope, UnsignedInt32LiteralExp node);
+    public IType Infer(ScopeAstThing scope, UnsignedInt64LiteralExp node);
+    public IType Infer(ScopeAstThing scope, Float4LiteralExp node);
+    public IType Infer(ScopeAstThing scope, Float8LiteralExp node);
+    public IType Infer(ScopeAstThing scope, Float16LiteralExp node);
+    public IType Infer(ScopeAstThing scope, BooleanLiteralExp node);
+    public IType Infer(ScopeAstThing scope, CharLiteralExp node);
+    public IType Infer(ScopeAstThing scope, StringLiteralExp node);
+    public IType Infer(ScopeAstThing scope, DateLiteralExp node);
+    public IType Infer(ScopeAstThing scope, TimeLiteralExp node);
+    public IType Infer(ScopeAstThing scope, DateTimeLiteralExp node);
+    public IType Infer(ScopeAstThing scope, DurationLiteralExp node);
+    public IType Infer(ScopeAstThing scope, UriLiteralExp node);
+    public IType Infer(ScopeAstThing scope, AtomLiteralExp node);
     public IType Infer(ScopeAstThing scope, MemberAccessExp node);
     public IType Infer(ScopeAstThing scope, ObjectInstantiationExp node);
     public IType Infer(ScopeAstThing scope, UnaryExp node);
@@ -69,6 +89,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             UserDefinedType node => Infer(scope, node),
             AssemblyDef node => Infer(scope, node),
             FunctionDef node => Infer(scope, node),
+            FunctorDef node => Infer(scope, node),
             FieldDef node => Infer(scope, node),
             PropertyDef node => Infer(scope, node),
             MethodDef node => Infer(scope, node),
@@ -105,7 +126,26 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             CastExp node => Infer(scope, node),
             LambdaExp node => Infer(scope, node),
             FuncCallExp node => Infer(scope, node),
-            LiteralExp node => Infer(scope, node),
+            Int8LiteralExp node => Infer(scope, node),
+            Int16LiteralExp node => Infer(scope, node),
+            Int32LiteralExp node => Infer(scope, node),
+            Int64LiteralExp node => Infer(scope, node),
+            UnsignedInt8LiteralExp node => Infer(scope, node),
+            UnsignedInt16LiteralExp node => Infer(scope, node),
+            UnsignedInt32LiteralExp node => Infer(scope, node),
+            UnsignedInt64LiteralExp node => Infer(scope, node),
+            Float4LiteralExp node => Infer(scope, node),
+            Float8LiteralExp node => Infer(scope, node),
+            Float16LiteralExp node => Infer(scope, node),
+            BooleanLiteralExp node => Infer(scope, node),
+            CharLiteralExp node => Infer(scope, node),
+            StringLiteralExp node => Infer(scope, node),
+            DateLiteralExp node => Infer(scope, node),
+            TimeLiteralExp node => Infer(scope, node),
+            DateTimeLiteralExp node => Infer(scope, node),
+            DurationLiteralExp node => Infer(scope, node),
+            UriLiteralExp node => Infer(scope, node),
+            AtomLiteralExp node => Infer(scope, node),
             MemberAccessExp node => Infer(scope, node),
             ObjectInstantiationExp node => Infer(scope, node),
             UnaryExp node => Infer(scope, node),
@@ -122,6 +162,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract IType Infer(ScopeAstThing scope, UserDefinedType node);
     public abstract IType Infer(ScopeAstThing scope, AssemblyDef node);
     public abstract IType Infer(ScopeAstThing scope, FunctionDef node);
+    public abstract IType Infer(ScopeAstThing scope, FunctorDef node);
     public abstract IType Infer(ScopeAstThing scope, FieldDef node);
     public abstract IType Infer(ScopeAstThing scope, PropertyDef node);
     public abstract IType Infer(ScopeAstThing scope, MethodDef node);
@@ -158,7 +199,26 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract IType Infer(ScopeAstThing scope, CastExp node);
     public abstract IType Infer(ScopeAstThing scope, LambdaExp node);
     public abstract IType Infer(ScopeAstThing scope, FuncCallExp node);
-    public abstract IType Infer(ScopeAstThing scope, LiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, Int8LiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, Int16LiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, Int32LiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, Int64LiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, UnsignedInt8LiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, UnsignedInt16LiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, UnsignedInt32LiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, UnsignedInt64LiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, Float4LiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, Float8LiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, Float16LiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, BooleanLiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, CharLiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, StringLiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, DateLiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, TimeLiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, DateTimeLiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, DurationLiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, UriLiteralExp node);
+    public abstract IType Infer(ScopeAstThing scope, AtomLiteralExp node);
     public abstract IType Infer(ScopeAstThing scope, MemberAccessExp node);
     public abstract IType Infer(ScopeAstThing scope, ObjectInstantiationExp node);
     public abstract IType Infer(ScopeAstThing scope, UnaryExp node);

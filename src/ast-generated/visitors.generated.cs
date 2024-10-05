@@ -12,6 +12,8 @@ public interface IAstVisitor
     public void LeaveAssemblyDef(AssemblyDef ctx);
     public void EnterFunctionDef(FunctionDef ctx);
     public void LeaveFunctionDef(FunctionDef ctx);
+    public void EnterFunctorDef(FunctorDef ctx);
+    public void LeaveFunctorDef(FunctorDef ctx);
     public void EnterFieldDef(FieldDef ctx);
     public void LeaveFieldDef(FieldDef ctx);
     public void EnterPropertyDef(PropertyDef ctx);
@@ -84,8 +86,46 @@ public interface IAstVisitor
     public void LeaveLambdaExp(LambdaExp ctx);
     public void EnterFuncCallExp(FuncCallExp ctx);
     public void LeaveFuncCallExp(FuncCallExp ctx);
-    public void EnterLiteralExp(LiteralExp ctx);
-    public void LeaveLiteralExp(LiteralExp ctx);
+    public void EnterInt8LiteralExp(Int8LiteralExp ctx);
+    public void LeaveInt8LiteralExp(Int8LiteralExp ctx);
+    public void EnterInt16LiteralExp(Int16LiteralExp ctx);
+    public void LeaveInt16LiteralExp(Int16LiteralExp ctx);
+    public void EnterInt32LiteralExp(Int32LiteralExp ctx);
+    public void LeaveInt32LiteralExp(Int32LiteralExp ctx);
+    public void EnterInt64LiteralExp(Int64LiteralExp ctx);
+    public void LeaveInt64LiteralExp(Int64LiteralExp ctx);
+    public void EnterUnsignedInt8LiteralExp(UnsignedInt8LiteralExp ctx);
+    public void LeaveUnsignedInt8LiteralExp(UnsignedInt8LiteralExp ctx);
+    public void EnterUnsignedInt16LiteralExp(UnsignedInt16LiteralExp ctx);
+    public void LeaveUnsignedInt16LiteralExp(UnsignedInt16LiteralExp ctx);
+    public void EnterUnsignedInt32LiteralExp(UnsignedInt32LiteralExp ctx);
+    public void LeaveUnsignedInt32LiteralExp(UnsignedInt32LiteralExp ctx);
+    public void EnterUnsignedInt64LiteralExp(UnsignedInt64LiteralExp ctx);
+    public void LeaveUnsignedInt64LiteralExp(UnsignedInt64LiteralExp ctx);
+    public void EnterFloat4LiteralExp(Float4LiteralExp ctx);
+    public void LeaveFloat4LiteralExp(Float4LiteralExp ctx);
+    public void EnterFloat8LiteralExp(Float8LiteralExp ctx);
+    public void LeaveFloat8LiteralExp(Float8LiteralExp ctx);
+    public void EnterFloat16LiteralExp(Float16LiteralExp ctx);
+    public void LeaveFloat16LiteralExp(Float16LiteralExp ctx);
+    public void EnterBooleanLiteralExp(BooleanLiteralExp ctx);
+    public void LeaveBooleanLiteralExp(BooleanLiteralExp ctx);
+    public void EnterCharLiteralExp(CharLiteralExp ctx);
+    public void LeaveCharLiteralExp(CharLiteralExp ctx);
+    public void EnterStringLiteralExp(StringLiteralExp ctx);
+    public void LeaveStringLiteralExp(StringLiteralExp ctx);
+    public void EnterDateLiteralExp(DateLiteralExp ctx);
+    public void LeaveDateLiteralExp(DateLiteralExp ctx);
+    public void EnterTimeLiteralExp(TimeLiteralExp ctx);
+    public void LeaveTimeLiteralExp(TimeLiteralExp ctx);
+    public void EnterDateTimeLiteralExp(DateTimeLiteralExp ctx);
+    public void LeaveDateTimeLiteralExp(DateTimeLiteralExp ctx);
+    public void EnterDurationLiteralExp(DurationLiteralExp ctx);
+    public void LeaveDurationLiteralExp(DurationLiteralExp ctx);
+    public void EnterUriLiteralExp(UriLiteralExp ctx);
+    public void LeaveUriLiteralExp(UriLiteralExp ctx);
+    public void EnterAtomLiteralExp(AtomLiteralExp ctx);
+    public void LeaveAtomLiteralExp(AtomLiteralExp ctx);
     public void EnterMemberAccessExp(MemberAccessExp ctx);
     public void LeaveMemberAccessExp(MemberAccessExp ctx);
     public void EnterObjectInstantiationExp(ObjectInstantiationExp ctx);
@@ -112,6 +152,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveAssemblyDef(AssemblyDef ctx){}
     public virtual void EnterFunctionDef(FunctionDef ctx){}
     public virtual void LeaveFunctionDef(FunctionDef ctx){}
+    public virtual void EnterFunctorDef(FunctorDef ctx){}
+    public virtual void LeaveFunctorDef(FunctorDef ctx){}
     public virtual void EnterFieldDef(FieldDef ctx){}
     public virtual void LeaveFieldDef(FieldDef ctx){}
     public virtual void EnterPropertyDef(PropertyDef ctx){}
@@ -184,8 +226,46 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveLambdaExp(LambdaExp ctx){}
     public virtual void EnterFuncCallExp(FuncCallExp ctx){}
     public virtual void LeaveFuncCallExp(FuncCallExp ctx){}
-    public virtual void EnterLiteralExp(LiteralExp ctx){}
-    public virtual void LeaveLiteralExp(LiteralExp ctx){}
+    public virtual void EnterInt8LiteralExp(Int8LiteralExp ctx){}
+    public virtual void LeaveInt8LiteralExp(Int8LiteralExp ctx){}
+    public virtual void EnterInt16LiteralExp(Int16LiteralExp ctx){}
+    public virtual void LeaveInt16LiteralExp(Int16LiteralExp ctx){}
+    public virtual void EnterInt32LiteralExp(Int32LiteralExp ctx){}
+    public virtual void LeaveInt32LiteralExp(Int32LiteralExp ctx){}
+    public virtual void EnterInt64LiteralExp(Int64LiteralExp ctx){}
+    public virtual void LeaveInt64LiteralExp(Int64LiteralExp ctx){}
+    public virtual void EnterUnsignedInt8LiteralExp(UnsignedInt8LiteralExp ctx){}
+    public virtual void LeaveUnsignedInt8LiteralExp(UnsignedInt8LiteralExp ctx){}
+    public virtual void EnterUnsignedInt16LiteralExp(UnsignedInt16LiteralExp ctx){}
+    public virtual void LeaveUnsignedInt16LiteralExp(UnsignedInt16LiteralExp ctx){}
+    public virtual void EnterUnsignedInt32LiteralExp(UnsignedInt32LiteralExp ctx){}
+    public virtual void LeaveUnsignedInt32LiteralExp(UnsignedInt32LiteralExp ctx){}
+    public virtual void EnterUnsignedInt64LiteralExp(UnsignedInt64LiteralExp ctx){}
+    public virtual void LeaveUnsignedInt64LiteralExp(UnsignedInt64LiteralExp ctx){}
+    public virtual void EnterFloat4LiteralExp(Float4LiteralExp ctx){}
+    public virtual void LeaveFloat4LiteralExp(Float4LiteralExp ctx){}
+    public virtual void EnterFloat8LiteralExp(Float8LiteralExp ctx){}
+    public virtual void LeaveFloat8LiteralExp(Float8LiteralExp ctx){}
+    public virtual void EnterFloat16LiteralExp(Float16LiteralExp ctx){}
+    public virtual void LeaveFloat16LiteralExp(Float16LiteralExp ctx){}
+    public virtual void EnterBooleanLiteralExp(BooleanLiteralExp ctx){}
+    public virtual void LeaveBooleanLiteralExp(BooleanLiteralExp ctx){}
+    public virtual void EnterCharLiteralExp(CharLiteralExp ctx){}
+    public virtual void LeaveCharLiteralExp(CharLiteralExp ctx){}
+    public virtual void EnterStringLiteralExp(StringLiteralExp ctx){}
+    public virtual void LeaveStringLiteralExp(StringLiteralExp ctx){}
+    public virtual void EnterDateLiteralExp(DateLiteralExp ctx){}
+    public virtual void LeaveDateLiteralExp(DateLiteralExp ctx){}
+    public virtual void EnterTimeLiteralExp(TimeLiteralExp ctx){}
+    public virtual void LeaveTimeLiteralExp(TimeLiteralExp ctx){}
+    public virtual void EnterDateTimeLiteralExp(DateTimeLiteralExp ctx){}
+    public virtual void LeaveDateTimeLiteralExp(DateTimeLiteralExp ctx){}
+    public virtual void EnterDurationLiteralExp(DurationLiteralExp ctx){}
+    public virtual void LeaveDurationLiteralExp(DurationLiteralExp ctx){}
+    public virtual void EnterUriLiteralExp(UriLiteralExp ctx){}
+    public virtual void LeaveUriLiteralExp(UriLiteralExp ctx){}
+    public virtual void EnterAtomLiteralExp(AtomLiteralExp ctx){}
+    public virtual void LeaveAtomLiteralExp(AtomLiteralExp ctx){}
     public virtual void EnterMemberAccessExp(MemberAccessExp ctx){}
     public virtual void LeaveMemberAccessExp(MemberAccessExp ctx){}
     public virtual void EnterObjectInstantiationExp(ObjectInstantiationExp ctx){}
@@ -211,6 +291,7 @@ public interface IAstRecursiveDescentVisitor
     public UserDefinedType VisitUserDefinedType(UserDefinedType ctx);
     public AssemblyDef VisitAssemblyDef(AssemblyDef ctx);
     public FunctionDef VisitFunctionDef(FunctionDef ctx);
+    public FunctorDef VisitFunctorDef(FunctorDef ctx);
     public FieldDef VisitFieldDef(FieldDef ctx);
     public PropertyDef VisitPropertyDef(PropertyDef ctx);
     public MethodDef VisitMethodDef(MethodDef ctx);
@@ -247,7 +328,26 @@ public interface IAstRecursiveDescentVisitor
     public CastExp VisitCastExp(CastExp ctx);
     public LambdaExp VisitLambdaExp(LambdaExp ctx);
     public FuncCallExp VisitFuncCallExp(FuncCallExp ctx);
-    public LiteralExp VisitLiteralExp(LiteralExp ctx);
+    public Int8LiteralExp VisitInt8LiteralExp(Int8LiteralExp ctx);
+    public Int16LiteralExp VisitInt16LiteralExp(Int16LiteralExp ctx);
+    public Int32LiteralExp VisitInt32LiteralExp(Int32LiteralExp ctx);
+    public Int64LiteralExp VisitInt64LiteralExp(Int64LiteralExp ctx);
+    public UnsignedInt8LiteralExp VisitUnsignedInt8LiteralExp(UnsignedInt8LiteralExp ctx);
+    public UnsignedInt16LiteralExp VisitUnsignedInt16LiteralExp(UnsignedInt16LiteralExp ctx);
+    public UnsignedInt32LiteralExp VisitUnsignedInt32LiteralExp(UnsignedInt32LiteralExp ctx);
+    public UnsignedInt64LiteralExp VisitUnsignedInt64LiteralExp(UnsignedInt64LiteralExp ctx);
+    public Float4LiteralExp VisitFloat4LiteralExp(Float4LiteralExp ctx);
+    public Float8LiteralExp VisitFloat8LiteralExp(Float8LiteralExp ctx);
+    public Float16LiteralExp VisitFloat16LiteralExp(Float16LiteralExp ctx);
+    public BooleanLiteralExp VisitBooleanLiteralExp(BooleanLiteralExp ctx);
+    public CharLiteralExp VisitCharLiteralExp(CharLiteralExp ctx);
+    public StringLiteralExp VisitStringLiteralExp(StringLiteralExp ctx);
+    public DateLiteralExp VisitDateLiteralExp(DateLiteralExp ctx);
+    public TimeLiteralExp VisitTimeLiteralExp(TimeLiteralExp ctx);
+    public DateTimeLiteralExp VisitDateTimeLiteralExp(DateTimeLiteralExp ctx);
+    public DurationLiteralExp VisitDurationLiteralExp(DurationLiteralExp ctx);
+    public UriLiteralExp VisitUriLiteralExp(UriLiteralExp ctx);
+    public AtomLiteralExp VisitAtomLiteralExp(AtomLiteralExp ctx);
     public MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx);
     public ObjectInstantiationExp VisitObjectInstantiationExp(ObjectInstantiationExp ctx);
     public UnaryExp VisitUnaryExp(UnaryExp ctx);
@@ -267,6 +367,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              UserDefinedType node => VisitUserDefinedType(node),
              AssemblyDef node => VisitAssemblyDef(node),
              FunctionDef node => VisitFunctionDef(node),
+             FunctorDef node => VisitFunctorDef(node),
              FieldDef node => VisitFieldDef(node),
              PropertyDef node => VisitPropertyDef(node),
              MethodDef node => VisitMethodDef(node),
@@ -303,7 +404,26 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              CastExp node => VisitCastExp(node),
              LambdaExp node => VisitLambdaExp(node),
              FuncCallExp node => VisitFuncCallExp(node),
-             LiteralExp node => VisitLiteralExp(node),
+             Int8LiteralExp node => VisitInt8LiteralExp(node),
+             Int16LiteralExp node => VisitInt16LiteralExp(node),
+             Int32LiteralExp node => VisitInt32LiteralExp(node),
+             Int64LiteralExp node => VisitInt64LiteralExp(node),
+             UnsignedInt8LiteralExp node => VisitUnsignedInt8LiteralExp(node),
+             UnsignedInt16LiteralExp node => VisitUnsignedInt16LiteralExp(node),
+             UnsignedInt32LiteralExp node => VisitUnsignedInt32LiteralExp(node),
+             UnsignedInt64LiteralExp node => VisitUnsignedInt64LiteralExp(node),
+             Float4LiteralExp node => VisitFloat4LiteralExp(node),
+             Float8LiteralExp node => VisitFloat8LiteralExp(node),
+             Float16LiteralExp node => VisitFloat16LiteralExp(node),
+             BooleanLiteralExp node => VisitBooleanLiteralExp(node),
+             CharLiteralExp node => VisitCharLiteralExp(node),
+             StringLiteralExp node => VisitStringLiteralExp(node),
+             DateLiteralExp node => VisitDateLiteralExp(node),
+             TimeLiteralExp node => VisitTimeLiteralExp(node),
+             DateTimeLiteralExp node => VisitDateTimeLiteralExp(node),
+             DurationLiteralExp node => VisitDurationLiteralExp(node),
+             UriLiteralExp node => VisitUriLiteralExp(node),
+             AtomLiteralExp node => VisitAtomLiteralExp(node),
              MemberAccessExp node => VisitMemberAccessExp(node),
              ObjectInstantiationExp node => VisitObjectInstantiationExp(node),
              UnaryExp node => VisitUnaryExp(node),
@@ -341,6 +461,12 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
      return ctx with {
          Params = tmpParams
         ,Body = (ast.BlockStatement)Visit((AstThing)ctx.Body)
+        };
+    }
+    public virtual FunctorDef VisitFunctorDef(FunctorDef ctx)
+    {
+     return ctx with {
+         InvocationFuncDev = (ast.FunctionDef)Visit((AstThing)ctx.InvocationFuncDev)
         };
     }
     public virtual FieldDef VisitFieldDef(FieldDef ctx)
@@ -565,14 +691,114 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual LambdaExp VisitLambdaExp(LambdaExp ctx)
     {
      return ctx with {
+         FunctorDef = (ast.FunctorDef)Visit((AstThing)ctx.FunctorDef)
         };
     }
     public virtual FuncCallExp VisitFuncCallExp(FuncCallExp ctx)
     {
+        List<ast.Expression> tmpInvocationArguments = [];
+        tmpInvocationArguments.AddRange(ctx.InvocationArguments.Select(x => (ast.Expression)Visit(x)));
+     return ctx with {
+         FunctionDef = (ast.FunctionDef)Visit((AstThing)ctx.FunctionDef)
+        ,InvocationArguments = tmpInvocationArguments
+        };
+    }
+    public virtual Int8LiteralExp VisitInt8LiteralExp(Int8LiteralExp ctx)
+    {
      return ctx with {
         };
     }
-    public virtual LiteralExp VisitLiteralExp(LiteralExp ctx)
+    public virtual Int16LiteralExp VisitInt16LiteralExp(Int16LiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual Int32LiteralExp VisitInt32LiteralExp(Int32LiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual Int64LiteralExp VisitInt64LiteralExp(Int64LiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual UnsignedInt8LiteralExp VisitUnsignedInt8LiteralExp(UnsignedInt8LiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual UnsignedInt16LiteralExp VisitUnsignedInt16LiteralExp(UnsignedInt16LiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual UnsignedInt32LiteralExp VisitUnsignedInt32LiteralExp(UnsignedInt32LiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual UnsignedInt64LiteralExp VisitUnsignedInt64LiteralExp(UnsignedInt64LiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual Float4LiteralExp VisitFloat4LiteralExp(Float4LiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual Float8LiteralExp VisitFloat8LiteralExp(Float8LiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual Float16LiteralExp VisitFloat16LiteralExp(Float16LiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual BooleanLiteralExp VisitBooleanLiteralExp(BooleanLiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual CharLiteralExp VisitCharLiteralExp(CharLiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual StringLiteralExp VisitStringLiteralExp(StringLiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual DateLiteralExp VisitDateLiteralExp(DateLiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual TimeLiteralExp VisitTimeLiteralExp(TimeLiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual DateTimeLiteralExp VisitDateTimeLiteralExp(DateTimeLiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual DurationLiteralExp VisitDurationLiteralExp(DurationLiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual UriLiteralExp VisitUriLiteralExp(UriLiteralExp ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual AtomLiteralExp VisitAtomLiteralExp(AtomLiteralExp ctx)
     {
      return ctx with {
         };

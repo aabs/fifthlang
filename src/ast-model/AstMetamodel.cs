@@ -1,43 +1,26 @@
 ﻿// ReSharper disable UnusedMember.Global
 
-using ast_model.Symbols;
 
+/// <summary>The ast namespace is the namespace where items that constitute part of the main abstract syntax tree (AST) are defined</summary>
+/// <remarks>
+///   <para>
+/// Some Definitions/Clarifications:
+/// </para>
+///   <list type="number">
+///     <item>
+///       <strong>Parameter</strong>: A parameter is a variable in the declaration of a function or method.</item>
+///     <item>
+///       <strong>Argument</strong>: An argument is the actual value that is passed to the function when it is called.</item>
+///   </list>
+/// </remarks>
 namespace ast;
+
+
+using ast_model.Symbols;
 using ast_model;
 using ast_model.TypeSystem;
 
 #region Core Abstractions
-
-[Ignore, ValueObject<ushort>]
-public partial struct TypeId;
-
-[Ignore, ValueObject<ushort>]
-[Instance("short", 0, "Short has lowest seniority")]
-[Instance("integer", 0)]
-[Instance("long", 0)]
-[Instance("float", 0)]
-[Instance("double", 0)]
-[Instance("decimal", 0, "decimal has highest seniority")]
-public partial struct TypeCoertionSeniority;
-
-[Ignore, ValueObject<ulong>]
-public partial struct OperatorId;
-
-[Ignore, ValueObject<string>]
-[Instance("anonymous", "", "For things like in-memory assemblies etc")]
-public partial struct AssemblyName;
-
-[Ignore, ValueObject<string>]
-[Instance("anonymous", "", "For anonymous types")]
-public partial struct TypeName;
-
-[Ignore, ValueObject<string>]
-[Instance("anonymous", "", "For anonymous members")]
-public partial struct MemberName;
-
-[Ignore, ValueObject<string>]
-public partial struct NamespaceName;
-
 
 /// <summary>
 /// Constraints on what can be done with the thing so adorned.
@@ -81,6 +64,7 @@ public enum OperatorPosition
 {
     Prefix, Infix, Postfix
 }
+
 public enum SymbolKind
 {
     Assembly,
@@ -130,6 +114,7 @@ public enum SymbolKind
     WhileStatement,
     WithScopeStatement
 }
+
 /// <summary>
 ///     Visibility of a member.
 /// </summary>
@@ -160,6 +145,35 @@ public enum Visibility
     /// </summary>
     ProtectedInternal,
 }
+
+[Ignore, ValueObject<string>]
+[Instance("anonymous", "", "For things like in-memory assemblies etc")]
+public partial struct AssemblyName;
+
+[Ignore, ValueObject<string>]
+[Instance("anonymous", "", "For anonymous members")]
+public partial struct MemberName;
+
+[Ignore, ValueObject<string>]
+public partial struct NamespaceName;
+
+[Ignore, ValueObject<ulong>]
+public partial struct OperatorId;
+
+[Ignore, ValueObject<ushort>]
+[Instance("short", 0, "Short has lowest seniority")]
+[Instance("integer", 0)]
+[Instance("long", 0)]
+[Instance("float", 0)]
+[Instance("double", 0)]
+[Instance("decimal", 0, "decimal has highest seniority")]
+public partial struct TypeCoertionSeniority;
+
+[Ignore, ValueObject<ushort>]
+public partial struct TypeId;
+[Ignore, ValueObject<string>]
+[Instance("anonymous", "", "For anonymous types")]
+public partial struct TypeName;
 public record struct Symbol(string Name, SourceLocationMetadata? Location, SymbolKind Kind);
 
 public record struct SourceLocationMetadata(
@@ -279,6 +293,38 @@ public record FunctionDef : MemberDef
     public required BlockStatement Body { get; set; }
 }
 
+/// <summary>
+/// A scoped function object that can act as the result of a lambda expression.
+/// </summary>
+/// <remarks>
+/// <para>
+/// This is modeled on the representation for lambda expressions used by C++. A lambda expression is
+/// a function definition, plus a closure that can capture the values of a set of in-scope variables
+/// at the point of instantiation.
+/// </para>
+/// <para>
+/// The functor is just a class instance, but when it's value is needed it can be invoked through
+/// the use of an operator() function to get the value.
+/// </para>
+/// </remarks>
+/// <seealso cref="ast.ScopeAstThing"/>
+/// <seealso cref="ast.IAnnotated"/>
+/// <seealso cref="System.IEquatable%3Cast.AnnotatedThing%3E">System.IEquatable&lt;ast.AnnotatedThing&gt;</seealso>
+/// <seealso cref="ast.IAstThing"/>
+/// <seealso cref="ast_model.IVisitable"/>
+/// <seealso cref="System.IEquatable%3Cast.AstThing%3E">System.IEquatable&lt;ast.AstThing&gt;</seealso>
+/// <seealso cref="ast_model.Symbols.IScope"/>
+/// <seealso cref="System.IEquatable%3Cast.ScopeAstThing%3E">System.IEquatable&lt;ast.ScopeAstThing&gt;</seealso>
+/// <seealso cref="System.IEquatable%3Cast.FunctorDef%3E">System.IEquatable&lt;ast.FunctorDef&gt;</seealso>
+public record FunctorDef : ScopeAstThing
+{
+    /// <summary>
+    /// The function to be invoked as the lambda. This will be an operator() function on the
+    /// instance object.
+    /// </summary>
+    /// <value>The invocation function dev.</value>
+    public FunctionDef InvocationFuncDev { get; init; }
+}
 
 public abstract record MemberDef : Definition
 {
@@ -545,18 +591,66 @@ public record BinaryExp : Expression
 
 public record CastExp : Expression
 {
+    public required TypeMetadata TargetType { get; init; }
 }
+
+/// <summary>
+/// A representation of an anonymous function definition to be passed as an expression for future invocation.
+/// </summary>
+/// <remarks>
+/// The expression returns an instance of a functor that can be turned into an expression on demand.
+/// The functor instance is the first class function that can be passed around.
+/// </remarks>
 public record LambdaExp : Expression
 {
+    /// <summary>
+    /// The definition for the functor instance that will be passed the expression.
+    /// </summary>
+    public FunctorDef FunctorDef { get; set; }
 }
 
 public record FuncCallExp : Expression
 {
+    public FunctionDef FunctionDef { get; set; }
+    public List<Expression> InvocationArguments { get; set; }
 }
 
-public record LiteralExp : Expression
+[Ignore]
+public abstract record LiteralExpression<T> : Expression
 {
+    [IgnoreDuringVisit]public T Value { get; set; }
 }
+
+// see https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/integral-numeric-types?devlangs=csharp&f1url=%3FappId%3DDev17IDEF1%26l%3DEN-US%26k%3Dk(ushort_CSharpKeyword)%3Bk(DevLang-csharp)%26rd%3Dtrue
+// for the base types and their ranges
+
+// numeric types
+public record Int8LiteralExp : LiteralExpression<sbyte>;
+public record Int16LiteralExp : LiteralExpression<short>;
+public record Int32LiteralExp : LiteralExpression<int>;
+public record Int64LiteralExp : LiteralExpression<long>;
+public record UnsignedInt8LiteralExp : LiteralExpression<byte>;
+public record UnsignedInt16LiteralExp : LiteralExpression<ushort>;
+public record UnsignedInt32LiteralExp : LiteralExpression<uint>;
+public record UnsignedInt64LiteralExp : LiteralExpression<ulong>;
+public record Float4LiteralExp : LiteralExpression<float>;
+public record Float8LiteralExp : LiteralExpression<double>;
+public record Float16LiteralExp : LiteralExpression<decimal>;
+
+public record BooleanLiteralExp : LiteralExpression<bool>;
+public record CharLiteralExp : LiteralExpression<char>;
+public record StringLiteralExp : LiteralExpression<string>;
+public record DateLiteralExp : LiteralExpression<DateOnly>;
+public record TimeLiteralExp : LiteralExpression<TimeOnly>;
+public record DateTimeLiteralExp : LiteralExpression<DateTimeOffset>;
+public record DurationLiteralExp : LiteralExpression<TimeSpan>;
+public record UriLiteralExp : LiteralExpression<Uri>;
+
+/// <summary>
+/// An atom in the sense of a Prolog atom.
+/// </summary>
+public record AtomLiteralExp : LiteralExpression<string>;
+
 
 public record MemberAccessExp : Expression
 {

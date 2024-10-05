@@ -5,29 +5,29 @@ namespace ast_generator;
 
 public partial class AstBuilderGenerator
 {
-    public AstBuilderGenerator(TypeProvider typeProvider)
+    public AstBuilderGenerator(ITypeProvider typeProvider)
     {
         ArgumentNullException.ThrowIfNull(typeProvider);
         TypeProvider = typeProvider;
     }
-    public TypeProvider TypeProvider { get; set; }
+    public ITypeProvider TypeProvider { get; set; }
 }
 
 public partial class AstVisitors
 {
-    public AstVisitors(TypeProvider typeProvider)
+    public AstVisitors(ITypeProvider typeProvider)
     {
         ArgumentNullException.ThrowIfNull(typeProvider);
         TypeProvider = typeProvider;
     }
-    public TypeProvider TypeProvider { get; set; }
+    public ITypeProvider TypeProvider { get; set; }
 }
 public partial class AstTypeCheckerGenerator
 {
-    public AstTypeCheckerGenerator(TypeProvider typeProvider)
+    public AstTypeCheckerGenerator(ITypeProvider typeProvider)
     {
         ArgumentNullException.ThrowIfNull(typeProvider);
         TypeProvider = typeProvider;
     }
-    public TypeProvider TypeProvider { get; set; }
+    public ITypeProvider TypeProvider { get; set; }
 }
