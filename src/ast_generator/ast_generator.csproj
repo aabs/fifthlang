@@ -21,10 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="AstMutatorVisitors.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>AstMutatorVisitors.cs</LastGenOutput>
-    </None>
     <None Update="AstTypeSystem.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>AstTypeSystem.cs</LastGenOutput>
@@ -44,11 +40,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="AstMutatorVisitors.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>AstMutatorVisitors.tt</DependentUpon>
-    </Compile>
     <Compile Update="AstTypeSystem.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

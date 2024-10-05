@@ -21,7 +21,6 @@ return await rootCommand.InvokeAsync(args);
 static async Task GenerateSource(DirectoryInfo folder)
 {
     await WriteSourceToFile(Path.Combine(folder.FullName, "builders.generated.cs"), new AstBuilderGenerator().TransformText());
-    await WriteSourceToFile(Path.Combine(folder.FullName, "mutator-visitors.generated.cs"), new AstMutatorVisitors().TransformText());
     await WriteSourceToFile(Path.Combine(folder.FullName, "visitors.generated.cs"), new AstVisitors().TransformText());
 }
 
