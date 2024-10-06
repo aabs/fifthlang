@@ -230,15 +230,15 @@ namespace ast_model.TypeSystem
             {
                 case SymbolKind.FunctionDeclaration:
                 case SymbolKind.BuiltinFunctionDeclaration:
-                    node[Constants.FunctionImplementation] = ste.Context;
-                    var type = Infer(ste.Context as AstNode);
+                    node[Constants.FunctionImplementation] = ste.OriginatingAstThing;
+                    var type = Infer(ste.OriginatingAstThing as AstNode);
                     if (type != null)
                     {
                         TypeInferred(node, type);
                         return type;
                     }
 
-                    if (ste.Context is IFunctionDefinition fd && fd.Typename == "void")
+                    if (ste.OriginatingAstThing is IFunctionDefinition fd && fd.Typename == "void")
                     {
                         TypeNotRelevant(node);
                     }
@@ -283,7 +283,7 @@ namespace ast_model.TypeSystem
                 TypeNotFound(node);
             }
 
-            var result = Infer(ste.Context as AstNode);
+            var result = Infer(ste.OriginatingAstThing as AstNode);
             if (result != default)
             {
                 TypeInferred(node, result);
@@ -533,20 +533,20 @@ namespace ast_model.TypeSystem
             {
                 // if we got here, then it means we were able to resolve the target of the variable
                 // reference that's useful information for later, so let's store it with the reference.
-                node.SymTabEntry = ste;
-                //if (ste.Context is DestructuringBinding pb)
+                node.SymbolTableEntry = ste;
+                //if (ste.OriginatingAstThing is DestructuringBinding pb)
                 //{
                 //    result = pb.BoundProperty.DeclaringType.Lookup();
                 //    TypeInferred(node, result);
                 //}
 
-                if (ste.Context is VariableDeclarationStatement vds)
+                if (ste.OriginatingAstThing is VariableDeclarationStatement vds)
                 {
                     result = vds.DeclaringType.Lookup();
                     TypeInferred(node, result);
                 }
 
-                if (ste.Context is FieldDefinition fieldDef)
+                if (ste.OriginatingAstThing is FieldDefinition fieldDef)
                 {
                     if (TypeRegistry.DefaultRegistry.TryGetTypeByName(fieldDef.TypeName, out var type))
                     {
@@ -556,7 +556,7 @@ namespace ast_model.TypeSystem
                     TypeInferred(node, result);
                 }
 
-                if (ste.Context is PropertyDefinition propDef)
+                if (ste.OriginatingAstThing is PropertyDefinition propDef)
                 {
                     if (TypeRegistry.DefaultRegistry.TryGetTypeByName(propDef.TypeName, out var type))
                     {
@@ -566,7 +566,7 @@ namespace ast_model.TypeSystem
                     TypeInferred(node, result);
                 }
 
-                if (ste.Context is ParameterDeclaration paramDef)
+                if (ste.OriginatingAstThing is ParameterDeclaration paramDef)
                 {
                     result = paramDef.DeclaringType.Lookup();
                     TypeInferred(node, result);

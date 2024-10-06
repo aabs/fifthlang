@@ -22,12 +22,11 @@ public class AstVisitorTests
     {
         return new AssemblyDef()
         {
-            SourceContext = new("", 1, 1, "blah"),
             Annotations = [],
             AssemblyRefs = [],
             ClassDefs = [createClassDef("MyType1", 1),createClassDef("MyType2", 2)],
             Name = AssemblyName.From("MyAsm"),
-            Type = CreateTypeMetadata("myAsm", 0, SymbolKind.Assembly),
+            Type = CreateType("myAsm", 0, SymbolKind.Assembly),
             Parent = null,
             PublicKeyToken = "ajhsgjsfdhg",
             Version = "0.1.1.1",
@@ -35,7 +34,7 @@ public class AstVisitorTests
         };
     }
 
-    private static TypeMetadata CreateTypeMetadata(string name, ushort typeId, SymbolKind symbolKind = SymbolKind.Assembly)
+    private static FifthType CreateType(string name, ushort typeId, SymbolKind symbolKind = SymbolKind.Assembly)
     {
         return new()
         {
@@ -49,7 +48,11 @@ public class AstVisitorTests
                     {
                         Column = 1, Filename = "ashksah", Line = 1, OriginalText = "kjahgsfdgasfjd"
                     }
-            }
+            },
+            IsArray = false,
+            ParentTypes = [],
+            TypeArguments = [],
+            Annotations = []
         };
     }
 
@@ -57,12 +60,11 @@ public class AstVisitorTests
     {
         return new ClassDef()
         {
-            SourceContext = new("", 1, 1, "blah"),
             Annotations = [],
             MemberDefs = [],
             Namespace = "std",
             Parent = null,
-            Type = CreateTypeMetadata(name, typeId, SymbolKind.ClassDef),
+            Type = CreateType(name, typeId, SymbolKind.ClassDef),
             Visibility = Visibility.Public
         };
     }

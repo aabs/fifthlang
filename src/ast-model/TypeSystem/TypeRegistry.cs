@@ -85,7 +85,7 @@ public sealed class TypeRegistry : ITypeRegistry
         }
 
         var newTypeId = (ushort)Interlocked.Increment(ref typeIdDispenser);
-        typeId =  TypeId.From(newTypeId);
+        typeId = TypeId.From(newTypeId);
         return typeRegister.TryAdd(typeId, type);
     }
 }

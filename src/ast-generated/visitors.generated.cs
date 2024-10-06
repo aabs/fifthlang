@@ -664,7 +664,8 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual AssertionStatement VisitAssertionStatement(AssertionStatement ctx)
     {
      return ctx with {
-         AssertionSubject = (ast.AssertionSubject)Visit((AstThing)ctx.AssertionSubject)
+         Assertion = (ast.Triple)Visit((AstThing)ctx.Assertion)
+        ,AssertionSubject = (ast.AssertionSubject)Visit((AstThing)ctx.AssertionSubject)
         ,AssertionPredicate = (ast.AssertionPredicate)Visit((AstThing)ctx.AssertionPredicate)
         ,AssertionObject = (ast.AssertionObject)Visit((AstThing)ctx.AssertionObject)
         };

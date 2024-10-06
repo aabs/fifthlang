@@ -15,7 +15,6 @@
 /// </remarks>
 namespace ast;
 
-
 using ast_model.Symbols;
 using ast_model;
 using ast_model.TypeSystem;
@@ -183,15 +182,24 @@ public partial struct TypeId;
 [Ignore, ValueObject<string>]
 [Instance("anonymous", "", "For anonymous types")]
 public partial struct TypeName;
+
 public record struct Symbol(string Name, SourceLocationMetadata? Location, SymbolKind Kind);
 
-public record struct SourceLocationMetadata(
-    int Column,
-    string Filename,
-    int Line,
-    string OriginalText);
+public record struct SourceLocationMetadata(int Column,    string Filename, int Line, string OriginalText);
 
-public record struct TypeMetadata(TypeId TypeId, Symbol Symbol);
+/// <summary>
+/// The core representation of a type in fifth, for the purposes of type checking. Every <see
+/// cref="Expression"/>, and <see cref="UserDefinedType"/> instance must have a FifthType.
+/// </summary>
+/// <seealso cref="System.IEquatable&lt;ast.FifthType&gt;"/>
+[Ignore]public record FifthType : AnnotatedThing
+{
+    public TypeId TypeId { get; init; }
+    public Symbol Symbol { get; init; }
+    public FifthType[] ParentTypes { get; init; }
+    public FifthType[] TypeArguments { get; init; }
+    public bool IsArray { get; init; }
+}
 
 public abstract record AstThing : AnnotatedThing, IAstThing
 {
@@ -200,18 +208,8 @@ public abstract record AstThing : AnnotatedThing, IAstThing
         visitor.OnEnter(this);
         visitor.OnLeave(this);
     }
-
-    public required SourceContext SourceContext { get; init; }
-    public required TypeMetadata Type { get; init; }
+    public required FifthType Type { get; init; }
     public required IAstThing Parent { get; init; }
-
-    public void Deconstruct( out SourceContext sourceContext, out TypeMetadata type, out IAstThing parent, out Dictionary<string, object> annotations)
-    {
-        sourceContext = SourceContext;
-        type = Type;
-        parent = Parent;
-        annotations = Annotations;
-    }
 }
 
 public abstract record ScopeAstThing : AstThing, IScope
@@ -221,14 +219,13 @@ public abstract record ScopeAstThing : AstThing, IScope
     [IgnoreDuringVisit]
     public ISymbolTable SymbolTable { get; init; }
 
-    public void Declare(Symbol symbol, IAstThing astThing, SourceContext srcContext, Dictionary<string, object> annotations)
+    public void Declare(Symbol symbol, IAstThing astThing, Dictionary<string, object> annotations)
     {
-        var symTabEntry = new SymTabEntry
+        var symTabEntry = new SymbolTableEntry
         {
             Symbol = symbol,
             Annotations = annotations,
-            SourceContext = srcContext,
-            Context = astThing
+            OriginatingAstThing = astThing
         };
         SymbolTable[symbol] = symTabEntry;
     }
@@ -547,6 +544,10 @@ public abstract record KnowledgeManagementStatement : Statement
 /// </summary>
 public record AssertionStatement : Statement
 {
+    public Triple Assertion { get; set; }
+
+    // the use of a triple is one approach.  The division into separate objects, below, may be more powerful
+
     public required AssertionSubject AssertionSubject { get; set; }
     public required AssertionPredicate AssertionPredicate { get; set; }
     public required AssertionObject AssertionObject { get; set; }
@@ -605,7 +606,7 @@ public record BinaryExp : Expression
 
 public record CastExp : Expression
 {
-    public required TypeMetadata TargetType { get; init; }
+    public required FifthType TargetType { get; init; }
 }
 
 /// <summary>
@@ -689,7 +690,7 @@ public record MemberAccessExp : Expression
 /// </example>
 public record ObjectInitializerExp : Expression
 {
-    public TypeMetadata TypeToInitialize{get;set;}
+    public FifthType TypeToInitialize{get;set;}
     public List<PropertyInitializerExp> PropertyInitialisers{get;set;}
 }
 
@@ -745,17 +746,13 @@ public record VarRefExp : Expression
 /// <summary>
 /// A list instantiation expression
 /// </summary>
-/// <seealso cref="ast.Expression" />
-/// <seealso cref="ast.IAnnotated" />
-/// <seealso cref="System.IEquatable&lt;ast.AnnotatedThing&gt;" />
-/// <seealso cref="ast.IAstThing" />
-/// <seealso cref="ast_model.IVisitable" />
-/// <seealso cref="System.IEquatable&lt;ast.AstThing&gt;" />
-/// <seealso cref="System.IEquatable&lt;ast.Expression&gt;" />
-/// <seealso cref="System.IEquatable&lt;ast.List&gt;" />
+/// <remarks>
+/// The reason there is no explicit 'element type' property defined anymore, is that the type
+/// information carried by the expression type is rich enough to contain the generic type parameters
+/// needed to constrain the type of the list elements.
+/// </remarks>
 public record List : Expression
 {
-    public TypeMetadata ElementType { get; set; }
     /// <summary>
     /// The set of expressions that supply values to insert into the list on creation.
     /// </summary>

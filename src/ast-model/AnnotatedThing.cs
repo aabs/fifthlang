@@ -40,9 +40,4 @@ public abstract record AnnotatedThing : IAnnotated
 
         return result is not null;
     }
-
-    public void Deconstruct(out Dictionary<string, object> Annotations)
-    {
-        Annotations = this.Annotations;
-    }
 }
