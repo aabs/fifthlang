@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ast_tests", "test\ast-tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ast_generator", "src\ast_generator\ast_generator.csproj", "{332F1686-9DE1-497E-BD96-ABE0B4EA83C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "parser", "src\parser\parser.csproj", "{F85B45F9-128C-489E-B44F-7AAC2708C8CC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "compiler", "src\compiler\compiler.csproj", "{4DC44247-EF66-49AA-807F-4CD4FE735A1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{332F1686-9DE1-497E-BD96-ABE0B4EA83C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{332F1686-9DE1-497E-BD96-ABE0B4EA83C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{332F1686-9DE1-497E-BD96-ABE0B4EA83C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F85B45F9-128C-489E-B44F-7AAC2708C8CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F85B45F9-128C-489E-B44F-7AAC2708C8CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F85B45F9-128C-489E-B44F-7AAC2708C8CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F85B45F9-128C-489E-B44F-7AAC2708C8CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DC44247-EF66-49AA-807F-4CD4FE735A1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DC44247-EF66-49AA-807F-4CD4FE735A1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DC44247-EF66-49AA-807F-4CD4FE735A1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DC44247-EF66-49AA-807F-4CD4FE735A1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
