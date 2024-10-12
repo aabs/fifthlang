@@ -2,8 +2,8 @@
 
 namespace ast_generated;
 using ast_generated;
-using ast;
 using System.Collections.Generic;
+using ast_model.TypeSystem;
 #nullable disable
 
 public class UserDefinedTypeBuilder : IBuilder<ast.UserDefinedType>
@@ -13,7 +13,7 @@ public class UserDefinedTypeBuilder : IBuilder<ast.UserDefinedType>
     private ast.TypeName _Name;
     private ast.NamespaceName _Namespace;
     private ast.TypeId _TypeId;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -49,7 +49,7 @@ public class UserDefinedTypeBuilder : IBuilder<ast.UserDefinedType>
         return this;
     }
 
-    public UserDefinedTypeBuilder WithType(ast.FifthType value){
+    public UserDefinedTypeBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -74,7 +74,7 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
     private List<ast.AssemblyRef> _AssemblyRefs;
     private List<ast.ClassDef> _ClassDefs;
     private ast.Visibility _Visibility;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -132,7 +132,7 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
         return this;
     }
 
-    public AssemblyDefBuilder WithType(ast.FifthType value){
+    public AssemblyDefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -156,7 +156,7 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
     private ast.MemberName _Name;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -203,7 +203,7 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
         return this;
     }
 
-    public FunctionDefBuilder WithType(ast.FifthType value){
+    public FunctionDefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -225,7 +225,7 @@ public class FunctorDefBuilder : IBuilder<ast.FunctorDef>
     private ast.FunctionDef _InvocationFuncDev;
     private ast_model.Symbols.IScope _EnclosingScope;
     private ast_model.Symbols.ISymbolTable _SymbolTable;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -255,7 +255,7 @@ public class FunctorDefBuilder : IBuilder<ast.FunctorDef>
         return this;
     }
 
-    public FunctorDefBuilder WithType(ast.FifthType value){
+    public FunctorDefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -278,7 +278,7 @@ public class FieldDefBuilder : IBuilder<ast.FieldDef>
     private ast.MemberName _Name;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -314,7 +314,7 @@ public class FieldDefBuilder : IBuilder<ast.FieldDef>
         return this;
     }
 
-    public FieldDefBuilder WithType(ast.FifthType value){
+    public FieldDefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -342,7 +342,7 @@ public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
     private ast.MemberName _Name;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -408,7 +408,7 @@ public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
         return this;
     }
 
-    public PropertyDefBuilder WithType(ast.FifthType value){
+    public PropertyDefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -430,7 +430,7 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
     private ast.MemberName _Name;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -460,7 +460,7 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
         return this;
     }
 
-    public MethodDefBuilder WithType(ast.FifthType value){
+    public MethodDefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -482,7 +482,7 @@ public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
     private ast.Expression _Antecedent;
     private ast.KnowledgeManagementBlock _Consequent;
     private ast.Visibility _Visibility;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -512,7 +512,7 @@ public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
         return this;
     }
 
-    public InferenceRuleDefBuilder WithType(ast.FifthType value){
+    public InferenceRuleDefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -534,7 +534,7 @@ public class ParamDefBuilder : IBuilder<ast.ParamDef>
     private ast.Expression _ParameterConstraint;
     private ast.ParamDestructureDef _DestructureDef;
     private ast.Visibility _Visibility;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -564,7 +564,7 @@ public class ParamDefBuilder : IBuilder<ast.ParamDef>
         return this;
     }
 
-    public ParamDefBuilder WithType(ast.FifthType value){
+    public ParamDefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -585,7 +585,7 @@ public class ParamDestructureDefBuilder : IBuilder<ast.ParamDestructureDef>
 
     private List<ast.PropertyBindingDef> _Bindings;
     private ast.Visibility _Visibility;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -614,7 +614,7 @@ public class ParamDestructureDefBuilder : IBuilder<ast.ParamDestructureDef>
         return this;
     }
 
-    public ParamDestructureDefBuilder WithType(ast.FifthType value){
+    public ParamDestructureDefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -637,7 +637,7 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
     private ast.PropertyDef _ReferencedProperty;
     private ast.ParamDestructureDef _DestructureDef;
     private ast.Visibility _Visibility;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -673,7 +673,7 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
         return this;
     }
 
-    public PropertyBindingDefBuilder WithType(ast.FifthType value){
+    public PropertyBindingDefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -693,7 +693,7 @@ public class TypeDefBuilder : IBuilder<ast.TypeDef>
 {
 
     private ast.Visibility _Visibility;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -711,7 +711,7 @@ public class TypeDefBuilder : IBuilder<ast.TypeDef>
         return this;
     }
 
-    public TypeDefBuilder WithType(ast.FifthType value){
+    public TypeDefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -733,7 +733,7 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
     private System.String _Namespace;
     private List<ast.MemberDef> _MemberDefs;
     private ast.Visibility _Visibility;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -768,7 +768,7 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
         return this;
     }
 
-    public ClassDefBuilder WithType(ast.FifthType value){
+    public ClassDefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -789,7 +789,7 @@ public class VariableDeclBuilder : IBuilder<ast.VariableDecl>
 
     private ast.Expression _InitialValue;
     private ast.Visibility _Visibility;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -813,7 +813,7 @@ public class VariableDeclBuilder : IBuilder<ast.VariableDecl>
         return this;
     }
 
-    public VariableDeclBuilder WithType(ast.FifthType value){
+    public VariableDeclBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -834,7 +834,7 @@ public class AssemblyRefBuilder : IBuilder<ast.AssemblyRef>
 
     private System.String _PublicKeyToken;
     private System.String _Version;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -858,7 +858,7 @@ public class AssemblyRefBuilder : IBuilder<ast.AssemblyRef>
         return this;
     }
 
-    public AssemblyRefBuilder WithType(ast.FifthType value){
+    public AssemblyRefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -878,7 +878,7 @@ public class MemberRefBuilder : IBuilder<ast.MemberRef>
 {
 
     private ast.MemberDef _Member;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -896,7 +896,7 @@ public class MemberRefBuilder : IBuilder<ast.MemberRef>
         return this;
     }
 
-    public MemberRefBuilder WithType(ast.FifthType value){
+    public MemberRefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -916,7 +916,7 @@ public class PropertyRefBuilder : IBuilder<ast.PropertyRef>
 {
 
     private ast.PropertyDef _Property;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -934,7 +934,7 @@ public class PropertyRefBuilder : IBuilder<ast.PropertyRef>
         return this;
     }
 
-    public PropertyRefBuilder WithType(ast.FifthType value){
+    public PropertyRefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -953,7 +953,7 @@ public class PropertyRefBuilder : IBuilder<ast.PropertyRef>
 public class TypeRefBuilder : IBuilder<ast.TypeRef>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -965,7 +965,7 @@ public class TypeRefBuilder : IBuilder<ast.TypeRef>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public TypeRefBuilder WithType(ast.FifthType value){
+    public TypeRefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -985,7 +985,7 @@ public class VarRefBuilder : IBuilder<ast.VarRef>
 {
 
     private ast.VarDeclStatement _VarDecl;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1003,7 +1003,7 @@ public class VarRefBuilder : IBuilder<ast.VarRef>
         return this;
     }
 
-    public VarRefBuilder WithType(ast.FifthType value){
+    public VarRefBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1023,7 +1023,7 @@ public class GraphNamespaceAliasBuilder : IBuilder<ast.GraphNamespaceAlias>
 {
 
     private System.Uri _Uri;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1041,7 +1041,7 @@ public class GraphNamespaceAliasBuilder : IBuilder<ast.GraphNamespaceAlias>
         return this;
     }
 
-    public GraphNamespaceAliasBuilder WithType(ast.FifthType value){
+    public GraphNamespaceAliasBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1061,7 +1061,7 @@ public class AssignmentStatementBuilder : IBuilder<ast.AssignmentStatement>
 {
 
     private ast.Expression _RHS;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1079,7 +1079,7 @@ public class AssignmentStatementBuilder : IBuilder<ast.AssignmentStatement>
         return this;
     }
 
-    public AssignmentStatementBuilder WithType(ast.FifthType value){
+    public AssignmentStatementBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1099,7 +1099,7 @@ public class BlockStatementBuilder : IBuilder<ast.BlockStatement>
 {
 
     private List<ast.Statement> _Statements;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1122,7 +1122,7 @@ public class BlockStatementBuilder : IBuilder<ast.BlockStatement>
         _Statements.Add(value);
         return this;
     }
-    public BlockStatementBuilder WithType(ast.FifthType value){
+    public BlockStatementBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1142,7 +1142,7 @@ public class KnowledgeManagementBlockBuilder : IBuilder<ast.KnowledgeManagementB
 {
 
     private List<ast.KnowledgeManagementStatement> _Statements;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1165,7 +1165,7 @@ public class KnowledgeManagementBlockBuilder : IBuilder<ast.KnowledgeManagementB
         _Statements.Add(value);
         return this;
     }
-    public KnowledgeManagementBlockBuilder WithType(ast.FifthType value){
+    public KnowledgeManagementBlockBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1185,7 +1185,7 @@ public class ExpStatementBuilder : IBuilder<ast.ExpStatement>
 {
 
     private ast.Expression _RHS;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1203,7 +1203,7 @@ public class ExpStatementBuilder : IBuilder<ast.ExpStatement>
         return this;
     }
 
-    public ExpStatementBuilder WithType(ast.FifthType value){
+    public ExpStatementBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1227,7 +1227,7 @@ public class ForStatementBuilder : IBuilder<ast.ForStatement>
     private ast.Expression _IncrementExpression;
     private ast.VariableDecl _LoopVariable;
     private ast.BlockStatement _Body;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1269,7 +1269,7 @@ public class ForStatementBuilder : IBuilder<ast.ForStatement>
         return this;
     }
 
-    public ForStatementBuilder WithType(ast.FifthType value){
+    public ForStatementBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1291,7 +1291,7 @@ public class ForeachStatementBuilder : IBuilder<ast.ForeachStatement>
     private ast.Expression _Collection;
     private ast.VariableDecl _LoopVariable;
     private ast.BlockStatement _Body;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1321,7 +1321,7 @@ public class ForeachStatementBuilder : IBuilder<ast.ForeachStatement>
         return this;
     }
 
-    public ForeachStatementBuilder WithType(ast.FifthType value){
+    public ForeachStatementBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1341,7 +1341,7 @@ public class GuardStatementBuilder : IBuilder<ast.GuardStatement>
 {
 
     private ast.Expression _Condition;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1359,7 +1359,7 @@ public class GuardStatementBuilder : IBuilder<ast.GuardStatement>
         return this;
     }
 
-    public GuardStatementBuilder WithType(ast.FifthType value){
+    public GuardStatementBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1381,7 +1381,7 @@ public class IfElseStatementBuilder : IBuilder<ast.IfElseStatement>
     private ast.Expression _Condition;
     private ast.BlockStatement _ThenBlock;
     private ast.BlockStatement _ElseBlock;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1411,7 +1411,7 @@ public class IfElseStatementBuilder : IBuilder<ast.IfElseStatement>
         return this;
     }
 
-    public IfElseStatementBuilder WithType(ast.FifthType value){
+    public IfElseStatementBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1431,7 +1431,7 @@ public class ReturnStatementBuilder : IBuilder<ast.ReturnStatement>
 {
 
     private ast.Expression _ReturnValue;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1449,7 +1449,7 @@ public class ReturnStatementBuilder : IBuilder<ast.ReturnStatement>
         return this;
     }
 
-    public ReturnStatementBuilder WithType(ast.FifthType value){
+    public ReturnStatementBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1469,7 +1469,7 @@ public class VarDeclStatementBuilder : IBuilder<ast.VarDeclStatement>
 {
 
     private ast.VariableDecl _VariableDecl;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1487,7 +1487,7 @@ public class VarDeclStatementBuilder : IBuilder<ast.VarDeclStatement>
         return this;
     }
 
-    public VarDeclStatementBuilder WithType(ast.FifthType value){
+    public VarDeclStatementBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1508,7 +1508,7 @@ public class WhileStatementBuilder : IBuilder<ast.WhileStatement>
 
     private ast.Expression _Condition;
     private ast.BlockStatement _Body;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1532,7 +1532,7 @@ public class WhileStatementBuilder : IBuilder<ast.WhileStatement>
         return this;
     }
 
-    public WhileStatementBuilder WithType(ast.FifthType value){
+    public WhileStatementBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1554,7 +1554,7 @@ public class AssertionStatementBuilder : IBuilder<ast.AssertionStatement>
     private ast.AssertionSubject _AssertionSubject;
     private ast.AssertionPredicate _AssertionPredicate;
     private ast.AssertionObject _AssertionObject;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1584,7 +1584,7 @@ public class AssertionStatementBuilder : IBuilder<ast.AssertionStatement>
         return this;
     }
 
-    public AssertionStatementBuilder WithType(ast.FifthType value){
+    public AssertionStatementBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1603,7 +1603,7 @@ public class AssertionStatementBuilder : IBuilder<ast.AssertionStatement>
 public class AssertionObjectBuilder : IBuilder<ast.AssertionObject>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1615,7 +1615,7 @@ public class AssertionObjectBuilder : IBuilder<ast.AssertionObject>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssertionObjectBuilder WithType(ast.FifthType value){
+    public AssertionObjectBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1634,7 +1634,7 @@ public class AssertionObjectBuilder : IBuilder<ast.AssertionObject>
 public class AssertionPredicateBuilder : IBuilder<ast.AssertionPredicate>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1646,7 +1646,7 @@ public class AssertionPredicateBuilder : IBuilder<ast.AssertionPredicate>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssertionPredicateBuilder WithType(ast.FifthType value){
+    public AssertionPredicateBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1665,7 +1665,7 @@ public class AssertionPredicateBuilder : IBuilder<ast.AssertionPredicate>
 public class AssertionSubjectBuilder : IBuilder<ast.AssertionSubject>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1677,7 +1677,7 @@ public class AssertionSubjectBuilder : IBuilder<ast.AssertionSubject>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssertionSubjectBuilder WithType(ast.FifthType value){
+    public AssertionSubjectBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1696,7 +1696,7 @@ public class AssertionSubjectBuilder : IBuilder<ast.AssertionSubject>
 public class RetractionStatementBuilder : IBuilder<ast.RetractionStatement>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1708,7 +1708,7 @@ public class RetractionStatementBuilder : IBuilder<ast.RetractionStatement>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public RetractionStatementBuilder WithType(ast.FifthType value){
+    public RetractionStatementBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1727,7 +1727,7 @@ public class RetractionStatementBuilder : IBuilder<ast.RetractionStatement>
 public class WithScopeStatementBuilder : IBuilder<ast.WithScopeStatement>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1739,7 +1739,7 @@ public class WithScopeStatementBuilder : IBuilder<ast.WithScopeStatement>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public WithScopeStatementBuilder WithType(ast.FifthType value){
+    public WithScopeStatementBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1761,7 +1761,7 @@ public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
     private ast.Expression _LHS;
     private ast.Operator _Operator;
     private ast.Expression _RHS;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1791,7 +1791,7 @@ public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
         return this;
     }
 
-    public BinaryExpBuilder WithType(ast.FifthType value){
+    public BinaryExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1810,8 +1810,8 @@ public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
 public class CastExpBuilder : IBuilder<ast.CastExp>
 {
 
-    private ast.FifthType _TargetType;
-    private ast.FifthType _Type;
+    private FifthType _TargetType;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1824,12 +1824,12 @@ public class CastExpBuilder : IBuilder<ast.CastExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public CastExpBuilder WithTargetType(ast.FifthType value){
+    public CastExpBuilder WithTargetType(FifthType value){
         _TargetType = value;
         return this;
     }
 
-    public CastExpBuilder WithType(ast.FifthType value){
+    public CastExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1848,7 +1848,7 @@ public class CastExpBuilder : IBuilder<ast.CastExp>
 public class LambdaExpBuilder : IBuilder<ast.LambdaExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1860,7 +1860,7 @@ public class LambdaExpBuilder : IBuilder<ast.LambdaExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public LambdaExpBuilder WithType(ast.FifthType value){
+    public LambdaExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1879,7 +1879,7 @@ public class LambdaExpBuilder : IBuilder<ast.LambdaExp>
 public class FuncCallExpBuilder : IBuilder<ast.FuncCallExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1891,7 +1891,7 @@ public class FuncCallExpBuilder : IBuilder<ast.FuncCallExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public FuncCallExpBuilder WithType(ast.FifthType value){
+    public FuncCallExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1910,7 +1910,7 @@ public class FuncCallExpBuilder : IBuilder<ast.FuncCallExp>
 public class Int8LiteralExpBuilder : IBuilder<ast.Int8LiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1922,7 +1922,7 @@ public class Int8LiteralExpBuilder : IBuilder<ast.Int8LiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Int8LiteralExpBuilder WithType(ast.FifthType value){
+    public Int8LiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1941,7 +1941,7 @@ public class Int8LiteralExpBuilder : IBuilder<ast.Int8LiteralExp>
 public class Int16LiteralExpBuilder : IBuilder<ast.Int16LiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1953,7 +1953,7 @@ public class Int16LiteralExpBuilder : IBuilder<ast.Int16LiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Int16LiteralExpBuilder WithType(ast.FifthType value){
+    public Int16LiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -1972,7 +1972,7 @@ public class Int16LiteralExpBuilder : IBuilder<ast.Int16LiteralExp>
 public class Int32LiteralExpBuilder : IBuilder<ast.Int32LiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1984,7 +1984,7 @@ public class Int32LiteralExpBuilder : IBuilder<ast.Int32LiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Int32LiteralExpBuilder WithType(ast.FifthType value){
+    public Int32LiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2003,7 +2003,7 @@ public class Int32LiteralExpBuilder : IBuilder<ast.Int32LiteralExp>
 public class Int64LiteralExpBuilder : IBuilder<ast.Int64LiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2015,7 +2015,7 @@ public class Int64LiteralExpBuilder : IBuilder<ast.Int64LiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Int64LiteralExpBuilder WithType(ast.FifthType value){
+    public Int64LiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2034,7 +2034,7 @@ public class Int64LiteralExpBuilder : IBuilder<ast.Int64LiteralExp>
 public class UnsignedInt8LiteralExpBuilder : IBuilder<ast.UnsignedInt8LiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2046,7 +2046,7 @@ public class UnsignedInt8LiteralExpBuilder : IBuilder<ast.UnsignedInt8LiteralExp
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnsignedInt8LiteralExpBuilder WithType(ast.FifthType value){
+    public UnsignedInt8LiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2065,7 +2065,7 @@ public class UnsignedInt8LiteralExpBuilder : IBuilder<ast.UnsignedInt8LiteralExp
 public class UnsignedInt16LiteralExpBuilder : IBuilder<ast.UnsignedInt16LiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2077,7 +2077,7 @@ public class UnsignedInt16LiteralExpBuilder : IBuilder<ast.UnsignedInt16LiteralE
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnsignedInt16LiteralExpBuilder WithType(ast.FifthType value){
+    public UnsignedInt16LiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2096,7 +2096,7 @@ public class UnsignedInt16LiteralExpBuilder : IBuilder<ast.UnsignedInt16LiteralE
 public class UnsignedInt32LiteralExpBuilder : IBuilder<ast.UnsignedInt32LiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2108,7 +2108,7 @@ public class UnsignedInt32LiteralExpBuilder : IBuilder<ast.UnsignedInt32LiteralE
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnsignedInt32LiteralExpBuilder WithType(ast.FifthType value){
+    public UnsignedInt32LiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2127,7 +2127,7 @@ public class UnsignedInt32LiteralExpBuilder : IBuilder<ast.UnsignedInt32LiteralE
 public class UnsignedInt64LiteralExpBuilder : IBuilder<ast.UnsignedInt64LiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2139,7 +2139,7 @@ public class UnsignedInt64LiteralExpBuilder : IBuilder<ast.UnsignedInt64LiteralE
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnsignedInt64LiteralExpBuilder WithType(ast.FifthType value){
+    public UnsignedInt64LiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2158,7 +2158,7 @@ public class UnsignedInt64LiteralExpBuilder : IBuilder<ast.UnsignedInt64LiteralE
 public class Float4LiteralExpBuilder : IBuilder<ast.Float4LiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2170,7 +2170,7 @@ public class Float4LiteralExpBuilder : IBuilder<ast.Float4LiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Float4LiteralExpBuilder WithType(ast.FifthType value){
+    public Float4LiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2189,7 +2189,7 @@ public class Float4LiteralExpBuilder : IBuilder<ast.Float4LiteralExp>
 public class Float8LiteralExpBuilder : IBuilder<ast.Float8LiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2201,7 +2201,7 @@ public class Float8LiteralExpBuilder : IBuilder<ast.Float8LiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Float8LiteralExpBuilder WithType(ast.FifthType value){
+    public Float8LiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2220,7 +2220,7 @@ public class Float8LiteralExpBuilder : IBuilder<ast.Float8LiteralExp>
 public class Float16LiteralExpBuilder : IBuilder<ast.Float16LiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2232,7 +2232,7 @@ public class Float16LiteralExpBuilder : IBuilder<ast.Float16LiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Float16LiteralExpBuilder WithType(ast.FifthType value){
+    public Float16LiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2251,7 +2251,7 @@ public class Float16LiteralExpBuilder : IBuilder<ast.Float16LiteralExp>
 public class BooleanLiteralExpBuilder : IBuilder<ast.BooleanLiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2263,7 +2263,7 @@ public class BooleanLiteralExpBuilder : IBuilder<ast.BooleanLiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public BooleanLiteralExpBuilder WithType(ast.FifthType value){
+    public BooleanLiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2282,7 +2282,7 @@ public class BooleanLiteralExpBuilder : IBuilder<ast.BooleanLiteralExp>
 public class CharLiteralExpBuilder : IBuilder<ast.CharLiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2294,7 +2294,7 @@ public class CharLiteralExpBuilder : IBuilder<ast.CharLiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public CharLiteralExpBuilder WithType(ast.FifthType value){
+    public CharLiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2313,7 +2313,7 @@ public class CharLiteralExpBuilder : IBuilder<ast.CharLiteralExp>
 public class StringLiteralExpBuilder : IBuilder<ast.StringLiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2325,7 +2325,7 @@ public class StringLiteralExpBuilder : IBuilder<ast.StringLiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public StringLiteralExpBuilder WithType(ast.FifthType value){
+    public StringLiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2344,7 +2344,7 @@ public class StringLiteralExpBuilder : IBuilder<ast.StringLiteralExp>
 public class DateLiteralExpBuilder : IBuilder<ast.DateLiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2356,7 +2356,7 @@ public class DateLiteralExpBuilder : IBuilder<ast.DateLiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public DateLiteralExpBuilder WithType(ast.FifthType value){
+    public DateLiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2375,7 +2375,7 @@ public class DateLiteralExpBuilder : IBuilder<ast.DateLiteralExp>
 public class TimeLiteralExpBuilder : IBuilder<ast.TimeLiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2387,7 +2387,7 @@ public class TimeLiteralExpBuilder : IBuilder<ast.TimeLiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public TimeLiteralExpBuilder WithType(ast.FifthType value){
+    public TimeLiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2406,7 +2406,7 @@ public class TimeLiteralExpBuilder : IBuilder<ast.TimeLiteralExp>
 public class DateTimeLiteralExpBuilder : IBuilder<ast.DateTimeLiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2418,7 +2418,7 @@ public class DateTimeLiteralExpBuilder : IBuilder<ast.DateTimeLiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public DateTimeLiteralExpBuilder WithType(ast.FifthType value){
+    public DateTimeLiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2437,7 +2437,7 @@ public class DateTimeLiteralExpBuilder : IBuilder<ast.DateTimeLiteralExp>
 public class DurationLiteralExpBuilder : IBuilder<ast.DurationLiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2449,7 +2449,7 @@ public class DurationLiteralExpBuilder : IBuilder<ast.DurationLiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public DurationLiteralExpBuilder WithType(ast.FifthType value){
+    public DurationLiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2468,7 +2468,7 @@ public class DurationLiteralExpBuilder : IBuilder<ast.DurationLiteralExp>
 public class UriLiteralExpBuilder : IBuilder<ast.UriLiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2480,7 +2480,7 @@ public class UriLiteralExpBuilder : IBuilder<ast.UriLiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UriLiteralExpBuilder WithType(ast.FifthType value){
+    public UriLiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2499,7 +2499,7 @@ public class UriLiteralExpBuilder : IBuilder<ast.UriLiteralExp>
 public class AtomLiteralExpBuilder : IBuilder<ast.AtomLiteralExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2511,7 +2511,7 @@ public class AtomLiteralExpBuilder : IBuilder<ast.AtomLiteralExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AtomLiteralExpBuilder WithType(ast.FifthType value){
+    public AtomLiteralExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2530,7 +2530,7 @@ public class AtomLiteralExpBuilder : IBuilder<ast.AtomLiteralExp>
 public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2542,7 +2542,7 @@ public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public MemberAccessExpBuilder WithType(ast.FifthType value){
+    public MemberAccessExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2561,7 +2561,7 @@ public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
 public class ObjectInitializerExpBuilder : IBuilder<ast.ObjectInitializerExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2573,7 +2573,7 @@ public class ObjectInitializerExpBuilder : IBuilder<ast.ObjectInitializerExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ObjectInitializerExpBuilder WithType(ast.FifthType value){
+    public ObjectInitializerExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2592,7 +2592,7 @@ public class ObjectInitializerExpBuilder : IBuilder<ast.ObjectInitializerExp>
 public class PropertyInitializerExpBuilder : IBuilder<ast.PropertyInitializerExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2604,7 +2604,7 @@ public class PropertyInitializerExpBuilder : IBuilder<ast.PropertyInitializerExp
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public PropertyInitializerExpBuilder WithType(ast.FifthType value){
+    public PropertyInitializerExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2625,7 +2625,7 @@ public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
 
     private ast.Operator _Operator;
     private ast.Expression _Operand;
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2649,7 +2649,7 @@ public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
         return this;
     }
 
-    public UnaryExpBuilder WithType(ast.FifthType value){
+    public UnaryExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2668,7 +2668,7 @@ public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
 public class VarRefExpBuilder : IBuilder<ast.VarRefExp>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2680,7 +2680,7 @@ public class VarRefExpBuilder : IBuilder<ast.VarRefExp>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public VarRefExpBuilder WithType(ast.FifthType value){
+    public VarRefExpBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2699,7 +2699,7 @@ public class VarRefExpBuilder : IBuilder<ast.VarRefExp>
 public class ListBuilder : IBuilder<ast.List>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2711,7 +2711,7 @@ public class ListBuilder : IBuilder<ast.List>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ListBuilder WithType(ast.FifthType value){
+    public ListBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2730,7 +2730,7 @@ public class ListBuilder : IBuilder<ast.List>
 public class AtomBuilder : IBuilder<ast.Atom>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2742,7 +2742,7 @@ public class AtomBuilder : IBuilder<ast.Atom>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AtomBuilder WithType(ast.FifthType value){
+    public AtomBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2761,7 +2761,7 @@ public class AtomBuilder : IBuilder<ast.Atom>
 public class TripleBuilder : IBuilder<ast.Triple>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2773,7 +2773,7 @@ public class TripleBuilder : IBuilder<ast.Triple>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public TripleBuilder WithType(ast.FifthType value){
+    public TripleBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }
@@ -2792,7 +2792,7 @@ public class TripleBuilder : IBuilder<ast.Triple>
 public class GraphBuilder : IBuilder<ast.Graph>
 {
 
-    private ast.FifthType _Type;
+    private FifthType _Type;
     private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2804,7 +2804,7 @@ public class GraphBuilder : IBuilder<ast.Graph>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public GraphBuilder WithType(ast.FifthType value){
+    public GraphBuilder WithType(FifthType value){
         _Type = value;
         return this;
     }

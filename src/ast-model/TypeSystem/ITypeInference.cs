@@ -2,9 +2,9 @@ using ast_model.Symbols;
 
 namespace ast_model.TypeSystem;
 
-public interface ITypeInference
+public interface FifthTypeInference
 {
-    public IType Infer<T>(IScope scope, T node);
+    public FifthType Infer<T>(IScope scope, T node);
 
-    public IType Infer(IAstThing node);
+    public FifthType Infer(IAstThing node);
 }

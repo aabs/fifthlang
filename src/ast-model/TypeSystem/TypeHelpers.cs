@@ -15,7 +15,7 @@ public static class TypeHelpers
         {
             if (TypeRegistry.DefaultRegistry.TryGetTypeByName(paramTypeName, out var paramTid))
             {
-                paramTypes.Add(paramTid.TypeId);
+                paramTypes.Add(paramTid.Id);
             }
         }
 
@@ -23,7 +23,7 @@ public static class TypeHelpers
 
         if (fd.Parent is AstThing n)
         {
-            declaringType = n.Type.TypeId;
+            declaringType = n.Type.Id;
         }
         return new FunctionSignature
         {
@@ -96,7 +96,7 @@ public static class TypeHelpers
         return LookupBuiltinType(typename) != null;
     }
 
-    public static IType Lookup(this TypeId tid)
+    public static FifthType Lookup(this TypeId tid)
     {
         if (TypeRegistry.DefaultRegistry.TryGetType(tid, out var ft))
         {
@@ -110,7 +110,7 @@ public static class TypeHelpers
     {
         if (TypeRegistry.DefaultRegistry.TryGetTypeByName(typename, out var type))
         {
-            return type.TypeId;
+            return type.Id;
         }
 
         return null;
@@ -127,7 +127,7 @@ public static class TypeHelpers
         throw new TypeCheckingException("Unrecognised Operation");
     }
 
-    public static TypeId? LookupType(string typename)
+    public static FifthType? LookupType(string typename)
     {
         if (IsBuiltinType(typename))
         {
@@ -137,11 +137,11 @@ public static class TypeHelpers
         throw new TypeCheckingException("no way to lookup non native types yet");
     }
 
-    public static TypeId LookupType(this Type type)
+    public static FifthType LookupType(this Type type)
     {
-        if (TypeRegistry.DefaultRegistry.TryLookupType(type, out var result))
+        if (NewTypeRegistry.DefaultRegistry.TryLookupType(type, out var result))
         {
-            return result.TypeId;
+            return result.Id;
         }
 
         throw new TypeCheckingException("no way to lookup non native types yet");
@@ -174,16 +174,6 @@ public static class TypeHelpers
         return s.Peek();
     }
 
-    public static bool TryEncode(this BinaryExp be, out ulong encoded)
-    {
-        return TryPack(out encoded, (ushort)be.Operator!, be.LHS.Type.TypeId.Value, be.RHS.Type.TypeId.Value);
-    }
-
-    public static bool TryEncode(this UnaryExp ue, out ulong encoded)
-    {
-        return TryPack(out encoded, (ushort)ue.Operator, ue.Operand.Type.TypeId.Value);
-    }
-
     public static bool TryGetAttribute<T>(this Type t, out T attr)
     {
         attr = (T)t.GetCustomAttributes(true).FirstOrDefault(attr => attr is T);
@@ -213,7 +203,7 @@ public static class TypeHelpers
         return fw != null;
     }
 
-    public static bool TryGetNearestFifthTypeToListType(Type nt, out IType ft)
+    public static bool TryGetNearestFifthTypeToListType(Type nt, out FifthType ft)
     {
         if (typeof(IList).IsAssignableFrom(nt) && nt.IsGenericType)
         {
@@ -223,7 +213,8 @@ public static class TypeHelpers
                 throw new TypeCheckingException("Unable to make sense of type param for list");
             }
 
-            ft = new PrimitiveList(typeParamAsFifthType);
+            ft = new FifthType.TListOf(typeParamAsFifthType);
+            ft = new PrimitiveList();
             return true;
         }
 
@@ -231,7 +222,7 @@ public static class TypeHelpers
         return false;
     }
 
-    public static bool TryGetNearestFifthTypeToNativeType(Type nt, out TypeId ft)
+    public static bool TryGetNearestFifthTypeToNativeType(Type nt, out FifthType ft)
     {
         ft = nt.LookupType();
         return true;

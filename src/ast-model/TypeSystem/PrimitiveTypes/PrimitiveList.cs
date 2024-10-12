@@ -1,10 +1,10 @@
 namespace ast_model.TypeSystem.PrimitiveTypes;
 
-public class PrimitiveList : PrimitiveGeneric
+public class PrimitiveList : PrimitiveAny
 {
-    public PrimitiveList(TypeId typeParameter)
-        : base(false, false, "list", typeParameter)
+    public PrimitiveList(FifthType typeParameter)
     {
+        Type = Type with {TypeArguments = [typeParameter]} ;
     }
 
     public List<object> List { get; private set; }
@@ -16,14 +16,14 @@ public class PrimitiveList : PrimitiveGeneric
 
     public PrimitiveList Tail()
     {
-        return new(GenericTypeParameters[0]) { List = List.GetRange(1, List.Count - 1), TypeId = TypeId };
+        return new(Type.TypeArguments[0]) { List = List.GetRange(1, List.Count - 1), TypeId = TypeId };
     }
 
     private IValueObject GetItemAt(int i)
     {
         if (List.Count > i)
         {
-            return new ValueObject(GenericTypeParameters[0], string.Empty, List[i]);
+            return new ValueObject(Type.TypeArguments[0].Id, string.Empty, List[i]);
         }
 
         return default;

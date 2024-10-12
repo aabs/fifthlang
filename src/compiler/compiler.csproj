@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ast-generated\ast_generated.csproj" />
+    <ProjectReference Include="..\ast-model\ast_model.csproj" />
+    <ProjectReference Include="..\parser\parser.csproj" />
+  </ItemGroup>
+
 </Project>

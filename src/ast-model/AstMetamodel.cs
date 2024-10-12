@@ -75,6 +75,7 @@ public enum OperatorPosition
 
 public enum SymbolKind
 {
+    VoidSymbol, // as in no symbol known
     Assembly,
     AssemblyRef,
     AssertionStatement,
@@ -169,37 +170,18 @@ public partial struct NamespaceName;
 public partial struct OperatorId;
 
 [Ignore, ValueObject<ushort>]
-[Instance("short", 0, "Short has lowest seniority")]
-[Instance("integer", 0)]
-[Instance("long", 0)]
-[Instance("float", 0)]
-[Instance("double", 0)]
-[Instance("decimal", 0, "decimal has highest seniority")]
+[Instance("byte", 0, "byte has lowest seniority")]
+[Instance("short", 1)]
+[Instance("integer", 2)]
+[Instance("long", 3)]
+[Instance("float", 4)]
+[Instance("double", 5)]
+[Instance("decimal", 6, "decimal has highest seniority")]
 public partial struct TypeCoertionSeniority;
 
-[Ignore, ValueObject<ushort>]
-public partial struct TypeId;
-[Ignore, ValueObject<string>]
-[Instance("anonymous", "", "For anonymous types")]
-public partial struct TypeName;
-
-public record struct Symbol(string Name, SourceLocationMetadata? Location, SymbolKind Kind);
+public record struct Symbol(string Name, SymbolKind Kind);
 
 public record struct SourceLocationMetadata(int Column,    string Filename, int Line, string OriginalText);
-
-/// <summary>
-/// The core representation of a type in fifth, for the purposes of type checking. Every <see
-/// cref="Expression"/>, and <see cref="UserDefinedType"/> instance must have a FifthType.
-/// </summary>
-/// <seealso cref="System.IEquatable&lt;ast.FifthType&gt;"/>
-[Ignore]public record FifthType : AnnotatedThing
-{
-    public TypeId TypeId { get; init; }
-    public Symbol Symbol { get; init; }
-    public FifthType[] ParentTypes { get; init; }
-    public FifthType[] TypeArguments { get; init; }
-    public bool IsArray { get; init; }
-}
 
 public abstract record AstThing : AnnotatedThing, IAstThing
 {
@@ -208,8 +190,9 @@ public abstract record AstThing : AnnotatedThing, IAstThing
         visitor.OnEnter(this);
         visitor.OnLeave(this);
     }
-    public required FifthType Type { get; init; }
-    public required IAstThing Parent { get; init; }
+    public FifthType Type { get; set; }
+    public IAstThing? Parent { get; set; }
+    public SourceLocationMetadata? Location { get; set; }
 }
 
 public abstract record ScopeAstThing : AstThing, IScope
@@ -258,22 +241,6 @@ public abstract record ScopeAstThing : AstThing, IScope
 #endregion
 
 #region Definitions
-
-public record UserDefinedType : AstThing, IType
-{
-    public ClassDef ClassDef { get; init; }
-    public TypeName Name { get; init; }
-    public NamespaceName Namespace { get; init; }
-    public TypeId TypeId { get; init; }
-
-    public void Deconstruct(out ClassDef ClassDef, out TypeName Name, out NamespaceName Namespace, out TypeId TypeId)
-    {
-        ClassDef = this.ClassDef;
-        Name = this.Name;
-        Namespace = this.Namespace;
-        TypeId = this.TypeId;
-    }
-}
 
 public abstract record Definition : AstThing
 {

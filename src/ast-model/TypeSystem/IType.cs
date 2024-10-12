@@ -1,8 +1,10 @@
 namespace ast_model.TypeSystem;
 
-public interface IType
+public interface ITypeIgnore
 {
-    public TypeName Name { get; init; }
-    public NamespaceName Namespace { get; init; }
-    public TypeId TypeId { get; init; } // no more than 64K types
+    TypeId Id { get; init; }
+    Symbol Symbol { get; init; }
+    FifthType[] ParentTypes { get; init; }
+    FifthType[] TypeArguments { get; init; }
+    bool IsArray { get; init; }
 }

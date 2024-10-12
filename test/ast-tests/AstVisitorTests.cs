@@ -1,5 +1,6 @@
 ﻿using ast;
 using ast_generated;
+using ast_model.TypeSystem;
 using FluentAssertions;
 
 namespace ast_tests;

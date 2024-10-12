@@ -1,0 +1,72 @@
+﻿using Dunet;
+
+namespace ast_model.TypeSystem;
+
+/// <summary>
+/// The core representation of a type in fifth, for the purposes of type checking. Every <see
+/// cref="Expression"/>, and <see cref="UserDefinedType"/> instance must have a FifthType.
+/// </summary>
+/// <seealso cref="IEquatable&lt;FifthType&gt;"/>
+//[Ignore]
+//public record struct FifthType : IType
+//{
+//    public required TypeId Id { get; init; }
+//    public required Symbol Symbol { get; init; }
+//    public required FifthType[] ParentTypes { get; init; }
+//    public required FifthType[] TypeArguments { get; init; }
+//    public required bool IsArray { get; init; }
+
+//    /// <summary>The default type to be assigned to all things that have no type (such as statements)</summary>
+//    public static FifthType VoidType = new FifthType
+//    {
+//        Symbol = new() { Kind = SymbolKind.VoidSymbol, Name = null },
+//        IsArray = false,
+//        ParentTypes = [],
+//        TypeArguments = [],
+//        Id = TypeId.From(ushort.MaxValue)
+//    };
+//}
+
+[ValueObject<uint>]
+public partial struct TypeId;
+
+[ValueObject<string>]
+[Instance("anonymous", "", "For anonymous types")]
+public partial struct TypeName;
+
+
+[Union, Ignore]
+public partial record FifthType
+{
+    partial record NoType();
+    /// <summary>
+    /// Type of some reference to a .NET type
+    /// </summary>
+    partial record NetType(System.Type TheType);
+    /// <summary>
+    /// Type of a User Defined Type
+    /// </summary>
+    partial record TUDType(string Name);
+
+    /// <summary>
+    /// Type of a function from some sequence of types to some type
+    /// </summary>
+    partial record TFunc(List<FifthType> ParamTypes, Maybe<FifthType> ResultType);
+
+    /// <summary>
+    /// type of an array of things
+    /// </summary>
+    partial record TArrayOf(FifthType ElementType);
+
+    /// <summary>
+    /// type of a list of things
+    /// </summary>
+    partial record TListOf(FifthType ElementType);
+}
+
+[Union]
+public partial record Maybe<T>
+{
+    partial record Some(T Value);
+    partial record None();
+}

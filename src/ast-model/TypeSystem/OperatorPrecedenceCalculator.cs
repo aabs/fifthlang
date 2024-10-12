@@ -1,5 +1,5 @@
 using ast_model.TypeSystem.PrimitiveTypes;
-
+using static ast_model.TypeSystem.Maybe<ast.TypeCoertionSeniority>;
 #pragma warning disable CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
 namespace ast_model.TypeSystem;
 
@@ -33,21 +33,33 @@ public static class OperatorPrecedenceCalculator
             return (lhs, null, null);
         }
 
-        if (TypeRegistry.DefaultRegistry.TryGetType(lhs, out var lhsType) &&
-            TypeRegistry.DefaultRegistry.TryGetType(rhs, out var rhsType))
+        var lhsSeniority = GetSeniority(lhs);
+        var rhsSeniority = GetSeniority(rhs);
+
+        if (lhsSeniority is Some lhss && rhsSeniority is Some rhss)
         {
-            if (lhsType is PrimitiveNumeric lhsNum && rhsType is PrimitiveNumeric rhsNum)
-            {
-                if (lhsNum.Seniority.Value > rhsNum.Seniority.Value)
+
+                if ((ushort)lhss.Value > (ushort)rhss.Value)
                 {
                     return (lhs, null, lhs);
                 }
 
                 return (rhs, rhs, null);
-            }
         }
 
         throw new TypeCheckingException("could not resolve numerical types ofr coercion");
+    }
+
+    public static Maybe<TypeCoertionSeniority> GetSeniority(TypeId tid)
+    {
+        if (NewTypeRegistry.DefaultRegistry.TryLookupType(tid, out var fifthType) &&
+            fifthType is FifthType.NetType netType &&
+            NewTypeRegistry.NumericPrimitive.TryGetValue(netType.TheType, out var seniority))
+        {
+            return new Some(seniority);
+        }
+
+        return new None();
     }
 
     private static bool IsRelational(Operator op)
@@ -68,6 +80,14 @@ public static class OperatorPrecedenceCalculator
             Operator.ArithmeticGreaterThanOrEqual => true,
             _ => false
         };
+    }
+
+    public static bool IsNumeric(this FifthType ft)
+    {
+        return ft.MatchNetType<bool>(
+            type => NewTypeRegistry.NumericPrimitive.ContainsKey(type.TheType),
+            () => false
+        );
     }
 
     private static bool IsNumerical(Operator op)
