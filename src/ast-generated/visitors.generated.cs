@@ -6,8 +6,6 @@ using System.Collections.Generic;
 
 public interface IAstVisitor
 {
-    public void EnterUserDefinedType(UserDefinedType ctx);
-    public void LeaveUserDefinedType(UserDefinedType ctx);
     public void EnterAssemblyDef(AssemblyDef ctx);
     public void LeaveAssemblyDef(AssemblyDef ctx);
     public void EnterFunctionDef(FunctionDef ctx);
@@ -150,8 +148,6 @@ public interface IAstVisitor
 
 public partial class BaseAstVisitor : IAstVisitor
 {
-    public virtual void EnterUserDefinedType(UserDefinedType ctx){}
-    public virtual void LeaveUserDefinedType(UserDefinedType ctx){}
     public virtual void EnterAssemblyDef(AssemblyDef ctx){}
     public virtual void LeaveAssemblyDef(AssemblyDef ctx){}
     public virtual void EnterFunctionDef(FunctionDef ctx){}
@@ -296,7 +292,6 @@ public partial class BaseAstVisitor : IAstVisitor
 public interface IAstRecursiveDescentVisitor
 {
     public AstThing Visit(AstThing ctx);
-    public UserDefinedType VisitUserDefinedType(UserDefinedType ctx);
     public AssemblyDef VisitAssemblyDef(AssemblyDef ctx);
     public FunctionDef VisitFunctionDef(FunctionDef ctx);
     public FunctorDef VisitFunctorDef(FunctorDef ctx);
@@ -374,7 +369,6 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         if(ctx == null) return ctx;
         return ctx switch
         {
-             UserDefinedType node => VisitUserDefinedType(node),
              AssemblyDef node => VisitAssemblyDef(node),
              FunctionDef node => VisitFunctionDef(node),
              FunctorDef node => VisitFunctorDef(node),
@@ -449,12 +443,6 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         };
     }
 
-    public virtual UserDefinedType VisitUserDefinedType(UserDefinedType ctx)
-    {
-     return ctx with {
-         ClassDef = (ast.ClassDef)Visit((AstThing)ctx.ClassDef)
-        };
-    }
     public virtual AssemblyDef VisitAssemblyDef(AssemblyDef ctx)
     {
         List<ast.AssemblyRef> tmpAssemblyRefs = [];

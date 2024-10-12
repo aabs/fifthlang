@@ -1,5 +1,6 @@
 ﻿using ast;
 using ast_model;
+using ast_model.TypeSystem;
 using FluentAssertions;
 
 namespace ast_tests;
@@ -51,7 +52,7 @@ public class AstTypeProviderTests
     [InlineData(typeof(int), false)]
     [InlineData(typeof(AstThing), true)]
     [InlineData(typeof(ast.AssemblyName), false)]
-    [InlineData(typeof(ast.TypeName), false)]
+    [InlineData(typeof(TypeName), false)]
     public void IsAnAstThing_should_only_return_true_on_genuine_ast_types(Type t, bool shouldSucceed)
     {
         t.IsAnAstThing(typeof(ast.AstThing)).Should().Be(shouldSucceed);

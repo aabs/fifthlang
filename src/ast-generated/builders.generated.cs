@@ -2,69 +2,10 @@
 
 namespace ast_generated;
 using ast_generated;
+using ast;
 using System.Collections.Generic;
-using ast_model.TypeSystem;
 #nullable disable
 
-public class UserDefinedTypeBuilder : IBuilder<ast.UserDefinedType>
-{
-
-    private ast.ClassDef _ClassDef;
-    private ast.TypeName _Name;
-    private ast.NamespaceName _Namespace;
-    private ast.TypeId _TypeId;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
-    private Dictionary<System.String, System.Object> _Annotations;
-    
-    public ast.UserDefinedType Build()
-    {
-        return new ast.UserDefinedType(){
-             ClassDef = this._ClassDef // from UserDefinedType
-           , Name = this._Name // from UserDefinedType
-           , Namespace = this._Namespace // from UserDefinedType
-           , TypeId = this._TypeId // from UserDefinedType
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
-        };
-    }
-    public UserDefinedTypeBuilder WithClassDef(ast.ClassDef value){
-        _ClassDef = value;
-        return this;
-    }
-
-    public UserDefinedTypeBuilder WithName(ast.TypeName value){
-        _Name = value;
-        return this;
-    }
-
-    public UserDefinedTypeBuilder WithNamespace(ast.NamespaceName value){
-        _Namespace = value;
-        return this;
-    }
-
-    public UserDefinedTypeBuilder WithTypeId(ast.TypeId value){
-        _TypeId = value;
-        return this;
-    }
-
-    public UserDefinedTypeBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public UserDefinedTypeBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
-    public UserDefinedTypeBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
-        _Annotations = value;
-        return this;
-    }
-
-}
 public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
 {
 
@@ -74,8 +15,6 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
     private List<ast.AssemblyRef> _AssemblyRefs;
     private List<ast.ClassDef> _ClassDefs;
     private ast.Visibility _Visibility;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AssemblyDef Build()
@@ -87,8 +26,6 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
            , AssemblyRefs = this._AssemblyRefs // from AssemblyDef
            , ClassDefs = this._ClassDefs // from AssemblyDef
            , Visibility = this._Visibility // from Definition
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -132,16 +69,6 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
         return this;
     }
 
-    public AssemblyDefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public AssemblyDefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public AssemblyDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -156,8 +83,6 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
     private ast.MemberName _Name;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.FunctionDef Build()
@@ -168,8 +93,6 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
            , Name = this._Name // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -203,16 +126,6 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
         return this;
     }
 
-    public FunctionDefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public FunctionDefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public FunctionDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -225,8 +138,6 @@ public class FunctorDefBuilder : IBuilder<ast.FunctorDef>
     private ast.FunctionDef _InvocationFuncDev;
     private ast_model.Symbols.IScope _EnclosingScope;
     private ast_model.Symbols.ISymbolTable _SymbolTable;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.FunctorDef Build()
@@ -235,8 +146,6 @@ public class FunctorDefBuilder : IBuilder<ast.FunctorDef>
              InvocationFuncDev = this._InvocationFuncDev // from FunctorDef
            , EnclosingScope = this._EnclosingScope // from ScopeAstThing
            , SymbolTable = this._SymbolTable // from ScopeAstThing
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -255,16 +164,6 @@ public class FunctorDefBuilder : IBuilder<ast.FunctorDef>
         return this;
     }
 
-    public FunctorDefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public FunctorDefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public FunctorDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -278,8 +177,6 @@ public class FieldDefBuilder : IBuilder<ast.FieldDef>
     private ast.MemberName _Name;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.FieldDef Build()
@@ -289,8 +186,6 @@ public class FieldDefBuilder : IBuilder<ast.FieldDef>
            , Name = this._Name // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -314,16 +209,6 @@ public class FieldDefBuilder : IBuilder<ast.FieldDef>
         return this;
     }
 
-    public FieldDefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public FieldDefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public FieldDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -342,8 +227,6 @@ public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
     private ast.MemberName _Name;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.PropertyDef Build()
@@ -358,8 +241,6 @@ public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
            , Name = this._Name // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -408,16 +289,6 @@ public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
         return this;
     }
 
-    public PropertyDefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public PropertyDefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public PropertyDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -430,8 +301,6 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
     private ast.MemberName _Name;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.MethodDef Build()
@@ -440,8 +309,6 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
              Name = this._Name // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -460,16 +327,6 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
         return this;
     }
 
-    public MethodDefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public MethodDefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public MethodDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -482,8 +339,6 @@ public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
     private ast.Expression _Antecedent;
     private ast.KnowledgeManagementBlock _Consequent;
     private ast.Visibility _Visibility;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.InferenceRuleDef Build()
@@ -492,8 +347,6 @@ public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
              Antecedent = this._Antecedent // from InferenceRuleDef
            , Consequent = this._Consequent // from InferenceRuleDef
            , Visibility = this._Visibility // from Definition
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -512,16 +365,6 @@ public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
         return this;
     }
 
-    public InferenceRuleDefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public InferenceRuleDefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public InferenceRuleDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -534,8 +377,6 @@ public class ParamDefBuilder : IBuilder<ast.ParamDef>
     private ast.Expression _ParameterConstraint;
     private ast.ParamDestructureDef _DestructureDef;
     private ast.Visibility _Visibility;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ParamDef Build()
@@ -544,8 +385,6 @@ public class ParamDefBuilder : IBuilder<ast.ParamDef>
              ParameterConstraint = this._ParameterConstraint // from ParamDef
            , DestructureDef = this._DestructureDef // from ParamDef
            , Visibility = this._Visibility // from Definition
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -564,16 +403,6 @@ public class ParamDefBuilder : IBuilder<ast.ParamDef>
         return this;
     }
 
-    public ParamDefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public ParamDefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public ParamDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -585,8 +414,6 @@ public class ParamDestructureDefBuilder : IBuilder<ast.ParamDestructureDef>
 
     private List<ast.PropertyBindingDef> _Bindings;
     private ast.Visibility _Visibility;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ParamDestructureDef Build()
@@ -594,8 +421,6 @@ public class ParamDestructureDefBuilder : IBuilder<ast.ParamDestructureDef>
         return new ast.ParamDestructureDef(){
              Bindings = this._Bindings // from ParamDestructureDef
            , Visibility = this._Visibility // from Definition
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -614,16 +439,6 @@ public class ParamDestructureDefBuilder : IBuilder<ast.ParamDestructureDef>
         return this;
     }
 
-    public ParamDestructureDefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public ParamDestructureDefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public ParamDestructureDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -637,8 +452,6 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
     private ast.PropertyDef _ReferencedProperty;
     private ast.ParamDestructureDef _DestructureDef;
     private ast.Visibility _Visibility;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.PropertyBindingDef Build()
@@ -648,8 +461,6 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
            , ReferencedProperty = this._ReferencedProperty // from PropertyBindingDef
            , DestructureDef = this._DestructureDef // from PropertyBindingDef
            , Visibility = this._Visibility // from Definition
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -673,16 +484,6 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
         return this;
     }
 
-    public PropertyBindingDefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public PropertyBindingDefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public PropertyBindingDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -693,31 +494,17 @@ public class TypeDefBuilder : IBuilder<ast.TypeDef>
 {
 
     private ast.Visibility _Visibility;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.TypeDef Build()
     {
         return new ast.TypeDef(){
              Visibility = this._Visibility // from Definition
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public TypeDefBuilder WithVisibility(ast.Visibility value){
         _Visibility = value;
-        return this;
-    }
-
-    public TypeDefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public TypeDefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
         return this;
     }
 
@@ -733,8 +520,6 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
     private System.String _Namespace;
     private List<ast.MemberDef> _MemberDefs;
     private ast.Visibility _Visibility;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ClassDef Build()
@@ -743,8 +528,6 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
              Namespace = this._Namespace // from ClassDef
            , MemberDefs = this._MemberDefs // from ClassDef
            , Visibility = this._Visibility // from Definition
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -768,16 +551,6 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
         return this;
     }
 
-    public ClassDefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public ClassDefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public ClassDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -789,8 +562,6 @@ public class VariableDeclBuilder : IBuilder<ast.VariableDecl>
 
     private ast.Expression _InitialValue;
     private ast.Visibility _Visibility;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.VariableDecl Build()
@@ -798,8 +569,6 @@ public class VariableDeclBuilder : IBuilder<ast.VariableDecl>
         return new ast.VariableDecl(){
              InitialValue = this._InitialValue // from VariableDecl
            , Visibility = this._Visibility // from Definition
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -810,16 +579,6 @@ public class VariableDeclBuilder : IBuilder<ast.VariableDecl>
 
     public VariableDeclBuilder WithVisibility(ast.Visibility value){
         _Visibility = value;
-        return this;
-    }
-
-    public VariableDeclBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public VariableDeclBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
         return this;
     }
 
@@ -834,8 +593,6 @@ public class AssemblyRefBuilder : IBuilder<ast.AssemblyRef>
 
     private System.String _PublicKeyToken;
     private System.String _Version;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AssemblyRef Build()
@@ -843,8 +600,6 @@ public class AssemblyRefBuilder : IBuilder<ast.AssemblyRef>
         return new ast.AssemblyRef(){
              PublicKeyToken = this._PublicKeyToken // from AssemblyRef
            , Version = this._Version // from AssemblyRef
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -858,16 +613,6 @@ public class AssemblyRefBuilder : IBuilder<ast.AssemblyRef>
         return this;
     }
 
-    public AssemblyRefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public AssemblyRefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public AssemblyRefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -878,31 +623,17 @@ public class MemberRefBuilder : IBuilder<ast.MemberRef>
 {
 
     private ast.MemberDef _Member;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.MemberRef Build()
     {
         return new ast.MemberRef(){
              Member = this._Member // from MemberRef
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public MemberRefBuilder WithMember(ast.MemberDef value){
         _Member = value;
-        return this;
-    }
-
-    public MemberRefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public MemberRefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
         return this;
     }
 
@@ -916,31 +647,17 @@ public class PropertyRefBuilder : IBuilder<ast.PropertyRef>
 {
 
     private ast.PropertyDef _Property;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.PropertyRef Build()
     {
         return new ast.PropertyRef(){
              Property = this._Property // from PropertyRef
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public PropertyRefBuilder WithProperty(ast.PropertyDef value){
         _Property = value;
-        return this;
-    }
-
-    public PropertyRefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public PropertyRefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
         return this;
     }
 
@@ -953,28 +670,14 @@ public class PropertyRefBuilder : IBuilder<ast.PropertyRef>
 public class TypeRefBuilder : IBuilder<ast.TypeRef>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.TypeRef Build()
     {
         return new ast.TypeRef(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public TypeRefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public TypeRefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public TypeRefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -985,31 +688,17 @@ public class VarRefBuilder : IBuilder<ast.VarRef>
 {
 
     private ast.VarDeclStatement _VarDecl;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.VarRef Build()
     {
         return new ast.VarRef(){
              VarDecl = this._VarDecl // from VarRef
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public VarRefBuilder WithVarDecl(ast.VarDeclStatement value){
         _VarDecl = value;
-        return this;
-    }
-
-    public VarRefBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public VarRefBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
         return this;
     }
 
@@ -1023,31 +712,17 @@ public class GraphNamespaceAliasBuilder : IBuilder<ast.GraphNamespaceAlias>
 {
 
     private System.Uri _Uri;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.GraphNamespaceAlias Build()
     {
         return new ast.GraphNamespaceAlias(){
              Uri = this._Uri // from GraphNamespaceAlias
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public GraphNamespaceAliasBuilder WithUri(System.Uri value){
         _Uri = value;
-        return this;
-    }
-
-    public GraphNamespaceAliasBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public GraphNamespaceAliasBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
         return this;
     }
 
@@ -1061,31 +736,17 @@ public class AssignmentStatementBuilder : IBuilder<ast.AssignmentStatement>
 {
 
     private ast.Expression _RHS;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AssignmentStatement Build()
     {
         return new ast.AssignmentStatement(){
              RHS = this._RHS // from AssignmentStatement
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public AssignmentStatementBuilder WithRHS(ast.Expression value){
         _RHS = value;
-        return this;
-    }
-
-    public AssignmentStatementBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public AssignmentStatementBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
         return this;
     }
 
@@ -1099,16 +760,12 @@ public class BlockStatementBuilder : IBuilder<ast.BlockStatement>
 {
 
     private List<ast.Statement> _Statements;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.BlockStatement Build()
     {
         return new ast.BlockStatement(){
              Statements = this._Statements // from BlockStatement
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -1122,16 +779,6 @@ public class BlockStatementBuilder : IBuilder<ast.BlockStatement>
         _Statements.Add(value);
         return this;
     }
-    public BlockStatementBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public BlockStatementBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public BlockStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1142,16 +789,12 @@ public class KnowledgeManagementBlockBuilder : IBuilder<ast.KnowledgeManagementB
 {
 
     private List<ast.KnowledgeManagementStatement> _Statements;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.KnowledgeManagementBlock Build()
     {
         return new ast.KnowledgeManagementBlock(){
              Statements = this._Statements // from KnowledgeManagementBlock
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -1165,16 +808,6 @@ public class KnowledgeManagementBlockBuilder : IBuilder<ast.KnowledgeManagementB
         _Statements.Add(value);
         return this;
     }
-    public KnowledgeManagementBlockBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public KnowledgeManagementBlockBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public KnowledgeManagementBlockBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1185,31 +818,17 @@ public class ExpStatementBuilder : IBuilder<ast.ExpStatement>
 {
 
     private ast.Expression _RHS;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ExpStatement Build()
     {
         return new ast.ExpStatement(){
              RHS = this._RHS // from ExpStatement
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public ExpStatementBuilder WithRHS(ast.Expression value){
         _RHS = value;
-        return this;
-    }
-
-    public ExpStatementBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public ExpStatementBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
         return this;
     }
 
@@ -1227,8 +846,6 @@ public class ForStatementBuilder : IBuilder<ast.ForStatement>
     private ast.Expression _IncrementExpression;
     private ast.VariableDecl _LoopVariable;
     private ast.BlockStatement _Body;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ForStatement Build()
@@ -1239,8 +856,6 @@ public class ForStatementBuilder : IBuilder<ast.ForStatement>
            , IncrementExpression = this._IncrementExpression // from ForStatement
            , LoopVariable = this._LoopVariable // from ForStatement
            , Body = this._Body // from ForStatement
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -1269,16 +884,6 @@ public class ForStatementBuilder : IBuilder<ast.ForStatement>
         return this;
     }
 
-    public ForStatementBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public ForStatementBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public ForStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1291,8 +896,6 @@ public class ForeachStatementBuilder : IBuilder<ast.ForeachStatement>
     private ast.Expression _Collection;
     private ast.VariableDecl _LoopVariable;
     private ast.BlockStatement _Body;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ForeachStatement Build()
@@ -1301,8 +904,6 @@ public class ForeachStatementBuilder : IBuilder<ast.ForeachStatement>
              Collection = this._Collection // from ForeachStatement
            , LoopVariable = this._LoopVariable // from ForeachStatement
            , Body = this._Body // from ForeachStatement
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -1321,16 +922,6 @@ public class ForeachStatementBuilder : IBuilder<ast.ForeachStatement>
         return this;
     }
 
-    public ForeachStatementBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public ForeachStatementBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public ForeachStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1341,31 +932,17 @@ public class GuardStatementBuilder : IBuilder<ast.GuardStatement>
 {
 
     private ast.Expression _Condition;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.GuardStatement Build()
     {
         return new ast.GuardStatement(){
              Condition = this._Condition // from GuardStatement
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public GuardStatementBuilder WithCondition(ast.Expression value){
         _Condition = value;
-        return this;
-    }
-
-    public GuardStatementBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public GuardStatementBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
         return this;
     }
 
@@ -1381,8 +958,6 @@ public class IfElseStatementBuilder : IBuilder<ast.IfElseStatement>
     private ast.Expression _Condition;
     private ast.BlockStatement _ThenBlock;
     private ast.BlockStatement _ElseBlock;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.IfElseStatement Build()
@@ -1391,8 +966,6 @@ public class IfElseStatementBuilder : IBuilder<ast.IfElseStatement>
              Condition = this._Condition // from IfElseStatement
            , ThenBlock = this._ThenBlock // from IfElseStatement
            , ElseBlock = this._ElseBlock // from IfElseStatement
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -1411,16 +984,6 @@ public class IfElseStatementBuilder : IBuilder<ast.IfElseStatement>
         return this;
     }
 
-    public IfElseStatementBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public IfElseStatementBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public IfElseStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1431,31 +994,17 @@ public class ReturnStatementBuilder : IBuilder<ast.ReturnStatement>
 {
 
     private ast.Expression _ReturnValue;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ReturnStatement Build()
     {
         return new ast.ReturnStatement(){
              ReturnValue = this._ReturnValue // from ReturnStatement
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public ReturnStatementBuilder WithReturnValue(ast.Expression value){
         _ReturnValue = value;
-        return this;
-    }
-
-    public ReturnStatementBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public ReturnStatementBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
         return this;
     }
 
@@ -1469,31 +1018,17 @@ public class VarDeclStatementBuilder : IBuilder<ast.VarDeclStatement>
 {
 
     private ast.VariableDecl _VariableDecl;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.VarDeclStatement Build()
     {
         return new ast.VarDeclStatement(){
              VariableDecl = this._VariableDecl // from VarDeclStatement
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public VarDeclStatementBuilder WithVariableDecl(ast.VariableDecl value){
         _VariableDecl = value;
-        return this;
-    }
-
-    public VarDeclStatementBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public VarDeclStatementBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
         return this;
     }
 
@@ -1508,8 +1043,6 @@ public class WhileStatementBuilder : IBuilder<ast.WhileStatement>
 
     private ast.Expression _Condition;
     private ast.BlockStatement _Body;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.WhileStatement Build()
@@ -1517,8 +1050,6 @@ public class WhileStatementBuilder : IBuilder<ast.WhileStatement>
         return new ast.WhileStatement(){
              Condition = this._Condition // from WhileStatement
            , Body = this._Body // from WhileStatement
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -1529,16 +1060,6 @@ public class WhileStatementBuilder : IBuilder<ast.WhileStatement>
 
     public WhileStatementBuilder WithBody(ast.BlockStatement value){
         _Body = value;
-        return this;
-    }
-
-    public WhileStatementBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public WhileStatementBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
         return this;
     }
 
@@ -1554,8 +1075,6 @@ public class AssertionStatementBuilder : IBuilder<ast.AssertionStatement>
     private ast.AssertionSubject _AssertionSubject;
     private ast.AssertionPredicate _AssertionPredicate;
     private ast.AssertionObject _AssertionObject;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AssertionStatement Build()
@@ -1564,8 +1083,6 @@ public class AssertionStatementBuilder : IBuilder<ast.AssertionStatement>
              AssertionSubject = this._AssertionSubject // from AssertionStatement
            , AssertionPredicate = this._AssertionPredicate // from AssertionStatement
            , AssertionObject = this._AssertionObject // from AssertionStatement
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -1584,16 +1101,6 @@ public class AssertionStatementBuilder : IBuilder<ast.AssertionStatement>
         return this;
     }
 
-    public AssertionStatementBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public AssertionStatementBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public AssertionStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1603,28 +1110,14 @@ public class AssertionStatementBuilder : IBuilder<ast.AssertionStatement>
 public class AssertionObjectBuilder : IBuilder<ast.AssertionObject>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AssertionObject Build()
     {
         return new ast.AssertionObject(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssertionObjectBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public AssertionObjectBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public AssertionObjectBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1634,28 +1127,14 @@ public class AssertionObjectBuilder : IBuilder<ast.AssertionObject>
 public class AssertionPredicateBuilder : IBuilder<ast.AssertionPredicate>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AssertionPredicate Build()
     {
         return new ast.AssertionPredicate(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssertionPredicateBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public AssertionPredicateBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public AssertionPredicateBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1665,28 +1144,14 @@ public class AssertionPredicateBuilder : IBuilder<ast.AssertionPredicate>
 public class AssertionSubjectBuilder : IBuilder<ast.AssertionSubject>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AssertionSubject Build()
     {
         return new ast.AssertionSubject(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssertionSubjectBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public AssertionSubjectBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public AssertionSubjectBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1696,28 +1161,14 @@ public class AssertionSubjectBuilder : IBuilder<ast.AssertionSubject>
 public class RetractionStatementBuilder : IBuilder<ast.RetractionStatement>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.RetractionStatement Build()
     {
         return new ast.RetractionStatement(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public RetractionStatementBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public RetractionStatementBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public RetractionStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1727,28 +1178,14 @@ public class RetractionStatementBuilder : IBuilder<ast.RetractionStatement>
 public class WithScopeStatementBuilder : IBuilder<ast.WithScopeStatement>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.WithScopeStatement Build()
     {
         return new ast.WithScopeStatement(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public WithScopeStatementBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public WithScopeStatementBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public WithScopeStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1761,8 +1198,6 @@ public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
     private ast.Expression _LHS;
     private ast.Operator _Operator;
     private ast.Expression _RHS;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.BinaryExp Build()
@@ -1771,8 +1206,6 @@ public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
              LHS = this._LHS // from BinaryExp
            , Operator = this._Operator // from BinaryExp
            , RHS = this._RHS // from BinaryExp
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -1791,16 +1224,6 @@ public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
         return this;
     }
 
-    public BinaryExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public BinaryExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public BinaryExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1810,32 +1233,18 @@ public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
 public class CastExpBuilder : IBuilder<ast.CastExp>
 {
 
-    private FifthType _TargetType;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
+    private ast_model.TypeSystem.FifthType _TargetType;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.CastExp Build()
     {
         return new ast.CastExp(){
              TargetType = this._TargetType // from CastExp
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public CastExpBuilder WithTargetType(FifthType value){
+    public CastExpBuilder WithTargetType(ast_model.TypeSystem.FifthType value){
         _TargetType = value;
-        return this;
-    }
-
-    public CastExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public CastExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
         return this;
     }
 
@@ -1848,28 +1257,14 @@ public class CastExpBuilder : IBuilder<ast.CastExp>
 public class LambdaExpBuilder : IBuilder<ast.LambdaExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.LambdaExp Build()
     {
         return new ast.LambdaExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public LambdaExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public LambdaExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public LambdaExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1879,28 +1274,14 @@ public class LambdaExpBuilder : IBuilder<ast.LambdaExp>
 public class FuncCallExpBuilder : IBuilder<ast.FuncCallExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.FuncCallExp Build()
     {
         return new ast.FuncCallExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public FuncCallExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public FuncCallExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public FuncCallExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1910,28 +1291,14 @@ public class FuncCallExpBuilder : IBuilder<ast.FuncCallExp>
 public class Int8LiteralExpBuilder : IBuilder<ast.Int8LiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Int8LiteralExp Build()
     {
         return new ast.Int8LiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Int8LiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public Int8LiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public Int8LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1941,28 +1308,14 @@ public class Int8LiteralExpBuilder : IBuilder<ast.Int8LiteralExp>
 public class Int16LiteralExpBuilder : IBuilder<ast.Int16LiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Int16LiteralExp Build()
     {
         return new ast.Int16LiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Int16LiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public Int16LiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public Int16LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -1972,28 +1325,14 @@ public class Int16LiteralExpBuilder : IBuilder<ast.Int16LiteralExp>
 public class Int32LiteralExpBuilder : IBuilder<ast.Int32LiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Int32LiteralExp Build()
     {
         return new ast.Int32LiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Int32LiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public Int32LiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public Int32LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2003,28 +1342,14 @@ public class Int32LiteralExpBuilder : IBuilder<ast.Int32LiteralExp>
 public class Int64LiteralExpBuilder : IBuilder<ast.Int64LiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Int64LiteralExp Build()
     {
         return new ast.Int64LiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Int64LiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public Int64LiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public Int64LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2034,28 +1359,14 @@ public class Int64LiteralExpBuilder : IBuilder<ast.Int64LiteralExp>
 public class UnsignedInt8LiteralExpBuilder : IBuilder<ast.UnsignedInt8LiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.UnsignedInt8LiteralExp Build()
     {
         return new ast.UnsignedInt8LiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnsignedInt8LiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public UnsignedInt8LiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public UnsignedInt8LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2065,28 +1376,14 @@ public class UnsignedInt8LiteralExpBuilder : IBuilder<ast.UnsignedInt8LiteralExp
 public class UnsignedInt16LiteralExpBuilder : IBuilder<ast.UnsignedInt16LiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.UnsignedInt16LiteralExp Build()
     {
         return new ast.UnsignedInt16LiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnsignedInt16LiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public UnsignedInt16LiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public UnsignedInt16LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2096,28 +1393,14 @@ public class UnsignedInt16LiteralExpBuilder : IBuilder<ast.UnsignedInt16LiteralE
 public class UnsignedInt32LiteralExpBuilder : IBuilder<ast.UnsignedInt32LiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.UnsignedInt32LiteralExp Build()
     {
         return new ast.UnsignedInt32LiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnsignedInt32LiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public UnsignedInt32LiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public UnsignedInt32LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2127,28 +1410,14 @@ public class UnsignedInt32LiteralExpBuilder : IBuilder<ast.UnsignedInt32LiteralE
 public class UnsignedInt64LiteralExpBuilder : IBuilder<ast.UnsignedInt64LiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.UnsignedInt64LiteralExp Build()
     {
         return new ast.UnsignedInt64LiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnsignedInt64LiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public UnsignedInt64LiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public UnsignedInt64LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2158,28 +1427,14 @@ public class UnsignedInt64LiteralExpBuilder : IBuilder<ast.UnsignedInt64LiteralE
 public class Float4LiteralExpBuilder : IBuilder<ast.Float4LiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Float4LiteralExp Build()
     {
         return new ast.Float4LiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Float4LiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public Float4LiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public Float4LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2189,28 +1444,14 @@ public class Float4LiteralExpBuilder : IBuilder<ast.Float4LiteralExp>
 public class Float8LiteralExpBuilder : IBuilder<ast.Float8LiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Float8LiteralExp Build()
     {
         return new ast.Float8LiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Float8LiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public Float8LiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public Float8LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2220,28 +1461,14 @@ public class Float8LiteralExpBuilder : IBuilder<ast.Float8LiteralExp>
 public class Float16LiteralExpBuilder : IBuilder<ast.Float16LiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Float16LiteralExp Build()
     {
         return new ast.Float16LiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Float16LiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public Float16LiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public Float16LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2251,28 +1478,14 @@ public class Float16LiteralExpBuilder : IBuilder<ast.Float16LiteralExp>
 public class BooleanLiteralExpBuilder : IBuilder<ast.BooleanLiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.BooleanLiteralExp Build()
     {
         return new ast.BooleanLiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public BooleanLiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public BooleanLiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public BooleanLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2282,28 +1495,14 @@ public class BooleanLiteralExpBuilder : IBuilder<ast.BooleanLiteralExp>
 public class CharLiteralExpBuilder : IBuilder<ast.CharLiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.CharLiteralExp Build()
     {
         return new ast.CharLiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public CharLiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public CharLiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public CharLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2313,28 +1512,14 @@ public class CharLiteralExpBuilder : IBuilder<ast.CharLiteralExp>
 public class StringLiteralExpBuilder : IBuilder<ast.StringLiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.StringLiteralExp Build()
     {
         return new ast.StringLiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public StringLiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public StringLiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public StringLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2344,28 +1529,14 @@ public class StringLiteralExpBuilder : IBuilder<ast.StringLiteralExp>
 public class DateLiteralExpBuilder : IBuilder<ast.DateLiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.DateLiteralExp Build()
     {
         return new ast.DateLiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public DateLiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public DateLiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public DateLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2375,28 +1546,14 @@ public class DateLiteralExpBuilder : IBuilder<ast.DateLiteralExp>
 public class TimeLiteralExpBuilder : IBuilder<ast.TimeLiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.TimeLiteralExp Build()
     {
         return new ast.TimeLiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public TimeLiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public TimeLiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public TimeLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2406,28 +1563,14 @@ public class TimeLiteralExpBuilder : IBuilder<ast.TimeLiteralExp>
 public class DateTimeLiteralExpBuilder : IBuilder<ast.DateTimeLiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.DateTimeLiteralExp Build()
     {
         return new ast.DateTimeLiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public DateTimeLiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public DateTimeLiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public DateTimeLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2437,28 +1580,14 @@ public class DateTimeLiteralExpBuilder : IBuilder<ast.DateTimeLiteralExp>
 public class DurationLiteralExpBuilder : IBuilder<ast.DurationLiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.DurationLiteralExp Build()
     {
         return new ast.DurationLiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public DurationLiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public DurationLiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public DurationLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2468,28 +1597,14 @@ public class DurationLiteralExpBuilder : IBuilder<ast.DurationLiteralExp>
 public class UriLiteralExpBuilder : IBuilder<ast.UriLiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.UriLiteralExp Build()
     {
         return new ast.UriLiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UriLiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public UriLiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public UriLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2499,28 +1614,14 @@ public class UriLiteralExpBuilder : IBuilder<ast.UriLiteralExp>
 public class AtomLiteralExpBuilder : IBuilder<ast.AtomLiteralExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AtomLiteralExp Build()
     {
         return new ast.AtomLiteralExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AtomLiteralExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public AtomLiteralExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public AtomLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2530,28 +1631,14 @@ public class AtomLiteralExpBuilder : IBuilder<ast.AtomLiteralExp>
 public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.MemberAccessExp Build()
     {
         return new ast.MemberAccessExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public MemberAccessExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public MemberAccessExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public MemberAccessExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2561,28 +1648,14 @@ public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
 public class ObjectInitializerExpBuilder : IBuilder<ast.ObjectInitializerExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ObjectInitializerExp Build()
     {
         return new ast.ObjectInitializerExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ObjectInitializerExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public ObjectInitializerExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public ObjectInitializerExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2592,28 +1665,14 @@ public class ObjectInitializerExpBuilder : IBuilder<ast.ObjectInitializerExp>
 public class PropertyInitializerExpBuilder : IBuilder<ast.PropertyInitializerExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.PropertyInitializerExp Build()
     {
         return new ast.PropertyInitializerExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public PropertyInitializerExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public PropertyInitializerExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public PropertyInitializerExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2625,8 +1684,6 @@ public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
 
     private ast.Operator _Operator;
     private ast.Expression _Operand;
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.UnaryExp Build()
@@ -2634,8 +1691,6 @@ public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
         return new ast.UnaryExp(){
              Operator = this._Operator // from UnaryExp
            , Operand = this._Operand // from UnaryExp
-           , Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -2649,16 +1704,6 @@ public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
         return this;
     }
 
-    public UnaryExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public UnaryExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public UnaryExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2668,28 +1713,14 @@ public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
 public class VarRefExpBuilder : IBuilder<ast.VarRefExp>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.VarRefExp Build()
     {
         return new ast.VarRefExp(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public VarRefExpBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public VarRefExpBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public VarRefExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2699,28 +1730,14 @@ public class VarRefExpBuilder : IBuilder<ast.VarRefExp>
 public class ListBuilder : IBuilder<ast.List>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.List Build()
     {
         return new ast.List(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ListBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public ListBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public ListBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2730,28 +1747,14 @@ public class ListBuilder : IBuilder<ast.List>
 public class AtomBuilder : IBuilder<ast.Atom>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Atom Build()
     {
         return new ast.Atom(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AtomBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public AtomBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public AtomBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2761,28 +1764,14 @@ public class AtomBuilder : IBuilder<ast.Atom>
 public class TripleBuilder : IBuilder<ast.Triple>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Triple Build()
     {
         return new ast.Triple(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public TripleBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public TripleBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public TripleBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2792,28 +1781,14 @@ public class TripleBuilder : IBuilder<ast.Triple>
 public class GraphBuilder : IBuilder<ast.Graph>
 {
 
-    private FifthType _Type;
-    private ast.IAstThing _Parent;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Graph Build()
     {
         return new ast.Graph(){
-             Type = this._Type // from AstThing
-           , Parent = this._Parent // from AstThing
-           , Annotations = this._Annotations // from AnnotatedThing
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public GraphBuilder WithType(FifthType value){
-        _Type = value;
-        return this;
-    }
-
-    public GraphBuilder WithParent(ast.IAstThing value){
-        _Parent = value;
-        return this;
-    }
-
     public GraphBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;

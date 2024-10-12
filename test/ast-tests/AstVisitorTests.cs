@@ -37,24 +37,7 @@ public class AstVisitorTests
 
     private static FifthType CreateType(string name, ushort typeId, SymbolKind symbolKind = SymbolKind.Assembly)
     {
-        return new()
-        {
-            TypeId = TypeId.From(typeId),
-            Symbol = new Symbol()
-            {
-                Name = name,
-                Kind = symbolKind,
-                Location =
-                    new()
-                    {
-                        Column = 1, Filename = "ashksah", Line = 1, OriginalText = "kjahgsfdgasfjd"
-                    }
-            },
-            IsArray = false,
-            ParentTypes = [],
-            TypeArguments = [],
-            Annotations = []
-        };
+        return new FifthType.NoType();
     }
 
     private static ClassDef createClassDef(string name, ushort typeId)

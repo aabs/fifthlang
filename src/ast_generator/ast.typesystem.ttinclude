@@ -12,7 +12,7 @@ public interface ITypeChecker
 foreach (string astNodeType in asts.Select(a=>a.Name))
 {
 #>
-    public IType Infer(ScopeAstThing scope, <#= astNodeType #> node);
+    public FifthType Infer(ScopeAstThing scope, <#= astNodeType #> node);
 <#
 }
 #>
@@ -21,7 +21,7 @@ foreach (string astNodeType in asts.Select(a=>a.Name))
 public abstract class FunctionalTypeChecker : ITypeChecker
 {
 
-    public IType Infer(AstThing exp)
+    public FifthType Infer(AstThing exp)
     {
         if (exp == null) return default;
         var scope = exp.NearestScope();
@@ -39,7 +39,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
 foreach (string astNodeType in asts.Select(a=>a.Name))
 {
 #>
-    public abstract IType Infer(ScopeAstThing scope, <#= astNodeType #> node);
+    public abstract FifthType Infer(ScopeAstThing scope, <#= astNodeType #> node);
 <#
 }
 #>

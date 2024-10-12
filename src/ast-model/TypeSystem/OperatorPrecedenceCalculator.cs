@@ -1,4 +1,3 @@
-using ast_model.TypeSystem.PrimitiveTypes;
 using static ast_model.TypeSystem.Maybe<ast.TypeCoertionSeniority>;
 #pragma warning disable CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
 namespace ast_model.TypeSystem;
@@ -23,9 +22,9 @@ public static class OperatorPrecedenceCalculator
     }
     public static (TypeId, TypeId?, TypeId?) GetResultType(Operator op, TypeId lhs, TypeId rhs)
     {
-        if (IsRelational(op))
+        if (IsRelational(op) && TypeRegistry.DefaultRegistry.TryLookupTypeId(typeof(bool), out var tid))
         {
-            return (PrimitiveBool.Default.TypeId, null, null);
+            return (tid, null, null);
         }
 
         if (lhs == rhs)
@@ -52,9 +51,9 @@ public static class OperatorPrecedenceCalculator
 
     public static Maybe<TypeCoertionSeniority> GetSeniority(TypeId tid)
     {
-        if (NewTypeRegistry.DefaultRegistry.TryLookupType(tid, out var fifthType) &&
+        if (TypeRegistry.DefaultRegistry.TryLookupType(tid, out var fifthType) &&
             fifthType is FifthType.NetType netType &&
-            NewTypeRegistry.NumericPrimitive.TryGetValue(netType.TheType, out var seniority))
+            TypeRegistry.NumericPrimitive.TryGetValue(netType.TheType, out var seniority))
         {
             return new Some(seniority);
         }
@@ -85,7 +84,7 @@ public static class OperatorPrecedenceCalculator
     public static bool IsNumeric(this FifthType ft)
     {
         return ft.MatchNetType<bool>(
-            type => NewTypeRegistry.NumericPrimitive.ContainsKey(type.TheType),
+            type => TypeRegistry.NumericPrimitive.ContainsKey(type.TheType),
             () => false
         );
     }

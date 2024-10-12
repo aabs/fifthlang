@@ -81,7 +81,7 @@ foreach (string astNodeType in asts.Select(a=>a.Name))
             
             #line default
             #line hidden
-            this.Write("    public IType Infer(ScopeAstThing scope, ");
+            this.Write("    public FifthType Infer(ScopeAstThing scope, ");
             
             #line 15 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(astNodeType));
@@ -98,8 +98,8 @@ foreach (string astNodeType in asts.Select(a=>a.Name))
             #line default
             #line hidden
             this.Write("}\r\n\r\npublic abstract class FunctionalTypeChecker : ITypeChecker\r\n{\r\n\r\n    public " +
-                    "IType Infer(AstThing exp)\r\n    {\r\n        if (exp == null) return default;\r\n    " +
-                    "    var scope = exp.NearestScope();\r\n        return exp switch\r\n        {\r\n");
+                    "FifthType Infer(AstThing exp)\r\n    {\r\n        if (exp == null) return default;\r\n" +
+                    "        var scope = exp.NearestScope();\r\n        return exp switch\r\n        {\r\n");
             
             #line 29 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
  foreach (string astNodeType in asts.Select(a=>a.Name))  { 
@@ -131,7 +131,7 @@ foreach (string astNodeType in asts.Select(a=>a.Name))
             
             #line default
             #line hidden
-            this.Write("    public abstract IType Infer(ScopeAstThing scope, ");
+            this.Write("    public abstract FifthType Infer(ScopeAstThing scope, ");
             
             #line 41 "C:\dev\aabs\5th-related\ast-builder\src\ast_generator\ast.typesystem.ttinclude"
             this.Write(this.ToStringHelper.ToStringWithCulture(astNodeType));

@@ -74,7 +74,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
     public override IAstThing VisitClass_definition(FifthParser.Class_definitionContext context)
     {
         var b = new ClassDefBuilder();
-        b.WithType(TypeRegistry.DefaultRegistry.RegisterType())
+        b.WithType(TypeRegistry.DefaultRegistry.RegisterType());
         b.WithName(context.name.Text);
         foreach (var property in context._properties)
         {
