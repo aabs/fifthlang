@@ -16,15 +16,12 @@
 
   <Target Name="GenerateParser">
     <Message Text="Generating Parser" />
-    <Exec
-      Command="java -jar $(ProjectDir)tools\antlr-4.8-complete.jar -Dlanguage=CSharp -visitor -listener -o grammar -lib grammar grammar/Fifth.g4"
-      ConsoleToMsBuild="true"
-      WorkingDirectory="$(MSBuildThisFileDirectory)">
+    <Exec Command="java -jar $(ProjectDir)tools\antlr-4.8-complete.jar -Dlanguage=CSharp -visitor -listener -o grammar -lib grammar grammar/Fifth.g4" ConsoleToMsBuild="true" WorkingDirectory="$(MSBuildThisFileDirectory)">
       <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
     </Exec>
-    <Message Text="----------------------------------------"/>
-    <Message Text="@(OutputOfExec)"/>
-    <Message Text="----------------------------------------"/>
+    <Message Text="----------------------------------------" />
+    <Message Text="@(OutputOfExec)" />
+    <Message Text="----------------------------------------" />
   </Target>
 
 </Project>

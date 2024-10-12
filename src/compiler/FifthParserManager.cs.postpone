@@ -1,17 +1,19 @@
+using System.Reflection;
+using ast_model.TypeSystem;
 using compiler.LangProcessingPhases;
+using il_ast;
 
 namespace Fifth;
 
 using System.Collections.Generic;
 using Antlr4.Runtime;
-using AST;
+using ast;
 using LangProcessingPhases;
 using Parser.LangProcessingPhases;
-using TypeSystem;
 
 public static class FifthParserManager
 {
-    public static AstNode ApplyLanguageAnalysisPhases(AstNode ast)
+    public static AstThing ApplyLanguageAnalysisPhases(AstThing ast)
     {
         ast.Accept(new BuiltinInjectorVisitor());
         ast.Accept(new ClassCtorInserter());
@@ -26,7 +28,7 @@ public static class FifthParserManager
         // after this point, it is the responsibility of any transformative visitors to keep the
         // symtab in order.
         ast.Accept(new DestructuringVisitor());
-        ast = new DestructuringPatternFlattenerVisitor().Process(ast as AstNode, new DummyContext());
+        ast = new DestructuringPatternFlattenerVisitor().Process(ast as AstThing, new DummyContext());
         // with the introduction of a bunch of new vardecls by the destructuring flattener, we need to rebuild the symtab
         ast.Accept(new VerticalLinkageVisitor());
         ast.Accept(new SymbolTableBuilderVisitor());
@@ -38,20 +40,20 @@ public static class FifthParserManager
     }
 
     public static bool TryParse<T>(string source, out T ast, out List<FifthCompilationError> errors)
-        where T : AstNode
+        where T : AstThing
     {
-        TypeRegistry.DefaultRegistry.LoadPrimitiveTypes();
-        InbuiltOperatorRegistry.DefaultRegistry.LoadBuiltinOperators();
+        TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
+        //InbuiltOperatorRegistry.DefaultRegistry.LoadBuiltinOperators();
         ast = (T)ParseAndAnnotate<T>(CharStreams.fromString(source));
         errors = new List<FifthCompilationError>();
         return true;
     }
 
     public static bool TryParseFile<T>(string fileName, out T ast, out List<FifthCompilationError> errors)
-        where T : AstNode
+        where T : AstThing
     {
-        TypeRegistry.DefaultRegistry.LoadPrimitiveTypes();
-        InbuiltOperatorRegistry.DefaultRegistry.LoadBuiltinOperators();
+        TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
+        //InbuiltOperatorRegistry.DefaultRegistry.LoadBuiltinOperators();
         ast = (T)ParseAndAnnotate<T>(CharStreams.fromPath(fileName));
         errors = new List<FifthCompilationError>();
         return true;
@@ -59,8 +61,8 @@ public static class FifthParserManager
 
     #region Core Drivers
 
-    public static AstNode ParseAndAnnotate<T>(ICharStream source)
-        where T : AstNode
+    public static AstThing ParseAndAnnotate<T>(ICharStream source)
+        where T : AstThing
     {
         var ast = ParseToAst<T>(source);
 
@@ -72,8 +74,8 @@ public static class FifthParserManager
         return ast;
     }
 
-    public static AstNode ParseToAst<T>(ICharStream source)
-        where T : AstNode
+    public static AstThing ParseToAst<T>(ICharStream source)
+        where T : AstThing
     {
         if (typeof(T) == typeof(Assembly))
         {
@@ -147,7 +149,7 @@ public static class FifthParserManager
 
     #region Parsing into AST Node
 
-    public static IAstNode ParseBlockToAst(ICharStream source)
+    public static IAstThing ParseBlockToAst(ICharStream source)
     {
         var parseTree = ParseBlock(source);
         var visitor = new AstBuilderVisitor();
@@ -155,28 +157,28 @@ public static class FifthParserManager
         return new Block(statementList);
     }
 
-    public static IAstNode ParseExpressionListToAst(ICharStream source)
+    public static IAstThing ParseExpressionListToAst(ICharStream source)
     {
         var parseTree = ParseExpressionList(source);
         var visitor = new AstBuilderVisitor();
         return visitor.Visit(parseTree);
     }
 
-    public static IAstNode ParseExpressionToAst(ICharStream source)
+    public static IAstThing ParseExpressionToAst(ICharStream source)
     {
         var parseTree = ParseExpression(source);
         var visitor = new AstBuilderVisitor();
         return visitor.Visit(parseTree);
     }
 
-    public static IAstNode ParseFunctionDeclToAst(ICharStream source)
+    public static IAstThing ParseFunctionDeclToAst(ICharStream source)
     {
         var parseTree = ParseFunctionDecl(source);
         var visitor = new AstBuilderVisitor();
         return visitor.Visit(parseTree);
     }
 
-    public static IAstNode ParseProgramToAst(ICharStream source)
+    public static IAstThing ParseProgramToAst(ICharStream source)
     {
         var parseTree = ParseProgram(source);
         var visitor = new AstBuilderVisitor();

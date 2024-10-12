@@ -30,7 +30,7 @@ public class TypeRegistry
         return typeId;
     }
 
-    private void RegisterPrimitiveTypes()
+    public void RegisterPrimitiveTypes()
     {
         foreach (var t in Primitives)
         {

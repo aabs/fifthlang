@@ -1,25 +1,21 @@
+using System;
 using Antlr4.Runtime;
-using Antlr4.Runtime.Misc;
-using Antlr4.Runtime.Tree;
 using ast_model.TypeSystem;
-
+using ast;
+using static System.Math;
 namespace compiler.LangProcessingPhases;
 
-public static class ParserHelperExtensions
-{
-    public static SourceLocationMetadata CaptureMetadata(this ParserRuleContext ctx)
-    {
-        return new SourceLocationMetadata
-        {
-            Column = ctx.Start.Column,
-            Line = ctx.Start.Line,
-            Filename = ctx.Start.TokenSource.SourceName,
-            OriginalText = ctx.GetText()
-        };
-    }
-}
 public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 {
+    private SourceLocationMetadata GetLocationDetails(ParserRuleContext context)
+    {
+        return new SourceLocationMetadata(
+            context.Start.Column,
+            String.Empty,
+            context.Start.Line,
+            context.GetText().Substring(0, Min(context.SourceInterval.Length, 10)));
+    }
+
     protected override IAstThing DefaultResult { get; }
 
     /*public override IAstThing Visit(IParseTree tree)
@@ -28,6 +24,31 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         //return base.Visit(tree);
     }*/
 
+    public override IAstThing VisitExp_double(FifthParser.Exp_doubleContext context)
+    {
+        return new Float8LiteralExp()
+        {
+            Annotations = [],
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.NetType(typeof(double)),
+            Value = double.Parse(context.GetText())
+        };      
+    }
+
+    public override IAstThing VisitExp_int(FifthParser.Exp_intContext context)
+    {
+        return new Int32LiteralExp()
+        {
+            Annotations = [],
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.NetType(typeof(int)),
+            Value = int.Parse(context.GetText())
+        };
+    }
+
+    /*
     public override IAstThing VisitAlias([NotNull] FifthParser.AliasContext context)
     {
         throw new NotImplementedException();
@@ -172,7 +193,6 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         return ExpStatementBuilder.CreateExpStatement()
                                   .WithExpression((Expression)Visit(context.exp()))
                                   .Build().CaptureLocation(context.Start);
-
     }
 
     public override IAstThing VisitIdentifier_chain(FifthParser.Identifier_chainContext context)
@@ -637,8 +657,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
     {
         var astOperand = (Expression)Visit(operand);
         var result = new UnaryExpression(astOperand, op);
-        // var resultType = TypeChecker.Infer(result.NearestScope(), result);
-        // result.TypeId = resultType;
+        // var resultType = TypeChecker.Infer(result.NearestScope(), result); result.TypeId = resultType;
         return result.CaptureLocation(operand.Start);
     }
 
@@ -659,7 +678,6 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         throw new NotImplementedException();
         //return base.VisitExp_callsite_parenthesised(context);
     }
-
 
     public override IAstThing VisitMember_access_expression(
         [NotNull] FifthParser.Member_access_expressionContext context)
@@ -684,4 +702,5 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 
         return result!;
     }
+*/
 }
