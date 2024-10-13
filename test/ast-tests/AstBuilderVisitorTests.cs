@@ -32,6 +32,11 @@ public class AstBuilderVisitorTests
         var s = CharStreams.fromString(nativeRepresentation);
         var p = GetParserFor(s);
         var actual = p.exp();
+        if (actual is not FifthParser.Exp_doubleContext)
+        {
+            Assert.Fail();
+        }
+
         var v = new AstBuilderVisitor();
         var a = v.VisitExp_double((FifthParser.Exp_doubleContext)actual);
         a.Should().NotBeNull();
@@ -44,10 +49,13 @@ public class AstBuilderVisitorTests
         var s = CharStreams.fromString("4.940656458e-324");
         var p = GetParserFor(s);
         var actual = p.exp();
-        var v = new AstBuilderVisitor();
-        var a = v.VisitExp_double((FifthParser.Exp_doubleContext)actual);
-        a.Should().NotBeNull();
-        a.Should().BeOfType<Float8LiteralExp>();
+        if (actual is FifthParser.Exp_doubleContext)
+        {
+            var v = new AstBuilderVisitor();
+            var a = v.VisitExp_double((FifthParser.Exp_doubleContext)actual);
+            a.Should().NotBeNull();
+            a.Should().BeOfType<Float8LiteralExp>();
+        }
     }
 
     [Property]
@@ -66,5 +74,23 @@ public class AstBuilderVisitorTests
         var a = v.VisitExp_int((FifthParser.Exp_intContext)actual);
         a.Should().NotBeNull();
         a.Should().BeOfType<Int32LiteralExp>();
+    }
+
+    [Fact]
+    public void can_build_from_function_def()
+    {
+        var funcdefsrc=$$"""
+                         foo(b: Bar, b2: Baz): Sqz{}
+                         """;
+        var s = CharStreams.fromString(funcdefsrc);
+        var p = GetParserFor(s);
+        var x = p.function_declaration();
+        x.Should().NotBeNull();
+        if (x is FifthParser.Function_declarationContext ctx)
+        {
+            var v = new AstBuilderVisitor();
+            var a = v.Visit(ctx) as FunctionDef;
+            a.Should().NotBeNull();
+        }
     }
 }

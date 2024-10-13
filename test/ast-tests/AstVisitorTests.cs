@@ -46,10 +46,11 @@ public class AstVisitorTests
         {
             Annotations = [],
             MemberDefs = [],
-            Namespace = "std",
+            Name = TypeName.From("std.MyClass") ,
             Parent = null,
             Type = CreateType(name, typeId, SymbolKind.ClassDef),
-            Visibility = Visibility.Public
+            Visibility = Visibility.Public,
+            Location = null
         };
     }
 }

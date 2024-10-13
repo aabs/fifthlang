@@ -80,6 +80,7 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
 
     private List<ast.ParamDef> _Params;
     private ast.BlockStatement _Body;
+    private ast_model.TypeSystem.TypeName? _ReturnType;
     private ast.MemberName _Name;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
@@ -90,6 +91,7 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
         return new ast.FunctionDef(){
              Params = this._Params // from FunctionDef
            , Body = this._Body // from FunctionDef
+           , ReturnType = this._ReturnType // from FunctionDef
            , Name = this._Name // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
@@ -108,6 +110,11 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
     }
     public FunctionDefBuilder WithBody(ast.BlockStatement value){
         _Body = value;
+        return this;
+    }
+
+    public FunctionDefBuilder WithReturnType(ast_model.TypeSystem.TypeName? value){
+        _ReturnType = value;
         return this;
     }
 
@@ -374,6 +381,8 @@ public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
 public class ParamDefBuilder : IBuilder<ast.ParamDef>
 {
 
+    private ast_model.TypeSystem.TypeName _TypeName;
+    private System.String _Name;
     private ast.Expression _ParameterConstraint;
     private ast.ParamDestructureDef _DestructureDef;
     private ast.Visibility _Visibility;
@@ -382,12 +391,24 @@ public class ParamDefBuilder : IBuilder<ast.ParamDef>
     public ast.ParamDef Build()
     {
         return new ast.ParamDef(){
-             ParameterConstraint = this._ParameterConstraint // from ParamDef
+             TypeName = this._TypeName // from ParamDef
+           , Name = this._Name // from ParamDef
+           , ParameterConstraint = this._ParameterConstraint // from ParamDef
            , DestructureDef = this._DestructureDef // from ParamDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
+    public ParamDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
+        _TypeName = value;
+        return this;
+    }
+
+    public ParamDefBuilder WithName(System.String value){
+        _Name = value;
+        return this;
+    }
+
     public ParamDefBuilder WithParameterConstraint(ast.Expression value){
         _ParameterConstraint = value;
         return this;
@@ -517,7 +538,7 @@ public class TypeDefBuilder : IBuilder<ast.TypeDef>
 public class ClassDefBuilder : IBuilder<ast.ClassDef>
 {
 
-    private System.String _Namespace;
+    private ast_model.TypeSystem.TypeName _Name;
     private List<ast.MemberDef> _MemberDefs;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -525,14 +546,14 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
     public ast.ClassDef Build()
     {
         return new ast.ClassDef(){
-             Namespace = this._Namespace // from ClassDef
+             Name = this._Name // from ClassDef
            , MemberDefs = this._MemberDefs // from ClassDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ClassDefBuilder WithNamespace(System.String value){
-        _Namespace = value;
+    public ClassDefBuilder WithName(ast_model.TypeSystem.TypeName value){
+        _Name = value;
         return this;
     }
 

@@ -1,20 +1,41 @@
 using System;
 using Antlr4.Runtime;
-using ast_model.TypeSystem;
+using Antlr4.Runtime.Tree;
 using ast;
+using ast_generated;
+using ast_model.TypeSystem;
 using static System.Math;
+
 namespace compiler.LangProcessingPhases;
 
 public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 {
+    #region Helper Functions
+
     private SourceLocationMetadata GetLocationDetails(ParserRuleContext context)
     {
         return new SourceLocationMetadata(
             context.Start.Column,
-            String.Empty,
+            string.Empty,
             context.Start.Line,
             context.GetText().Substring(0, Min(context.SourceInterval.Length, 10)));
     }
+
+    TAstType CreateLiteral<TAstType, TBaseType>(ParserRuleContext ctx, Func<string, TBaseType> x)
+        where TAstType : LiteralExpression<TBaseType>, new()
+    {
+        return new TAstType()
+        {
+            Annotations = [],
+            Location = GetLocationDetails(ctx),
+            Parent = null,
+            Type = new FifthType.NetType(typeof(TBaseType)),
+            Value = x(ctx.GetText())
+        };
+
+    }
+
+    #endregion
 
     protected override IAstThing DefaultResult { get; }
 
@@ -24,30 +45,485 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         //return base.Visit(tree);
     }*/
 
-    public override IAstThing VisitExp_double(FifthParser.Exp_doubleContext context)
+    public override IAstThing VisitExp_callsite_varname(FifthParser.Exp_callsite_varnameContext context)
     {
-        return new Float8LiteralExp()
-        {
-            Annotations = [],
-            Location = GetLocationDetails(context),
-            Parent = null,
-            Type = new FifthType.NetType(typeof(double)),
-            Value = double.Parse(context.GetText())
-        };      
+        return base.VisitExp_callsite_varname(context);
     }
+
+    public override IAstThing VisitExp_callsite_func_call(FifthParser.Exp_callsite_func_callContext context)
+    {
+        return base.VisitExp_callsite_func_call(context);
+    }
+
+    public override IAstThing VisitExp_callsite_parenthesised(FifthParser.Exp_callsite_parenthesisedContext context)
+    {
+        return base.VisitExp_callsite_parenthesised(context);
+    }
+
+    public override IAstThing VisitFifth(FifthParser.FifthContext context)
+    {
+        return base.VisitFifth(context);
+    }
+
+    public override IAstThing VisitFunction_call(FifthParser.Function_callContext context)
+    {
+        return base.VisitFunction_call(context);
+    }
+
+    public override IAstThing VisitMember_access_expression(FifthParser.Member_access_expressionContext context)
+    {
+        return base.VisitMember_access_expression(context);
+    }
+
+    public override IAstThing VisitModule_import(FifthParser.Module_importContext context)
+    {
+        return base.VisitModule_import(context);
+    }
+
+    public override IAstThing VisitModule_name(FifthParser.Module_nameContext context)
+    {
+        return base.VisitModule_name(context);
+    }
+
+    public override IAstThing VisitPackagename(FifthParser.PackagenameContext context)
+    {
+        return base.VisitPackagename(context);
+    }
+
+    public override IAstThing VisitClass_definition(FifthParser.Class_definitionContext context)
+    {
+        var b = new ClassDefBuilder();
+        foreach (var fctx in context._functions)
+        {
+            b.AddingItemToMemberDefs((MemberDef)Visit(fctx));
+        }
+        foreach (var pctx in context._properties)
+        {
+            b.AddingItemToMemberDefs((MemberDef)Visit(pctx));
+        }
+        b.WithVisibility(Visibility.Public);
+        b.WithName(TypeName.From(context.name.Text));
+        b.WithAnnotations([]);
+        var result = b.Build() with
+        {
+            Location = GetLocationDetails(context),
+            Type = new FifthType.TUDType(context.name.Text)
+        };
+        return result;
+    }
+
+    public override IAstThing VisitProperty_declaration(FifthParser.Property_declarationContext context)
+    {
+        var b = new PropertyDefBuilder();
+        b.WithName(MemberName.From(context.name.Text))
+            .WithVisibility(Visibility.Public)
+            .WithAccessConstraints([AccessConstraint.None])
+            .WithIsReadOnly(false)
+            .WithIsWriteOnly(false);
+        // todo:  There's a lot more detail that could be filled in here, and a lot more sophistication needed in the grammar of the decl
+        var result = b.Build() with
+        {
+            Location = GetLocationDetails(context),
+            Type = new FifthType.NoType()
+        };
+        return base.VisitProperty_declaration(context);
+    }
+
+    public override IAstThing VisitType_initialiser(FifthParser.Type_initialiserContext context)
+    {
+        return base.VisitType_initialiser(context);
+    }
+
+    public override IAstThing VisitType_name(FifthParser.Type_nameContext context)
+    {
+        return base.VisitType_name(context);
+    }
+
+    public override IAstThing VisitType_property_init(FifthParser.Type_property_initContext context)
+    {
+        return base.VisitType_property_init(context);
+    }
+
+    public override IAstThing VisitFunction_declaration(FifthParser.Function_declarationContext context)
+    {
+        var b = new FunctionDefBuilder();
+        b.WithName(MemberName.From(context.name.GetText()))
+            .WithBody((BlockStatement)VisitBlock(context.body.block()))
+            .WithReturnType(TypeName.From(context.result_type.GetText()))
+            .WithAnnotations([])
+            .WithIsReadOnly(false)
+            .WithVisibility(Visibility.Public) // todo: grammar needs support for member visibility
+            ;
+        foreach (var paramdeclContext in context.paramdecl())
+        {
+            b.AddingItemToParams((ParamDef)VisitParamdecl(paramdeclContext));
+        }
+
+        var result = b.Build() with
+        {
+            Location = GetLocationDetails(context),
+            Type = new FifthType.NoType()
+        };
+        return result;
+
+    }
+
+    public override IAstThing VisitFunction_body(FifthParser.Function_bodyContext context)
+    {
+        return base.VisitFunction_body(context);
+    }
+
+    public override IAstThing VisitFunction_name(FifthParser.Function_nameContext context)
+    {
+        return base.VisitFunction_name(context);
+    }
+
+    public override IAstThing VisitFunction_type(FifthParser.Function_typeContext context)
+    {
+        return base.VisitFunction_type(context);
+    }
+
+    public override IAstThing VisitVariable_constraint(FifthParser.Variable_constraintContext context)
+    {
+        return base.VisitVariable_constraint(context);
+    }
+
+    public override IAstThing VisitParamdecl(FifthParser.ParamdeclContext context)
+    {
+        var b = new ParamDefBuilder()
+                .WithVisibility(Visibility.Public)
+                .WithAnnotations([])
+                .WithName(context.param_name().GetText())
+                .WithTypeName(TypeName.From(context.param_type().GetText()))
+            ;
+        if (context.destructuring_decl() is not null)
+        {
+            var destructuringDef = VisitDestructuring_decl(context.destructuring_decl());
+            b.WithDestructureDef((ParamDestructureDef)destructuringDef);
+        }
+        if (context.variable_constraint() is not null)
+        {
+            var constraint = Visit(context.variable_constraint()) as Expression;
+            if (constraint is not null)
+            {
+                b.WithParameterConstraint(constraint);
+            }
+        }
+        var result = b.Build() with
+        {
+            Location = GetLocationDetails(context),
+            Type = new FifthType.NoType()
+        };
+        return result;
+
+    }
+
+    public override IAstThing VisitParam_name(FifthParser.Param_nameContext context)
+    {
+        return base.VisitParam_name(context);
+    }
+
+    public override IAstThing VisitParam_type(FifthParser.Param_typeContext context)
+    {
+        return base.VisitParam_type(context);
+    }
+
+    public override IAstThing VisitDestructuring_decl(FifthParser.Destructuring_declContext context)
+    {
+        return base.VisitDestructuring_decl(context);
+    }
+
+    public override IAstThing VisitDestructure_binding(FifthParser.Destructure_bindingContext context)
+    {
+        return base.VisitDestructure_binding(context);
+    }
+
+    public override IAstThing VisitBlock(FifthParser.BlockContext context)
+    {
+
+        return base.VisitBlock(context);
+    }
+
+    public override IAstThing VisitStmt_ifelse(FifthParser.Stmt_ifelseContext context)
+    {
+        return base.VisitStmt_ifelse(context);
+    }
+
+    public override IAstThing VisitStmt_while(FifthParser.Stmt_whileContext context)
+    {
+        return base.VisitStmt_while(context);
+    }
+
+    public override IAstThing VisitStmt_with(FifthParser.Stmt_withContext context)
+    {
+        return base.VisitStmt_with(context);
+    }
+
+    public override IAstThing VisitStmt_vardecl(FifthParser.Stmt_vardeclContext context)
+    {
+        return base.VisitStmt_vardecl(context);
+    }
+
+    public override IAstThing VisitStmt_assignment(FifthParser.Stmt_assignmentContext context)
+    {
+        return base.VisitStmt_assignment(context);
+    }
+
+    public override IAstThing VisitStmt_return(FifthParser.Stmt_returnContext context)
+    {
+        return base.VisitStmt_return(context);
+    }
+
+    public override IAstThing VisitStmt_bareexpression(FifthParser.Stmt_bareexpressionContext context)
+    {
+        return base.VisitStmt_bareexpression(context);
+    }
+
+    public override IAstThing VisitVar_decl(FifthParser.Var_declContext context)
+    {
+        return base.VisitVar_decl(context);
+    }
+
+    public override IAstThing VisitIdentifier_chain(FifthParser.Identifier_chainContext context)
+    {
+        return base.VisitIdentifier_chain(context);
+    }
+
+    public override IAstThing VisitExplist(FifthParser.ExplistContext context)
+    {
+        return base.VisitExplist(context);
+    }
+
+    public override IAstThing VisitExp_geq(FifthParser.Exp_geqContext context)
+    {
+        return base.VisitExp_geq(context);
+    }
+
+    public override IAstThing VisitExp_lt(FifthParser.Exp_ltContext context)
+    {
+        return base.VisitExp_lt(context);
+    }
+
+    public override IAstThing VisitExp_leq(FifthParser.Exp_leqContext context)
+    {
+        return base.VisitExp_leq(context);
+    }
+
+    public override IAstThing VisitExp_and(FifthParser.Exp_andContext context)
+    {
+        return base.VisitExp_and(context);
+    }
+    public override IAstThing VisitExp_double(FifthParser.Exp_doubleContext ctx)
+        => CreateLiteral<Float8LiteralExp, double>(ctx, double.Parse);
+
+    public IAstThing VisitExp_float(FifthParser.Exp_doubleContext context)
+        => CreateLiteral<Float4LiteralExp, float>(context, float.Parse);
+
 
     public override IAstThing VisitExp_int(FifthParser.Exp_intContext context)
+        => CreateLiteral<Int32LiteralExp, int>(context, int.Parse);
+
+
+    public override IAstThing VisitExp_string(FifthParser.Exp_stringContext context)
+        => CreateLiteral<StringLiteralExp, string>(context, x => x);
+
+
+    public override IAstThing VisitExp_boolean(FifthParser.Exp_booleanContext context)
+        => CreateLiteral<BooleanLiteralExp, bool>(context, bool.Parse);
+
+    public override IAstThing VisitExp_bool(FifthParser.Exp_boolContext context)
+        => CreateLiteral<BooleanLiteralExp, bool>(context, bool.Parse);
+
+
+    public override IAstThing VisitExp_gt(FifthParser.Exp_gtContext context)
     {
-        return new Int32LiteralExp()
-        {
-            Annotations = [],
-            Location = GetLocationDetails(context),
-            Parent = null,
-            Type = new FifthType.NetType(typeof(int)),
-            Value = int.Parse(context.GetText())
-        };
+        return base.VisitExp_gt(context);
     }
 
+    public override IAstThing VisitExp_memberaccess(FifthParser.Exp_memberaccessContext context)
+    {
+        return base.VisitExp_memberaccess(context);
+    }
+
+    public override IAstThing VisitExp_typecreateinst(FifthParser.Exp_typecreateinstContext context)
+    {
+        return base.VisitExp_typecreateinst(context);
+    }
+
+    public override IAstThing VisitExp_sub(FifthParser.Exp_subContext context)
+    {
+        return base.VisitExp_sub(context);
+    }
+
+    public override IAstThing VisitExp_list(FifthParser.Exp_listContext context)
+    {
+        return base.VisitExp_list(context);
+    }
+
+    public override IAstThing VisitExp_add(FifthParser.Exp_addContext context)
+    {
+        return base.VisitExp_add(context);
+    }
+
+    public override IAstThing VisitExp_mul(FifthParser.Exp_mulContext context)
+    {
+        return base.VisitExp_mul(context);
+    }
+
+    public override IAstThing VisitExp_paren(FifthParser.Exp_parenContext context)
+    {
+        return base.VisitExp_paren(context);
+    }
+
+    public override IAstThing VisitExp_arithnegation(FifthParser.Exp_arithnegationContext context)
+    {
+        return base.VisitExp_arithnegation(context);
+    }
+
+    public override IAstThing VisitExp_varname(FifthParser.Exp_varnameContext context)
+    {
+        return base.VisitExp_varname(context);
+    }
+
+    public override IAstThing VisitExp_typecast(FifthParser.Exp_typecastContext context)
+    {
+        return base.VisitExp_typecast(context);
+    }
+
+    public override IAstThing VisitExp_funccall(FifthParser.Exp_funccallContext context)
+    {
+        return base.VisitExp_funccall(context);
+    }
+
+    public override IAstThing VisitExp_logicnegation(FifthParser.Exp_logicnegationContext context)
+    {
+        return base.VisitExp_logicnegation(context);
+    }
+
+    public override IAstThing VisitExp_div(FifthParser.Exp_divContext context)
+    {
+        return base.VisitExp_div(context);
+    }
+
+    public override IAstThing VisitTruth_value(FifthParser.Truth_valueContext context)
+    {
+        return base.VisitTruth_value(context);
+    }
+
+    public override IAstThing VisitAbsoluteIri(FifthParser.AbsoluteIriContext context)
+    {
+        return base.VisitAbsoluteIri(context);
+    }
+
+    public override IAstThing VisitAlias(FifthParser.AliasContext context)
+    {
+        return base.VisitAlias(context);
+    }
+
+    public override IAstThing VisitIri(FifthParser.IriContext context)
+    {
+        return base.VisitIri(context);
+    }
+
+    public override IAstThing VisitIri_query_param(FifthParser.Iri_query_paramContext context)
+    {
+        return base.VisitIri_query_param(context);
+    }
+
+    public override IAstThing VisitQNameIri(FifthParser.QNameIriContext context)
+    {
+        return base.VisitQNameIri(context);
+    }
+
+    public override IAstThing VisitList(FifthParser.ListContext context)
+    {
+        return base.VisitList(context);
+    }
+
+    public override IAstThing VisitEListLiteral(FifthParser.EListLiteralContext context)
+    {
+        return base.VisitEListLiteral(context);
+    }
+
+    public override IAstThing VisitEListComprehension(FifthParser.EListComprehensionContext context)
+    {
+        return base.VisitEListComprehension(context);
+    }
+
+    public override IAstThing VisitList_comp_constraint(FifthParser.List_comp_constraintContext context)
+    {
+        return base.VisitList_comp_constraint(context);
+    }
+
+    public override IAstThing VisitList_comp_generator(FifthParser.List_comp_generatorContext context)
+    {
+        return base.VisitList_comp_generator(context);
+    }
+
+    public override IAstThing VisitList_literal(FifthParser.List_literalContext context)
+    {
+        return base.VisitList_literal(context);
+    }
+
+    public override IAstThing VisitList_comprehension(FifthParser.List_comprehensionContext context)
+    {
+        return base.VisitList_comprehension(context);
+    }
+
+    public override IAstThing VisitList_type_signature(FifthParser.List_type_signatureContext context)
+    {
+        return base.VisitList_type_signature(context);
+    }
+
+    public override IAstThing VisitVar_name(FifthParser.Var_nameContext context)
+    {
+        return base.VisitVar_name(context);
+    }
+
+    public override IAstThing Visit(IParseTree tree)
+    {
+        return base.Visit(tree);
+    }
+
+    public override IAstThing VisitChildren(IRuleNode node)
+    {
+        return base.VisitChildren(node);
+    }
+
+    public override IAstThing VisitTerminal(ITerminalNode node)
+    {
+        return base.VisitTerminal(node);
+    }
+
+    public override IAstThing VisitErrorNode(IErrorNode node)
+    {
+        return base.VisitErrorNode(node);
+    }
+
+    protected override IAstThing AggregateResult(IAstThing aggregate, IAstThing nextResult)
+    {
+        return base.AggregateResult(aggregate, nextResult);
+    }
+
+    protected override bool ShouldVisitNextChild(IRuleNode node, IAstThing currentResult)
+    {
+        return base.ShouldVisitNextChild(node, currentResult);
+    }
+
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public override string ToString()
+    {
+        return base.ToString();
+    }
     /*
     public override IAstThing VisitAlias([NotNull] FifthParser.AliasContext context)
     {

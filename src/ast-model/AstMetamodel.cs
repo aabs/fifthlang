@@ -264,6 +264,7 @@ public record FunctionDef : MemberDef
     // todo: need the possibility of type parameters here.
     public required List<ParamDef> Params { get; set; } = [];
     public required BlockStatement Body { get; set; }
+    public required TypeName? ReturnType { get; init; }
 }
 
 /// <summary>
@@ -349,6 +350,8 @@ public record InferenceRuleDef : Definition
 
 public record ParamDef : Definition
 {
+    public required TypeName TypeName { get; init; }
+    public required string Name { get; init; }
     public required Expression? ParameterConstraint { get; set; }
     public required ParamDestructureDef? DestructureDef { get; set; }
 }
@@ -371,7 +374,7 @@ public record TypeDef : Definition
 
 public record ClassDef : Definition
 {
-    public required string Namespace { get; set; }
+    public required TypeName Name { get; init; }
     public required List<MemberDef> MemberDefs { get; set; }
 }
 
