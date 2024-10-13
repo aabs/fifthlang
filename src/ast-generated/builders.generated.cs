@@ -1734,14 +1734,21 @@ public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
 public class VarRefExpBuilder : IBuilder<ast.VarRefExp>
 {
 
+    private System.String _VarName;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.VarRefExp Build()
     {
         return new ast.VarRefExp(){
-             Annotations = this._Annotations // from AnnotatedThing
+             VarName = this._VarName // from VarRefExp
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
+    public VarRefExpBuilder WithVarName(System.String value){
+        _VarName = value;
+        return this;
+    }
+
     public VarRefExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;

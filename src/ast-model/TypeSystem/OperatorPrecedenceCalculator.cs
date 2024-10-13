@@ -71,12 +71,12 @@ public static class OperatorPrecedenceCalculator
             Operator.LogicalNand => true,
             Operator.LogicalNor => true,
             Operator.LogicalXor => true,
-            Operator.ArithmeticEqual => true,
-            Operator.ArithmeticNotEqual => true,
-            Operator.ArithmeticLessThan => true,
-            Operator.ArithmeticGreaterThan => true,
-            Operator.ArithmeticLessThanOrEqual => true,
-            Operator.ArithmeticGreaterThanOrEqual => true,
+            Operator.Equal => true,
+            Operator.NotEqual => true,
+            Operator.LessThan => true,
+            Operator.GreaterThan => true,
+            Operator.LessThanOrEqual => true,
+            Operator.GreaterThanOrEqual => true,
             _ => false
         };
     }

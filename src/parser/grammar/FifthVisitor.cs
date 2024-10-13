@@ -252,34 +252,6 @@ public interface IFifthVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitExplist([NotNull] FifthParser.ExplistContext context);
 	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_geq</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_geq([NotNull] FifthParser.Exp_geqContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_lt</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_lt([NotNull] FifthParser.Exp_ltContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_leq</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_leq([NotNull] FifthParser.Exp_leqContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_and</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_and([NotNull] FifthParser.Exp_andContext context);
-	/// <summary>
 	/// Visit a parse tree produced by the <c>exp_string</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
 	/// </summary>
@@ -301,12 +273,12 @@ public interface IFifthVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitExp_bool([NotNull] FifthParser.Exp_boolContext context);
 	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_gt</c>
+	/// Visit a parse tree produced by the <c>exp_uniexp</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitExp_gt([NotNull] FifthParser.Exp_gtContext context);
+	Result VisitExp_uniexp([NotNull] FifthParser.Exp_uniexpContext context);
 	/// <summary>
 	/// Visit a parse tree produced by the <c>exp_memberaccess</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
@@ -329,13 +301,6 @@ public interface IFifthVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitExp_typecreateinst([NotNull] FifthParser.Exp_typecreateinstContext context);
 	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_sub</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_sub([NotNull] FifthParser.Exp_subContext context);
-	/// <summary>
 	/// Visit a parse tree produced by the <c>exp_list</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
 	/// </summary>
@@ -343,19 +308,12 @@ public interface IFifthVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitExp_list([NotNull] FifthParser.Exp_listContext context);
 	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_add</c>
+	/// Visit a parse tree produced by the <c>exp_binexp</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitExp_add([NotNull] FifthParser.Exp_addContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_mul</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_mul([NotNull] FifthParser.Exp_mulContext context);
+	Result VisitExp_binexp([NotNull] FifthParser.Exp_binexpContext context);
 	/// <summary>
 	/// Visit a parse tree produced by the <c>exp_paren</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
@@ -363,13 +321,6 @@ public interface IFifthVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitExp_paren([NotNull] FifthParser.Exp_parenContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_arithnegation</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_arithnegation([NotNull] FifthParser.Exp_arithnegationContext context);
 	/// <summary>
 	/// Visit a parse tree produced by the <c>exp_varname</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
@@ -398,20 +349,6 @@ public interface IFifthVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitExp_funccall([NotNull] FifthParser.Exp_funccallContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_logicnegation</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_logicnegation([NotNull] FifthParser.Exp_logicnegationContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_div</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_div([NotNull] FifthParser.Exp_divContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.truth_value"/>.
 	/// </summary>

@@ -160,17 +160,8 @@ exp
     | value=STRING                                                  # exp_string
     | value=truth_value                                             # exp_boolean
     | value=list                                                    # exp_list
-    | NOT operand=exp                                               # exp_logicnegation
-    | MINUS operand=exp                                             # exp_arithnegation
-    | left=exp LT right=exp                                         # exp_lt
-    | left=exp GT right=exp                                         # exp_gt
-    | left=exp LEQ right=exp                                        # exp_leq
-    | left=exp GEQ right=exp                                        # exp_geq
-    | left=exp AND right=exp                                        # exp_and
-    | left=exp PLUS right=exp                                       # exp_add
-    | left=exp MINUS right=exp                                      # exp_sub
-    | left=exp TIMES right=exp                                      # exp_mul
-    | left=exp DIVIDE right=exp                                     # exp_div
+    | op=UNIOP exp                                                  # exp_uniexp
+    | left=exp op=BINOP right=exp                                   # exp_binexp
     | var_name                                                      # exp_varname
     | funcname=function_name OPENPAREN (args=explist)? CLOSEPAREN   # exp_funccall
     | OPENPAREN innerexp=exp CLOSEPAREN                             # exp_paren
@@ -267,38 +258,98 @@ WITH: 'with';
 
 
 // ========[OPERATORS AND PUNCTUATION]=========
-AMP: '&';    // intersection
-AND: '&&';    // intersection
+
+OP_LogicalNot: '!';
+OP_ArithmeticAdd: '+';
+OP_StringConcatenate: '+';
+OP_ArithmeticNegative: '-';
+OP_ArithmeticSubtract: '-';
+OP_ArithmeticMultiply: '*';
+OP_ArithmeticDivide: '/';
+OP_ArithmeticRem: '#';
+OP_ArithmeticMod: '%';
+OP_ArithmeticPow: '**';
+OP_BitwiseAnd: '&';
+OP_BitwiseOr: '|';
+OP_LogicalAnd: '&&';
+OP_LogicalOr: '||';
+OP_LogicalNand: '!&';
+OP_LogicalNor: '!|';
+OP_LogicalXor: '^';
+OP_Equal: '==';
+OP_NotEqual: '!=';
+OP_LessThan: '<';
+OP_GreaterThan: '>';
+OP_LessThanOrEqual: '<=';
+OP_GreaterThanOrEqual: '>=';
+OP_BitwiseLeftShift: '<<';
+OP_BitwiseRightShift: '>>';
+// OP_TernaryCondition: ''; // ?:
+
+UNIOP: 
+  OP_LogicalNot
+| OP_ArithmeticSubtract
+;
+
+BINOP: 
+  OP_ArithmeticAdd
+| OP_StringConcatenate
+| OP_ArithmeticNegative
+| OP_ArithmeticSubtract
+| OP_ArithmeticMultiply
+| OP_ArithmeticDivide
+| OP_ArithmeticRem
+| OP_ArithmeticMod
+| OP_ArithmeticPow
+| OP_BitwiseAnd
+| OP_BitwiseOr
+| OP_LogicalAnd
+| OP_LogicalOr
+| OP_LogicalNand
+| OP_LogicalNor
+| OP_LogicalXor
+| OP_Equal
+| OP_NotEqual
+| OP_LessThan
+| OP_GreaterThan
+| OP_LessThanOrEqual
+| OP_GreaterThanOrEqual
+| OP_BitwiseLeftShift
+| OP_BitwiseRightShift
+;
+
+LAMBDASEP: '=>';
+HASH: '#';
+DOT: '.';
+GEN: '<-' ; // list comprehension generator
+COLON: ':';
+SEMICOLON: ';' ;
+COMMA: ',';
 ASSIGN: '=';    // equal
-BAR: '|';     // union
+// AMP: '&';    // intersection
+// AND: '&&';    // intersection
+// BAR: '|';     // union
+// DIVIDE: '/';     // division
+// EQ: '==';    // equal
+// GEQ: '>='   ; // greater-or-equal
+// GT: '>'   ;  // greater-than
+// LEQ: '<='   ; // less-or-equal
+// LT: '<'    ; // less-than
+// MINUS: '-';     // subtraction
+// NEQ: '!='    ;// not-equal
+// NOT: '!';     // negation
+// OR: '||';     // union
+// PERCENT: '%';     // modulo
+// PLUS: '+';     // addition
+// POWER: '^' ;
+// TIMES: '*';     // multiplication
 CLOSEBRACE: '}';
 CLOSEBRACK: ']';
 CLOSEPAREN: ')';
-COLON: ':';
-COMMA: ',';
-DIVIDE: '/';     // division
-DOT: '.';
-EQ: '==';    // equal
-GEN: '<-' ; // list comprehension generator
-GEQ: '>='   ; // greater-or-equal
-GT: '>'   ;  // greater-than
-HASH: '#';
-LAMBDASEP: '=>';
-LEQ: '<='   ; // less-or-equal
-LT: '<'    ; // less-than
-MINUS: '-';     // subtraction
-NEQ: '!='    ;// not-equal
-NOT: '!';     // negation
 OPENBRACE: '{';
 OPENBRACK: '[';
 OPENPAREN: '(';
-OR: '||';     // union
-PERCENT: '%';     // modulo
-PLUS: '+';     // addition
-POWER: '^' ;
 QMARK: '?';
-SEMICOLON: ';' ;
-TIMES: '*';     // multiplication
 UNDERSCORE: '_' ;
 
 // CHARACTER CLASSES ETC

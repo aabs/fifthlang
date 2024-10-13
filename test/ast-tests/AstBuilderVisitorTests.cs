@@ -79,7 +79,7 @@ public class AstBuilderVisitorTests
     [Fact]
     public void can_build_from_function_def()
     {
-        var funcdefsrc=$$"""
+        var funcdefsrc = $$"""
                          foo(b: Bar, b2: Baz): Sqz{}
                          """;
         var s = CharStreams.fromString(funcdefsrc);
@@ -92,5 +92,72 @@ public class AstBuilderVisitorTests
             var a = v.Visit(ctx) as FunctionDef;
             a.Should().NotBeNull();
         }
+    }
+    [Fact]
+    public void can_build_from_function_def_with_if_statement()
+    {
+        var funcdefsrc = $$"""
+                         foo(b: Bar, b2: Baz): Sqz
+                         {
+                            if(b == 1)
+                            {
+                                return "hello";
+                            }
+                            else
+                            {
+                                return "world";
+                            };
+                         }
+                         """;
+        var s = CharStreams.fromString(funcdefsrc);
+        var p = GetParserFor(s);
+        var x = p.function_declaration();
+        x.Should().NotBeNull();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as FunctionDef;
+        a.Should().NotBeNull();
+        var stmt = a.Body.Statements[0];
+        stmt.Should().NotBeNull();
+        if (stmt is IfElseStatement ies)
+        {
+            ies.Condition.Should().BeOfType<BinaryExp>();
+        }
+        else
+        {
+            Assert.Fail();
+        }
+    }
+
+    [Theory]
+    [InlineData("1 + 1", Operator.ArithmeticAdd)]
+    [InlineData("1 - 1", Operator.ArithmeticSubtract)]
+    [InlineData("1 * 1", Operator.ArithmeticMultiply)]
+    [InlineData("1 / 1", Operator.ArithmeticDivide)]
+    [InlineData("1 ** 1", Operator.ArithmeticPow)]
+    [InlineData("1 % 1", Operator.ArithmeticMod)]
+
+    [InlineData("1 == 1", Operator.Equal)]
+    [InlineData("1 != 1", Operator.NotEqual)]
+    [InlineData("1 > 1", Operator.GreaterThan)]
+    [InlineData("1 < 1", Operator.LessThan)]
+    [InlineData("1 <= 1", Operator.LessThanOrEqual)]
+    [InlineData("1 >= 1", Operator.GreaterThanOrEqual)]
+
+    [InlineData("1 & 1", Operator.BitwiseAnd)]
+    [InlineData("1 | 1", Operator.BitwiseOr)]
+    [InlineData("1 << 1", Operator.BitwiseLeftShift)]
+    [InlineData("1 >> 1", Operator.BitwiseRightShift)]
+    [InlineData("1 && 1", Operator.LogicalAnd)]
+    [InlineData("1 || 1", Operator.LogicalOr)]
+    [InlineData("1 ^ 1", Operator.LogicalXor)]
+    public void should_handle_all_kinds_of_binary_expressions(string exp, Operator op)
+    {
+        var s = CharStreams.fromString(exp);
+        var p = GetParserFor(s);
+        var x = p.exp();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as BinaryExp;
+        a.Should().NotBeNull();
+        a.Operator.Should().Be(op);
     }
 }

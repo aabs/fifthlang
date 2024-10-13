@@ -401,54 +401,6 @@ public interface IFifthListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitExplist([NotNull] FifthParser.ExplistContext context);
 	/// <summary>
-	/// Enter a parse tree produced by the <c>exp_geq</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterExp_geq([NotNull] FifthParser.Exp_geqContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>exp_geq</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitExp_geq([NotNull] FifthParser.Exp_geqContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>exp_lt</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterExp_lt([NotNull] FifthParser.Exp_ltContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>exp_lt</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitExp_lt([NotNull] FifthParser.Exp_ltContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>exp_leq</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterExp_leq([NotNull] FifthParser.Exp_leqContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>exp_leq</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitExp_leq([NotNull] FifthParser.Exp_leqContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>exp_and</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterExp_and([NotNull] FifthParser.Exp_andContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>exp_and</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitExp_and([NotNull] FifthParser.Exp_andContext context);
-	/// <summary>
 	/// Enter a parse tree produced by the <c>exp_string</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
 	/// </summary>
@@ -485,17 +437,17 @@ public interface IFifthListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitExp_bool([NotNull] FifthParser.Exp_boolContext context);
 	/// <summary>
-	/// Enter a parse tree produced by the <c>exp_gt</c>
+	/// Enter a parse tree produced by the <c>exp_uniexp</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterExp_gt([NotNull] FifthParser.Exp_gtContext context);
+	void EnterExp_uniexp([NotNull] FifthParser.Exp_uniexpContext context);
 	/// <summary>
-	/// Exit a parse tree produced by the <c>exp_gt</c>
+	/// Exit a parse tree produced by the <c>exp_uniexp</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitExp_gt([NotNull] FifthParser.Exp_gtContext context);
+	void ExitExp_uniexp([NotNull] FifthParser.Exp_uniexpContext context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>exp_memberaccess</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
@@ -533,18 +485,6 @@ public interface IFifthListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitExp_typecreateinst([NotNull] FifthParser.Exp_typecreateinstContext context);
 	/// <summary>
-	/// Enter a parse tree produced by the <c>exp_sub</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterExp_sub([NotNull] FifthParser.Exp_subContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>exp_sub</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitExp_sub([NotNull] FifthParser.Exp_subContext context);
-	/// <summary>
 	/// Enter a parse tree produced by the <c>exp_list</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
 	/// </summary>
@@ -557,29 +497,17 @@ public interface IFifthListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitExp_list([NotNull] FifthParser.Exp_listContext context);
 	/// <summary>
-	/// Enter a parse tree produced by the <c>exp_add</c>
+	/// Enter a parse tree produced by the <c>exp_binexp</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterExp_add([NotNull] FifthParser.Exp_addContext context);
+	void EnterExp_binexp([NotNull] FifthParser.Exp_binexpContext context);
 	/// <summary>
-	/// Exit a parse tree produced by the <c>exp_add</c>
+	/// Exit a parse tree produced by the <c>exp_binexp</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitExp_add([NotNull] FifthParser.Exp_addContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>exp_mul</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterExp_mul([NotNull] FifthParser.Exp_mulContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>exp_mul</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitExp_mul([NotNull] FifthParser.Exp_mulContext context);
+	void ExitExp_binexp([NotNull] FifthParser.Exp_binexpContext context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>exp_paren</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
@@ -592,18 +520,6 @@ public interface IFifthListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitExp_paren([NotNull] FifthParser.Exp_parenContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>exp_arithnegation</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterExp_arithnegation([NotNull] FifthParser.Exp_arithnegationContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>exp_arithnegation</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitExp_arithnegation([NotNull] FifthParser.Exp_arithnegationContext context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>exp_varname</c>
 	/// labeled alternative in <see cref="FifthParser.exp"/>.
@@ -652,30 +568,6 @@ public interface IFifthListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitExp_funccall([NotNull] FifthParser.Exp_funccallContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>exp_logicnegation</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterExp_logicnegation([NotNull] FifthParser.Exp_logicnegationContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>exp_logicnegation</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitExp_logicnegation([NotNull] FifthParser.Exp_logicnegationContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>exp_div</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterExp_div([NotNull] FifthParser.Exp_divContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>exp_div</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitExp_div([NotNull] FifthParser.Exp_divContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.truth_value"/>.
 	/// </summary>

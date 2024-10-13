@@ -45,8 +45,11 @@ public enum Operator : ushort
     ArithmeticDivide,
     ArithmeticRem,
     ArithmeticMod,
+    ArithmeticPow,
 
     // LogicalOperators
+    BitwiseAnd,
+    BitwiseOr,
     LogicalAnd,
     LogicalOr,
     LogicalNand,
@@ -55,12 +58,12 @@ public enum Operator : ushort
     TernaryCondition, // ?:
 
     // RelationalOperators
-    ArithmeticEqual,
-    ArithmeticNotEqual,
-    ArithmeticLessThan,
-    ArithmeticGreaterThan,
-    ArithmeticLessThanOrEqual,
-    ArithmeticGreaterThanOrEqual,
+    Equal,
+    NotEqual,
+    LessThan,
+    GreaterThan,
+    LessThanOrEqual,
+    GreaterThanOrEqual,
 
     BitwiseLeftShift,
     BitwiseRightShift,
@@ -710,6 +713,7 @@ public record UnaryExp : Expression
 /// <seealso cref="System.IEquatable&lt;ast.VarRefExp&gt;" />
 public record VarRefExp : Expression
 {
+    public required string VarName { get; init; }
     public VariableDecl VariableDecl { get; set; }
 }
 
