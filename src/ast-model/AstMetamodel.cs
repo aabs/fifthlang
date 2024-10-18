@@ -35,7 +35,7 @@ public enum AccessConstraint
 public enum Operator : ushort
 {
     // Unary Operators
-    ArithmeticNegative, // as opposed to Subtract, which is different
+   ArithmeticNegative, // as opposed to Subtract, which is different
     LogicalNot, // bitwise complement...
 
     // ArithmeticOperator
@@ -390,7 +390,8 @@ public record ClassDef : Definition
 
 public record VariableDecl : Definition
 {
-    public required Expression? InitialValue { get; set; }
+    public required TypeName TypeName { get; init; }
+    public required string Name { get; init; }
 }
 
 #endregion
@@ -442,6 +443,7 @@ public abstract record Statement : AstThing
 
 public record AssignmentStatement : Statement
 {
+    public required string VariableName { get; init; }
     public required Expression RHS { get; set; }
 }
 
@@ -500,6 +502,7 @@ public record ReturnStatement : Statement
 public record VarDeclStatement : Statement
 {
     public required VariableDecl VariableDecl { get; set; }
+    public required Expression? InitialValue { get; set; }
 }
 
 public record WhileStatement : Statement

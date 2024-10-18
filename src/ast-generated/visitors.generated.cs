@@ -534,7 +534,6 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual VariableDecl VisitVariableDecl(VariableDecl ctx)
     {
      return ctx with {
-         InitialValue = (ast.Expression)Visit((AstThing)ctx.InitialValue)
         };
     }
     public virtual AssemblyRef VisitAssemblyRef(AssemblyRef ctx)
@@ -640,6 +639,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     {
      return ctx with {
          VariableDecl = (ast.VariableDecl)Visit((AstThing)ctx.VariableDecl)
+        ,InitialValue = (ast.Expression)Visit((AstThing)ctx.InitialValue)
         };
     }
     public virtual WhileStatement VisitWhileStatement(WhileStatement ctx)

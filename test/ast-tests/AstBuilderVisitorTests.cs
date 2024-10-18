@@ -23,39 +23,46 @@ public class AstBuilderVisitorTests
     [Property]
     public void can_parse_double_literals(double d)
     {
-        var nativeRepresentation = $"{d}";
-        if (nativeRepresentation is "infinity" or "-infinity" or "NaN" or "\u221e" or "-\u221e")
+        var nativeRepresentation = $"{d:0.000}d";
+        if (nativeRepresentation is "infinityd" or "-infinityd" or "NaNd" or "\u221ed" or "-\u221ed")
         {
             return;
         }
 
         var s = CharStreams.fromString(nativeRepresentation);
         var p = GetParserFor(s);
-        var actual = p.exp();
-        if (actual is not FifthParser.Exp_doubleContext)
-        {
-            Assert.Fail();
-        }
-
+        var actual = p.expression();
         var v = new AstBuilderVisitor();
-        var a = v.VisitExp_double((FifthParser.Exp_doubleContext)actual);
+        var a = v.Visit(actual);
         a.Should().NotBeNull();
-        a.Should().BeOfType<Float8LiteralExp>();
+        if (d < 0)
+            a.Should().BeOfType<UnaryExp>();
+        else
+            a.Should().BeOfType<Float8LiteralExp>();
     }
 
     [Fact]
-    public void can_parse_double_literals_case1()
+    public void can_parse_floats_case1()
     {
         var s = CharStreams.fromString("4.940656458e-324");
         var p = GetParserFor(s);
-        var actual = p.exp();
-        if (actual is FifthParser.Exp_doubleContext)
-        {
-            var v = new AstBuilderVisitor();
-            var a = v.VisitExp_double((FifthParser.Exp_doubleContext)actual);
-            a.Should().NotBeNull();
-            a.Should().BeOfType<Float8LiteralExp>();
-        }
+        var actual = p.expression();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(actual);
+        a.Should().NotBeNull();
+        a.Should().BeOfType<Float4LiteralExp>();
+    }
+
+    [Fact]
+    public void can_parse_floats_case2()
+    {
+        var s = CharStreams.fromString("0.0");
+        var p = GetParserFor(s);
+        var actual = p.expression();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(actual);
+        a.Should().NotBeNull();
+        a.Should().BeOfType<Float4LiteralExp>();
     }
 
     [Property]
@@ -69,11 +76,36 @@ public class AstBuilderVisitorTests
 
         var s = CharStreams.fromString(nativeRepresentation);
         var p = GetParserFor(s);
-        var actual = p.exp();
+        var actual = p.expression();
         var v = new AstBuilderVisitor();
-        var a = v.VisitExp_int((FifthParser.Exp_intContext)actual);
+        var a = v.Visit(actual);
         a.Should().NotBeNull();
-        a.Should().BeOfType<Int32LiteralExp>();
+        if (d < 0)
+            a.Should().BeOfType<UnaryExp>();
+        else
+            a.Should().BeOfType<Int32LiteralExp>();
+    }
+
+    [Fact]
+    public void can_parse_int_literals_case1()
+    {
+        int d = -1;
+        var nativeRepresentation = $"{d}";
+        if (nativeRepresentation is "infinity" or "-infinity" or "NaN" or "\u221e" or "-\u221e")
+        {
+            return;
+        }
+
+        var s = CharStreams.fromString(nativeRepresentation);
+        var p = GetParserFor(s);
+        var actual = p.expression();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(actual);
+        a.Should().NotBeNull();
+        if (d < 0)
+            a.Should().BeOfType<UnaryExp>();
+        else
+            a.Should().BeOfType<Int32LiteralExp>();
     }
 
     [Fact]
@@ -129,35 +161,92 @@ public class AstBuilderVisitorTests
     }
 
     [Theory]
-    [InlineData("1 + 1", Operator.ArithmeticAdd)]
-    [InlineData("1 - 1", Operator.ArithmeticSubtract)]
-    [InlineData("1 * 1", Operator.ArithmeticMultiply)]
-    [InlineData("1 / 1", Operator.ArithmeticDivide)]
-    [InlineData("1 ** 1", Operator.ArithmeticPow)]
-    [InlineData("1 % 1", Operator.ArithmeticMod)]
-
-    [InlineData("1 == 1", Operator.Equal)]
-    [InlineData("1 != 1", Operator.NotEqual)]
-    [InlineData("1 > 1", Operator.GreaterThan)]
-    [InlineData("1 < 1", Operator.LessThan)]
-    [InlineData("1 <= 1", Operator.LessThanOrEqual)]
-    [InlineData("1 >= 1", Operator.GreaterThanOrEqual)]
-
-    [InlineData("1 & 1", Operator.BitwiseAnd)]
-    [InlineData("1 | 1", Operator.BitwiseOr)]
-    [InlineData("1 << 1", Operator.BitwiseLeftShift)]
-    [InlineData("1 >> 1", Operator.BitwiseRightShift)]
-    [InlineData("1 && 1", Operator.LogicalAnd)]
-    [InlineData("1 || 1", Operator.LogicalOr)]
-    [InlineData("1 ^ 1", Operator.LogicalXor)]
+    [InlineData("3 + 7", Operator.ArithmeticAdd)]
+    [InlineData("3 - 7", Operator.ArithmeticSubtract)]
+    [InlineData("3 * 7", Operator.ArithmeticMultiply)]
+    [InlineData("3 / 7", Operator.ArithmeticDivide)]
+    [InlineData("3 ** 7", Operator.ArithmeticPow)]
+    [InlineData("3 % 7", Operator.ArithmeticMod)]
+    [InlineData("3 == 7", Operator.Equal)]
+    [InlineData("3 != 7", Operator.NotEqual)]
+    [InlineData("3 > 7", Operator.GreaterThan)]
+    [InlineData("3 < 7", Operator.LessThan)]
+    [InlineData("3 <= 7", Operator.LessThanOrEqual)]
+    [InlineData("3 >= 7", Operator.GreaterThanOrEqual)]
+    [InlineData("3 & 7", Operator.BitwiseAnd)]
+    [InlineData("3 | 7", Operator.BitwiseOr)]
+    [InlineData("3 << 7", Operator.BitwiseLeftShift)]
+    [InlineData("3 >> 7", Operator.BitwiseRightShift)]
+    [InlineData("3 && 7", Operator.LogicalAnd)]
+    [InlineData("3 || 7", Operator.LogicalOr)]
+    [InlineData("3 ^ 7", Operator.ArithmeticPow)]
+    [InlineData("3 ~ 7", Operator.LogicalXor)]
     public void should_handle_all_kinds_of_binary_expressions(string exp, Operator op)
     {
         var s = CharStreams.fromString(exp);
         var p = GetParserFor(s);
-        var x = p.exp();
+        var x = p.expression();
         var v = new AstBuilderVisitor();
-        var a = v.Visit(x) as BinaryExp;
+        var a = v.Visit(x);
         a.Should().NotBeNull();
-        a.Operator.Should().Be(op);
+        a.Should().BeOfType<BinaryExp>();
+    }
+
+
+    [Theory]
+    [InlineData("+ 7", Operator.ArithmeticAdd)]
+    [InlineData("+7", Operator.ArithmeticAdd)]
+    [InlineData("- 7", Operator.ArithmeticSubtract)]
+    [InlineData("-7", Operator.ArithmeticSubtract)]
+    [InlineData("! 7", Operator.LogicalNot)]
+    [InlineData("!7", Operator.LogicalNot)]
+    public void should_handle_all_kinds_of_unary_expressions(string exp, Operator op)
+    {
+        var s = CharStreams.fromString(exp);
+        var p = GetParserFor(s);
+        var x = p.expression();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x);
+        a.Should().NotBeNull();
+        a.Should().BeOfType<UnaryExp>();
+
+    }
+
+    [Theory]
+    [InlineData("a = 5;")]
+    [InlineData("a = 5 * 6;")]
+    public void handles_assignment_statements(string exp)
+    {
+        var s = CharStreams.fromString(exp);
+        var p = GetParserFor(s);
+        var x = p.statement();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x);
+        a.Should().NotBeNull();
+        a.Should().BeOfType<AssignmentStatement>();
+    }
+
+    [Theory]
+    [InlineData("a: int;", false)]
+    [InlineData("a: int = 5;", true)]
+    public void handles_vardecl_statements(string exp, bool shouldHaveInitialiserExpression)
+    {
+        var s = CharStreams.fromString(exp);
+        var p = GetParserFor(s);
+        var x = p.statement();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x);
+        a.Should().NotBeNull();
+        a.Should().BeOfType<VarDeclStatement>();
+        var vds = a as VarDeclStatement;
+        vds.VariableDecl.Should().NotBeNull();
+        vds.VariableDecl.TypeName.Should().NotBeNull();
+        vds.VariableDecl.TypeName.Value.Should().Be("int");
+        vds.VariableDecl.Name.Should().NotBeNull();
+        vds.VariableDecl.Name.Should().Be("a");
+        if (shouldHaveInitialiserExpression)
+        {
+            vds.InitialValue.Should().NotBeNull();
+        }
     }
 }

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from grammar/Fifth.g4 by ANTLR 4.8
+// Generated from grammar/FifthParser.g4 by ANTLR 4.8
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -30,46 +30,13 @@ using IToken = Antlr4.Runtime.IToken;
 /// <typeparam name="Result">The return type of the visit operation.</typeparam>
 [System.CodeDom.Compiler.GeneratedCode("ANTLR", "4.8")]
 [System.CLSCompliant(false)]
-public interface IFifthVisitor<Result> : IParseTreeVisitor<Result> {
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_callsite_varname</c>
-	/// labeled alternative in <see cref="FifthParser.call_site"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_callsite_varname([NotNull] FifthParser.Exp_callsite_varnameContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_callsite_func_call</c>
-	/// labeled alternative in <see cref="FifthParser.call_site"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_callsite_func_call([NotNull] FifthParser.Exp_callsite_func_callContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_callsite_parenthesised</c>
-	/// labeled alternative in <see cref="FifthParser.call_site"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_callsite_parenthesised([NotNull] FifthParser.Exp_callsite_parenthesisedContext context);
+public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.fifth"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitFifth([NotNull] FifthParser.FifthContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.function_call"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitFunction_call([NotNull] FifthParser.Function_callContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.member_access_expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitMember_access_expression([NotNull] FifthParser.Member_access_expressionContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.module_import"/>.
 	/// </summary>
@@ -89,35 +56,11 @@ public interface IFifthVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitPackagename([NotNull] FifthParser.PackagenameContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.class_definition"/>.
+	/// Visit a parse tree produced by <see cref="FifthParser.alias"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitClass_definition([NotNull] FifthParser.Class_definitionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.property_declaration"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitProperty_declaration([NotNull] FifthParser.Property_declarationContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.type_initialiser"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitType_initialiser([NotNull] FifthParser.Type_initialiserContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.type_name"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitType_name([NotNull] FifthParser.Type_nameContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.type_property_init"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitType_property_init([NotNull] FifthParser.Type_property_initContext context);
+	Result VisitAlias([NotNull] FifthParser.AliasContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.function_declaration"/>.
 	/// </summary>
@@ -179,6 +122,42 @@ public interface IFifthVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitDestructure_binding([NotNull] FifthParser.Destructure_bindingContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.class_definition"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitClass_definition([NotNull] FifthParser.Class_definitionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.property_declaration"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitProperty_declaration([NotNull] FifthParser.Property_declarationContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.type_initialiser"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitType_initialiser([NotNull] FifthParser.Type_initialiserContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.type_name"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitType_name([NotNull] FifthParser.Type_nameContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.type_property_init"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitType_property_init([NotNull] FifthParser.Type_property_initContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.absoluteIri"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAbsoluteIri([NotNull] FifthParser.AbsoluteIriContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.block"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -213,6 +192,13 @@ public interface IFifthVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitStmt_vardecl([NotNull] FifthParser.Stmt_vardeclContext context);
 	/// <summary>
+	/// Visit a parse tree produced by the <c>stmt_bareexpression</c>
+	/// labeled alternative in <see cref="FifthParser.statement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStmt_bareexpression([NotNull] FifthParser.Stmt_bareexpressionContext context);
+	/// <summary>
 	/// Visit a parse tree produced by the <c>stmt_assignment</c>
 	/// labeled alternative in <see cref="FifthParser.statement"/>.
 	/// </summary>
@@ -227,164 +213,23 @@ public interface IFifthVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitStmt_return([NotNull] FifthParser.Stmt_returnContext context);
 	/// <summary>
-	/// Visit a parse tree produced by the <c>stmt_bareexpression</c>
-	/// labeled alternative in <see cref="FifthParser.statement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitStmt_bareexpression([NotNull] FifthParser.Stmt_bareexpressionContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.var_decl"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitVar_decl([NotNull] FifthParser.Var_declContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.var_name"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitVar_name([NotNull] FifthParser.Var_nameContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.identifier_chain"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitIdentifier_chain([NotNull] FifthParser.Identifier_chainContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.explist"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExplist([NotNull] FifthParser.ExplistContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_string</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_string([NotNull] FifthParser.Exp_stringContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_boolean</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_boolean([NotNull] FifthParser.Exp_booleanContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_bool</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_bool([NotNull] FifthParser.Exp_boolContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_uniexp</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_uniexp([NotNull] FifthParser.Exp_uniexpContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_memberaccess</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_memberaccess([NotNull] FifthParser.Exp_memberaccessContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_double</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_double([NotNull] FifthParser.Exp_doubleContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_typecreateinst</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_typecreateinst([NotNull] FifthParser.Exp_typecreateinstContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_list</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_list([NotNull] FifthParser.Exp_listContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_binexp</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_binexp([NotNull] FifthParser.Exp_binexpContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_paren</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_paren([NotNull] FifthParser.Exp_parenContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_varname</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_varname([NotNull] FifthParser.Exp_varnameContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_typecast</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_typecast([NotNull] FifthParser.Exp_typecastContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_int</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_int([NotNull] FifthParser.Exp_intContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>exp_funccall</c>
-	/// labeled alternative in <see cref="FifthParser.exp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExp_funccall([NotNull] FifthParser.Exp_funccallContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.truth_value"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitTruth_value([NotNull] FifthParser.Truth_valueContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.absoluteIri"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAbsoluteIri([NotNull] FifthParser.AbsoluteIriContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.alias"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAlias([NotNull] FifthParser.AliasContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.iri"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitIri([NotNull] FifthParser.IriContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.iri_query_param"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitIri_query_param([NotNull] FifthParser.Iri_query_paramContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.qNameIri"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitQNameIri([NotNull] FifthParser.QNameIriContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.list"/>.
 	/// </summary>
@@ -436,9 +281,192 @@ public interface IFifthVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitList_type_signature([NotNull] FifthParser.List_type_signatureContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.var_name"/>.
+	/// Visit a parse tree produced by <see cref="FifthParser.expressionList"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitVar_name([NotNull] FifthParser.Var_nameContext context);
+	Result VisitExpressionList([NotNull] FifthParser.ExpressionListContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>exp_mul</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExp_mul([NotNull] FifthParser.Exp_mulContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>exp_and</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExp_and([NotNull] FifthParser.Exp_andContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>exp_rel</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExp_rel([NotNull] FifthParser.Exp_relContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>exp_operand</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExp_operand([NotNull] FifthParser.Exp_operandContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>exp_unary</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExp_unary([NotNull] FifthParser.Exp_unaryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>exp_exp</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExp_exp([NotNull] FifthParser.Exp_expContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>exp_or</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExp_or([NotNull] FifthParser.Exp_orContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>exp_add</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExp_add([NotNull] FifthParser.Exp_addContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.operand"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOperand([NotNull] FifthParser.OperandContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.index"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitIndex([NotNull] FifthParser.IndexContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.slice_"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSlice_([NotNull] FifthParser.Slice_Context context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>lit_nil</c>
+	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLit_nil([NotNull] FifthParser.Lit_nilContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>lit_int</c>
+	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLit_int([NotNull] FifthParser.Lit_intContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>lit_bool</c>
+	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLit_bool([NotNull] FifthParser.Lit_boolContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>lit_string</c>
+	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLit_string([NotNull] FifthParser.Lit_stringContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>lit_float</c>
+	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLit_float([NotNull] FifthParser.Lit_floatContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>str_raw</c>
+	/// labeled alternative in <see cref="FifthParser.string_"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStr_raw([NotNull] FifthParser.Str_rawContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>str_interpolated</c>
+	/// labeled alternative in <see cref="FifthParser.string_"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStr_interpolated([NotNull] FifthParser.Str_interpolatedContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.boolean"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitBoolean([NotNull] FifthParser.BooleanContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>num_decimal</c>
+	/// labeled alternative in <see cref="FifthParser.integer"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNum_decimal([NotNull] FifthParser.Num_decimalContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>num_binary</c>
+	/// labeled alternative in <see cref="FifthParser.integer"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNum_binary([NotNull] FifthParser.Num_binaryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>num_octal</c>
+	/// labeled alternative in <see cref="FifthParser.integer"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNum_octal([NotNull] FifthParser.Num_octalContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>num_hex</c>
+	/// labeled alternative in <see cref="FifthParser.integer"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNum_hex([NotNull] FifthParser.Num_hexContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>num_imaginary</c>
+	/// labeled alternative in <see cref="FifthParser.integer"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNum_imaginary([NotNull] FifthParser.Num_imaginaryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>num_rune</c>
+	/// labeled alternative in <see cref="FifthParser.integer"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNum_rune([NotNull] FifthParser.Num_runeContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.operandName"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOperandName([NotNull] FifthParser.OperandNameContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.qualifiedIdent"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitQualifiedIdent([NotNull] FifthParser.QualifiedIdentContext context);
 }

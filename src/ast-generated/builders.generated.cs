@@ -581,20 +581,27 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
 public class VariableDeclBuilder : IBuilder<ast.VariableDecl>
 {
 
-    private ast.Expression _InitialValue;
+    private ast_model.TypeSystem.TypeName _TypeName;
+    private System.String _Name;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.VariableDecl Build()
     {
         return new ast.VariableDecl(){
-             InitialValue = this._InitialValue // from VariableDecl
+             TypeName = this._TypeName // from VariableDecl
+           , Name = this._Name // from VariableDecl
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public VariableDeclBuilder WithInitialValue(ast.Expression value){
-        _InitialValue = value;
+    public VariableDeclBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
+        _TypeName = value;
+        return this;
+    }
+
+    public VariableDeclBuilder WithName(System.String value){
+        _Name = value;
         return this;
     }
 
@@ -756,16 +763,23 @@ public class GraphNamespaceAliasBuilder : IBuilder<ast.GraphNamespaceAlias>
 public class AssignmentStatementBuilder : IBuilder<ast.AssignmentStatement>
 {
 
+    private System.String _VariableName;
     private ast.Expression _RHS;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AssignmentStatement Build()
     {
         return new ast.AssignmentStatement(){
-             RHS = this._RHS // from AssignmentStatement
+             VariableName = this._VariableName // from AssignmentStatement
+           , RHS = this._RHS // from AssignmentStatement
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
+    public AssignmentStatementBuilder WithVariableName(System.String value){
+        _VariableName = value;
+        return this;
+    }
+
     public AssignmentStatementBuilder WithRHS(ast.Expression value){
         _RHS = value;
         return this;
@@ -1039,17 +1053,24 @@ public class VarDeclStatementBuilder : IBuilder<ast.VarDeclStatement>
 {
 
     private ast.VariableDecl _VariableDecl;
+    private ast.Expression _InitialValue;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.VarDeclStatement Build()
     {
         return new ast.VarDeclStatement(){
              VariableDecl = this._VariableDecl // from VarDeclStatement
+           , InitialValue = this._InitialValue // from VarDeclStatement
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public VarDeclStatementBuilder WithVariableDecl(ast.VariableDecl value){
         _VariableDecl = value;
+        return this;
+    }
+
+    public VarDeclStatementBuilder WithInitialValue(ast.Expression value){
+        _InitialValue = value;
         return this;
     }
 
