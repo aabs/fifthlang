@@ -306,6 +306,7 @@ public record FunctorDef : ScopeAstThing
 public abstract record MemberDef : Definition
 {
     public required MemberName Name { get; init; }
+    public required TypeName TypeName { get; init; }
     public required bool IsReadOnly { get; set; }
 }
 

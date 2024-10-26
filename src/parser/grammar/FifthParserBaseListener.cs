@@ -167,30 +167,6 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitParamdecl([NotNull] FifthParser.ParamdeclContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.param_name"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterParam_name([NotNull] FifthParser.Param_nameContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.param_name"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitParam_name([NotNull] FifthParser.Param_nameContext context) { }
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.param_type"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterParam_type([NotNull] FifthParser.Param_typeContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.param_type"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitParam_type([NotNull] FifthParser.Param_typeContext context) { }
-	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.destructuring_decl"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
@@ -628,6 +604,34 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitExp_exp([NotNull] FifthParser.Exp_expContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by the <c>exp_member_access</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterExp_member_access([NotNull] FifthParser.Exp_member_accessContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>exp_member_access</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitExp_member_access([NotNull] FifthParser.Exp_member_accessContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by the <c>exp_funccall</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterExp_funccall([NotNull] FifthParser.Exp_funccallContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>exp_funccall</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitExp_funccall([NotNull] FifthParser.Exp_funccallContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by the <c>exp_or</c>
 	/// labeled alternative in <see cref="FifthParser.expression"/>.

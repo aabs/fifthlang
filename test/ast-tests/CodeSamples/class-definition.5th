@@ -1,0 +1,6 @@
+class Person {
+    Name: string;
+    Height: float;
+    Age: float;
+    Weight: float;
+}

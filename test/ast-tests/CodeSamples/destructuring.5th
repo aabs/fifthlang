@@ -1,0 +1,25 @@
+class Person {
+    Name: string;
+    Height: float;
+    Age: float;
+    Weight: float;
+}
+
+calculate_bmi(p: Person {
+    age: Age | age > 60,
+    height: Height ,
+    weight: Weight
+    }) : float {
+    return weight / (height * height);
+}
+
+ main():void {
+    eric: Person = new Person{
+        Name = 'Eric Morecombe',
+        Height = 1.93,
+        Age = 65,
+        Weight = 100
+    };
+    IO.write(calculate_bmi(eric));
+}
+

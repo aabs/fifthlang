@@ -1,0 +1,18 @@
+class Person {
+    Name: string;
+    Height: float;
+    Age: float;
+    Weight: float;
+}
+
+main():void{
+    p: Person = new Person{
+        Name = "Eric Morecombe",
+        Height = 1.93,
+        Age = 60,
+        Weight = 95
+    };
+
+    p.Weight = p.Weight + 5;
+    return p.Weight;
+}

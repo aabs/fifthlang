@@ -1,5 +1,6 @@
 ﻿using Antlr4.Runtime;
 using ast;
+using ast_model.TypeSystem;
 using compiler.LangProcessingPhases;
 using Fifth;
 using FluentAssertions;
@@ -8,6 +9,34 @@ using FsCheck.Xunit;
 namespace ast_tests;
 public class AstBuilderVisitorTests
 {
+
+
+    private static FifthParser GetParserFor(string sourceFile)
+    {
+        string content = ReadEmbeddedResource(sourceFile);
+        var s = CharStreams.fromString(content);
+        return GetParserFor(s);
+    }
+
+    private static string ReadEmbeddedResource(string resourceName)
+    {
+        Type t = typeof(AstBuilderVisitorTests);
+        Console.WriteLine(string.Join('\n', t.Assembly.GetManifestResourceNames()));
+        using (Stream stream = t.Assembly.GetManifestResourceStream(t.Namespace + ".CodeSamples." + resourceName))
+        {
+            if (stream == null)
+            {
+                throw new FileNotFoundException("Resource not found", resourceName);
+            }
+
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                return reader.ReadToEnd();
+            }
+        }
+    }
+
+
     private static FifthParser GetParserFor(ICharStream source)
     {
         var lexer = new FifthLexer(source);
@@ -248,5 +277,29 @@ public class AstBuilderVisitorTests
         {
             vds.InitialValue.Should().NotBeNull();
         }
+    }
+
+    [Theory]
+    [InlineData(0, "Name", "string")]
+    [InlineData(1, "Height", "float")]
+    [InlineData(2, "Age", "float")]
+    [InlineData(3, "Weight", "float")]
+    public void handles_class_definition(int ord, string name, string typename)
+    {
+        var p = GetParserFor("class-definition.5th");
+        var x = p.fifth();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x);
+        a.Should().NotBeNull();
+        a.Should().BeOfType<ClassDef>();
+        var cd = a as ClassDef;
+        cd.MemberDefs.Should().NotBeEmpty();
+        cd.MemberDefs.All(o => o is not null).Should().BeTrue();
+        cd.Type.Should().BeOfType<FifthType.TUDType>();
+        var prop1 = cd.MemberDefs[ord] as PropertyDef;
+        prop1.Should().NotBeNull();
+        prop1.Type.Should().BeOfType<FifthType.NoType>();
+        prop1.Name.Value.Should().Be(name);
+        prop1.TypeName.Value.Should().Be(typename);
     }
 }

@@ -1,0 +1,20 @@
+class Person {
+    Name: string;
+    Vitals: VitalStatistics;
+}
+class VitalStatistics {
+    Height: float;
+    Age: float;
+    Weight: float; 
+}
+
+calculate_bmi(p: Person {
+    name: Name,
+    vitals: Vitals{
+        age: Age,
+        height: Height,
+        weight: Weight
+        }
+    }) : float {
+    return weight / (height * height);
+}

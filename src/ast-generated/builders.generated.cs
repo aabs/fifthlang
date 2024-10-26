@@ -82,6 +82,7 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
     private ast.BlockStatement _Body;
     private ast_model.TypeSystem.TypeName? _ReturnType;
     private ast.MemberName _Name;
+    private ast_model.TypeSystem.TypeName _TypeName;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -93,6 +94,7 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
            , Body = this._Body // from FunctionDef
            , ReturnType = this._ReturnType // from FunctionDef
            , Name = this._Name // from MemberDef
+           , TypeName = this._TypeName // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
@@ -120,6 +122,11 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
 
     public FunctionDefBuilder WithName(ast.MemberName value){
         _Name = value;
+        return this;
+    }
+
+    public FunctionDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
+        _TypeName = value;
         return this;
     }
 
@@ -182,6 +189,7 @@ public class FieldDefBuilder : IBuilder<ast.FieldDef>
 
     private ast.AccessConstraint[] _AccessConstraints;
     private ast.MemberName _Name;
+    private ast_model.TypeSystem.TypeName _TypeName;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -191,6 +199,7 @@ public class FieldDefBuilder : IBuilder<ast.FieldDef>
         return new ast.FieldDef(){
              AccessConstraints = this._AccessConstraints // from FieldDef
            , Name = this._Name // from MemberDef
+           , TypeName = this._TypeName // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
@@ -203,6 +212,11 @@ public class FieldDefBuilder : IBuilder<ast.FieldDef>
 
     public FieldDefBuilder WithName(ast.MemberName value){
         _Name = value;
+        return this;
+    }
+
+    public FieldDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
+        _TypeName = value;
         return this;
     }
 
@@ -232,6 +246,7 @@ public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
     private ast.MethodDef _Setter;
     private System.Boolean _CtorOnlySetter;
     private ast.MemberName _Name;
+    private ast_model.TypeSystem.TypeName _TypeName;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -246,6 +261,7 @@ public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
            , Setter = this._Setter // from PropertyDef
            , CtorOnlySetter = this._CtorOnlySetter // from PropertyDef
            , Name = this._Name // from MemberDef
+           , TypeName = this._TypeName // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
@@ -286,6 +302,11 @@ public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
         return this;
     }
 
+    public PropertyDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
+        _TypeName = value;
+        return this;
+    }
+
     public PropertyDefBuilder WithIsReadOnly(System.Boolean value){
         _IsReadOnly = value;
         return this;
@@ -306,6 +327,7 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
 {
 
     private ast.MemberName _Name;
+    private ast_model.TypeSystem.TypeName _TypeName;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -314,6 +336,7 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
     {
         return new ast.MethodDef(){
              Name = this._Name // from MemberDef
+           , TypeName = this._TypeName // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
@@ -321,6 +344,11 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
     }
     public MethodDefBuilder WithName(ast.MemberName value){
         _Name = value;
+        return this;
+    }
+
+    public MethodDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
+        _TypeName = value;
         return this;
     }
 

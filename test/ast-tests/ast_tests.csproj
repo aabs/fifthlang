@@ -9,6 +9,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="CodeSamples\class-definition.5th" />
+    <None Remove="CodeSamples\destructuring.5th" />
+    <None Remove="CodeSamples\overloading.5th" />
+    <None Remove="CodeSamples\property-access.5th" />
+    <None Remove="CodeSamples\recursive-destructuring.5th" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="CodeSamples\class-definition.5th" />
+    <EmbeddedResource Include="CodeSamples\destructuring.5th" />
+    <EmbeddedResource Include="CodeSamples\overloading.5th" />
+    <EmbeddedResource Include="CodeSamples\property-access.5th" />
+    <EmbeddedResource Include="CodeSamples\recursive-destructuring.5th" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.2" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="FluentAssertions" Version="7.0.0-alpha.4" />

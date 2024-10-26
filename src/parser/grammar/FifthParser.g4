@@ -54,17 +54,9 @@ variable_constraint
 
 // v2 Parameter declarations
 paramdecl
-    : param_name COLON param_type
+    : var_name COLON type_name
         ( variable_constraint
         | destructuring_decl )?
-    ;
-
-param_name
-    : IDENTIFIER
-    ;
-
-param_type
-    : identifier_chain
     ;
 
 destructuring_decl
@@ -126,17 +118,17 @@ absoluteIri
 
 // ========[STATEMENTS]=========
 block
-    : L_CURLY (statement SEMI)* R_CURLY
+    : L_CURLY statement* R_CURLY
     ;
 
 statement
     : IF L_PAREN condition=expression R_PAREN ifpart=block (ELSE elsepart=block)? # stmt_ifelse
     | WHILE L_PAREN condition=expression R_PAREN looppart=block                   # stmt_while
     | WITH expression  block                                                      # stmt_with // this is not useful as is
-    | decl=var_decl (ASSIGN init=expression)?                                     # stmt_vardecl
-    | UNDERSCORE ASSIGN expression                                                # stmt_bareexpression
-    | operand ASSIGN expression                                                   # stmt_assignment
-    | RETURN expression                                                           # stmt_return
+    | decl=var_decl (ASSIGN init=expression)? SEMI                                # stmt_vardecl
+    | expression SEMI                                                             # stmt_bareexpression
+    | operand ASSIGN expression SEMI                                              # stmt_assignment
+    | RETURN expression SEMI                                                      # stmt_return
     ;
 
 var_decl
@@ -201,6 +193,7 @@ expression
       rhs=expression                                                                     #exp_rel
     | lhs=expression LOGICAL_AND rhs=expression                                          #exp_and
     | lhs=expression LOGICAL_OR rhs=expression                                           #exp_or
+    | fun=function_name L_PAREN expressionList? R_PAREN                                  #exp_funccall
     | unary_op = (PLUS | MINUS | LOGICAL_NOT ) expression                                #exp_unary
     | operand                                                                            #exp_operand
  ;

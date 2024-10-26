@@ -58,12 +58,14 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var b = new ClassDefBuilder();
         foreach (var fctx in context._functions)
         {
-            b.AddingItemToMemberDefs((MemberDef)Visit(fctx));
+            var f = Visit(fctx);
+            b.AddingItemToMemberDefs((MemberDef)f);
         }
 
         foreach (var pctx in context._properties)
         {
-            b.AddingItemToMemberDefs((MemberDef)Visit(pctx));
+            var prop = Visit(pctx);
+            b.AddingItemToMemberDefs((MemberDef)prop);
         }
 
         b.WithVisibility(Visibility.Public);
@@ -259,8 +261,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var b = new ParamDefBuilder()
                 .WithVisibility(Visibility.Public)
                 .WithAnnotations([])
-                .WithName(context.param_name().GetText())
-                .WithTypeName(TypeName.From(context.param_type().GetText()))
+                .WithName(context.type_name().GetText())
+                .WithTypeName(TypeName.From(context.var_name().GetText()))
             ;
         if (context.destructuring_decl() is not null)
         {
@@ -285,13 +287,14 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var b = new PropertyDefBuilder();
         b.WithName(MemberName.From(context.name.Text))
-            .WithVisibility(Visibility.Public)
-            .WithAccessConstraints([AccessConstraint.None])
-            .WithIsReadOnly(false)
-            .WithIsWriteOnly(false);
+         .WithTypeName(TypeName.From(context.type.Text))
+         .WithVisibility(Visibility.Public)
+         .WithAccessConstraints([AccessConstraint.None])
+         .WithIsReadOnly(false)
+         .WithIsWriteOnly(false);
         // todo:  There's a lot more detail that could be filled in here, and a lot more sophistication needed in the grammar of the decl
         var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
-        return base.VisitProperty_declaration(context);
+        return result;
     }
     public override IAstThing VisitStmt_ifelse(FifthParser.Stmt_ifelseContext context)
     {
@@ -358,7 +361,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var b = new AssignmentStatementBuilder()
             .WithAnnotations([])
-            .WithVariableName(context.var_name().GetText())
+            .WithVariableName(context.operand().GetText())
             .WithRHS((Expression)Visit(context.expression()));
         var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
         return result;

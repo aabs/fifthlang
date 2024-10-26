@@ -1,0 +1,14 @@
+foo(i: int | i <= 15) : string {
+    return "child";
+}
+foo(i: int | i > 15 && i <= 65) : string {
+    return "adult";
+}
+foo(i: int) : string {
+    return "elderly";
+}
+
+ main():void {
+    print(foo(52));
+}
+
