@@ -25,13 +25,49 @@ public class AstVisitorTests
         {
             Annotations = [],
             AssemblyRefs = [],
-            ClassDefs = [createClassDef("MyType1", 1),createClassDef("MyType2", 2)],
+            Modules = [CreateModuleDef()],
             Name = AssemblyName.From("MyAsm"),
             Type = CreateType("myAsm", 0, SymbolKind.Assembly),
             Parent = null,
             PublicKeyToken = "ajhsgjsfdhg",
             Version = "0.1.1.1",
             Visibility = Visibility.Public
+        };
+    }
+    ModuleDef CreateModuleDef()
+    {
+        return new ModuleDef()
+        {
+            Annotations = [],
+            Classes = [createClassDef("MyType1", 1),createClassDef("MyType2", 2)],
+            OriginalModuleName = "MyModule",
+            Type = new FifthType.NoType(),
+            Parent = null,
+            Visibility = Visibility.Public,
+            NamespaceDecl = NamespaceName.From("MyNamespace"),
+            Functions = [createFunctionDef("foo", "int")],
+        };
+    }
+
+    private FunctionDef createFunctionDef(string name, string returnType)
+    {
+        return new FunctionDef()
+        {
+            Annotations = [],
+            Name = MemberName.From(name),
+            ReturnType = TypeName.From(returnType),
+            Visibility = Visibility.Public,
+            Params = [],
+            Body = new BlockStatement()
+            {
+                Statements = [],
+                Location = null
+            },
+            Location = null,
+            IsReadOnly = false,
+            Parent = null,
+            Type = CreateType(name, 0, SymbolKind.MemberDef),
+            TypeName = TypeName.From(returnType)
         };
     }
 

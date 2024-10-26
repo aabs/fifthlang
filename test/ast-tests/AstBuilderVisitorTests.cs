@@ -167,7 +167,7 @@ public class AstBuilderVisitorTests
                             else
                             {
                                 return "world";
-                            };
+                            }
                          }
                          """;
         var s = CharStreams.fromString(funcdefsrc);
@@ -175,7 +175,7 @@ public class AstBuilderVisitorTests
         var x = p.function_declaration();
         x.Should().NotBeNull();
         var v = new AstBuilderVisitor();
-        var a = v.Visit(x) as FunctionDef;
+        var a = v.VisitFunction_declaration(x) as FunctionDef;
         a.Should().NotBeNull();
         var stmt = a.Body.Statements[0];
         stmt.Should().NotBeNull();
@@ -291,8 +291,9 @@ public class AstBuilderVisitorTests
         var v = new AstBuilderVisitor();
         var a = v.Visit(x);
         a.Should().NotBeNull();
-        a.Should().BeOfType<ClassDef>();
-        var cd = a as ClassDef;
+        a.Should().BeOfType<AssemblyDef>();
+        var ad = a as AssemblyDef;
+        var cd = ad.Modules[0].Classes[0];
         cd.MemberDefs.Should().NotBeEmpty();
         cd.MemberDefs.All(o => o is not null).Should().BeTrue();
         cd.Type.Should().BeOfType<FifthType.TUDType>();
@@ -301,5 +302,61 @@ public class AstBuilderVisitorTests
         prop1.Type.Should().BeOfType<FifthType.NoType>();
         prop1.Name.Value.Should().Be(name);
         prop1.TypeName.Value.Should().Be(typename);
+    }
+
+    [Fact]
+    public void handles_function_overloading()
+    {
+        var p = GetParserFor("overloading.5th");
+        var x = p.fifth();
+        var v = new AstBuilderVisitor();
+        var a = v.VisitFifth(x) as AssemblyDef;
+        a.Should().NotBeNull();
+        a.Modules.Should().HaveCount(1);
+        var m = a.Modules[0];
+        m.Classes.Should().HaveCount(0);
+        m.Functions.Should().HaveCount(4);
+        m.Functions.All(o => o is not null).Should().BeTrue();
+
+        // Validate the first three functions
+        for (int i = 0; i < 3; i++)
+        {
+            var func = m.Functions[i] as FunctionDef;
+            func.Should().NotBeNull();
+            func.Name.Value.Should().Be("foo");
+            func.ReturnType.Value.Value.Should().Be("string");
+        }
+
+        // Validate the fourth function
+        var mainFunc = m.Functions[3] as FunctionDef;
+        mainFunc.Should().NotBeNull();
+        mainFunc.Name.Value.Should().Be("main");
+
+        // examine the function params
+        var f = m.Functions[0] as FunctionDef;
+        f.Params.Should().HaveCount(1);
+        var pa = f.Params[0];
+        pa.Name.Should().Be("i");
+        pa.TypeName.Value.Should().Be("int");
+        pa.ParameterConstraint.Should().NotBeNull();
+        var pc = pa.ParameterConstraint as BinaryExp;
+        pc.Should().NotBeNull();
+        pc.LHS.Should().NotBeNull();
+        pc.LHS.Should().BeOfType<VarRefExp>();
+        var lhsv = ((VarRefExp)pc.LHS).VarName;
+        lhsv.Should().Be("i");
+        pc.Operator.Should().Be(Operator.LessThanOrEqual);
+        pc.RHS.Should().BeOfType<Int32LiteralExp>();
+        var rhsv = ((Int32LiteralExp)pc.RHS).Value;
+        rhsv.Should().Be(15);
+
+        f.Body.Should().NotBeNull();
+        f.Body.Statements.Should().HaveCount(1);
+        var stmt = f.Body.Statements[0];
+        stmt.Should().BeOfType<ReturnStatement>();
+        var ret = stmt as ReturnStatement;
+        ret.ReturnValue.Should().BeOfType<StringLiteralExp>();
+        var retv = ret.ReturnValue as StringLiteralExp;
+        retv.Value.Should().Be("\"child\"");
     }
 }

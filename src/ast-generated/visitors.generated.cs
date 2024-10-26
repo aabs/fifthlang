@@ -8,6 +8,8 @@ public interface IAstVisitor
 {
     public void EnterAssemblyDef(AssemblyDef ctx);
     public void LeaveAssemblyDef(AssemblyDef ctx);
+    public void EnterModuleDef(ModuleDef ctx);
+    public void LeaveModuleDef(ModuleDef ctx);
     public void EnterFunctionDef(FunctionDef ctx);
     public void LeaveFunctionDef(FunctionDef ctx);
     public void EnterFunctorDef(FunctorDef ctx);
@@ -150,6 +152,8 @@ public partial class BaseAstVisitor : IAstVisitor
 {
     public virtual void EnterAssemblyDef(AssemblyDef ctx){}
     public virtual void LeaveAssemblyDef(AssemblyDef ctx){}
+    public virtual void EnterModuleDef(ModuleDef ctx){}
+    public virtual void LeaveModuleDef(ModuleDef ctx){}
     public virtual void EnterFunctionDef(FunctionDef ctx){}
     public virtual void LeaveFunctionDef(FunctionDef ctx){}
     public virtual void EnterFunctorDef(FunctorDef ctx){}
@@ -293,6 +297,7 @@ public interface IAstRecursiveDescentVisitor
 {
     public AstThing Visit(AstThing ctx);
     public AssemblyDef VisitAssemblyDef(AssemblyDef ctx);
+    public ModuleDef VisitModuleDef(ModuleDef ctx);
     public FunctionDef VisitFunctionDef(FunctionDef ctx);
     public FunctorDef VisitFunctorDef(FunctorDef ctx);
     public FieldDef VisitFieldDef(FieldDef ctx);
@@ -370,6 +375,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         return ctx switch
         {
              AssemblyDef node => VisitAssemblyDef(node),
+             ModuleDef node => VisitModuleDef(node),
              FunctionDef node => VisitFunctionDef(node),
              FunctorDef node => VisitFunctorDef(node),
              FieldDef node => VisitFieldDef(node),
@@ -447,11 +453,22 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     {
         List<ast.AssemblyRef> tmpAssemblyRefs = [];
         tmpAssemblyRefs.AddRange(ctx.AssemblyRefs.Select(x => (ast.AssemblyRef)Visit(x)));
-        List<ast.ClassDef> tmpClassDefs = [];
-        tmpClassDefs.AddRange(ctx.ClassDefs.Select(x => (ast.ClassDef)Visit(x)));
+        List<ast.ModuleDef> tmpModules = [];
+        tmpModules.AddRange(ctx.Modules.Select(x => (ast.ModuleDef)Visit(x)));
      return ctx with {
          AssemblyRefs = tmpAssemblyRefs
-        ,ClassDefs = tmpClassDefs
+        ,Modules = tmpModules
+        };
+    }
+    public virtual ModuleDef VisitModuleDef(ModuleDef ctx)
+    {
+        List<ast.ClassDef> tmpClasses = [];
+        tmpClasses.AddRange(ctx.Classes.Select(x => (ast.ClassDef)Visit(x)));
+        List<ast.FunctionDef> tmpFunctions = [];
+        tmpFunctions.AddRange(ctx.Functions.Select(x => (ast.FunctionDef)Visit(x)));
+     return ctx with {
+         Classes = tmpClasses
+        ,Functions = tmpFunctions
         };
     }
     public virtual FunctionDef VisitFunctionDef(FunctionDef ctx)

@@ -8,6 +8,7 @@ using ast_model.TypeSystem;
 public interface ITypeChecker
 {
     public FifthType Infer(ScopeAstThing scope, AssemblyDef node);
+    public FifthType Infer(ScopeAstThing scope, ModuleDef node);
     public FifthType Infer(ScopeAstThing scope, FunctionDef node);
     public FifthType Infer(ScopeAstThing scope, FunctorDef node);
     public FifthType Infer(ScopeAstThing scope, FieldDef node);
@@ -88,6 +89,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
         return exp switch
         {
             AssemblyDef node => Infer(scope, node),
+            ModuleDef node => Infer(scope, node),
             FunctionDef node => Infer(scope, node),
             FunctorDef node => Infer(scope, node),
             FieldDef node => Infer(scope, node),
@@ -162,6 +164,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     }
 
     public abstract FifthType Infer(ScopeAstThing scope, AssemblyDef node);
+    public abstract FifthType Infer(ScopeAstThing scope, ModuleDef node);
     public abstract FifthType Infer(ScopeAstThing scope, FunctionDef node);
     public abstract FifthType Infer(ScopeAstThing scope, FunctorDef node);
     public abstract FifthType Infer(ScopeAstThing scope, FieldDef node);

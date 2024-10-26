@@ -1,5 +1,6 @@
 using System;
 using Antlr4.Runtime;
+using Antlr4.Runtime.Misc;
 using ast;
 using ast_generated;
 using ast_model.TypeSystem;
@@ -38,6 +39,45 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     #endregion
 
     protected override IAstThing DefaultResult { get; }
+
+    public override IAstThing VisitFifth([NotNull] FifthParser.FifthContext context)
+    {
+        var b = new AssemblyDefBuilder();
+        b.WithVisibility(Visibility.Public)
+            .WithPublicKeyToken("abc123") // TODO: need ways to define this
+            .WithAnnotations([])
+            .WithName(AssemblyName.anonymous)
+            .WithVersion("0.0.0.0")
+            ;
+        var mb = new ModuleDefBuilder();
+        if (context._classes.Count == 0)
+        {
+            mb.WithClasses([]);
+        }
+        else
+        {
+            foreach (var @class in context._classes)
+            {
+                mb.AddingItemToClasses((ClassDef)Visit(@class));
+            }
+        }
+
+        if (context._functions.Count == 0)
+        {
+            mb.WithFunctions([]);
+        }
+        else
+        {
+            foreach (var @func in context._functions)
+            {
+                mb.AddingItemToFunctions((FunctionDef)Visit(@func));
+            }
+        }
+        b.AddingItemToModules(mb.Build());
+
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        return result;
+    }
 
     public override IAstThing VisitBlock(FifthParser.BlockContext context)
     {
@@ -261,8 +301,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var b = new ParamDefBuilder()
                 .WithVisibility(Visibility.Public)
                 .WithAnnotations([])
-                .WithName(context.type_name().GetText())
-                .WithTypeName(TypeName.From(context.var_name().GetText()))
+                .WithName(context.var_name().GetText())
+                .WithTypeName(TypeName.From(context.type_name().GetText()))
             ;
         if (context.destructuring_decl() is not null)
         {

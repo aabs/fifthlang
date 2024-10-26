@@ -256,7 +256,15 @@ public record AssemblyDef : Definition
     public required string PublicKeyToken { get; init; }
     public required string Version { get; init; }
     public required List<AssemblyRef> AssemblyRefs { get; init; }
-    public required List<ClassDef> ClassDefs { get; init; }
+    public required List<ModuleDef> Modules { get; init; }
+}
+
+public record ModuleDef : Definition
+{
+    public required string OriginalModuleName { get; init; }
+    public required NamespaceName NamespaceDecl { get; init; }
+    public required List<ClassDef> Classes { get; init; }
+    public required List<FunctionDef> Functions { get; init; }
 }
 
 /// <summary>

@@ -13,7 +13,7 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
     private System.String _PublicKeyToken;
     private System.String _Version;
     private List<ast.AssemblyRef> _AssemblyRefs;
-    private List<ast.ClassDef> _ClassDefs;
+    private List<ast.ModuleDef> _Modules;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -24,7 +24,7 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
            , PublicKeyToken = this._PublicKeyToken // from AssemblyDef
            , Version = this._Version // from AssemblyDef
            , AssemblyRefs = this._AssemblyRefs // from AssemblyDef
-           , ClassDefs = this._ClassDefs // from AssemblyDef
+           , Modules = this._Modules // from AssemblyDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
         };
@@ -54,14 +54,14 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
         _AssemblyRefs.Add(value);
         return this;
     }
-    public AssemblyDefBuilder WithClassDefs(List<ast.ClassDef> value){
-        _ClassDefs = value;
+    public AssemblyDefBuilder WithModules(List<ast.ModuleDef> value){
+        _Modules = value;
         return this;
     }
 
-    public AssemblyDefBuilder AddingItemToClassDefs(ast.ClassDef value){
-        _ClassDefs  ??= [];
-        _ClassDefs.Add(value);
+    public AssemblyDefBuilder AddingItemToModules(ast.ModuleDef value){
+        _Modules  ??= [];
+        _Modules.Add(value);
         return this;
     }
     public AssemblyDefBuilder WithVisibility(ast.Visibility value){
@@ -70,6 +70,68 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
     }
 
     public AssemblyDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
+{
+
+    private System.String _OriginalModuleName;
+    private ast.NamespaceName _NamespaceDecl;
+    private List<ast.ClassDef> _Classes;
+    private List<ast.FunctionDef> _Functions;
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.ModuleDef Build()
+    {
+        return new ast.ModuleDef(){
+             OriginalModuleName = this._OriginalModuleName // from ModuleDef
+           , NamespaceDecl = this._NamespaceDecl // from ModuleDef
+           , Classes = this._Classes // from ModuleDef
+           , Functions = this._Functions // from ModuleDef
+           , Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public ModuleDefBuilder WithOriginalModuleName(System.String value){
+        _OriginalModuleName = value;
+        return this;
+    }
+
+    public ModuleDefBuilder WithNamespaceDecl(ast.NamespaceName value){
+        _NamespaceDecl = value;
+        return this;
+    }
+
+    public ModuleDefBuilder WithClasses(List<ast.ClassDef> value){
+        _Classes = value;
+        return this;
+    }
+
+    public ModuleDefBuilder AddingItemToClasses(ast.ClassDef value){
+        _Classes  ??= [];
+        _Classes.Add(value);
+        return this;
+    }
+    public ModuleDefBuilder WithFunctions(List<ast.FunctionDef> value){
+        _Functions = value;
+        return this;
+    }
+
+    public ModuleDefBuilder AddingItemToFunctions(ast.FunctionDef value){
+        _Functions  ??= [];
+        _Functions.Add(value);
+        return this;
+    }
+    public ModuleDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public ModuleDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
