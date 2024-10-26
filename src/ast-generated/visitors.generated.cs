@@ -530,9 +530,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual PropertyBindingDef VisitPropertyBindingDef(PropertyBindingDef ctx)
     {
      return ctx with {
-         IntroducedVariable = (ast.VariableDecl)Visit((AstThing)ctx.IntroducedVariable)
-        ,ReferencedProperty = (ast.PropertyDef)Visit((AstThing)ctx.ReferencedProperty)
-        ,DestructureDef = (ast.ParamDestructureDef)Visit((AstThing)ctx.DestructureDef)
+         DestructureDef = (ast.ParamDestructureDef)Visit((AstThing)ctx.DestructureDef)
         };
     }
     public virtual TypeDef VisitTypeDef(TypeDef ctx)

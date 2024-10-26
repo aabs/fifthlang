@@ -559,8 +559,8 @@ public class ParamDestructureDefBuilder : IBuilder<ast.ParamDestructureDef>
 public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
 {
 
-    private ast.VariableDecl _IntroducedVariable;
-    private ast.PropertyDef _ReferencedProperty;
+    private ast.MemberName _IntroducedVariable;
+    private ast.MemberName _ReferencedProperty;
     private ast.ParamDestructureDef _DestructureDef;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -575,12 +575,12 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public PropertyBindingDefBuilder WithIntroducedVariable(ast.VariableDecl value){
+    public PropertyBindingDefBuilder WithIntroducedVariable(ast.MemberName value){
         _IntroducedVariable = value;
         return this;
     }
 
-    public PropertyBindingDefBuilder WithReferencedProperty(ast.PropertyDef value){
+    public PropertyBindingDefBuilder WithReferencedProperty(ast.MemberName value){
         _ReferencedProperty = value;
         return this;
     }

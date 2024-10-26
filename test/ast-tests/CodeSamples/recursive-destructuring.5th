@@ -2,6 +2,7 @@ class Person {
     Name: string;
     Vitals: VitalStatistics;
 }
+
 class VitalStatistics {
     Height: float;
     Age: float;
