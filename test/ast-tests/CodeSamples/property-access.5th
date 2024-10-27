@@ -6,7 +6,7 @@ class Person {
 }
 
 main():void{
-    p: Person = new Person{
+    p: Person = new Person() {
         Name = "Eric Morecombe",
         Height = 1.93,
         Age = 60,

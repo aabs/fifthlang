@@ -587,7 +587,8 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual AssignmentStatement VisitAssignmentStatement(AssignmentStatement ctx)
     {
      return ctx with {
-         RHS = (ast.Expression)Visit((AstThing)ctx.RHS)
+         LValue = (ast.Expression)Visit((AstThing)ctx.LValue)
+        ,RValue = (ast.Expression)Visit((AstThing)ctx.RValue)
         };
     }
     public virtual BlockStatement VisitBlockStatement(BlockStatement ctx)

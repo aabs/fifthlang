@@ -62,6 +62,7 @@ IF          : 'if';
 IMPORT      : 'import';
 INTERFACE   : 'interface';
 MAP         : 'map';
+NEW         : 'new';
 PACKAGE     : 'package';
 RANGE       : 'range';
 RETURN      : 'return' /*-> mode(NLSEMI)*/;

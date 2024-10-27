@@ -31,7 +31,7 @@ alias
 function_declaration
     : name=function_name
         L_PAREN (args+=paramdecl (COMMA args+=paramdecl)*)? R_PAREN
-      COLON result_type=function_type
+      COLON result_type=type_name
       body=function_body
     ;
 
@@ -40,13 +40,8 @@ function_body
     ;
 
 function_name
-    : identifier_chain
-    ;
-
-function_type
     : IDENTIFIER
     ;
-
 
 variable_constraint
     : OR constraint=expression
@@ -87,23 +82,8 @@ property_declaration
     : name=IDENTIFIER  COLON type=IDENTIFIER SEMI
     ;
 
-
-type_initialiser
-    : typename=type_name L_CURLY
-        properties+=type_property_init
-        (COMMA
-            properties+=type_property_init
-        )*
-      R_CURLY
-    ;
-
 type_name
     :  IDENTIFIER
-    ;
-
-// Ex: foo.bar = 5 * 23
-type_property_init
-    : var_name ASSIGN expression
     ;
 
 absoluteIri
@@ -127,7 +107,7 @@ statement
     | WITH expression  block                                                      # stmt_with // this is not useful as is
     | decl=var_decl (ASSIGN init=expression)? SEMI                                # stmt_vardecl
     | expression SEMI                                                             # stmt_bareexpression
-    | operand ASSIGN expression SEMI                                              # stmt_assignment
+    | lvalue=expression ASSIGN rvalue=expression SEMI                             # stmt_assignment
     | RETURN expression SEMI                                                      # stmt_return
     ;
 
@@ -137,10 +117,6 @@ var_decl
 
 var_name
     : IDENTIFIER
-    ;
-
-identifier_chain
-    : segments+=IDENTIFIER (DOT segments+=IDENTIFIER)*
     ;
 
 // ========[LISTS]=========
@@ -180,7 +156,7 @@ expressionList
     ;
 
 expression
-    : lhs=var_name DOT rhs=ID                                                           #exp_member_access
+    : lhs=expression DOT rhs=expression                                                 #exp_member_access
     | lhs=expression POW<assoc=right> rhs=expression                                    #exp_exp
     | lhs=expression
       mul_op = (STAR | DIV | MOD | LSHIFT | RSHIFT | AMPERSAND | STAR_STAR)
@@ -193,15 +169,36 @@ expression
       rhs=expression                                                                     #exp_rel
     | lhs=expression LOGICAL_AND rhs=expression                                          #exp_and
     | lhs=expression LOGICAL_OR rhs=expression                                           #exp_or
-    | fun=function_name L_PAREN expressionList? R_PAREN                                  #exp_funccall
+    | function_call_expression                                                           #exp_funccall
     | unary_op = (PLUS | MINUS | LOGICAL_NOT ) expression                                #exp_unary
     | operand                                                                            #exp_operand
  ;
+function_call_expression
+    : un=function_name L_PAREN expressionList? R_PAREN
+    ;
 
 operand
     : literal
     | var_name
     | L_PAREN expression R_PAREN
+    | object_instantiation_expression
+    ;
+
+object_instantiation_expression
+    : NEW type_name
+        L_PAREN (args+=paramdecl (COMMA args+=paramdecl)*)? R_PAREN
+        (
+        L_CURLY
+        properties+=initialiser_property_assignment
+        (COMMA
+            properties+=initialiser_property_assignment
+        )*
+        R_CURLY
+        )?
+    ;
+
+initialiser_property_assignment
+    : var_name ASSIGN expression
     ;
 
 index

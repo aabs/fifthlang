@@ -372,4 +372,15 @@ public class AstBuilderVisitorTests
         var m = a.Modules[0];
         m.Functions[0].Params[0].DestructureDef.Should().NotBeNull();
     }
-}
+
+    [Fact]
+    public void handles_property_access()
+    {
+        var p = GetParserFor("property-access.5th");
+        var x = p.fifth();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as AssemblyDef;
+        a.Should().NotBeNull();
+        a.Modules.Should().HaveCount(1);
+        var m = a.Modules[0];
+    }}

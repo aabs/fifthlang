@@ -452,8 +452,8 @@ public abstract record Statement : AstThing
 
 public record AssignmentStatement : Statement
 {
-    public required string VariableName { get; init; }
-    public required Expression RHS { get; set; }
+    public required Expression LValue { get; init; }
+    public required Expression RValue { get; set; }
 }
 
 public record BlockStatement : Statement
@@ -658,10 +658,13 @@ public record AtomLiteralExp : LiteralExpression<string>;
 /// The member access expression can be treated as a binary operator
 /// <code title="accessing the member someProp">var x = inst.someProp;</code>
 /// </example>
+/// <remarks>
+/// <p>In its simplest form, this is simply a variable name without further member accesses or method calls.</p>
+/// </remarks>
 public record MemberAccessExp : Expression
 {
-    public Expression LHS { get; set; }
-    public Expression RHS { get; set; }
+    public required Expression LHS { get; init; }
+    public required Expression? RHS { get; init; } // grammar expects var_name or function_call_expression
 }
 
 /// <summary>An expression that supplies a set of values to the properties of an object being created</summary>

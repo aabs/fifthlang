@@ -402,8 +402,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var b = new AssignmentStatementBuilder()
             .WithAnnotations([])
-            .WithVariableName(context.operand().GetText())
-            .WithRHS((Expression)Visit(context.expression()));
+            .WithLValue((Expression)Visit(context.lvalue))
+            .WithRValue((Expression)Visit(context.rvalue));
         var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
         return result;
     }
@@ -435,435 +435,452 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
         return result;
     }
+
+    public override IAstThing VisitVariable_constraint([NotNull] FifthParser.Variable_constraintContext context)
+    {
+        return base.Visit(context.constraint);
+    }
+
+    public override IAstThing VisitExp_member_access([NotNull] FifthParser.Exp_member_accessContext context)
+    {
+        var b = new MemberAccessExpBuilder()
+            .WithAnnotations([]);
+        b.WithLHS((Expression)Visit(context.lhs));
+        if(context.rhs is not null)
+            b.WithRHS((Expression)Visit(context.rhs));
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        return result;
+    }
+
     /*
 
 public override IAstThing VisitExp_memberaccess(FifthParser.Exp_memberaccessContext context)
 {
-   // the member access '.' operator is left associative...
+// the member access '.' operator is left associative...
 
-   var builder = MemberAccessExpressionBuilder.CreateMemberAccessExpression();
-   var segments = from s in context.member_access_expression()._segments select Visit(s) as Expression;
-   if (segments.Count() < 2)
-   {
-       return segments.First();
-   }
-   var e = segments.Reverse().GetEnumerator();
-   e.MoveNext(); // safe, since we know there is at least 2
-   var firstElement = e.Current;
-   Expression result = firstElement;
-   while (e.MoveNext())
-   {
-       result = new MemberAccessExpression(e.Current, result);
-   }
-   return result!;
+var builder = MemberAccessExpressionBuilder.CreateMemberAccessExpression();
+var segments = from s in context.member_access_expression()._segments select Visit(s) as Expression;
+if (segments.Count() < 2)
+{
+  return segments.First();
+}
+var e = segments.Reverse().GetEnumerator();
+e.MoveNext(); // safe, since we know there is at least 2
+var firstElement = e.Current;
+Expression result = firstElement;
+while (e.MoveNext())
+{
+  result = new MemberAccessExpression(e.Current, result);
+}
+return result!;
 }
 
 public override IAstThing VisitExp_typecreateinst(FifthParser.Exp_typecreateinstContext context)
 {
-   var typeInitialiser = context.type_initialiser();
-   var propertyInits = from x in typeInitialiser._properties
-                       select VisitType_property_init(x);
+var typeInitialiser = context.type_initialiser();
+var propertyInits = from x in typeInitialiser._properties
+                  select VisitType_property_init(x);
 
-   var result = new TypeInitialiser(context.type_initialiser().typename.GetText(),
-       propertyInits.Cast<TypePropertyInit>().ToList());
-   return result;
+var result = new TypeInitialiser(context.type_initialiser().typename.GetText(),
+  propertyInits.Cast<TypePropertyInit>().ToList());
+return result;
 }
 
 public override IAstThing VisitExp_list(FifthParser.Exp_listContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitExp_list(context);
+throw new NotImplementedException();
+//return base.VisitExp_list(context);
 }
 
 public override IAstThing VisitExp_paren(FifthParser.Exp_parenContext context)
 {
-   return Visit(context.innerexp).CaptureLocation(context.Start);
+return Visit(context.innerexp).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitExp_varname(FifthParser.Exp_varnameContext context)
 {
-   var id = context.var_name().GetText();
-   return
-       new VariableReference(id)
-           .CaptureLocation(context.Start);
+var id = context.var_name().GetText();
+return
+  new VariableReference(id)
+      .CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitExp_typecast(FifthParser.Exp_typecastContext context)
 {
-   var sexp = Visit(context.subexp) as Expression;
-   if (TypeRegistry.DefaultRegistry.TryGetTypeByName(context.type.GetText(), out var type))
-   {
-       return new TypeCast(sexp, type.TypeId).CaptureLocation(context.Start);
-   }
+var sexp = Visit(context.subexp) as Expression;
+if (TypeRegistry.DefaultRegistry.TryGetTypeByName(context.type.GetText(), out var type))
+{
+  return new TypeCast(sexp, type.TypeId).CaptureLocation(context.Start);
+}
 
-   throw new TypeCheckingException("Unable to find target type for cast");
+throw new TypeCheckingException("Unable to find target type for cast");
 }
 
 public override IAstThing VisitExp_int(FifthParser.Exp_intContext context)
 {
-   return new IntValueExpression(int.Parse(context.value.Text)).CaptureLocation(context.Start);
+return new IntValueExpression(int.Parse(context.value.Text)).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitExp_funccall(FifthParser.Exp_funccallContext context)
 {
-   var name = context.funcname.GetText();
-   var actualParams = (ExpressionList)VisitExplist(context.args);
-   return new FuncCallExpression(actualParams, name)
-       .CaptureLocation(context.Start);
+var name = context.funcname.GetText();
+var actualParams = (ExpressionList)VisitExplist(context.args);
+return new FuncCallExpression(actualParams, name)
+  .CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitExp_logicnegation(FifthParser.Exp_logicnegationContext context)
 {
-   return UnExp(context.operand, Operator.Not).CaptureLocation(context.Start);
+return UnExp(context.operand, Operator.Not).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitExp_div(FifthParser.Exp_divContext context)
 {
-   return BinExp(context.left, context.right, Operator.Divide).CaptureLocation(context.Start);
+return BinExp(context.left, context.right, Operator.Divide).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitAbsoluteIri(FifthParser.AbsoluteIriContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitAbsoluteIri(context);
+throw new NotImplementedException();
+//return base.VisitAbsoluteIri(context);
 }
 
 public override IAstThing VisitQNameIri(FifthParser.QNameIriContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitQNameIri(context);
+throw new NotImplementedException();
+//return base.VisitQNameIri(context);
 }
 
 public override IAstThing VisitList(FifthParser.ListContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitList(context);
+throw new NotImplementedException();
+//return base.VisitList(context);
 }
 
 public override IAstThing VisitEListLiteral(FifthParser.EListLiteralContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitEListLiteral(context);
+throw new NotImplementedException();
+//return base.VisitEListLiteral(context);
 }
 
 public override IAstThing VisitEListComprehension(FifthParser.EListComprehensionContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitEListComprehension(context);
+throw new NotImplementedException();
+//return base.VisitEListComprehension(context);
 }
 
 public override IAstThing VisitList_comp_constraint(FifthParser.List_comp_constraintContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitList_comp_constraint(context);
+throw new NotImplementedException();
+//return base.VisitList_comp_constraint(context);
 }
 
 public override IAstThing VisitList_comp_generator(FifthParser.List_comp_generatorContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitList_comp_generator(context);
+throw new NotImplementedException();
+//return base.VisitList_comp_generator(context);
 }
 
 public override IAstThing VisitList_literal(FifthParser.List_literalContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitList_literal(context);
+throw new NotImplementedException();
+//return base.VisitList_literal(context);
 }
 
 public override IAstThing VisitList_comprehension(FifthParser.List_comprehensionContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitList_comprehension(context);
+throw new NotImplementedException();
+//return base.VisitList_comprehension(context);
 }
 
 public override IAstThing VisitList_type_signature(FifthParser.List_type_signatureContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitList_type_signature(context);
+throw new NotImplementedException();
+//return base.VisitList_type_signature(context);
 }
 
 public override bool Equals(object obj)
 {
-   return base.Equals(obj);
+return base.Equals(obj);
 }
 
 public override int GetHashCode()
 {
-   return base.GetHashCode();
+return base.GetHashCode();
 }
 
 public override string ToString()
 {
-   return base.ToString();
+return base.ToString();
 }
 
 public override IAstThing VisitErrorNode(IErrorNode node)
 {
-   throw new NotImplementedException();
-   //return base.VisitErrorNode(node);
+throw new NotImplementedException();
+//return base.VisitErrorNode(node);
 }
 
 public override IAstThing VisitExplist([NotNull] FifthParser.ExplistContext context)
 {
-   if (context == null)
-   {
-       return null;
-   }
+if (context == null)
+{
+  return null;
+}
 
-   var exps = new List<Expression>();
-   foreach (var e in context.exp())
-   {
-       exps.Add((Expression)base.Visit(e));
-   }
+var exps = new List<Expression>();
+foreach (var e in context.exp())
+{
+  exps.Add((Expression)base.Visit(e));
+}
 
-   return new ExpressionList(exps).CaptureLocation(context.Start);
+return new ExpressionList(exps).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitFifth([NotNull] FifthParser.FifthContext context)
 {
-   var b = FifthProgramBuilder.CreateFifthProgram();
-   foreach (var @class in context._classes)
-   {
-       b.AddingItemToClasses((ClassDefinition)Visit(@class));
-   }
+var b = FifthProgramBuilder.CreateFifthProgram();
+foreach (var @class in context._classes)
+{
+  b.AddingItemToClasses((ClassDefinition)Visit(@class));
+}
 
-   foreach (var function in context._functions)
-   {
-       b.AddingItemToFunctions((IFunctionDefinition)Visit(function));
-   }
+foreach (var function in context._functions)
+{
+  b.AddingItemToFunctions((IFunctionDefinition)Visit(function));
+}
 
-   foreach (var aliasContext in context.alias())
-   {
-       b.AddingItemToAliases((AliasDeclaration)Visit(aliasContext));
-   }
+foreach (var aliasContext in context.alias())
+{
+  b.AddingItemToAliases((AliasDeclaration)Visit(aliasContext));
+}
 
-   var result = b.Build().CaptureLocation(context.Start);
-   result.TargetAssemblyFileName = Path.GetFileName(Path.ChangeExtension(result.Filename, "exe"));
-   return result;
+var result = b.Build().CaptureLocation(context.Start);
+result.TargetAssemblyFileName = Path.GetFileName(Path.ChangeExtension(result.Filename, "exe"));
+return result;
 }
 
 public override IAstThing VisitFunction_body([NotNull] FifthParser.Function_bodyContext context)
 {
-   return VisitBlock(context.block()).CaptureLocation(context.Start);
+return VisitBlock(context.block()).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitFunction_call([NotNull] FifthParser.Function_callContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitFunction_call(context).CaptureLocation(context.Start);
+throw new NotImplementedException();
+//return base.VisitFunction_call(context).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitFunction_declaration([NotNull] FifthParser.Function_declarationContext context)
 {
-   var fb = FunctionDefinitionBuilder.CreateFunctionDefinition();
-   var segments = from seg in context.name.identifier_chain()._segments
-                  select seg.Text;
-   var name = string.Join('.', segments);
-   fb.WithName(name)
-     .WithFunctionKind(FunctionKind.Normal)
-     .WithBody((Block)Visit(context.function_body()))
-     .WithTypename(context.result_type.GetText());
+var fb = FunctionDefinitionBuilder.CreateFunctionDefinition();
+var segments = from seg in context.name.identifier_chain()._segments
+             select seg.Text;
+var name = string.Join('.', segments);
+fb.WithName(name)
+.WithFunctionKind(FunctionKind.Normal)
+.WithBody((Block)Visit(context.function_body()))
+.WithTypename(context.result_type.GetText());
 
-   var pdlb = ParameterDeclarationListBuilder.CreateParameterDeclarationList();
-   foreach (var arg in context._args)
-   {
-       pdlb.AddingItemToParameterDeclarations((IParameterListItem)Visit(arg));
-   }
+var pdlb = ParameterDeclarationListBuilder.CreateParameterDeclarationList();
+foreach (var arg in context._args)
+{
+  pdlb.AddingItemToParameterDeclarations((IParameterListItem)Visit(arg));
+}
 
-   fb.WithParameterDeclarations(pdlb.Build());
+fb.WithParameterDeclarations(pdlb.Build());
 
-   return fb.Build().CaptureLocation(context.Start);
+return fb.Build().CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitIri([NotNull] FifthParser.IriContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitIri(context).CaptureLocation(context.Start);
+throw new NotImplementedException();
+//return base.VisitIri(context).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitIri_query_param([NotNull] FifthParser.Iri_query_paramContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitIri_query_param(context).CaptureLocation(context.Start);
+throw new NotImplementedException();
+//return base.VisitIri_query_param(context).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitModule_import([NotNull] FifthParser.Module_importContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitModule_import(context).CaptureLocation(context.Start);
+throw new NotImplementedException();
+//return base.VisitModule_import(context).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitModule_name([NotNull] FifthParser.Module_nameContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitModule_name(context).CaptureLocation(context.Start);
+throw new NotImplementedException();
+//return base.VisitModule_name(context).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitPackagename([NotNull] FifthParser.PackagenameContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitPackagename(context).CaptureLocation(context.Start);
+throw new NotImplementedException();
+//return base.VisitPackagename(context).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitParamdecl([NotNull] FifthParser.ParamdeclContext context)
 {
-   var builder = ParameterDeclarationBuilder.CreateParameterDeclaration()
-                                            .WithParameterName(new Identifier(context.param_name().IDENTIFIER()
-                                                .GetText()))
-                                            .WithTypeName(context.param_type().GetText());
+var builder = ParameterDeclarationBuilder.CreateParameterDeclaration()
+                                       .WithParameterName(new Identifier(context.param_name().IDENTIFIER()
+                                           .GetText()))
+                                       .WithTypeName(context.param_type().GetText());
 
-   if (context.variable_constraint() != null)
-   {
-       builder.WithConstraint((Expression)Visit(context.variable_constraint()));
-   }
+if (context.variable_constraint() != null)
+{
+  builder.WithConstraint((Expression)Visit(context.variable_constraint()));
+}
 
-   if (context.destructuring_decl() != null)
-   {
-       builder.WithDestructuringDecl((DestructuringDeclaration)Visit(context.destructuring_decl()));
-   }
+if (context.destructuring_decl() != null)
+{
+  builder.WithDestructuringDecl((DestructuringDeclaration)Visit(context.destructuring_decl()));
+}
 
-   return builder.Build().CaptureLocation(context.Start);
+return builder.Build().CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitDestructure_binding([NotNull] FifthParser.Destructure_bindingContext context)
 {
-   var builder = DestructuringBindingBuilder.CreateDestructuringBinding().WithVarname(context.name.Text)
-                                            .WithPropname(context.propname.Text);
-   if (context.destructuring_decl() != null)
-   {
-       builder.WithDestructuringDecl((DestructuringDeclaration)Visit(context.destructuring_decl()));
-   }
+var builder = DestructuringBindingBuilder.CreateDestructuringBinding().WithVarname(context.name.Text)
+                                       .WithPropname(context.propname.Text);
+if (context.destructuring_decl() != null)
+{
+  builder.WithDestructuringDecl((DestructuringDeclaration)Visit(context.destructuring_decl()));
+}
 
-   return builder.Build().CaptureLocation(context.Start);
+return builder.Build().CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitDestructuring_decl([NotNull] FifthParser.Destructuring_declContext context)
 {
-   var builder = DestructuringDeclarationBuilder.CreateDestructuringDeclaration();
-   foreach (var binding in context._bindings)
-   {
-       builder.AddingItemToBindings((DestructuringBinding)Visit(binding));
-   }
+var builder = DestructuringDeclarationBuilder.CreateDestructuringDeclaration();
+foreach (var binding in context._bindings)
+{
+  builder.AddingItemToBindings((DestructuringBinding)Visit(binding));
+}
 
-   return builder.Build().CaptureLocation(context.Start);
+return builder.Build().CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitProperty_declaration(FifthParser.Property_declarationContext context)
 {
-   return PropertyDefinitionBuilder.CreatePropertyDefinition()
-                                   .WithName(context.name.Text)
-                                   .WithTypeName(context.type.Text)
-                                   .Build();
+return PropertyDefinitionBuilder.CreatePropertyDefinition()
+                              .WithName(context.name.Text)
+                              .WithTypeName(context.type.Text)
+                              .Build();
 }
 
 public override IAstThing VisitTerminal(ITerminalNode node)
 {
-   throw new NotImplementedException();
-   //return base.VisitTerminal(node);
+throw new NotImplementedException();
+//return base.VisitTerminal(node);
 }
 
 public override IAstThing VisitTruth_value(FifthParser.Truth_valueContext context)
 {
-   return new BoolValueExpression(bool.Parse(context.value.Text)).CaptureLocation(context.Start);
+return new BoolValueExpression(bool.Parse(context.value.Text)).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitType_initialiser([NotNull] FifthParser.Type_initialiserContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitType_initialiser(context).CaptureLocation(context.Start);
+throw new NotImplementedException();
+//return base.VisitType_initialiser(context).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitType_name([NotNull] FifthParser.Type_nameContext context)
 {
-   return new Identifier(context.IDENTIFIER().GetText()).CaptureLocation(context.Start);
+return new Identifier(context.IDENTIFIER().GetText()).CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitType_property_init([NotNull] FifthParser.Type_property_initContext context)
 {
-   var exp = Visit(context.exp()) as Expression;
-   return new TypePropertyInit(context.var_name().GetText(), exp);
+var exp = Visit(context.exp()) as Expression;
+return new TypePropertyInit(context.var_name().GetText(), exp);
 }
 
 public override IAstThing VisitVar_decl([NotNull] FifthParser.Var_declContext context)
 {
-   var builder = VariableDeclarationStatementBuilder.CreateVariableDeclarationStatement()
-                                                    .WithName(context.var_name().GetText())
-                                                    .WithUnresolvedTypeName(context.type_name().GetText());
-   var result = builder.Build();
-   result.TypeName = result.UnresolvedTypeName;
-   return result.CaptureLocation(context.Start);
+var builder = VariableDeclarationStatementBuilder.CreateVariableDeclarationStatement()
+                                               .WithName(context.var_name().GetText())
+                                               .WithUnresolvedTypeName(context.type_name().GetText());
+var result = builder.Build();
+result.TypeName = result.UnresolvedTypeName;
+return result.CaptureLocation(context.Start);
 }
 
 public override IAstThing VisitVar_name([NotNull] FifthParser.Var_nameContext context)
 {
-   return new Identifier(context.GetText()).CaptureLocation(context.Start);
+return new Identifier(context.GetText()).CaptureLocation(context.Start);
 }
 
 protected override IAstThing AggregateResult(IAstThing aggregate, IAstThing nextResult)
 {
-   return base.AggregateResult(aggregate, nextResult);
+return base.AggregateResult(aggregate, nextResult);
 }
 
 protected override bool ShouldVisitNextChild(IRuleNode node, IAstThing currentResult)
 {
-   return base.ShouldVisitNextChild(node, currentResult);
+return base.ShouldVisitNextChild(node, currentResult);
 }
 
 private BinaryExpression BinExp(FifthParser.ExpContext left, FifthParser.ExpContext right, Operator op)
 {
-   var astLeft = (Expression)Visit(left).CaptureLocation(left.Start);
-   var astRight = (Expression)Visit(right).CaptureLocation(right.Start);
-   return new BinaryExpression(astLeft, op, astRight);
+var astLeft = (Expression)Visit(left).CaptureLocation(left.Start);
+var astRight = (Expression)Visit(right).CaptureLocation(right.Start);
+return new BinaryExpression(astLeft, op, astRight);
 }
 
 private UnaryExpression UnExp(FifthParser.ExpContext operand, Operator op)
 {
-   var astOperand = (Expression)Visit(operand);
-   var result = new UnaryExpression(astOperand, op);
-   // var resultType = TypeChecker.Infer(result.NearestScope(), result); result.TypeId = resultType;
-   return result.CaptureLocation(operand.Start);
+var astOperand = (Expression)Visit(operand);
+var result = new UnaryExpression(astOperand, op);
+// var resultType = TypeChecker.Infer(result.NearestScope(), result); result.TypeId = resultType;
+return result.CaptureLocation(operand.Start);
 }
 
 public override IAstThing VisitExp_callsite_varname(FifthParser.Exp_callsite_varnameContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitExp_callsite_varname(context);
+throw new NotImplementedException();
+//return base.VisitExp_callsite_varname(context);
 }
 
 public override IAstThing VisitExp_callsite_func_call(FifthParser.Exp_callsite_func_callContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitExp_callsite_func_call(context);
+throw new NotImplementedException();
+//return base.VisitExp_callsite_func_call(context);
 }
 
 public override IAstThing VisitExp_callsite_parenthesised(FifthParser.Exp_callsite_parenthesisedContext context)
 {
-   throw new NotImplementedException();
-   //return base.VisitExp_callsite_parenthesised(context);
+throw new NotImplementedException();
+//return base.VisitExp_callsite_parenthesised(context);
 }
 
 public override IAstThing VisitMember_access_expression(
-   [NotNull] FifthParser.Member_access_expressionContext context)
+[NotNull] FifthParser.Member_access_expressionContext context)
 {
-   // the member access '.' operator is left associative...
+// the member access '.' operator is left associative...
 
-   var builder = MemberAccessExpressionBuilder.CreateMemberAccessExpression();
-   var segments = from s in context._segments select Visit(s) as Expression;
-   if (segments.Count() < 2)
-   {
-       return segments.First();
-   }
+var builder = MemberAccessExpressionBuilder.CreateMemberAccessExpression();
+var segments = from s in context._segments select Visit(s) as Expression;
+if (segments.Count() < 2)
+{
+  return segments.First();
+}
 
-   var e = segments.Reverse().GetEnumerator();
-   e.MoveNext(); // safe, since we know there is at least 2
-   var firstElement = e.Current;
-   var result = firstElement;
-   while (e.MoveNext())
-   {
-       result = new MemberAccessExpression(e.Current, result);
-   }
+var e = segments.Reverse().GetEnumerator();
+e.MoveNext(); // safe, since we know there is at least 2
+var firstElement = e.Current;
+var result = firstElement;
+while (e.MoveNext())
+{
+  result = new MemberAccessExpression(e.Current, result);
+}
 
-   return result!;
+return result!;
 }
 */
 }

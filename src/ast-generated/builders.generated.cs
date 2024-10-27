@@ -853,25 +853,25 @@ public class GraphNamespaceAliasBuilder : IBuilder<ast.GraphNamespaceAlias>
 public class AssignmentStatementBuilder : IBuilder<ast.AssignmentStatement>
 {
 
-    private System.String _VariableName;
-    private ast.Expression _RHS;
+    private ast.Expression _LValue;
+    private ast.Expression _RValue;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AssignmentStatement Build()
     {
         return new ast.AssignmentStatement(){
-             VariableName = this._VariableName // from AssignmentStatement
-           , RHS = this._RHS // from AssignmentStatement
+             LValue = this._LValue // from AssignmentStatement
+           , RValue = this._RValue // from AssignmentStatement
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssignmentStatementBuilder WithVariableName(System.String value){
-        _VariableName = value;
+    public AssignmentStatementBuilder WithLValue(ast.Expression value){
+        _LValue = value;
         return this;
     }
 
-    public AssignmentStatementBuilder WithRHS(ast.Expression value){
-        _RHS = value;
+    public AssignmentStatementBuilder WithRValue(ast.Expression value){
+        _RValue = value;
         return this;
     }
 
@@ -1763,14 +1763,28 @@ public class AtomLiteralExpBuilder : IBuilder<ast.AtomLiteralExp>
 public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
 {
 
+    private ast.Expression _LHS;
+    private ast.Expression _RHS;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.MemberAccessExp Build()
     {
         return new ast.MemberAccessExp(){
-             Annotations = this._Annotations // from AnnotatedThing
+             LHS = this._LHS // from MemberAccessExp
+           , RHS = this._RHS // from MemberAccessExp
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
+    public MemberAccessExpBuilder WithLHS(ast.Expression value){
+        _LHS = value;
+        return this;
+    }
+
+    public MemberAccessExpBuilder WithRHS(ast.Expression value){
+        _RHS = value;
+        return this;
+    }
+
     public MemberAccessExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
