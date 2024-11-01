@@ -370,7 +370,20 @@ public class AstBuilderVisitorTests
         a.Should().NotBeNull();
         a.Modules.Should().HaveCount(1);
         var m = a.Modules[0];
-        m.Functions[0].Params[0].DestructureDef.Should().NotBeNull();
+        var p0 = m.Functions[0].Params[0];
+        p0.DestructureDef.Should().NotBeNull();
+        p0.DestructureDef.Should().BeOfType<ParamDestructureDef>();
+        p0.DestructureDef.Bindings.Should().HaveCount(2);
+        var p0b1 = p0.DestructureDef.Bindings[1];
+        p0b1.Should().NotBeNull();
+        p0b1.IntroducedVariable.Value.Should().Be("vitals");
+        p0b1.ReferencedProperty.Value.Should().Be("Vitals");
+        p0b1.DestructureDef.Should().NotBeNull();
+        p0b1.DestructureDef.Should().BeOfType<ParamDestructureDef>();
+        p0b1.DestructureDef.Bindings.Should().HaveCount(3);
+        var p0b1b2 = p0b1.DestructureDef.Bindings[2]; 
+        p0b1b2.IntroducedVariable.Value.Should().Be("weight");
+        p0b1b2.ReferencedProperty.Value.Should().Be("Weight");
     }
 
     [Fact]
@@ -383,4 +396,17 @@ public class AstBuilderVisitorTests
         a.Should().NotBeNull();
         a.Modules.Should().HaveCount(1);
         var m = a.Modules[0];
-    }}
+        var s1 = m.Functions[0].Body.Statements[1];
+        s1.Should().NotBeNull();
+        s1.Should().BeOfType<AssignmentStatement>();
+        var s1as = s1 as AssignmentStatement;
+        s1as.LValue.Should().BeOfType<MemberAccessExp>();
+        var s1aslv = s1as.LValue as MemberAccessExp;
+        s1aslv.LHS.Should().NotBeNull();
+        s1aslv.LHS.Should().BeOfType<VarRefExp>();
+        var s1aslvl = s1aslv.LHS as VarRefExp;
+        s1aslvl.VarName.Should().Be("p");
+        var s1aslvr = s1aslv.RHS as VarRefExp;
+        s1aslvr.VarName.Should().Be("Weight");
+    }
+}
