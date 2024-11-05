@@ -197,6 +197,7 @@ BIG_U_VALUE:
 
 RAW_STRING_LIT         : '`' ~'`'* '`'                     /*-> mode(NLSEMI)*/;
 INTERPRETED_STRING_LIT : '"' (~["\\] | ESCAPED_VALUE)* '"' /*-> mode(NLSEMI)*/;
+INTERPOLATED_STRING_LIT : '$' INTERPRETED_STRING_LIT /*-> mode(NLSEMI)*/;
 
 // Hidden tokens
 

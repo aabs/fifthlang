@@ -264,7 +264,7 @@ public class AstBuilderVisitorTests
         var p = GetParserFor(s);
         var x = p.statement();
         var v = new AstBuilderVisitor();
-        var a = v.Visit(x);
+        var a = v.VisitStatement(x);
         a.Should().NotBeNull();
         a.Should().BeOfType<VarDeclStatement>();
         var vds = a as VarDeclStatement;
@@ -408,5 +408,19 @@ public class AstBuilderVisitorTests
         s1aslvl.VarName.Should().Be("p");
         var s1aslvr = s1aslv.RHS as VarRefExp;
         s1aslvr.VarName.Should().Be("Weight");
+    }
+    [Fact]
+    public void handles_while_statements()
+    {
+        var p = GetParserFor("statement-while.5th");
+        var x = p.fifth();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as AssemblyDef;
+        a.Should().NotBeNull();
+        a.Modules.Should().HaveCount(1);
+        var m = a.Modules[0];
+        var s1 = m.Functions[0].Body.Statements[1];
+        s1.Should().NotBeNull().And
+            .Subject.Should().BeOfType<WhileStatement>();
     }
 }

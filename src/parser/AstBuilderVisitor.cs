@@ -85,7 +85,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var b = new BlockStatementBuilder()
             .WithAnnotations([]);
 
-        foreach (var stmt in context.statement())
+        foreach (var stmt in context.blockItem())
         {
             b.AddingItemToStatements((Statement)Visit(stmt));
         }
@@ -337,7 +337,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
         return result;
     }
-    public override IAstThing VisitStmt_ifelse(FifthParser.Stmt_ifelseContext context)
+
+    public override IAstThing VisitIf_statement([NotNull] FifthParser.If_statementContext context)
     {
         var b = new IfElseStatementBuilder();
         b.WithAnnotations([])
@@ -348,7 +349,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         return result;
     }
 
-    public override IAstThing VisitStmt_return(FifthParser.Stmt_returnContext context)
+    public override IAstThing VisitReturn_statement([NotNull] FifthParser.Return_statementContext context)
     {
         var b = new ReturnStatementBuilder()
             .WithAnnotations([])
@@ -365,7 +366,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         return result;
     }
 
-    public override IAstThing VisitStmt_while(FifthParser.Stmt_whileContext context)
+    public override IAstThing VisitWhile_statement([NotNull] FifthParser.While_statementContext context)
     {
         var b = new WhileStatementBuilder();
         b.WithAnnotations([])
@@ -375,16 +376,16 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         return result;
     }
 
-    public override IAstThing VisitStmt_vardecl(FifthParser.Stmt_vardeclContext context)
+    public override IAstThing VisitDeclaration([NotNull] FifthParser.DeclarationContext context)
     {
         var b = new VarDeclStatementBuilder()
-            .WithAnnotations([]);
+                        .WithAnnotations([]);
         b.WithVariableDecl((VariableDecl)VisitVar_decl(context.var_decl()));
         if (context.init is not null)
         {
             b.WithInitialValue((Expression)Visit(context.init));
         }
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+       var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
         return result;
     }
 
@@ -398,7 +399,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         return result;
     }
 
-    public override IAstThing VisitStmt_assignment(FifthParser.Stmt_assignmentContext context)
+    public override IAstThing VisitAssignment_statement([NotNull] FifthParser.Assignment_statementContext context)
     {
         var b = new AssignmentStatementBuilder()
             .WithAnnotations([])

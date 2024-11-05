@@ -1,0 +1,8 @@
+main(x: int) : float
+{
+    ctr: int = x;
+    while (ctr-- > 0)
+    {
+        println($"counter is {ctr}");
+    }
+}
