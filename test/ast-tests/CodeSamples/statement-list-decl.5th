@@ -1,0 +1,4 @@
+main():void
+{
+    ys: [int] = [x in xs # x % 2 == 0];
+}

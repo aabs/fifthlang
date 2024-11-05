@@ -671,27 +671,34 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
 public class VariableDeclBuilder : IBuilder<ast.VariableDecl>
 {
 
-    private ast_model.TypeSystem.TypeName _TypeName;
     private System.String _Name;
+    private ast_model.TypeSystem.TypeName _TypeName;
+    private ast.CollectionType _CollectionType;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.VariableDecl Build()
     {
         return new ast.VariableDecl(){
-             TypeName = this._TypeName // from VariableDecl
-           , Name = this._Name // from VariableDecl
+             Name = this._Name // from VariableDecl
+           , TypeName = this._TypeName // from VariableDecl
+           , CollectionType = this._CollectionType // from VariableDecl
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
+    public VariableDeclBuilder WithName(System.String value){
+        _Name = value;
+        return this;
+    }
+
     public VariableDeclBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
         _TypeName = value;
         return this;
     }
 
-    public VariableDeclBuilder WithName(System.String value){
-        _Name = value;
+    public VariableDeclBuilder WithCollectionType(ast.CollectionType value){
+        _CollectionType = value;
         return this;
     }
 
@@ -1880,18 +1887,68 @@ public class VarRefExpBuilder : IBuilder<ast.VarRefExp>
     }
 
 }
-public class ListBuilder : IBuilder<ast.List>
+public class ListLiteralBuilder : IBuilder<ast.ListLiteral>
 {
 
+    private List<ast.Expression> _ElementExpressions;
     private Dictionary<System.String, System.Object> _Annotations;
     
-    public ast.List Build()
+    public ast.ListLiteral Build()
     {
-        return new ast.List(){
-             Annotations = this._Annotations // from AnnotatedThing
+        return new ast.ListLiteral(){
+             ElementExpressions = this._ElementExpressions // from ListLiteral
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ListBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+    public ListLiteralBuilder WithElementExpressions(List<ast.Expression> value){
+        _ElementExpressions = value;
+        return this;
+    }
+
+    public ListLiteralBuilder AddingItemToElementExpressions(ast.Expression value){
+        _ElementExpressions  ??= [];
+        _ElementExpressions.Add(value);
+        return this;
+    }
+    public ListLiteralBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class ListComprehensionBuilder : IBuilder<ast.ListComprehension>
+{
+
+    private System.String _VarName;
+    private System.String _SourceName;
+    private ast.Expression _MembershipConstraint;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.ListComprehension Build()
+    {
+        return new ast.ListComprehension(){
+             VarName = this._VarName // from ListComprehension
+           , SourceName = this._SourceName // from ListComprehension
+           , MembershipConstraint = this._MembershipConstraint // from ListComprehension
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public ListComprehensionBuilder WithVarName(System.String value){
+        _VarName = value;
+        return this;
+    }
+
+    public ListComprehensionBuilder WithSourceName(System.String value){
+        _SourceName = value;
+        return this;
+    }
+
+    public ListComprehensionBuilder WithMembershipConstraint(ast.Expression value){
+        _MembershipConstraint = value;
+        return this;
+    }
+
+    public ListComprehensionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }

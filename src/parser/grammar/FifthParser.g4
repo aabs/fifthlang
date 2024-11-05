@@ -139,28 +139,21 @@ with_statement
     ;
 
 var_decl
-    :  var_name COLON ( type_name | list_type_signature )
+    :  var_name COLON ( type_name | list_type_signature | array_type_signature )
     ;
 
 var_name
     : IDENTIFIER
     ;
 
-// ========[LISTS]=========
+// ========[LISTS AND ARRAYS]=========
 list
     : L_BRACKET body=list_body R_BRACKET
     ;
 
 list_body
-    : list_literal          #EListLiteral
-    | list_comprehension    #EListComprehension
-    ;
-
-list_comp_constraint
-    : expression // must be of type PrimitiveBoolean
-    ;
-list_comp_generator
-    : varname=var_name GEN value=var_name
+    : list_literal
+    | list_comprehension
     ;
 
 list_literal
@@ -168,18 +161,22 @@ list_literal
     ;
 
 list_comprehension
-    : varname=var_name OR gen=list_comp_generator (COMMA constraints=list_comp_constraint)
+    : varname=var_name IN source=expression (SUCH_THAT constraint=expression)
     ;
 
 list_type_signature
-    : type_name L_BRACKET R_BRACKET
+    : L_BRACKET type_name R_BRACKET
+    ;
+
+array_type_signature
+    :type_name  L_BRACKET size=operand R_BRACKET
     ;
 
 
 // ========[EXPRESSIONS]=========
 
 expressionList
-    : expression (COMMA expression)*
+    : expressions+=expression (COMMA expressions+=expression)*
     ;
 
 expression
@@ -202,6 +199,7 @@ function_call_expression
 
 operand
     : literal
+    | list
     | var_name
     | L_PAREN expression R_PAREN
     | object_instantiation_expression

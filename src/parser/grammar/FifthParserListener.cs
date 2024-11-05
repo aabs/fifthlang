@@ -311,49 +311,15 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitList([NotNull] FifthParser.ListContext context);
 	/// <summary>
-	/// Enter a parse tree produced by the <c>EListLiteral</c>
-	/// labeled alternative in <see cref="FifthParser.list_body"/>.
+	/// Enter a parse tree produced by <see cref="FifthParser.list_body"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterEListLiteral([NotNull] FifthParser.EListLiteralContext context);
+	void EnterList_body([NotNull] FifthParser.List_bodyContext context);
 	/// <summary>
-	/// Exit a parse tree produced by the <c>EListLiteral</c>
-	/// labeled alternative in <see cref="FifthParser.list_body"/>.
+	/// Exit a parse tree produced by <see cref="FifthParser.list_body"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitEListLiteral([NotNull] FifthParser.EListLiteralContext context);
-	/// <summary>
-	/// Enter a parse tree produced by the <c>EListComprehension</c>
-	/// labeled alternative in <see cref="FifthParser.list_body"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterEListComprehension([NotNull] FifthParser.EListComprehensionContext context);
-	/// <summary>
-	/// Exit a parse tree produced by the <c>EListComprehension</c>
-	/// labeled alternative in <see cref="FifthParser.list_body"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitEListComprehension([NotNull] FifthParser.EListComprehensionContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.list_comp_constraint"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterList_comp_constraint([NotNull] FifthParser.List_comp_constraintContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.list_comp_constraint"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitList_comp_constraint([NotNull] FifthParser.List_comp_constraintContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.list_comp_generator"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterList_comp_generator([NotNull] FifthParser.List_comp_generatorContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.list_comp_generator"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitList_comp_generator([NotNull] FifthParser.List_comp_generatorContext context);
+	void ExitList_body([NotNull] FifthParser.List_bodyContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.list_literal"/>.
 	/// </summary>
@@ -384,6 +350,16 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitList_type_signature([NotNull] FifthParser.List_type_signatureContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.array_type_signature"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterArray_type_signature([NotNull] FifthParser.Array_type_signatureContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.array_type_signature"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitArray_type_signature([NotNull] FifthParser.Array_type_signatureContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.expressionList"/>.
 	/// </summary>

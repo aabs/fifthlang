@@ -138,8 +138,10 @@ public interface IAstVisitor
     public void LeaveUnaryExp(UnaryExp ctx);
     public void EnterVarRefExp(VarRefExp ctx);
     public void LeaveVarRefExp(VarRefExp ctx);
-    public void EnterList(List ctx);
-    public void LeaveList(List ctx);
+    public void EnterListLiteral(ListLiteral ctx);
+    public void LeaveListLiteral(ListLiteral ctx);
+    public void EnterListComprehension(ListComprehension ctx);
+    public void LeaveListComprehension(ListComprehension ctx);
     public void EnterAtom(Atom ctx);
     public void LeaveAtom(Atom ctx);
     public void EnterTriple(Triple ctx);
@@ -282,8 +284,10 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveUnaryExp(UnaryExp ctx){}
     public virtual void EnterVarRefExp(VarRefExp ctx){}
     public virtual void LeaveVarRefExp(VarRefExp ctx){}
-    public virtual void EnterList(List ctx){}
-    public virtual void LeaveList(List ctx){}
+    public virtual void EnterListLiteral(ListLiteral ctx){}
+    public virtual void LeaveListLiteral(ListLiteral ctx){}
+    public virtual void EnterListComprehension(ListComprehension ctx){}
+    public virtual void LeaveListComprehension(ListComprehension ctx){}
     public virtual void EnterAtom(Atom ctx){}
     public virtual void LeaveAtom(Atom ctx){}
     public virtual void EnterTriple(Triple ctx){}
@@ -362,7 +366,8 @@ public interface IAstRecursiveDescentVisitor
     public PropertyInitializerExp VisitPropertyInitializerExp(PropertyInitializerExp ctx);
     public UnaryExp VisitUnaryExp(UnaryExp ctx);
     public VarRefExp VisitVarRefExp(VarRefExp ctx);
-    public List VisitList(List ctx);
+    public ListLiteral VisitListLiteral(ListLiteral ctx);
+    public ListComprehension VisitListComprehension(ListComprehension ctx);
     public Atom VisitAtom(Atom ctx);
     public Triple VisitTriple(Triple ctx);
     public Graph VisitGraph(Graph ctx);
@@ -440,7 +445,8 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              PropertyInitializerExp node => VisitPropertyInitializerExp(node),
              UnaryExp node => VisitUnaryExp(node),
              VarRefExp node => VisitVarRefExp(node),
-             List node => VisitList(node),
+             ListLiteral node => VisitListLiteral(node),
+             ListComprehension node => VisitListComprehension(node),
              Atom node => VisitAtom(node),
              Triple node => VisitTriple(node),
              Graph node => VisitGraph(node),
@@ -860,12 +866,18 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
          VariableDecl = (ast.VariableDecl)Visit((AstThing)ctx.VariableDecl)
         };
     }
-    public virtual List VisitList(List ctx)
+    public virtual ListLiteral VisitListLiteral(ListLiteral ctx)
     {
         List<ast.Expression> tmpElementExpressions = [];
         tmpElementExpressions.AddRange(ctx.ElementExpressions.Select(x => (ast.Expression)Visit(x)));
      return ctx with {
          ElementExpressions = tmpElementExpressions
+        };
+    }
+    public virtual ListComprehension VisitListComprehension(ListComprehension ctx)
+    {
+     return ctx with {
+         MembershipConstraint = (ast.Expression)Visit((AstThing)ctx.MembershipConstraint)
         };
     }
     public virtual Atom VisitAtom(Atom ctx)

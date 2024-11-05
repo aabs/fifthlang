@@ -15,8 +15,8 @@
 /// </remarks>
 namespace ast;
 
-using ast_model.Symbols;
 using ast_model;
+using ast_model.Symbols;
 using ast_model.TypeSystem;
 
 #region Core Abstractions
@@ -35,7 +35,7 @@ public enum AccessConstraint
 public enum Operator : ushort
 {
     // Unary Operators
-   ArithmeticNegative, // as opposed to Subtract, which is different
+    ArithmeticNegative, // as opposed to Subtract, which is different
     LogicalNot, // bitwise complement...
 
     // ArithmeticOperator
@@ -157,6 +157,12 @@ public enum Visibility
     /// </summary>
     ProtectedInternal,
 }
+public enum CollectionType
+{
+    SingleInstance,
+    Array,
+    List
+}
 
 [Ignore, ValueObject<string>]
 [Instance("anonymous", "", "For things like in-memory assemblies etc")]
@@ -184,7 +190,7 @@ public partial struct TypeCoertionSeniority;
 
 public record struct Symbol(string Name, SymbolKind Kind);
 
-public record struct SourceLocationMetadata(int Column,    string Filename, int Line, string OriginalText);
+public record struct SourceLocationMetadata(int Column, string Filename, int Line, string OriginalText);
 
 public abstract record AstThing : AnnotatedThing, IAstThing
 {
@@ -399,10 +405,10 @@ public record ClassDef : Definition
 
 public record VariableDecl : Definition
 {
-    public required TypeName TypeName { get; init; }
     public required string Name { get; init; }
+    public required TypeName TypeName { get; init; }
+    public required CollectionType CollectionType { get; init; }
 }
-
 #endregion
 
 #region References
@@ -618,7 +624,7 @@ public record FuncCallExp : Expression
 [Ignore]
 public abstract record LiteralExpression<T> : Expression
 {
-    [IgnoreDuringVisit]public T Value { get; set; }
+    [IgnoreDuringVisit] public T Value { get; set; }
 }
 
 // see https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/integral-numeric-types?devlangs=csharp&f1url=%3FappId%3DDev17IDEF1%26l%3DEN-US%26k%3Dk(ushort_CSharpKeyword)%3Bk(DevLang-csharp)%26rd%3Dtrue
@@ -678,8 +684,8 @@ public record MemberAccessExp : Expression
 /// </example>
 public record ObjectInitializerExp : Expression
 {
-    public FifthType TypeToInitialize{get;set;}
-    public List<PropertyInitializerExp> PropertyInitialisers{get;set;}
+    public FifthType TypeToInitialize { get; set; }
+    public List<PropertyInitializerExp> PropertyInitialisers { get; set; }
 }
 
 /// <summary>A part of the expression supplying a value for a specific property of an object being created</summary>
@@ -693,8 +699,8 @@ public record ObjectInitializerExp : Expression
 /// </example>
 public record PropertyInitializerExp : Expression
 {
-    public PropertyRef PropertyToInitialize{get;set;}
-    public Expression RHS{get;set;}
+    public PropertyRef PropertyToInitialize { get; set; }
+    public Expression RHS { get; set; }
 }
 
 /// <summary>
@@ -732,6 +738,8 @@ public record VarRefExp : Expression
     public VariableDecl VariableDecl { get; set; }
 }
 
+public abstract record List : Expression;
+
 /// <summary>
 /// A list instantiation expression
 /// </summary>
@@ -740,7 +748,7 @@ public record VarRefExp : Expression
 /// information carried by the expression type is rich enough to contain the generic type parameters
 /// needed to constrain the type of the list elements.
 /// </remarks>
-public record List : Expression
+public record ListLiteral : List
 {
     /// <summary>
     /// The set of expressions that supply values to insert into the list on creation.
@@ -751,7 +759,14 @@ public record List : Expression
     /// <remarks>
     /// All expressions must have the same type
     /// </remarks>
-    public List<Expression> ElementExpressions { get; set; }
+    public List<Expression> ElementExpressions { get; init; }
+}
+
+public record ListComprehension : List
+{
+    public required string VarName { get; init; }
+    public required string SourceName { get; init; }
+    public Expression? MembershipConstraint { get; init; }
 }
 
 public record Atom : Expression

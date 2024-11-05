@@ -73,7 +73,8 @@ public interface ITypeChecker
     public FifthType Infer(ScopeAstThing scope, PropertyInitializerExp node);
     public FifthType Infer(ScopeAstThing scope, UnaryExp node);
     public FifthType Infer(ScopeAstThing scope, VarRefExp node);
-    public FifthType Infer(ScopeAstThing scope, List node);
+    public FifthType Infer(ScopeAstThing scope, ListLiteral node);
+    public FifthType Infer(ScopeAstThing scope, ListComprehension node);
     public FifthType Infer(ScopeAstThing scope, Atom node);
     public FifthType Infer(ScopeAstThing scope, Triple node);
     public FifthType Infer(ScopeAstThing scope, Graph node);
@@ -154,7 +155,8 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             PropertyInitializerExp node => Infer(scope, node),
             UnaryExp node => Infer(scope, node),
             VarRefExp node => Infer(scope, node),
-            List node => Infer(scope, node),
+            ListLiteral node => Infer(scope, node),
+            ListComprehension node => Infer(scope, node),
             Atom node => Infer(scope, node),
             Triple node => Infer(scope, node),
             Graph node => Infer(scope, node),
@@ -229,7 +231,8 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, PropertyInitializerExp node);
     public abstract FifthType Infer(ScopeAstThing scope, UnaryExp node);
     public abstract FifthType Infer(ScopeAstThing scope, VarRefExp node);
-    public abstract FifthType Infer(ScopeAstThing scope, List node);
+    public abstract FifthType Infer(ScopeAstThing scope, ListLiteral node);
+    public abstract FifthType Infer(ScopeAstThing scope, ListComprehension node);
     public abstract FifthType Infer(ScopeAstThing scope, Atom node);
     public abstract FifthType Infer(ScopeAstThing scope, Triple node);
     public abstract FifthType Infer(ScopeAstThing scope, Graph node);

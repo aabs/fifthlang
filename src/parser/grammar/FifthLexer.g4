@@ -60,6 +60,7 @@ GO          : 'go';
 GOTO        : 'goto';
 IF          : 'if';
 IMPORT      : 'import';
+IN          : 'in';
 INTERFACE   : 'interface';
 MAP         : 'map';
 NEW         : 'new';
@@ -139,7 +140,7 @@ MINUS     : '-';
 STAR      : '*';
 
 AMPERSAND : '&';
-HASH      : '#';
+SUCH_THAT : '#';
 CONCAT    : '<>';
 
 SUF_SHORT: [sS];

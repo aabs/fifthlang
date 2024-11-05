@@ -23,6 +23,9 @@
     <EmbeddedResource Include="CodeSamples\property-access.5th" />
     <EmbeddedResource Include="CodeSamples\statement-ifelse.5th" />
     <EmbeddedResource Include="CodeSamples\statement-if.5th" />
+    <EmbeddedResource Include="CodeSamples\statement-array-decl.5th" />
+    <EmbeddedResource Include="CodeSamples\statement-list-literal.5th" />
+    <EmbeddedResource Include="CodeSamples\statement-list-decl.5th" />
     <EmbeddedResource Include="CodeSamples\statement-while.5th" />
     <EmbeddedResource Include="CodeSamples\recursive-destructuring.5th" />
   </ItemGroup>

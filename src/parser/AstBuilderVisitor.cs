@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using ast;
@@ -382,11 +381,13 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var b = new VarDeclStatementBuilder()
                         .WithAnnotations([]);
         b.WithVariableDecl((VariableDecl)VisitVar_decl(context.var_decl()));
-        if (context.init is not null)
+        if (context.expression() is not null)
         {
-            b.WithInitialValue((Expression)Visit(context.init));
+            var exp = context.expression();
+            var e = base.Visit(exp);
+            b.WithInitialValue((Expression)e);
         }
-       var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
         return result;
     }
 
@@ -394,8 +395,23 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var b = new VariableDeclBuilder()
             .WithAnnotations([]);
-        b.WithName(context.var_name().GetText())
-            .WithTypeName(TypeName.From(context.type_name().GetText()));
+        b.WithName(context.var_name().GetText());
+
+        if (context.type_name() is not null)
+        {
+            b.WithTypeName(TypeName.From(context.type_name().GetText()));
+            b.WithCollectionType(CollectionType.SingleInstance);
+        }
+        else if (context.list_type_signature() is not null)
+        {
+            b.WithTypeName(TypeName.From(context.list_type_signature().type_name().GetText()));
+            b.WithCollectionType(CollectionType.List);
+        }
+        else if (context.array_type_signature() is not null)
+        {
+            b.WithTypeName(TypeName.From(context.array_type_signature().type_name().GetText()));
+            b.WithCollectionType(CollectionType.Array);
+        }
         var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
         return result;
     }
@@ -448,10 +464,51 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var b = new MemberAccessExpBuilder()
             .WithAnnotations([]);
         b.WithLHS((Expression)Visit(context.lhs));
-        if(context.rhs is not null)
+        if (context.rhs is not null)
             b.WithRHS((Expression)Visit(context.rhs));
         var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
         return result;
+    }
+
+    public override IAstThing VisitList_literal([NotNull] FifthParser.List_literalContext context)
+    {
+        var b = new ListLiteralBuilder()
+            .WithAnnotations([]);
+        foreach (var exp in context.expressionList()._expressions)
+        {
+            b.AddingItemToElementExpressions((Expression)Visit(exp));
+        }
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        return result;
+    }
+
+    public override IAstThing VisitList_comprehension([NotNull] FifthParser.List_comprehensionContext context)
+    {
+        var b = new ListComprehensionBuilder()
+            .WithAnnotations([]);
+        b.WithMembershipConstraint((Expression)Visit(context.constraint))
+            .WithVarName(context.var_name().GetText())
+            .WithSourceName(context.source.GetText());
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        return result;
+    }
+
+    public override IAstThing VisitList([NotNull] FifthParser.ListContext context)
+    {
+        return base.VisitList_body(context.list_body());
+    }
+
+    public override IAstThing VisitList_body([NotNull] FifthParser.List_bodyContext context)
+    {
+        if(context.list_literal() is not null)
+        {
+            return VisitList_literal(context.list_literal());
+        }
+        else if (context.list_comprehension() is not null)
+        {
+            return VisitList_comprehension(context.list_comprehension());
+        }
+        return base.VisitList_body(context);
     }
 
     /*

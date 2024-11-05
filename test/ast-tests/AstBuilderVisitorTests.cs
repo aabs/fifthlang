@@ -459,4 +459,44 @@ public class AstBuilderVisitorTests
         ifstmt.ThenBlock.Should().NotBeNull();
         ifstmt.ElseBlock.Should().NotBeNull();
     }
+    [Fact]
+    public void handles_list_comprehensions()
+    {
+        var p = GetParserFor("statement-list-decl.5th");
+        var x = p.fifth();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as AssemblyDef;
+        a.Should().NotBeNull();
+        a.Modules.Should().HaveCount(1);
+        var m = a.Modules[0];
+        var s0 = m.Functions[0].Body.Statements[0];
+        s0.Should().NotBeNull().And
+            .Subject.Should().BeOfType<VarDeclStatement>();
+        var s0vd = s0 as VarDeclStatement;
+        s0vd.VariableDecl.Should().NotBeNull();
+        s0vd.VariableDecl.TypeName.Value.Should().Be("int");
+        s0vd.VariableDecl.CollectionType.Should().Be(CollectionType.List);
+        s0vd.InitialValue.Should().NotBeNull();
+        s0vd.InitialValue.Should().BeOfType<ListComprehension>();
+    }
+    [Fact]
+    public void handles_list_literals()
+    {
+        var p = GetParserFor("statement-list-literal.5th");
+        var x = p.fifth();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as AssemblyDef;
+        a.Should().NotBeNull();
+        a.Modules.Should().HaveCount(1);
+        var m = a.Modules[0];
+        var s0 = m.Functions[0].Body.Statements[0];
+        s0.Should().NotBeNull().And
+            .Subject.Should().BeOfType<VarDeclStatement>();
+        var s0vd = s0 as VarDeclStatement;
+        s0vd.VariableDecl.Should().NotBeNull();
+        s0vd.VariableDecl.TypeName.Value.Should().Be("int");
+        s0vd.VariableDecl.CollectionType.Should().Be(CollectionType.List);
+        s0vd.InitialValue.Should().NotBeNull();
+        s0vd.InitialValue.Should().BeOfType<ListLiteral>();
+    }
 }

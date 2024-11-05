@@ -200,31 +200,11 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitList([NotNull] FifthParser.ListContext context);
 	/// <summary>
-	/// Visit a parse tree produced by the <c>EListLiteral</c>
-	/// labeled alternative in <see cref="FifthParser.list_body"/>.
+	/// Visit a parse tree produced by <see cref="FifthParser.list_body"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitEListLiteral([NotNull] FifthParser.EListLiteralContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>EListComprehension</c>
-	/// labeled alternative in <see cref="FifthParser.list_body"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitEListComprehension([NotNull] FifthParser.EListComprehensionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.list_comp_constraint"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitList_comp_constraint([NotNull] FifthParser.List_comp_constraintContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.list_comp_generator"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitList_comp_generator([NotNull] FifthParser.List_comp_generatorContext context);
+	Result VisitList_body([NotNull] FifthParser.List_bodyContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.list_literal"/>.
 	/// </summary>
@@ -243,6 +223,12 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitList_type_signature([NotNull] FifthParser.List_type_signatureContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.array_type_signature"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitArray_type_signature([NotNull] FifthParser.Array_type_signatureContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.expressionList"/>.
 	/// </summary>
