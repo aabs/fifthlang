@@ -1,0 +1,8 @@
+main(x: int) : float
+{
+    y: int = x % 2;
+    if (y == 0)
+    {
+        println("even");
+    }
+}

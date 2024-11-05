@@ -239,18 +239,6 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitBlock([NotNull] FifthParser.BlockContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.blockItem"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterBlockItem([NotNull] FifthParser.BlockItemContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.blockItem"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitBlockItem([NotNull] FifthParser.BlockItemContext context) { }
-	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.declaration"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>

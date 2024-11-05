@@ -85,7 +85,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var b = new BlockStatementBuilder()
             .WithAnnotations([]);
 
-        foreach (var stmt in context.blockItem())
+        foreach (var stmt in context.statement())
         {
             b.AddingItemToStatements((Statement)Visit(stmt));
         }
@@ -343,8 +343,9 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var b = new IfElseStatementBuilder();
         b.WithAnnotations([])
             .WithCondition((Expression)Visit(context.condition))
-            .WithThenBlock((BlockStatement)Visit(context.ifpart))
-            .WithElseBlock((BlockStatement)Visit(context.elsepart));
+            .WithThenBlock((BlockStatement)Visit(context.ifpart));
+        if (context.elsepart is not null)
+            b.WithElseBlock((BlockStatement)Visit(context.elsepart));
         var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
         return result;
     }

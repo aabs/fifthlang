@@ -21,6 +21,8 @@
     <EmbeddedResource Include="CodeSamples\destructuring.5th" />
     <EmbeddedResource Include="CodeSamples\overloading.5th" />
     <EmbeddedResource Include="CodeSamples\property-access.5th" />
+    <EmbeddedResource Include="CodeSamples\statement-ifelse.5th" />
+    <EmbeddedResource Include="CodeSamples\statement-if.5th" />
     <EmbeddedResource Include="CodeSamples\statement-while.5th" />
     <EmbeddedResource Include="CodeSamples\recursive-destructuring.5th" />
   </ItemGroup>

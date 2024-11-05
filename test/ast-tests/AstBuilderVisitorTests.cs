@@ -423,4 +423,40 @@ public class AstBuilderVisitorTests
         s1.Should().NotBeNull().And
             .Subject.Should().BeOfType<WhileStatement>();
     }
+    [Fact]
+    public void handles_if_statements()
+    {
+        var p = GetParserFor("statement-if.5th");
+        var x = p.fifth();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as AssemblyDef;
+        a.Should().NotBeNull();
+        a.Modules.Should().HaveCount(1);
+        var m = a.Modules[0];
+        var s1 = m.Functions[0].Body.Statements[1];
+        s1.Should().NotBeNull().And
+            .Subject.Should().BeOfType<IfElseStatement>();
+        var ifstmt = s1 as IfElseStatement;
+        ifstmt.Condition.Should().NotBeNull();
+        ifstmt.ThenBlock.Should().NotBeNull();
+        ifstmt.ElseBlock.Should().BeNull();
+    }
+    [Fact]
+    public void handles_ifelse_statements()
+    {
+        var p = GetParserFor("statement-ifelse.5th");
+        var x = p.fifth();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as AssemblyDef;
+        a.Should().NotBeNull();
+        a.Modules.Should().HaveCount(1);
+        var m = a.Modules[0];
+        var s1 = m.Functions[0].Body.Statements[1];
+        s1.Should().NotBeNull().And
+            .Subject.Should().BeOfType<IfElseStatement>();
+        var ifstmt = s1 as IfElseStatement;
+        ifstmt.Condition.Should().NotBeNull();
+        ifstmt.ThenBlock.Should().NotBeNull();
+        ifstmt.ElseBlock.Should().NotBeNull();
+    }
 }

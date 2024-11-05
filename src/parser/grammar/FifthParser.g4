@@ -98,29 +98,21 @@ absoluteIri
 
 // ========[STATEMENTS]=========
 block
-    : '{' blockItem* '}'
-    ;
-
-blockItem
-    : statement
-    | declaration
+    : '{' statement* '}'
     ;
 
 declaration
     : decl=var_decl (ASSIGN init=expression)? SEMI
     ;
-//block
-//    : L_CURLY statement* R_CURLY
-//    ;
 
 statement
-    : block                  // #stmt_block
-    | if_statement           // #stmt_ifelse
-    | while_statement        // #stmt_while
+    : block
+    | if_statement
+    | while_statement
     | with_statement         // #stmt_with // this is not useful as is
-    | assignment_statement  //  #stmt_assignment
-    | return_statement       // #stmt_return
-    | expression_statement   // #stmt_bareexpression
+    | assignment_statement
+    | return_statement
+    | expression_statement
     | declaration
     ;
 

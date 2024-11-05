@@ -201,16 +201,6 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitBlock([NotNull] FifthParser.BlockContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.blockItem"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterBlockItem([NotNull] FifthParser.BlockItemContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.blockItem"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitBlockItem([NotNull] FifthParser.BlockItemContext context);
-	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.declaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
