@@ -1,5 +1,6 @@
 ﻿using Antlr4.Runtime;
 using ast;
+using ast_model.Symbols;
 using compiler.LangProcessingPhases;
 using compiler.LanguageTransformations;
 using Fifth;
@@ -65,6 +66,10 @@ public class SymbolTableBuildingTests
         visitor.Visit((AstThing)ast);
         // Assert
         var asm = ast as AssemblyDef;
+
+        asm.Modules[0].Resolve(new Symbol("main", SymbolKind.FunctionDef)).Should().NotBeNull();
+        asm.Modules[0].Functions[0].Body.Statements[0].Resolve(new Symbol("main", SymbolKind.FunctionDef)).Should().NotBeNull();
         asm.Modules[0].SymbolTable.Should().NotBeNullOrEmpty();
+        asm.Modules[0].SymbolTable.Resolve(new Symbol("main", SymbolKind.FunctionDef)).Should().NotBeNull();
     }
 }

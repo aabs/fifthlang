@@ -1,4 +1,4 @@
-﻿
+﻿using ast_model.Symbols;
 namespace compiler.LanguageTransformations;
 
 public class SymbolTableBuilderVisitor : DefaultRecursiveDescentVisitor
@@ -6,7 +6,7 @@ public class SymbolTableBuilderVisitor : DefaultRecursiveDescentVisitor
 
     public override ClassDef VisitClassDef(ClassDef ctx)
     {
-        var enclosingScope = ctx.Parent.NearestScope();
+        var enclosingScope = ctx.NearestScopeAbove();
         enclosingScope.Declare(new Symbol(ctx.Name.Value, SymbolKind.ClassDef), ctx, []);
         return base.VisitClassDef(ctx);
     }
@@ -20,7 +20,7 @@ public class SymbolTableBuilderVisitor : DefaultRecursiveDescentVisitor
 
     public override FunctionDef VisitFunctionDef(FunctionDef ctx)
     {
-        var enclosingScope = ctx.Parent.NearestScope();
+        var enclosingScope = ctx.NearestScopeAbove();
         enclosingScope.Declare(new Symbol(ctx.Name.Value, SymbolKind.FunctionDef), ctx, []);
         return base.VisitFunctionDef(ctx);
     }

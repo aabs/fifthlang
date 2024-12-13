@@ -38,15 +38,7 @@ public static class TypeHelpers
         throw new TypeCheckingException("no way to lookup non native types yet");
     }
 
-    public static ScopeAstThing NearestScope(this IAstThing node)
-    {
-        if (node is ScopeAstThing astNode)
-        {
-            return astNode;
-        }
 
-        return node?.Parent.NearestScope();
-    }
 
     // tmp
 
