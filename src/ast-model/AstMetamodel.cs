@@ -94,6 +94,7 @@ public enum SymbolKind
     ForeachStatement,
     ForStatement,
     FuncCallExp,
+    FunctionDef,
     Graph,
     GraphNamespaceAlias,
     GuardStatement,
@@ -206,10 +207,16 @@ public abstract record AstThing : AnnotatedThing, IAstThing
 
 public abstract record ScopeAstThing : AstThing, IScope
 {
+    private ISymbolTable _symbolTable;
+
     [IgnoreDuringVisit]
     public IScope EnclosingScope { get; init; }
     [IgnoreDuringVisit]
-    public ISymbolTable SymbolTable { get; init; }
+    public ISymbolTable SymbolTable
+    {
+        get => _symbolTable ??= new SymbolTable();
+        init => _symbolTable = value;
+    }
 
     public void Declare(Symbol symbol, IAstThing astThing, Dictionary<string, object> annotations)
     {
@@ -266,7 +273,7 @@ public record AssemblyDef : ScopedDefinition
     public required AssemblyName Name { get; init; }
     public required string PublicKeyToken { get; init; }
     public required string Version { get; init; }
-    public required List<AssemblyRef> AssemblyRefs { get; init; }
+    public required List<AssemblyRef> AssemblyRefs { get; init; } = [];
     public required List<ModuleDef> Modules { get; init; }
 }
 
@@ -281,12 +288,13 @@ public record ModuleDef : ScopedDefinition
 /// <summary>
 /// A bare function is a member of a singleton Global type.  A member, in other words.
 /// </summary>
-public record FunctionDef : MemberDef
+public record FunctionDef : ScopedDefinition
 {
     // todo: need the possibility of type parameters here.
     public required List<ParamDef> Params { get; set; } = [];
     public required BlockStatement Body { get; set; }
     public required TypeName? ReturnType { get; init; }
+    public required MemberName Name { get; init; }
 }
 
 /// <summary>

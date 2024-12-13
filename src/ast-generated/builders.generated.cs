@@ -15,6 +15,8 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
     private List<ast.AssemblyRef> _AssemblyRefs;
     private List<ast.ModuleDef> _Modules;
     private ast.Visibility _Visibility;
+    private ast_model.Symbols.IScope _EnclosingScope;
+    private ast_model.Symbols.ISymbolTable _SymbolTable;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AssemblyDef Build()
@@ -25,7 +27,9 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
            , Version = this._Version // from AssemblyDef
            , AssemblyRefs = this._AssemblyRefs // from AssemblyDef
            , Modules = this._Modules // from AssemblyDef
-           , Visibility = this._Visibility // from Definition
+           , Visibility = this._Visibility // from ScopedDefinition
+           , EnclosingScope = this._EnclosingScope // from ScopeAstThing
+           , SymbolTable = this._SymbolTable // from ScopeAstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -69,6 +73,16 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
         return this;
     }
 
+    public AssemblyDefBuilder WithEnclosingScope(ast_model.Symbols.IScope value){
+        _EnclosingScope = value;
+        return this;
+    }
+
+    public AssemblyDefBuilder WithSymbolTable(ast_model.Symbols.ISymbolTable value){
+        _SymbolTable = value;
+        return this;
+    }
+
     public AssemblyDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -94,7 +108,7 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
            , NamespaceDecl = this._NamespaceDecl // from ModuleDef
            , Classes = this._Classes // from ModuleDef
            , Functions = this._Functions // from ModuleDef
-           , Visibility = this._Visibility // from ModuleDef
+           , Visibility = this._Visibility // from ScopedDefinition
            , EnclosingScope = this._EnclosingScope // from ScopeAstThing
            , SymbolTable = this._SymbolTable // from ScopeAstThing
            , Annotations = this._Annotations // from AnnotatedThing
@@ -158,9 +172,9 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
     private ast.BlockStatement _Body;
     private ast_model.TypeSystem.TypeName? _ReturnType;
     private ast.MemberName _Name;
-    private ast_model.TypeSystem.TypeName _TypeName;
-    private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
+    private ast_model.Symbols.IScope _EnclosingScope;
+    private ast_model.Symbols.ISymbolTable _SymbolTable;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.FunctionDef Build()
@@ -169,10 +183,10 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
              Params = this._Params // from FunctionDef
            , Body = this._Body // from FunctionDef
            , ReturnType = this._ReturnType // from FunctionDef
-           , Name = this._Name // from MemberDef
-           , TypeName = this._TypeName // from MemberDef
-           , IsReadOnly = this._IsReadOnly // from MemberDef
-           , Visibility = this._Visibility // from Definition
+           , Name = this._Name // from FunctionDef
+           , Visibility = this._Visibility // from ScopedDefinition
+           , EnclosingScope = this._EnclosingScope // from ScopeAstThing
+           , SymbolTable = this._SymbolTable // from ScopeAstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -201,18 +215,18 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
         return this;
     }
 
-    public FunctionDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
-        _TypeName = value;
-        return this;
-    }
-
-    public FunctionDefBuilder WithIsReadOnly(System.Boolean value){
-        _IsReadOnly = value;
-        return this;
-    }
-
     public FunctionDefBuilder WithVisibility(ast.Visibility value){
         _Visibility = value;
+        return this;
+    }
+
+    public FunctionDefBuilder WithEnclosingScope(ast_model.Symbols.IScope value){
+        _EnclosingScope = value;
+        return this;
+    }
+
+    public FunctionDefBuilder WithSymbolTable(ast_model.Symbols.ISymbolTable value){
+        _SymbolTable = value;
         return this;
     }
 
@@ -645,6 +659,8 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
     private ast_model.TypeSystem.TypeName _Name;
     private List<ast.MemberDef> _MemberDefs;
     private ast.Visibility _Visibility;
+    private ast_model.Symbols.IScope _EnclosingScope;
+    private ast_model.Symbols.ISymbolTable _SymbolTable;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ClassDef Build()
@@ -652,7 +668,9 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
         return new ast.ClassDef(){
              Name = this._Name // from ClassDef
            , MemberDefs = this._MemberDefs // from ClassDef
-           , Visibility = this._Visibility // from Definition
+           , Visibility = this._Visibility // from ScopedDefinition
+           , EnclosingScope = this._EnclosingScope // from ScopeAstThing
+           , SymbolTable = this._SymbolTable // from ScopeAstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -673,6 +691,16 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
     }
     public ClassDefBuilder WithVisibility(ast.Visibility value){
         _Visibility = value;
+        return this;
+    }
+
+    public ClassDefBuilder WithEnclosingScope(ast_model.Symbols.IScope value){
+        _EnclosingScope = value;
+        return this;
+    }
+
+    public ClassDefBuilder WithSymbolTable(ast_model.Symbols.ISymbolTable value){
+        _SymbolTable = value;
         return this;
     }
 

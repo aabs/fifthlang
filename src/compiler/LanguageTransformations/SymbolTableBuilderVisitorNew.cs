@@ -18,6 +18,13 @@ public class SymbolTableBuilderVisitor : DefaultRecursiveDescentVisitor
         return base.VisitFieldDef(ctx);
     }
 
+    public override FunctionDef VisitFunctionDef(FunctionDef ctx)
+    {
+        var enclosingScope = ctx.Parent.NearestScope();
+        enclosingScope.Declare(new Symbol(ctx.Name.Value, SymbolKind.FunctionDef), ctx, []);
+        return base.VisitFunctionDef(ctx);
+    }
+
     public override ParamDef VisitParamDef(ParamDef ctx)
     {
         Declare(ctx.Name, SymbolKind.ParamDef, ctx);

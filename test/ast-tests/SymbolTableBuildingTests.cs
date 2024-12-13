@@ -3,6 +3,7 @@ using ast;
 using compiler.LangProcessingPhases;
 using compiler.LanguageTransformations;
 using Fifth;
+using FluentAssertions;
 
 namespace ast_tests;
 
@@ -58,9 +59,12 @@ public class SymbolTableBuildingTests
         var tree = parser.fifth();
         var v = new AstBuilderVisitor();
         var ast = v.Visit(tree);
+        var vlv = new TreeLinkageVisitor();
+        vlv.Visit((AstThing)ast);
         var visitor = new SymbolTableBuilderVisitor();
         visitor.Visit((AstThing)ast);
         // Assert
-
+        var asm = ast as AssemblyDef;
+        asm.Modules[0].SymbolTable.Should().NotBeNullOrEmpty();
     }
 }

@@ -64,10 +64,8 @@ public class AstVisitorTests
                 Location = null
             },
             Location = null,
-            IsReadOnly = false,
             Parent = null,
             Type = CreateType(name, 0, SymbolKind.MemberDef),
-            TypeName = TypeName.From(returnType)
         };
     }
 

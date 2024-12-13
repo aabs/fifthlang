@@ -46,6 +46,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         b.WithVisibility(Visibility.Public)
             .WithPublicKeyToken("abc123") // TODO: need ways to define this
             .WithAnnotations([])
+            .WithAssemblyRefs([])
             .WithName(AssemblyName.anonymous)
             .WithVersion("0.0.0.0")
             ;
@@ -244,7 +245,6 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             .WithBody((BlockStatement)VisitBlock(context.body.block()))
             .WithReturnType(TypeName.From(context.result_type.GetText()))
             .WithAnnotations([])
-            .WithIsReadOnly(false)
             .WithVisibility(Visibility.Public) // todo: grammar needs support for member visibility
             ;
         foreach (var paramdeclContext in context.paramdecl())
