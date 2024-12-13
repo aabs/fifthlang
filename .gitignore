@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# ANTLR4
+/src/parser/grammar/.antlr
+*.interp
+*.tokens

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from grammar/FifthParser.g4 by ANTLR 4.8
+// Generated from grammar/Fifth.g4 by ANTLR 4.8
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -29,7 +29,7 @@ using IToken = Antlr4.Runtime.IToken;
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCode("ANTLR", "4.8")]
 [System.CLSCompliant(false)]
-public interface IFifthParserListener : IParseTreeListener {
+public interface IFifthListener : IParseTreeListener {
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.fifth"/>.
 	/// </summary>

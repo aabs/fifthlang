@@ -256,7 +256,12 @@ public abstract record Definition : AstThing
     public required Visibility Visibility { get; init; }
 }
 
-public record AssemblyDef : Definition
+public abstract record ScopedDefinition : ScopeAstThing
+{
+    public required Visibility Visibility { get; init; }
+}
+
+public record AssemblyDef : ScopedDefinition
 {
     public required AssemblyName Name { get; init; }
     public required string PublicKeyToken { get; init; }
@@ -265,7 +270,7 @@ public record AssemblyDef : Definition
     public required List<ModuleDef> Modules { get; init; }
 }
 
-public record ModuleDef : Definition
+public record ModuleDef : ScopedDefinition
 {
     public required string OriginalModuleName { get; init; }
     public required NamespaceName NamespaceDecl { get; init; }
@@ -390,7 +395,7 @@ public record TypeDef : Definition
 {
 }
 
-public record ClassDef : Definition
+public record ClassDef : ScopedDefinition
 {
     public required TypeName Name { get; init; }
     public required List<MemberDef> MemberDefs { get; set; }

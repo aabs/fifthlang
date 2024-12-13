@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from grammar/FifthParser.g4 by ANTLR 4.8
+// Generated from grammar/Fifth.g4 by ANTLR 4.8
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -27,13 +27,13 @@ using IToken = Antlr4.Runtime.IToken;
 using ParserRuleContext = Antlr4.Runtime.ParserRuleContext;
 
 /// <summary>
-/// This class provides an empty implementation of <see cref="IFifthParserListener"/>,
+/// This class provides an empty implementation of <see cref="IFifthListener"/>,
 /// which can be extended to create a listener which only needs to handle a subset
 /// of the available methods.
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCode("ANTLR", "4.8")]
 [System.CLSCompliant(false)]
-public partial class FifthParserBaseListener : IFifthParserListener {
+public partial class FifthBaseListener : IFifthListener {
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.fifth"/>.
 	/// <para>The default implementation does nothing.</para>

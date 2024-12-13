@@ -8,7 +8,7 @@ using Operator = ast.Operator;
 
 namespace compiler.LangProcessingPhases;
 
-public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
+public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 {
     #region Helper Functions
 

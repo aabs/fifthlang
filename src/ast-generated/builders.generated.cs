@@ -83,6 +83,8 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
     private List<ast.ClassDef> _Classes;
     private List<ast.FunctionDef> _Functions;
     private ast.Visibility _Visibility;
+    private ast_model.Symbols.IScope _EnclosingScope;
+    private ast_model.Symbols.ISymbolTable _SymbolTable;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ModuleDef Build()
@@ -92,7 +94,9 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
            , NamespaceDecl = this._NamespaceDecl // from ModuleDef
            , Classes = this._Classes // from ModuleDef
            , Functions = this._Functions // from ModuleDef
-           , Visibility = this._Visibility // from Definition
+           , Visibility = this._Visibility // from ModuleDef
+           , EnclosingScope = this._EnclosingScope // from ScopeAstThing
+           , SymbolTable = this._SymbolTable // from ScopeAstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
@@ -128,6 +132,16 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
     }
     public ModuleDefBuilder WithVisibility(ast.Visibility value){
         _Visibility = value;
+        return this;
+    }
+
+    public ModuleDefBuilder WithEnclosingScope(ast_model.Symbols.IScope value){
+        _EnclosingScope = value;
+        return this;
+    }
+
+    public ModuleDefBuilder WithSymbolTable(ast_model.Symbols.ISymbolTable value){
+        _SymbolTable = value;
         return this;
     }
 
