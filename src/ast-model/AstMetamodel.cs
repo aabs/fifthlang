@@ -242,6 +242,19 @@ public abstract record ScopeAstThing : AstThing, IScope
         return this.Parent.NearestScope()?.TryResolve(symbol, out result) ?? false;
     }
 
+    public bool TryResolveByName(string symbolName, out ISymbolTableEntry result)
+    {
+        result = null;
+        var tmp = SymbolTable.ResolveByName(symbolName);
+        if (tmp != null)
+        {
+            result = tmp;
+            return true;
+        }
+
+        return this.Parent.NearestScope()?.TryResolveByName(symbolName, out result) ?? false;
+    }
+
     public ISymbolTableEntry Resolve(Symbol symbol)
     {
         if (TryResolve(symbol, out var ste))

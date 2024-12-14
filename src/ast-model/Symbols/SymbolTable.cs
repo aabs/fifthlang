@@ -15,4 +15,16 @@ public class SymbolTable : Dictionary<Symbol, ISymbolTableEntry>, ISymbolTable
         }
         return null;
     }
+    public ISymbolTableEntry ResolveByName(string symbolName)
+    {
+        foreach (var k in Keys)
+        {
+            if (k.Name == symbolName)
+            {
+                return this[k];
+            }
+        }
+
+        return null;
+    }
 }

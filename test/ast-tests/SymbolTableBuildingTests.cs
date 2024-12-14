@@ -12,6 +12,21 @@ public class SymbolTableBuildingTests
 {
     #region Helpers
 
+    public AssemblyDef ParseProgram(string programFileName)
+    {
+        var parser = GetParserFor(programFileName);
+        // Act
+        var tree = parser.fifth();
+        var v = new AstBuilderVisitor();
+        var ast = v.Visit(tree);
+        var vlv = new TreeLinkageVisitor();
+        vlv.Visit((AstThing)ast);
+        var visitor = new SymbolTableBuilderVisitor();
+        visitor.Visit((AstThing)ast);
+        // Assert
+        return ast as AssemblyDef;
+    }
+
     private static FifthParser GetParserFor(string sourceFile)
     {
         string content = ReadEmbeddedResource(sourceFile);
@@ -52,24 +67,31 @@ public class SymbolTableBuildingTests
     #endregion Helpers
 
     [Fact]
+    public void SymbolTableBuilding_RecursiveDestructuring1()
+    {
+        var asm = ParseProgram("recursive-destructuring.5th");
+
+        asm.Modules[0].TryResolveByName("Person", out var steP).Should().BeTrue();
+        asm.Modules[0].TryResolveByName("VitalStatistics", out var steVS).Should().BeTrue();
+        steP.Symbol.Kind.Should().Be(SymbolKind.ClassDef);
+        steVS.Symbol.Kind.Should().Be(SymbolKind.ClassDef);
+        steP.OriginatingAstThing.TryResolve(new Symbol("Vitals", SymbolKind.PropertyDef), out var stevprop).Should().BeTrue();
+    }
+
+    [Fact]
     public void SymbolTableBuilding_SimpleProgram()
     {
-        // Arrange
-        FifthParser parser = GetParserFor("statement-if.5th");
-        // Act
-        var tree = parser.fifth();
-        var v = new AstBuilderVisitor();
-        var ast = v.Visit(tree);
-        var vlv = new TreeLinkageVisitor();
-        vlv.Visit((AstThing)ast);
-        var visitor = new SymbolTableBuilderVisitor();
-        visitor.Visit((AstThing)ast);
-        // Assert
-        var asm = ast as AssemblyDef;
+        var asm = ParseProgram("statement-if.5th");
 
         asm.Modules[0].Resolve(new Symbol("main", SymbolKind.FunctionDef)).Should().NotBeNull();
         asm.Modules[0].Functions[0].Body.Statements[0].Resolve(new Symbol("main", SymbolKind.FunctionDef)).Should().NotBeNull();
         asm.Modules[0].SymbolTable.Should().NotBeNullOrEmpty();
         asm.Modules[0].SymbolTable.Resolve(new Symbol("main", SymbolKind.FunctionDef)).Should().NotBeNull();
+        asm.Modules[0].Functions[0].TryResolve(new Symbol("y", SymbolKind.VarDeclStatement), out var ste).Should().BeTrue();
+
+        asm.Modules[0].Functions[0].TryResolveByName("y", out var ste2).Should().BeTrue();
+        ste2.Symbol.Kind.Should().Be(SymbolKind.VarDeclStatement);
+        asm.Modules[0].TryResolveByName("main", out var ste3).Should().BeTrue();
+        ste3.Symbol.Kind.Should().Be(SymbolKind.FunctionDef);
     }
 }
