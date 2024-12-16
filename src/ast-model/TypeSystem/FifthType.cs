@@ -27,10 +27,18 @@ namespace ast_model.TypeSystem;
 //    };
 //}
 
-[ValueObject<uint>]
+[ValueObject<uint>
+#if VOGEN_IS_BROKEN
+    ( parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit, parsableForPrimitives: ParsableForPrimitives.GenerateNothing )
+    #endif
+    ]
 public partial struct TypeId;
 
-[ValueObject<string>]
+[ValueObject<string>
+    #if VOGEN_IS_BROKEN
+    (parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit )
+    #endif
+    ]
 [Instance("anonymous", "", "For anonymous types")]
 public partial struct TypeName;
 

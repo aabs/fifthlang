@@ -18,6 +18,7 @@ namespace ast;
 using ast_model;
 using ast_model.Symbols;
 using ast_model.TypeSystem;
+using Vogen;
 
 #region Core Abstractions
 
@@ -165,21 +166,43 @@ public enum CollectionType
     List
 }
 
-[Ignore, ValueObject<string>]
+
+
+[Ignore, ValueObject<string>
+    #if VOGEN_IS_BROKEN
+    (parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit )
+    #endif
+    ]
 [Instance("anonymous", "", "For things like in-memory assemblies etc")]
 public partial struct AssemblyName;
 
-[Ignore, ValueObject<string>]
+[Ignore, ValueObject<string>
+    #if VOGEN_IS_BROKEN
+    (parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit )
+    #endif
+    ]
 [Instance("anonymous", "", "For anonymous members")]
 public partial struct MemberName;
 
-[Ignore, ValueObject<string>]
+[Ignore, ValueObject<string>
+    #if VOGEN_IS_BROKEN
+    (parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit )
+    #endif
+    ]
 public partial struct NamespaceName;
 
-[Ignore, ValueObject<ulong>]
+[Ignore, ValueObject<string>
+    #if VOGEN_IS_BROKEN
+    (parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit )
+    #endif
+    ]
 public partial struct OperatorId;
 
-[Ignore, ValueObject<ushort>]
+[Ignore, ValueObject<ushort>
+#if VOGEN_IS_BROKEN
+    ( parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit, parsableForPrimitives: ParsableForPrimitives.GenerateNothing )
+    #endif
+    ]
 [Instance("byte", 0, "byte has lowest seniority")]
 [Instance("short", 1)]
 [Instance("integer", 2)]
