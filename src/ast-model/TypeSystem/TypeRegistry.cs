@@ -18,12 +18,12 @@ public class TypeRegistry
         return typeId;
     }
 
-    private void Register(TypeId id, FifthType type)
+    public void Register(TypeId id, FifthType type)
     {
         _registeredTypes[id] = type;
     }
 
-    private TypeId Register(FifthType type)
+    public TypeId Register(FifthType type)
     {
         var typeId = GetNewId();
         _registeredTypes[typeId] = type;

@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Compile Remove="LanguageTransformations\AssemblyTransformation.cs" />
-    <Compile Remove="LanguageTransformations\BuiltinInjectorVisitor.cs" />
     <Compile Remove="LanguageTransformations\ClassCtorInserter.cs" />
     <Compile Remove="LanguageTransformations\CompoundVariableSplitterVisitor.cs" />
     <Compile Remove="LanguageTransformations\DestructuringPatternFlattenerVisitor.cs" />
@@ -18,7 +17,6 @@
     <Compile Remove="LanguageTransformations\PropertyBindingToVariableDeclarationTransformer.cs" />
     <Compile Remove="LanguageTransformations\PropertyReferenceToGetterInvocation.cs" />
     <Compile Remove="LanguageTransformations\PropertyToFieldExpander.cs" />
-    <Compile Remove="LanguageTransformations\StringifyVisitor.cs" />
     <Compile Remove="LanguageTransformations\ThrowingErrorListener.cs" />
     <Compile Remove="LanguageTransformations\TypeAnnotatorVisitor.cs" />
     <Compile Remove="LanguageTransformations\TypeCheckingError.cs" />
@@ -27,7 +25,6 @@
 
   <ItemGroup>
     <None Include="LanguageTransformations\AssemblyTransformation.cs" />
-    <None Include="LanguageTransformations\BuiltinInjectorVisitor.cs" />
     <None Include="LanguageTransformations\ClassCtorInserter.cs" />
     <None Include="LanguageTransformations\CompoundVariableSplitterVisitor.cs" />
     <None Include="LanguageTransformations\DestructuringPatternFlattenerVisitor.cs" />
@@ -37,7 +34,6 @@
     <None Include="LanguageTransformations\PropertyBindingToVariableDeclarationTransformer.cs" />
     <None Include="LanguageTransformations\PropertyReferenceToGetterInvocation.cs" />
     <None Include="LanguageTransformations\PropertyToFieldExpander.cs" />
-    <None Include="LanguageTransformations\StringifyVisitor.cs" />
     <None Include="LanguageTransformations\ThrowingErrorListener.cs" />
     <None Include="LanguageTransformations\TypeAnnotatorVisitor.cs" />
     <None Include="LanguageTransformations\TypeCheckingError.cs" />
@@ -47,6 +43,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ast-generated\ast_generated.csproj" />
     <ProjectReference Include="..\ast-model\ast_model.csproj" />
+    <ProjectReference Include="..\fifthlang.system\Fifth.System.csproj" />
     <ProjectReference Include="..\parser\parser.csproj" />
   </ItemGroup>
 
