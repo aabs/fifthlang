@@ -296,10 +296,10 @@ public class AstBuilderVisitorTests
         var cd = ad.Modules[0].Classes[0];
         cd.MemberDefs.Should().NotBeEmpty();
         cd.MemberDefs.All(o => o is not null).Should().BeTrue();
-        cd.Type.Should().BeOfType<FifthType.TUDType>();
+        cd.Type.Should().BeOfType<FifthType.TType>();
         var prop1 = cd.MemberDefs[ord] as PropertyDef;
         prop1.Should().NotBeNull();
-        prop1.Type.Should().BeOfType<FifthType.NoType>();
+        prop1.Type.Should().BeOfType<FifthType.TVoidType>();
         prop1.Name.Value.Should().Be(name);
         prop1.TypeName.Value.Should().Be(typename);
     }

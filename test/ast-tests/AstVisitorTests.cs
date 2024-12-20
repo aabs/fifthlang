@@ -6,7 +6,7 @@ using FluentAssertions;
 namespace ast_tests;
 public class AstVisitorTests
 {
-    private static readonly FifthType voidType = new FifthType.NoType() { Name = TypeName.From("void") };
+    private static readonly FifthType voidType = new FifthType.TVoidType() { Name = TypeName.From("void") };
     [Fact]
     public void can_visit_and_recreate_an_AST_while_preserving_its_other_data()
     {

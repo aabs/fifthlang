@@ -52,7 +52,7 @@ public static class OperatorPrecedenceCalculator
     public static Maybe<TypeCoertionSeniority> GetSeniority(TypeId tid)
     {
         if (TypeRegistry.DefaultRegistry.TryLookupType(tid, out var fifthType) &&
-            fifthType is FifthType.NetType netType &&
+            fifthType is FifthType.TDotnetType netType &&
             TypeRegistry.NumericPrimitive.TryGetValue(netType.TheType, out var seniority))
         {
             return new Some(seniority);

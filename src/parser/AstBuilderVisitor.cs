@@ -11,7 +11,7 @@ namespace compiler.LangProcessingPhases;
 
 public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 {
-    public static readonly FifthType Void = new FifthType.NoType(){Name = TypeName.From("void") };
+    public static readonly FifthType Void = new FifthType.TVoidType(){Name = TypeName.From("void") };
 
     #region Helper Functions
 
@@ -23,7 +23,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             Annotations = [],
             Location = GetLocationDetails(ctx),
             Parent = null,
-            Type = new FifthType.NetType(typeof(TBaseType)){Name = TypeName.From(typeof(TBaseType).FullName)},
+            Type = new FifthType.TDotnetType(typeof(TBaseType)){Name = TypeName.From(typeof(TBaseType).FullName)},
             Value = x(ctx.GetText())
         };
     }
@@ -118,7 +118,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         var result = b.Build() with
         {
             Location = GetLocationDetails(context),
-            Type = new FifthType.TUDType(){ Name = TypeName.From(context.name.Text) }
+            Type = new FifthType.TType(){ Name = TypeName.From(context.name.Text) }
         };
         return result;
     }

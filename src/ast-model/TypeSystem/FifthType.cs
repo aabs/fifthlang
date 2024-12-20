@@ -49,15 +49,15 @@ public partial record FifthType
 {
     public required TypeName Name { get; init; }
 
-    partial record NoType();
+    partial record TVoidType();
     /// <summary>
     /// Type of some reference to a .NET type
     /// </summary>
-    partial record NetType(System.Type TheType);
+    partial record TDotnetType(System.Type TheType);
     /// <summary>
-    /// Type of a User Defined Type
+    /// A User Defined Type (just a plain old class)
     /// </summary>
-    partial record TUDType();
+    partial record TType();
 
     /// <summary>
     /// Type of a function from some sequence of types to some type

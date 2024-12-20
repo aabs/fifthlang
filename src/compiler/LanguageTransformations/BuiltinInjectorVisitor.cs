@@ -56,7 +56,7 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
 
         foreach (var pi in mi.Parameters)
         {
-            if (TypeRegistry.DefaultRegistry.TryLookupType(pi.ParamType, out var paramtype) && paramtype is FifthType.NetType nt)
+            if (TypeRegistry.DefaultRegistry.TryLookupType(pi.ParamType, out var paramtype) && paramtype is FifthType.TDotnetType nt)
             {
                 builder.AddingItemToParams(new ParamDefBuilder()
                                                .WithName(pi.Name)
@@ -110,6 +110,6 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
         //{
         //    builder.AddingItemToMemberDefs(fd);
         //}
-        TypeRegistry.DefaultRegistry.Register(new FifthType.NetType(t){Name = TypeName.From(t.FullName)});
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(t){Name = TypeName.From(t.FullName)});
     }
 }

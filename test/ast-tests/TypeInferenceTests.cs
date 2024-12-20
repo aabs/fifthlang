@@ -8,10 +8,9 @@ namespace ast_tests;
 
 public class TypeInferenceTests
 {
-    private readonly Type voidType = new Type.NoType() { Name = TypeName.From("void") };
-    private readonly Type boolType = new Type.NetType(typeof(bool)) { Name = TypeName.From("bool") };
-    private readonly Type floatType = new Type.NetType(typeof(float)) { Name = TypeName.From("float") };
-    private readonly Type intType = new Type.NetType(typeof(int)) { Name = TypeName.From("int") };
+    private readonly Type boolType = new Type.TDotnetType(typeof(bool)) { Name = TypeName.From("bool") };
+    private readonly Type floatType = new Type.TDotnetType(typeof(float)) { Name = TypeName.From("float") };
+    private readonly Type intType = new Type.TDotnetType(typeof(int)) { Name = TypeName.From("int") };
     private readonly Dictionary<string, Type> typeMap;
     private readonly TypeSystem typeSystem;
 
