@@ -34,14 +34,14 @@ public class TypeRegistry
     {
         foreach (var t in Primitives)
         {
-            var typeId = Register(new FifthType.NetType(t));
+            var typeId = Register(new FifthType.NetType(t) { Name = TypeName.From(t.Name) });
             _dotnetTypes[t] = typeId;
         }
     }
 
     private TypeId RegisterDotnetType(Type t)
     {
-        return Register(new FifthType.NetType(t));
+        return Register(new FifthType.NetType(t) { Name = TypeName.From(t.Name) });
     }
 
     /// <summary>

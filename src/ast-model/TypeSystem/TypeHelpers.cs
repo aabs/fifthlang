@@ -2,8 +2,8 @@ using Fifth;
 
 namespace ast_model.TypeSystem;
 
-using Exp = System.Linq.Expressions.Expression;
 using static Maybe<FifthType>;
+using Exp = System.Linq.Expressions.Expression;
 
 public static class TypeHelpers
 {
@@ -91,7 +91,7 @@ public static class TypeHelpers
                 throw new TypeCheckingException("Unable to make sense of type param for list");
             }
 
-            ft = new FifthType.TListOf(typeParamAsFifthType);
+            ft = new FifthType.TListOf(typeParamAsFifthType) { Name = TypeName.From($"[{typeParamAsFifthType.Name}]") };
             return true;
         }
 

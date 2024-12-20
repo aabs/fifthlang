@@ -1,0 +1,75 @@
+﻿using ast_model.TypeSystem;
+using ast_model.TypeSystem.Inference2;
+using FluentAssertions;
+using Type = ast_model.TypeSystem.FifthType;
+using Arrow = ast_model.TypeSystem.FifthType.TFunc;
+
+namespace ast_tests;
+
+public class TypeInference2Tests
+{
+    private readonly Type voidType = new Type.NoType() { Name = TypeName.From("void") };
+    private readonly Type boolType = new Type.NetType(typeof(bool)) { Name = TypeName.From("bool") };
+    private readonly Type floatType = new Type.NetType(typeof(float)) { Name = TypeName.From("float") };
+    private readonly Type intType = new Type.NetType(typeof(int)) { Name = TypeName.From("int") };
+    private readonly Dictionary<string, Type> typeMap;
+    private readonly TypeSystem typeSystem;
+
+    public TypeInference2Tests()
+    {
+        typeMap = new()
+        {
+            ["int"] = intType,
+            ["float"] = floatType,
+            ["bool"] = boolType,
+        };
+        typeSystem = new TypeSystem()
+            .WithType(intType)
+            .WithType(boolType)
+            .WithFunction([intType, intType], intType, "+")
+            .WithFunction([intType, intType], intType, "-")
+            .WithFunction([intType, intType], intType, "*")
+            .WithFunction([intType, intType], floatType, "/")
+            ;
+    }
+
+    [Fact]
+    public void can_infer_function_return_types()
+    {
+        Arrow funResult = typeSystem.Build([], intType, "");
+        typeSystem.WithFunction([intType], funResult, "bar");
+        typeSystem.InferResultType([intType], "bar").Should().Be(funResult);
+    }
+
+    [Fact]
+    public void can_infer_the_type_of_a_function_with_no_args()
+    {
+        typeSystem.WithFunction([], boolType, "foo");
+        typeSystem.InferResultType([], "foo").Should().Be(boolType);
+    }
+
+    [Theory]
+    [InlineData("int", "int", "+", "int")]
+    [InlineData("int", "int", "-", "int")]
+    [InlineData("int", "int", "*", "int")]
+    [InlineData("int", "int", "/", "float")]
+    public void can_infer_types_for_common_binary_operators(string t1, string t2, string op, string expected)
+    {
+        typeSystem.InferResultType([typeMap[t1], typeMap[t2]], op).Should().Be(typeMap[expected]);
+    }
+
+    [Fact]
+    public void can_infer_types_of_functions_with_more_args()
+    {
+        typeSystem.WithFunction([intType, floatType, boolType], boolType, "foo");
+        typeSystem.InferResultType([intType, floatType, boolType], "foo").Should().Be(boolType);
+    }
+
+    [Fact]
+    public void can_infer_with_function_params()
+    {
+        Arrow funParam = typeSystem.Build([], intType, "");
+        typeSystem.WithFunction([funParam], intType, "bar");
+        typeSystem.InferResultType([funParam], "bar").Should().Be(intType);
+    }
+}

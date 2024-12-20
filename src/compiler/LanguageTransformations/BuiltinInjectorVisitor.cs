@@ -110,6 +110,6 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
         //{
         //    builder.AddingItemToMemberDefs(fd);
         //}
-        TypeRegistry.DefaultRegistry.Register(new FifthType.NetType(t));
+        TypeRegistry.DefaultRegistry.Register(new FifthType.NetType(t){Name = TypeName.From(t.FullName)});
     }
 }

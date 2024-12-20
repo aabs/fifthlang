@@ -1,4 +1,5 @@
-﻿using Dunet;
+﻿using ast_model.TypeSystem.Inference;
+using Dunet;
 
 namespace ast_model.TypeSystem;
 
@@ -46,6 +47,8 @@ public partial struct TypeName;
 [Union, Ignore]
 public partial record FifthType
 {
+    public required TypeName Name { get; init; }
+
     partial record NoType();
     /// <summary>
     /// Type of some reference to a .NET type
@@ -54,12 +57,12 @@ public partial record FifthType
     /// <summary>
     /// Type of a User Defined Type
     /// </summary>
-    partial record TUDType(string Name);
+    partial record TUDType();
 
     /// <summary>
     /// Type of a function from some sequence of types to some type
     /// </summary>
-    partial record TFunc(List<FifthType> ParamTypes, Maybe<FifthType> ResultType);
+    partial record TFunc(FifthType InputType, FifthType OutputType);
 
     /// <summary>
     /// type of an array of things

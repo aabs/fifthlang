@@ -4,12 +4,15 @@ using Antlr4.Runtime.Misc;
 using ast;
 using ast_generated;
 using ast_model.TypeSystem;
+using ast_model.TypeSystem.Inference;
 using Operator = ast.Operator;
 
 namespace compiler.LangProcessingPhases;
 
 public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 {
+    public static readonly FifthType Void = new FifthType.NoType(){Name = TypeName.From("void") };
+
     #region Helper Functions
 
     private TAstType CreateLiteral<TAstType, TBaseType>(ParserRuleContext ctx, Func<string, TBaseType> x)
@@ -20,7 +23,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             Annotations = [],
             Location = GetLocationDetails(ctx),
             Parent = null,
-            Type = new FifthType.NetType(typeof(TBaseType)),
+            Type = new FifthType.NetType(typeof(TBaseType)){Name = TypeName.From(typeof(TBaseType).FullName)},
             Value = x(ctx.GetText())
         };
     }
@@ -76,7 +79,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         }
         b.AddingItemToModules(mb.Build());
 
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -90,7 +93,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             b.AddingItemToStatements((Statement)Visit(stmt));
         }
 
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -115,7 +118,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         var result = b.Build() with
         {
             Location = GetLocationDetails(context),
-            Type = new FifthType.TUDType(context.name.Text)
+            Type = new FifthType.TUDType(){ Name = TypeName.From(context.name.Text) }
         };
         return result;
     }
@@ -130,7 +133,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             .WithRHS((Expression)Visit(context.rhs))
             ;
 
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -150,7 +153,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             .WithRHS((Expression)Visit(context.rhs))
             ;
 
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -162,7 +165,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             .WithLHS((Expression)Visit(context.lhs))
             .WithRHS((Expression)Visit(context.rhs))
             ;
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -184,7 +187,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             .WithLHS((Expression)Visit(context.lhs))
             .WithRHS((Expression)Visit(context.rhs))
             ;
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -196,7 +199,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             .WithLHS((Expression)Visit(context.lhs))
             .WithRHS((Expression)Visit(context.rhs))
             ;
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -217,7 +220,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             .WithLHS((Expression)Visit(context.lhs))
             .WithRHS((Expression)Visit(context.rhs))
             ;
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -234,7 +237,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         b.WithOperator(op)
             .WithOperand((Expression)Visit(context.expression()));
 
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -252,7 +255,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             b.AddingItemToParams((ParamDef)VisitParamdecl(paramdeclContext));
         }
 
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -319,7 +322,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             }
         }
 
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -333,7 +336,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
          .WithIsReadOnly(false)
          .WithIsWriteOnly(false);
         // todo:  There's a lot more detail that could be filled in here, and a lot more sophistication needed in the grammar of the decl
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -345,7 +348,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             .WithThenBlock((BlockStatement)Visit(context.ifpart));
         if (context.elsepart is not null)
             b.WithElseBlock((BlockStatement)Visit(context.elsepart));
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -354,7 +357,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         var b = new ReturnStatementBuilder()
             .WithAnnotations([])
             .WithReturnValue((Expression)Visit(context.expression()));
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
     public override IAstThing VisitVar_name(FifthParser.Var_nameContext context)
@@ -362,7 +365,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         var b = new VarRefExpBuilder()
             .WithVarName(context.GetText())
             .WithAnnotations([]);
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -372,7 +375,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         b.WithAnnotations([])
             .WithCondition((Expression)Visit(context.condition))
             .WithBody((BlockStatement)Visit(context.looppart));
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -387,7 +390,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             var e = base.Visit(exp);
             b.WithInitialValue((Expression)e);
         }
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -412,7 +415,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             b.WithTypeName(TypeName.From(context.array_type_signature().type_name().GetText()));
             b.WithCollectionType(CollectionType.Array);
         }
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -422,7 +425,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             .WithAnnotations([])
             .WithLValue((Expression)Visit(context.lvalue))
             .WithRValue((Expression)Visit(context.rvalue));
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -435,7 +438,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         {
             b.AddingItemToBindings((PropertyBindingDef)VisitDestructure_binding(pb));
         }
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -450,7 +453,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         {
             b.WithDestructureDef((ParamDestructureDef)VisitDestructuring_decl(context.destructuring_decl()));
         }
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -466,7 +469,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         b.WithLHS((Expression)Visit(context.lhs));
         if (context.rhs is not null)
             b.WithRHS((Expression)Visit(context.rhs));
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -478,7 +481,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         {
             b.AddingItemToElementExpressions((Expression)Visit(exp));
         }
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
@@ -489,7 +492,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         b.WithMembershipConstraint((Expression)Visit(context.constraint))
             .WithVarName(context.var_name().GetText())
             .WithSourceName(context.source.GetText());
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = new FifthType.NoType() };
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 

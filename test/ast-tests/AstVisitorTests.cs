@@ -6,6 +6,7 @@ using FluentAssertions;
 namespace ast_tests;
 public class AstVisitorTests
 {
+    private static readonly FifthType voidType = new FifthType.NoType() { Name = TypeName.From("void") };
     [Fact]
     public void can_visit_and_recreate_an_AST_while_preserving_its_other_data()
     {
@@ -41,7 +42,7 @@ public class AstVisitorTests
             Annotations = [],
             Classes = [createClassDef("MyType1", 1),createClassDef("MyType2", 2)],
             OriginalModuleName = "MyModule",
-            Type = new FifthType.NoType(),
+            Type = voidType,
             Parent = null,
             Visibility = Visibility.Public,
             NamespaceDecl = NamespaceName.From("MyNamespace"),
@@ -71,7 +72,7 @@ public class AstVisitorTests
 
     private static FifthType CreateType(string name, ushort typeId, SymbolKind symbolKind = SymbolKind.Assembly)
     {
-        return new FifthType.NoType();
+        return voidType;
     }
 
     private static ClassDef createClassDef(string name, ushort typeId)
