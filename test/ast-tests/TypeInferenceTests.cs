@@ -1,17 +1,19 @@
-﻿using ast_model.TypeSystem.Inference;
+﻿using ast_model.TypeSystem;
+using ast_model.TypeSystem.Inference;
 using FluentAssertions;
-using Type = ast_model.TypeSystem.Inference.Type;
+using Type = ast_model.TypeSystem.FifthType;
+using Arrow = ast_model.TypeSystem.FifthType.TFunc;
 
 namespace ast_tests;
 
 public class TypeInferenceTests
 {
-    private readonly Type boolType = new Type("bool");
-    private readonly Type floatType = new Type("float");
-    private readonly Type intType = new Type("int");
-    private readonly Dictionary<string, BaseType> typeMap;
+    private readonly Type voidType = new Type.NoType() { Name = TypeName.From("void") };
+    private readonly Type boolType = new Type.NetType(typeof(bool)) { Name = TypeName.From("bool") };
+    private readonly Type floatType = new Type.NetType(typeof(float)) { Name = TypeName.From("float") };
+    private readonly Type intType = new Type.NetType(typeof(int)) { Name = TypeName.From("int") };
+    private readonly Dictionary<string, Type> typeMap;
     private readonly TypeSystem typeSystem;
-    private readonly Type voidType = new Type("void");
 
     public TypeInferenceTests()
     {
