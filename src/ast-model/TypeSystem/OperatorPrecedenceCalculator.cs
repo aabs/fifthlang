@@ -83,7 +83,7 @@ public static class OperatorPrecedenceCalculator
 
     public static bool IsNumeric(this FifthType ft)
     {
-        return ft.MatchNetType<bool>(
+        return ft.MatchTDotnetType<bool>(
             type => TypeRegistry.NumericPrimitive.ContainsKey(type.TheType),
             () => false
         );

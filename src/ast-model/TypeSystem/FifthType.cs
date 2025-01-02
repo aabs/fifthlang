@@ -35,11 +35,7 @@ namespace ast_model.TypeSystem;
     ]
 public partial struct TypeId;
 
-[ValueObject<string>
-    #if VOGEN_IS_BROKEN
-    (parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit )
-    #endif
-    ]
+[ValueObject<string>]
 [Instance("anonymous", "", "For anonymous types")]
 public partial struct TypeName;
 

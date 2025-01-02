@@ -168,41 +168,21 @@ public enum CollectionType
 
 
 
-[Ignore, ValueObject<string>
-    #if VOGEN_IS_BROKEN
-    (parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit )
-    #endif
-    ]
+[Ignore, ValueObject<string>]
 [Instance("anonymous", "", "For things like in-memory assemblies etc")]
 public partial struct AssemblyName;
 
-[Ignore, ValueObject<string>
-    #if VOGEN_IS_BROKEN
-    (parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit )
-    #endif
-    ]
+[Ignore, ValueObject<string>]
 [Instance("anonymous", "", "For anonymous members")]
 public partial struct MemberName;
 
-[Ignore, ValueObject<string>
-    #if VOGEN_IS_BROKEN
-    (parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit )
-    #endif
-    ]
+[Ignore, ValueObject<string>]
 public partial struct NamespaceName;
 
-[Ignore, ValueObject<string>
-    #if VOGEN_IS_BROKEN
-    (parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit )
-    #endif
-    ]
+[Ignore, ValueObject<string>]
 public partial struct OperatorId;
 
-[Ignore, ValueObject<ushort>
-#if VOGEN_IS_BROKEN
-    ( parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit, parsableForPrimitives: ParsableForPrimitives.GenerateNothing )
-    #endif
-    ]
+[Ignore, ValueObject<ushort>]
 [Instance("byte", 0, "byte has lowest seniority")]
 [Instance("short", 1)]
 [Instance("integer", 2)]
