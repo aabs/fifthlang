@@ -35,6 +35,7 @@ public static class FifthParserManager
     */
         ast = new TreeLinkageVisitor().Visit(ast);
         ast = new BuiltinInjectorVisitor().Visit(ast);
+        ast = new ClassCtorInserter().Visit(ast);
         ast = new SymbolTableBuilderVisitor().Visit(ast);
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);
         return ast;

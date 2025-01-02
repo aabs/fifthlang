@@ -6,19 +6,21 @@ using AST.Builders;
 using AST.Visitors;
 using fifth.metamodel.metadata;
 
-public class ClassCtorInserter : BaseAstVisitor
+public class ClassCtorInserter : DefaultRecursiveDescentVisitor
 {
-    public override void EnterClassDefinition(ClassDefinition ctx)
-    {
-        var f = FunctionDefinitionBuilder.CreateFunctionDefinition()
-                                         .WithName("ctor")
-                                         .WithIsInstanceFunction(true)
-                                         .WithFunctionKind(FunctionKind.Ctor)
-                                         .WithParameterDeclarations(new ParameterDeclarationList(new List<IParameterListItem>()))
-                                         .WithBody(new Block(new List<Statement>()))
-                                         .Build();
-        f.ParentNode = ctx;
-        ctx.Functions.Add(f);
-    }
 
+    public override ClassDef VisitClassDef(ClassDef ctx)
+    {
+        var result = base.VisitClassDef(ctx);
+        var f = new FunctionDefBuilder()
+                    .WithName(MemberName.From( "ctor"))
+                    .WithIsStatic(false)
+                    .WithIsConstructor(true)
+                    .WithParams([])
+                    .WithBody(new(){Statements = []})
+                    .Build();
+        f.Parent = ctx;
+
+        return result;
+    }
 }

@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Compile Remove="LanguageTransformations\AssemblyTransformation.cs" />
-    <Compile Remove="LanguageTransformations\ClassCtorInserter.cs" />
     <Compile Remove="LanguageTransformations\CompoundVariableSplitterVisitor.cs" />
     <Compile Remove="LanguageTransformations\DestructuringPatternFlattenerVisitor.cs" />
     <Compile Remove="LanguageTransformations\DestructuringVisitor.cs" />
@@ -25,7 +24,6 @@
 
   <ItemGroup>
     <None Include="LanguageTransformations\AssemblyTransformation.cs" />
-    <None Include="LanguageTransformations\ClassCtorInserter.cs" />
     <None Include="LanguageTransformations\CompoundVariableSplitterVisitor.cs" />
     <None Include="LanguageTransformations\DestructuringPatternFlattenerVisitor.cs" />
     <None Include="LanguageTransformations\DestructuringVisitor.cs" />

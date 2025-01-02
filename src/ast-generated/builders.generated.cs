@@ -172,6 +172,8 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
     private ast.BlockStatement _Body;
     private ast_model.TypeSystem.TypeName? _ReturnType;
     private ast.MemberName _Name;
+    private System.Boolean _IsStatic;
+    private System.Boolean _IsConstructor;
     private ast.Visibility _Visibility;
     private ast_model.Symbols.IScope _EnclosingScope;
     private ast_model.Symbols.ISymbolTable _SymbolTable;
@@ -184,6 +186,8 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
            , Body = this._Body // from FunctionDef
            , ReturnType = this._ReturnType // from FunctionDef
            , Name = this._Name // from FunctionDef
+           , IsStatic = this._IsStatic // from FunctionDef
+           , IsConstructor = this._IsConstructor // from FunctionDef
            , Visibility = this._Visibility // from ScopedDefinition
            , EnclosingScope = this._EnclosingScope // from ScopeAstThing
            , SymbolTable = this._SymbolTable // from ScopeAstThing
@@ -212,6 +216,16 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
 
     public FunctionDefBuilder WithName(ast.MemberName value){
         _Name = value;
+        return this;
+    }
+
+    public FunctionDefBuilder WithIsStatic(System.Boolean value){
+        _IsStatic = value;
+        return this;
+    }
+
+    public FunctionDefBuilder WithIsConstructor(System.Boolean value){
+        _IsConstructor = value;
         return this;
     }
 

@@ -311,6 +311,8 @@ public record FunctionDef : ScopedDefinition
     public required BlockStatement Body { get; set; }
     public required TypeName? ReturnType { get; init; }
     public required MemberName Name { get; init; }
+    public required bool IsStatic { get; init; }
+    public required bool IsConstructor { get; init; }
 }
 
 /// <summary>
