@@ -28,11 +28,7 @@ namespace ast_model.TypeSystem;
 //    };
 //}
 
-[ValueObject<uint>
-#if VOGEN_IS_BROKEN
-    ( parsableForStrings: ParsableForStrings.GenerateNothing, tryFromGeneration: TryFromGeneration.Omit, parsableForPrimitives: ParsableForPrimitives.GenerateNothing )
-    #endif
-    ]
+[ValueObject<uint>]
 public partial struct TypeId;
 
 [ValueObject<string>]
