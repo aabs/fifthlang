@@ -4,9 +4,9 @@ using ast_model.TypeSystem;
 using FluentAssertions;
 
 namespace ast_tests;
+
 public class AstVisitorTests
 {
-    private static readonly FifthType voidType = new FifthType.TVoidType() { Name = TypeName.From("void") };
     [Fact]
     public void can_visit_and_recreate_an_AST_while_preserving_its_other_data()
     {
@@ -20,7 +20,28 @@ public class AstVisitorTests
         def2.Annotations["someKey"].Should().Be(expectedAnnotation);
     }
 
-    AssemblyDef CreateAssemblyDef()
+    private static readonly FifthType voidType = new FifthType.TVoidType() { Name = TypeName.From("void") };
+
+    private static ClassDef createClassDef(string name, ushort typeId)
+    {
+        return new ClassDef()
+        {
+            Annotations = [],
+            MemberDefs = [],
+            Name = TypeName.From("std.MyClass"),
+            Parent = null,
+            Type = CreateType(name, typeId, SymbolKind.ClassDef),
+            Visibility = Visibility.Public,
+            Location = null
+        };
+    }
+
+    private static FifthType CreateType(string name, ushort typeId, SymbolKind symbolKind = SymbolKind.Assembly)
+    {
+        return voidType;
+    }
+
+    private AssemblyDef CreateAssemblyDef()
     {
         return new AssemblyDef()
         {
@@ -33,20 +54,6 @@ public class AstVisitorTests
             PublicKeyToken = "ajhsgjsfdhg",
             Version = "0.1.1.1",
             Visibility = Visibility.Public
-        };
-    }
-    ModuleDef CreateModuleDef()
-    {
-        return new ModuleDef()
-        {
-            Annotations = [],
-            Classes = [createClassDef("MyType1", 1),createClassDef("MyType2", 2)],
-            OriginalModuleName = "MyModule",
-            Type = voidType,
-            Parent = null,
-            Visibility = Visibility.Public,
-            NamespaceDecl = NamespaceName.From("MyNamespace"),
-            Functions = [createFunctionDef("foo", "int")],
         };
     }
 
@@ -67,25 +74,23 @@ public class AstVisitorTests
             Location = null,
             Parent = null,
             Type = CreateType(name, 0, SymbolKind.MemberDef),
+            IsStatic = false,
+            IsConstructor = false
         };
     }
 
-    private static FifthType CreateType(string name, ushort typeId, SymbolKind symbolKind = SymbolKind.Assembly)
+    private ModuleDef CreateModuleDef()
     {
-        return voidType;
-    }
-
-    private static ClassDef createClassDef(string name, ushort typeId)
-    {
-        return new ClassDef()
+        return new ModuleDef()
         {
             Annotations = [],
-            MemberDefs = [],
-            Name = TypeName.From("std.MyClass") ,
+            Classes = [createClassDef("MyType1", 1), createClassDef("MyType2", 2)],
+            OriginalModuleName = "MyModule",
+            Type = voidType,
             Parent = null,
-            Type = CreateType(name, typeId, SymbolKind.ClassDef),
             Visibility = Visibility.Public,
-            Location = null
+            NamespaceDecl = NamespaceName.From("MyNamespace"),
+            Functions = [createFunctionDef("foo", "int")],
         };
     }
 }
