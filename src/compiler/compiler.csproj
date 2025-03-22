@@ -10,7 +10,7 @@
     <Compile Remove="LanguageTransformations\CompoundVariableSplitterVisitor.cs" />
     <Compile Remove="LanguageTransformations\DestructuringPatternFlattenerVisitor.cs" />
     <Compile Remove="LanguageTransformations\DestructuringVisitor.cs" />
-    <Compile Remove="LanguageTransformations\OverloadGatheringVisitor.cs" />
+    <Compile Remove="LanguageTransformations\OverloadGatheringVisitorOld.cs" />
     <Compile Remove="LanguageTransformations\OverloadTransformingVisitor.cs" />
     <Compile Remove="LanguageTransformations\PropertyBindingToVariableDeclarationTransformer.cs" />
     <Compile Remove="LanguageTransformations\PropertyReferenceToGetterInvocation.cs" />
@@ -24,7 +24,7 @@
     <None Include="LanguageTransformations\CompoundVariableSplitterVisitor.cs" />
     <None Include="LanguageTransformations\DestructuringPatternFlattenerVisitor.cs" />
     <None Include="LanguageTransformations\DestructuringVisitor.cs" />
-    <None Include="LanguageTransformations\OverloadGatheringVisitor.cs" />
+    <None Include="LanguageTransformations\OverloadGatheringVisitorOld.cs" />
     <None Include="LanguageTransformations\OverloadTransformingVisitor.cs" />
     <None Include="LanguageTransformations\PropertyBindingToVariableDeclarationTransformer.cs" />
     <None Include="LanguageTransformations\PropertyReferenceToGetterInvocation.cs" />

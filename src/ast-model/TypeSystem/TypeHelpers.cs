@@ -38,8 +38,6 @@ public static class TypeHelpers
         throw new TypeCheckingException("no way to lookup non native types yet");
     }
 
-
-
     // tmp
 
     public static T PeekOrDefault<T>(this Stack<T> s)
@@ -51,6 +49,21 @@ public static class TypeHelpers
 
         return s.Peek();
     }
+
+    public static FunctionSignature ToFunctionSignature(this FunctionDef fd)
+    {
+        return new()
+        {
+            FormalParameterTypes = fd.Params.Select(p => p.Type).ToArray(),
+            GenericTypeParameters = [],//fd.GenericParameters.Select(p => p.Type).ToArray(),
+            Name = fd.Name,
+            ReturnType = fd.Type,
+            DeclaringType = fd.Parent.Type
+        };
+    }
+
+    public static FunctionSignature ToFunctionSignature(this MethodDef methodDef)
+    => methodDef.FunctionDef.ToFunctionSignature();
 
     public static bool TryGetAttribute<T>(this Type t, out T attr)
     {

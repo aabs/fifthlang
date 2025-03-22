@@ -20,6 +20,8 @@ public interface IAstVisitor
     public void LeavePropertyDef(PropertyDef ctx);
     public void EnterMethodDef(MethodDef ctx);
     public void LeaveMethodDef(MethodDef ctx);
+    public void EnterOverloadedFunctionDefinition(OverloadedFunctionDefinition ctx);
+    public void LeaveOverloadedFunctionDefinition(OverloadedFunctionDefinition ctx);
     public void EnterInferenceRuleDef(InferenceRuleDef ctx);
     public void LeaveInferenceRuleDef(InferenceRuleDef ctx);
     public void EnterParamDef(ParamDef ctx);
@@ -166,6 +168,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeavePropertyDef(PropertyDef ctx){}
     public virtual void EnterMethodDef(MethodDef ctx){}
     public virtual void LeaveMethodDef(MethodDef ctx){}
+    public virtual void EnterOverloadedFunctionDefinition(OverloadedFunctionDefinition ctx){}
+    public virtual void LeaveOverloadedFunctionDefinition(OverloadedFunctionDefinition ctx){}
     public virtual void EnterInferenceRuleDef(InferenceRuleDef ctx){}
     public virtual void LeaveInferenceRuleDef(InferenceRuleDef ctx){}
     public virtual void EnterParamDef(ParamDef ctx){}
@@ -307,6 +311,7 @@ public interface IAstRecursiveDescentVisitor
     public FieldDef VisitFieldDef(FieldDef ctx);
     public PropertyDef VisitPropertyDef(PropertyDef ctx);
     public MethodDef VisitMethodDef(MethodDef ctx);
+    public OverloadedFunctionDefinition VisitOverloadedFunctionDefinition(OverloadedFunctionDefinition ctx);
     public InferenceRuleDef VisitInferenceRuleDef(InferenceRuleDef ctx);
     public ParamDef VisitParamDef(ParamDef ctx);
     public ParamDestructureDef VisitParamDestructureDef(ParamDestructureDef ctx);
@@ -386,6 +391,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              FieldDef node => VisitFieldDef(node),
              PropertyDef node => VisitPropertyDef(node),
              MethodDef node => VisitMethodDef(node),
+             OverloadedFunctionDefinition node => VisitOverloadedFunctionDefinition(node),
              InferenceRuleDef node => VisitInferenceRuleDef(node),
              ParamDef node => VisitParamDef(node),
              ParamDestructureDef node => VisitParamDestructureDef(node),
@@ -509,6 +515,14 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     {
      return ctx with {
          FunctionDef = (ast.FunctionDef)Visit((AstThing)ctx.FunctionDef)
+        };
+    }
+    public virtual OverloadedFunctionDefinition VisitOverloadedFunctionDefinition(OverloadedFunctionDefinition ctx)
+    {
+        List<ast.MethodDef> tmpOverloadClauses = [];
+        tmpOverloadClauses.AddRange(ctx.OverloadClauses.Select(x => (ast.MethodDef)Visit(x)));
+     return ctx with {
+         OverloadClauses = tmpOverloadClauses
         };
     }
     public virtual InferenceRuleDef VisitInferenceRuleDef(InferenceRuleDef ctx)

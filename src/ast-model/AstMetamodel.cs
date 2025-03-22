@@ -1,6 +1,5 @@
 ﻿// ReSharper disable UnusedMember.Global
 
-
 /// <summary>The ast namespace is the namespace where items that constitute part of the main abstract syntax tree (AST) are defined</summary>
 /// <remarks>
 ///   <para>
@@ -33,14 +32,23 @@ public enum AccessConstraint
     ReadWrite
 }
 
+public enum CollectionType
+{
+    SingleInstance,
+    Array,
+    List
+}
+
 public enum Operator : ushort
 {
     // Unary Operators
     ArithmeticNegative, // as opposed to Subtract, which is different
+
     LogicalNot, // bitwise complement...
 
     // ArithmeticOperator
     ArithmeticAdd,
+
     ArithmeticSubtract,
     ArithmeticMultiply,
     ArithmeticDivide,
@@ -50,6 +58,7 @@ public enum Operator : ushort
 
     // LogicalOperators
     BitwiseAnd,
+
     BitwiseOr,
     LogicalAnd,
     LogicalOr,
@@ -60,6 +69,7 @@ public enum Operator : ushort
 
     // RelationalOperators
     Equal,
+
     NotEqual,
     LessThan,
     GreaterThan,
@@ -159,14 +169,6 @@ public enum Visibility
     /// </summary>
     ProtectedInternal,
 }
-public enum CollectionType
-{
-    SingleInstance,
-    Array,
-    List
-}
-
-
 
 [Ignore, ValueObject<string>]
 [Instance("anonymous", "", "For things like in-memory assemblies etc")]
@@ -269,8 +271,7 @@ public abstract record ScopeAstThing : AstThing, IScope
     }
 }
 
-
-#endregion
+#endregion Core Abstractions
 
 #region Definitions
 
@@ -375,14 +376,20 @@ public record MethodDef : MemberDef
     public FunctionDef FunctionDef { get; set; }
 }
 
+public record OverloadedFunctionDefinition : MemberDef
+{
+    public List<MethodDef> OverloadClauses { get; init; }
+    public IFunctionSignature Signature { get; init; }
+}
+
 /// <summary>
 /// The definition of an inference rule for knowledge management.
 /// </summary>
 /// <example>
 /// <code>
-///  when (calculate_bmi(p:Person) > 30 && p.age > 18) 
-///  { 
-///  is_a(p, :ObeseAdult); 
+///  when (calculate_bmi(p:Person) > 30 && p.age > 18)
+///  {
+///  is_a(p, :ObeseAdult);
 ///  needs(p, :DietaryAdvice);
 ///  } offer_health_advice_to_overweight_adults;
 /// </code>
@@ -433,14 +440,14 @@ public record ClassDef : ScopedDefinition
 //    public required List<MemberDef> MemberDefs { get; set; }
 //}
 
-
 public record VariableDecl : Definition
 {
     public required string Name { get; init; }
     public required TypeName TypeName { get; init; }
     public required CollectionType CollectionType { get; init; }
 }
-#endregion
+
+#endregion Definitions
 
 #region References
 
@@ -452,7 +459,6 @@ public record AssemblyRef : Reference
 {
     public required string PublicKeyToken { get; set; }
     public required string Version { get; set; }
-
 }
 
 public record MemberRef : Reference
@@ -479,7 +485,7 @@ public record GraphNamespaceAlias : AstThing // TODO: is this a reference or som
     public required Uri Uri { get; set; }
 }
 
-#endregion
+#endregion References
 
 #region Statements
 
@@ -611,7 +617,7 @@ public record WithScopeStatement : Statement
 {
 }
 
-#endregion
+#endregion Statements
 
 #region Expressions
 
@@ -751,7 +757,6 @@ public record UnaryExp : Expression
     public required Expression Operand { get; set; }
 }
 
-
 /// <summary>
 /// A reference to a variable within an expression
 /// </summary>
@@ -818,4 +823,4 @@ public record Graph : Expression
     public List<Triple> Triples { get; set; }
 }
 
-#endregion
+#endregion Expressions

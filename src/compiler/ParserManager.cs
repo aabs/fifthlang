@@ -2,44 +2,47 @@
 using compiler.LangProcessingPhases;
 using compiler.LanguageTransformations;
 using Fifth;
-using Fifth.LangProcessingPhases;
 
 namespace compiler;
+
 public static class FifthParserManager
 {
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast)
     {
-    /*
-        BuiltinInjectorVisitor
-        ClassCtorInserter
-        VerticalLinkageVisitor
-        PropertyToFieldExpander
-        // does this vvv need to be replaced with an equivalent for member accesses?
-        //CompoundVariableSplitterVisitor
-        OverloadGatheringVisitor
-        OverloadTransformingVisitor
-        VerticalLinkageVisitor
-        SymbolTableBuilderVisitor
-        // after this point, it is the responsibility of any transformative visitors to keep the
-        // symtab in order.
-        DestructuringVisitor
-        ast = new DestructuringPatternFlattenerVisitor().Process(ast as AstThing, new DummyContext
-        // with the introduction of a bunch of new vardecls by the destructuring flattener, we need to rebuild the symtab
-        VerticalLinkageVisitor
-        SymbolTableBuilderVisitor
-        //TypeAnnotatorVisitor
-        VariableReferenceResolver
-        TypeAnnotatorVisitor
-        //StringifyVisitor(Console.Out));
-        return ast;
-    */
+        /*
+            BuiltinInjectorVisitor
+            ClassCtorInserter
+            VerticalLinkageVisitor
+            PropertyToFieldExpander
+            // does this vvv need to be replaced with an equivalent for member accesses?
+            //CompoundVariableSplitterVisitor
+            OverloadGatheringVisitor
+            OverloadTransformingVisitor
+            VerticalLinkageVisitor
+            SymbolTableBuilderVisitor
+            // after this point, it is the responsibility of any transformative visitors to keep the
+            // symtab in order.
+            DestructuringVisitor
+            ast = new DestructuringPatternFlattenerVisitor().Process(ast as AstThing, new DummyContext
+            // with the introduction of a bunch of new vardecls by the destructuring flattener, we
+            // need to rebuild the symtab
+            VerticalLinkageVisitor
+            SymbolTableBuilderVisitor
+            //TypeAnnotatorVisitor
+            VariableReferenceResolver
+            TypeAnnotatorVisitor
+            //StringifyVisitor(Console.Out));
+            return ast;
+        */
         ast = new TreeLinkageVisitor().Visit(ast);
         ast = new BuiltinInjectorVisitor().Visit(ast);
         ast = new ClassCtorInserter().Visit(ast);
         ast = new SymbolTableBuilderVisitor().Visit(ast);
+        ast = new PropertyToFieldExpander().Visit(ast);
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);
         return ast;
     }
+
     private static FifthParser GetParserForStream(ICharStream source)
     {
         var lexer = new FifthLexer(source);
@@ -54,12 +57,6 @@ public static class FifthParserManager
 
     #region File Handling
 
-    private static FifthParser GetParserForFile(string sourceFile)
-    {
-        var s = CharStreams.fromPath(sourceFile);
-        return GetParserForStream(s);
-    }
-
     public static AstThing ParseFile(string sourceFile)
     {
         var parser = GetParserForFile(sourceFile);
@@ -69,15 +66,15 @@ public static class FifthParserManager
         return ast as AssemblyDef;
     }
 
-    #endregion
-
-    #region Embedded Resource Handling
-
-    private static FifthParser GetParserForEmbeddedResource(Stream sourceStream)
+    private static FifthParser GetParserForFile(string sourceFile)
     {
-        var s = CharStreams.fromStream(sourceStream);
+        var s = CharStreams.fromPath(sourceFile);
         return GetParserForStream(s);
     }
+
+    #endregion File Handling
+
+    #region Embedded Resource Handling
 
     public static AstThing ParseEmbeddedResource(Stream sourceStream)
     {
@@ -88,14 +85,15 @@ public static class FifthParserManager
         return ast as AssemblyDef;
     }
 
-    #endregion
-
-    #region String handling
-    private static FifthParser GetParserForString(string source)
+    private static FifthParser GetParserForEmbeddedResource(Stream sourceStream)
     {
-        var s = CharStreams.fromString(source);
+        var s = CharStreams.fromStream(sourceStream);
         return GetParserForStream(s);
     }
+
+    #endregion Embedded Resource Handling
+
+    #region String handling
 
     public static AstThing ParseString(string source)
     {
@@ -106,7 +104,13 @@ public static class FifthParserManager
         return ast as AssemblyDef;
     }
 
-    #endregion
+    private static FifthParser GetParserForString(string source)
+    {
+        var s = CharStreams.fromString(source);
+        return GetParserForStream(s);
+    }
+
+    #endregion String handling
 
     /*
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast)
@@ -125,7 +129,8 @@ public static class FifthParserManager
         // symtab in order.
         ast.Accept(new DestructuringVisitor());
         ast = new DestructuringPatternFlattenerVisitor().Process(ast as AstThing, new DummyContext());
-        // with the introduction of a bunch of new vardecls by the destructuring flattener, we need to rebuild the symtab
+        // with the introduction of a bunch of new vardecls by the destructuring flattener, we need
+        // to rebuild the symtab
         ast.Accept(new VerticalLinkageVisitor());
         ast.Accept(new SymbolTableBuilderVisitor());
         //ast.Accept(new TypeAnnotatorVisitor());
@@ -312,6 +317,6 @@ public static class FifthParserManager
     }
 
     #endregion Parsing into Parse Tree
+
     */
 }
-

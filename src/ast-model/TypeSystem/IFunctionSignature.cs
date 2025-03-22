@@ -2,9 +2,9 @@ namespace ast_model.TypeSystem;
 
 public interface IFunctionSignature
 {
-    TypeId[] FormalParameterTypes { get; set; }
-    TypeId[] GenericTypeParameters { get; set; }
+    FifthType? DeclaringType { get; set; }
+    FifthType[] FormalParameterTypes { get; set; }
+    FifthType[] GenericTypeParameters { get; set; }
     MemberName Name { get; set; }
-    TypeId ReturnType { get; set; }
-    TypeId? DeclaringType { get; set; }
+    FifthType ReturnType { get; set; }
 }

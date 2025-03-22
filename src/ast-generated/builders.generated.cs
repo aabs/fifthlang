@@ -472,6 +472,70 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
     }
 
 }
+public class OverloadedFunctionDefinitionBuilder : IBuilder<ast.OverloadedFunctionDefinition>
+{
+
+    private List<ast.MethodDef> _OverloadClauses;
+    private ast_model.TypeSystem.IFunctionSignature _Signature;
+    private ast.MemberName _Name;
+    private ast_model.TypeSystem.TypeName _TypeName;
+    private System.Boolean _IsReadOnly;
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.OverloadedFunctionDefinition Build()
+    {
+        return new ast.OverloadedFunctionDefinition(){
+             OverloadClauses = this._OverloadClauses // from OverloadedFunctionDefinition
+           , Signature = this._Signature // from OverloadedFunctionDefinition
+           , Name = this._Name // from MemberDef
+           , TypeName = this._TypeName // from MemberDef
+           , IsReadOnly = this._IsReadOnly // from MemberDef
+           , Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public OverloadedFunctionDefinitionBuilder WithOverloadClauses(List<ast.MethodDef> value){
+        _OverloadClauses = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefinitionBuilder AddingItemToOverloadClauses(ast.MethodDef value){
+        _OverloadClauses  ??= [];
+        _OverloadClauses.Add(value);
+        return this;
+    }
+    public OverloadedFunctionDefinitionBuilder WithSignature(ast_model.TypeSystem.IFunctionSignature value){
+        _Signature = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefinitionBuilder WithName(ast.MemberName value){
+        _Name = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefinitionBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
+        _TypeName = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefinitionBuilder WithIsReadOnly(System.Boolean value){
+        _IsReadOnly = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefinitionBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefinitionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
 {
 
