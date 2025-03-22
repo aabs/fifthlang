@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="LanguageTransformations\AssemblyTransformation.cs" />
     <Compile Remove="LanguageTransformations\CompoundVariableSplitterVisitor.cs" />
     <Compile Remove="LanguageTransformations\DestructuringPatternFlattenerVisitor.cs" />
     <Compile Remove="LanguageTransformations\DestructuringVisitor.cs" />
@@ -15,7 +14,6 @@
     <Compile Remove="LanguageTransformations\OverloadTransformingVisitor.cs" />
     <Compile Remove="LanguageTransformations\PropertyBindingToVariableDeclarationTransformer.cs" />
     <Compile Remove="LanguageTransformations\PropertyReferenceToGetterInvocation.cs" />
-    <Compile Remove="LanguageTransformations\PropertyToFieldExpander.cs" />
     <Compile Remove="LanguageTransformations\ThrowingErrorListener.cs" />
     <Compile Remove="LanguageTransformations\TypeAnnotatorVisitor.cs" />
     <Compile Remove="LanguageTransformations\TypeCheckingError.cs" />
@@ -23,7 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="LanguageTransformations\AssemblyTransformation.cs" />
     <None Include="LanguageTransformations\CompoundVariableSplitterVisitor.cs" />
     <None Include="LanguageTransformations\DestructuringPatternFlattenerVisitor.cs" />
     <None Include="LanguageTransformations\DestructuringVisitor.cs" />
@@ -31,7 +28,6 @@
     <None Include="LanguageTransformations\OverloadTransformingVisitor.cs" />
     <None Include="LanguageTransformations\PropertyBindingToVariableDeclarationTransformer.cs" />
     <None Include="LanguageTransformations\PropertyReferenceToGetterInvocation.cs" />
-    <None Include="LanguageTransformations\PropertyToFieldExpander.cs" />
     <None Include="LanguageTransformations\ThrowingErrorListener.cs" />
     <None Include="LanguageTransformations\TypeAnnotatorVisitor.cs" />
     <None Include="LanguageTransformations\TypeCheckingError.cs" />

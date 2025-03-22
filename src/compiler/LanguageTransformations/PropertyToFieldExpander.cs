@@ -1,78 +1,121 @@
-namespace Fifth.LangProcessingPhases;
-
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using AST;
-using AST.Builders;
-using AST.Visitors;
-using fifth.metamodel.metadata;
+namespace compiler.LanguageTransformations;
 
 /// <summary>
 /// Expands a property definition into a C#-style backing field and accessor functions.
 /// </summary>
-public class PropertyToFieldExpander : BaseAstVisitor
+public class PropertyToFieldExpander : DefaultRecursiveDescentVisitor
 {
-    public override void EnterPropertyDefinition(PropertyDefinition ctx)
+    public override PropertyDef VisitPropertyDef(PropertyDef ctx)
     {
-        // define a backing field
-        var f = FieldDefinitionBuilder.CreateFieldDefinition()
-                                      .WithName($"{ctx.Name}__BackingField")
-                                      .WithTypeName(ctx.TypeName)
-                                      .WithBackingFieldFor(ctx)
-                                      .Build();
-        var cd = ctx.ParentNode as ClassDefinition;
-        cd.Fields.Add(f);
-        // annotate the property with the details of the field
-        ctx.BackingField = f;
-        // create accessor functions for the property
-        var getter = FunctionDefinitionBuilder.CreateFunctionDefinition()
-                                              .WithName($"get_{ctx.Name}")
-                                              .WithFunctionKind(FunctionKind.Getter)
-                                              .WithTypename(ctx.TypeName)
-                                              .WithIsEntryPoint(false)
-                                              .WithParameterDeclarations(new ParameterDeclarationList(new List<IParameterListItem>()))
-                                              .WithBody(
-                                                  BlockBuilder.CreateBlock()
-                                                              .AddingItemToStatements(
-                                                                  ReturnStatementBuilder.CreateReturnStatement()
-                                                                      .WithSubExpression(
-                                                                          VariableReferenceBuilder
-                                                                              .CreateVariableReference()
-                                                                              .WithName(f.Name)
-                                                                              .Build()
-                                                                      )
-                                                                      .Build()
-                                                              )
-                                                              .Build()
-                                              )
-                                              .Build();
-        getter["propdecl"] = ctx;
-        cd.Functions.Add(getter);
-        ctx.GetAccessor = getter;
-        var setter = FunctionDefinitionBuilder.CreateFunctionDefinition()
-                                              .WithName($"set_{ctx.Name}")
-                                              .WithFunctionKind(FunctionKind.Setter)
-                                              .WithParameterDeclarations(new ParameterDeclarationList(
-                                                  new List<IParameterListItem>
-                                                  {
-                                                      ParameterDeclarationBuilder.CreateParameterDeclaration()
-                                                          .WithTypeName(ctx.TypeName)
-                                                          .WithParameterName(new Identifier("value"))
-                                                          .Build()
-                                                  })
-                                              )
-                                              .WithBody(BlockBuilder.CreateBlock()
-                                                                    .AddingItemToStatements(AssignmentStmtBuilder
-                                                                        .CreateAssignmentStmt()
-                                                                        .WithVariableRef(new VariableReference(f.Name))
-                                                                        .WithExpression(new VariableReference("value"))
-                                                                        .Build())
-                                                                    .Build()
-                                              )
-                                              .Build();
-        setter["propdecl"] = ctx;
-        cd.Functions.Add(setter);
-        ctx.SetAccessor = setter;
+        ArgumentNullException.ThrowIfNull(ctx);
+        _ = ctx.Parent ?? throw new InvalidOperationException("Cannot expand an orphaned property definition.");
+        // Create a backing field using FieldDefBuilder
+        var field = new FieldDefBuilder()
+            .WithName(MemberName.From($"{ctx.Name}__BackingField"))
+            .WithTypeName(ctx.TypeName)
+            .WithIsReadOnly(false)
+            .WithVisibility(ctx.Visibility)
+            .Build();
+
+        // Add the field to the class definition
+        var classDef = ctx.Parent as ClassDef;
+        classDef.MemberDefs.Add(field);
+
+        // Create getter function using FunctionDefBuilder
+        var getter = new FunctionDefBuilder()
+            .WithName(MemberName.From($"get_{ctx.Name}"))
+            .WithReturnType(ctx.TypeName)
+            .WithIsStatic(false)
+            .WithVisibility(ctx.Visibility)
+            .WithBody(new ast.BlockStatement
+            {
+                Statements = new List<ast.Statement>
+                {
+                    new ast_generated.ReturnStatementBuilder()
+                        .WithReturnValue(new VarRefExp
+                        {
+                            VarName = field.Name.Value,
+                            Type = ctx.Type
+                        })
+                        .Build()
+                }
+            })
+            .Build();
+
+        // Add the getter function to the class definition
+        var getmethod = new MethodDef
+        {
+            Name = getter.Name,
+            Parent = classDef,
+            Type = ctx.Type,
+            Visibility = ctx.Visibility,
+            IsReadOnly = ctx.IsReadOnly,
+            TypeName = ctx.TypeName,
+            Annotations = ctx.Annotations,
+            FunctionDef = getter,
+            Location = ctx.Location
+        };
+        classDef.MemberDefs.Add(getmethod);
+
+        if (!ctx.IsReadOnly)
+        {
+            var setter = new FunctionDefBuilder()
+                .WithName(MemberName.From($"set_{ctx.Name}"))
+                .WithReturnType(null)
+                .WithIsStatic(false)
+                .WithVisibility(ctx.Visibility)
+                .WithParams(new List<ast.ParamDef>
+                {
+                new() {
+                    Name = "value",
+                    TypeName = ctx.TypeName,
+                    Type = ctx.Type,
+                    Annotations = ctx.Annotations,
+                    Location = ctx.Location,
+                    Parent = ctx,
+                    Visibility = ctx.Visibility,
+                    DestructureDef = null,
+                    ParameterConstraint = null
+                }
+                })
+                .WithBody(new ast.BlockStatement
+                {
+                    Statements = new List<ast.Statement>
+                    {
+                    new ast.AssignmentStatement
+                    {
+                        LValue = new VarRefExp
+                        {
+                            VarName = field.Name.Value,
+                            Type = ctx.Type
+                        },
+                        RValue = new VarRefExp
+                        {
+                            VarName = "value",
+                            Type = ctx.Type
+                        }
+                    }
+                    }
+                })
+                .Build();
+
+            // Add the setter function to the class definition
+            var setmethod = new MethodDef
+            {
+                Name = setter.Name,
+                Parent = classDef,
+                Type = ctx.Type,
+                Visibility = ctx.Visibility,
+                IsReadOnly = ctx.IsReadOnly,
+                TypeName = ctx.TypeName,
+                Annotations = ctx.Annotations,
+                FunctionDef = getter,
+                Location = ctx.Location
+            };
+            classDef.MemberDefs.Add(setmethod);
+        }
+        // Create setter function using FunctionDefBuilder
+
+        return base.VisitPropertyDef(ctx);
     }
 }
