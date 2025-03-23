@@ -367,13 +367,13 @@ public class AstBuilderVisitorTests
         var p0b1 = p0.DestructureDef.Bindings[1];
         p0b1.Should().NotBeNull();
         p0b1.IntroducedVariable.Value.Should().Be("vitals");
-        p0b1.ReferencedProperty.Value.Should().Be("Vitals");
+        p0b1.ReferencedPropertyName.Value.Should().Be("Vitals");
         p0b1.DestructureDef.Should().NotBeNull();
         p0b1.DestructureDef.Should().BeOfType<ParamDestructureDef>();
         p0b1.DestructureDef.Bindings.Should().HaveCount(3);
         var p0b1b2 = p0b1.DestructureDef.Bindings[2];
         p0b1b2.IntroducedVariable.Value.Should().Be("weight");
-        p0b1b2.ReferencedProperty.Value.Should().Be("Weight");
+        p0b1b2.ReferencedPropertyName.Value.Should().Be("Weight");
     }
 
     [Theory]

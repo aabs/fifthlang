@@ -420,7 +420,8 @@ public record ParamDestructureDef : Definition
 public record PropertyBindingDef : Definition
 {
     public required MemberName IntroducedVariable { get; set; }
-    public required MemberName ReferencedProperty { get; set; }
+    public required MemberName ReferencedPropertyName { get; set; }
+    public PropertyDef? ReferencedProperty { get; set; }
     public required ParamDestructureDef? DestructureDef { get; set; }
 }
 

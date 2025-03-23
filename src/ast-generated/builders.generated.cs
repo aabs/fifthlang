@@ -675,7 +675,7 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
     {
         return new ast.PropertyBindingDef(){
              IntroducedVariable = this._IntroducedVariable // from PropertyBindingDef
-           , ReferencedProperty = this._ReferencedProperty // from PropertyBindingDef
+           , ReferencedPropertyName = this._ReferencedProperty // from PropertyBindingDef
            , DestructureDef = this._DestructureDef // from PropertyBindingDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing

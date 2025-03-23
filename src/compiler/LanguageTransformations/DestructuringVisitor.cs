@@ -1,94 +1,75 @@
-﻿namespace Fifth.Parser.LangProcessingPhases;
+﻿using ast_model.Symbols;
 
-using System.Collections.Generic;
-using System.Linq;
-using AST.Visitors;
-using Fifth.AST;
-using Fifth.AST.Builders;
-using Fifth.Symbols;
-using Fifth.TypeSystem;
+namespace compiler.LanguageTransformations;
 
-/// <summary>
-/// A visitor intended specifically to track the recurive definitions of Parameter Destructuring Definitions.
-/// </summary>
-public class DestructuringVisitor : BaseAstVisitor
+public class DestructuringVisitor : DefaultRecursiveDescentVisitor
 {
     public Stack<(string, ISymbolTableEntry)> ResolutionScope { get; } = new();
 
-    public override void EnterDestructuringBinding(DestructuringBinding ctx)
+    public override ParamDef VisitParamDef(ParamDef ctx)
     {
+        if (ctx.DestructureDef is null)
+        {
+            return ctx;
+        }
+        var paramType = ctx.NearestScope().Resolve(new Symbol(ctx.TypeName.Value, SymbolKind.ParamDef));
+        ResolutionScope.Push((ctx.Name, paramType));
+        ParamDef result;
+        try
+        {
+            result = base.VisitParamDef(ctx);
+        }
+        finally
+        {
+            ResolutionScope.Pop();
+        }
+        return result;
+    }
 
+    public override ParamDestructureDef VisitParamDestructureDef(ParamDestructureDef ctx)
+    {
+        if (ctx.Parent is ParamDef pd)
+        {
+            var paramType = ctx.NearestScope().Resolve(new Symbol(pd.TypeName.Value, SymbolKind.ParamDef));
+            ResolutionScope.Push((pd.Name, paramType));
+        }
+        else if (ctx.Parent is PropertyBindingDef db)
+        {
+            // currently the only place that sets this annotation is
+            // PropertyBindingToVariableDeclarationTransformer.EnterDestructuringBinding when the
+            // propertyDefinitionScope is a classdefinition
+            var propdecl = db.ReferencedPropertyName;
+            var paramType = db.NearestScope().Resolve(new Symbol(propdecl.Value, SymbolKind.PropertyDef));
+            ResolutionScope.Push((propdecl.Value, paramType));
+        }
+        ParamDestructureDef result;
+        try
+        {
+            result = base.VisitParamDestructureDef(ctx);
+        }
+        finally
+        {
+            ResolutionScope.Pop();
+        }
+        return result;
+    }
 
-
-
-
-
-
-
+    public override PropertyBindingDef VisitPropertyBindingDef(PropertyBindingDef ctx)
+    {
         var (scopeVarName, propertyDefinitionScope) = ResolutionScope.Peek();
 
-
-        if (propertyDefinitionScope.SymbolKind == SymbolKind.ClassDeclaration && propertyDefinitionScope.Context is ClassDefinition c)
+        if (propertyDefinitionScope.Symbol.Kind == SymbolKind.ClassDef && propertyDefinitionScope.OriginatingAstThing is ClassDef c)
         {
             // the propname of the ctx needs to be resolved as a propertydefinition of the class c
-            var propdecl = c.Properties.FirstOrDefault(pd => pd.Name == ctx.Propname);
+            var propdecl = c.MemberDefs.OfType<PropertyDef>().FirstOrDefault(pd => pd.Name == ctx.ReferencedPropertyName);
             if (propdecl != null)
             {
-                ctx.PropDecl = propdecl;
-                // if propdecl is not null, it means we know that the RHS of the assignment is var ref to <scopeVarName>.(propdecl.Name)
+                ctx.ReferencedProperty = propdecl;
+                // if propdecl is not null, it means we know that the RHS of the assignment is var
+                // ref to <scopeVarName>.(propdecl.Name)
             }
         }
 
-
-
-
-
-
-    }
-
-    public override void EnterDestructuringDeclaration(DestructuringDeclaration ctx)
-    {
-        if (ctx.ParentNode is ParameterDeclaration pd)
-        {
-            var paramType = ctx.NearestScope().Resolve(pd.TypeName);
-            ResolutionScope.Push((pd.ParameterName.Value, paramType));
-        }
-        else if (ctx.ParentNode is DestructuringBinding db)
-        {
-            // currently the only place that sets this annotation is PropertyBindingToVariableDeclarationTransformer.EnterDestructuringBinding
-            // when the propertyDefinitionScope is a classdefinition
-            var propdecl = db.PropDecl;
-            var paramType = propdecl.NearestScope().Resolve(propdecl.TypeName);
-            ResolutionScope.Push((propdecl.Name, paramType));
-        }
-    }
-
-    public override void EnterParameterDeclaration(ParameterDeclaration ctx)
-    {
-        if (ctx.DestructuringDecl == null)
-        {
-            return;
-        }
-        var paramType = ctx.NearestScope().Resolve(ctx.TypeName);
-        ResolutionScope.Push((ctx.ParameterName.Value, paramType));
-    }
-
-    public override void LeaveDestructuringBinding(DestructuringBinding ctx)
-    {
-        base.LeaveDestructuringBinding(ctx);
-    }
-
-    public override void LeaveDestructuringDeclaration(DestructuringDeclaration ctx)
-    {
-        ResolutionScope.Pop();
-    }
-
-    public override void LeaveParameterDeclaration(ParameterDeclaration ctx)
-    {
-        if (ctx.DestructuringDecl == null)
-        {
-            return;
-        }
-        ResolutionScope.Pop();
+        return ctx;
     }
 }
