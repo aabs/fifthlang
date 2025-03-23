@@ -43,24 +43,27 @@ public class TypeRegistry
         typeof(DateTime)
     ];
 
-    public void Register(FifthType type)
+    public FifthType Register(FifthType type)
     {
         _registeredTypes[type.Name] = type;
+        return type;
     }
 
     public void RegisterPrimitiveTypes()
     {
         foreach (var t in Primitives)
         {
-            var ft = new FifthType.TDotnetType((Type)t) { Name = TypeName.From((string)t.Name) };
-            Register(ft);
-            _dotnetTypes[(Type)t] = ft;
+            var ft = Register(new FifthType.TDotnetType(t) { Name = TypeName.From(t.Name) });
+            _dotnetTypes[t] = ft;
         }
     }
 
-    public bool TryGetTypeByName(string s, out FifthType typeId)
+    public bool TryGetTypeByName(string s, out FifthType? type)
     {
-        throw new NotImplementedException();
+        type = (from kvp in _registeredTypes
+                where kvp.Key.Value == s
+                select kvp.Value).FirstOrDefault();
+        return type != null;
     }
 
     public bool TryLookupFifthType(Type t, out FifthType result)
@@ -73,29 +76,24 @@ public class TypeRegistry
         return _registeredTypes.TryGetValue(tid, out result);
     }
 
-    public bool TryLookupType(Type t, out FifthType result)
+    public bool TryLookupType(Type t, out FifthType? result)
     {
-        FifthType typeId;
-        if (_dotnetTypes.TryGetValue(t, out typeId))
+        result = null;
+        if (_dotnetTypes.TryGetValue(t, out result))
         {
-            result = _registeredTypes[typeId.Name];
+            return true;
         }
         else
         {
-            typeId = RegisterDotnetType(t);
+            result = RegisterDotnetType(t);
         }
 
-        return _registeredTypes.TryGetValue(typeId.Name, out result);
+        return result is not null;
     }
 
     private uint _baseIdCounter = 0;
-    private ConcurrentDictionary<Type, FifthType> _dotnetTypes = [];
-    private ConcurrentDictionary<TypeName, FifthType> _registeredTypes = [];
+    private ConcurrentDictionary<Type, FifthType> _dotnetTypes = new();
+    private ConcurrentDictionary<TypeName, FifthType> _registeredTypes = new();
 
-    private FifthType RegisterDotnetType(Type t)
-    {
-        var result = new FifthType.TDotnetType(t) { Name = TypeName.From(t.Name) };
-        Register(result);
-        return result;
-    }
+    private FifthType RegisterDotnetType(Type t) => Register(new FifthType.TDotnetType(t) { Name = TypeName.From(t.Name) });
 }
