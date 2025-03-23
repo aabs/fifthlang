@@ -18,9 +18,9 @@ public static class TypeHelpers
         return node?.Parent.GlobalScope();
     }
 
-    public static Maybe<FifthType> Lookup(this TypeId tid)
+    public static Maybe<FifthType> Lookup(this FifthType tid)
     {
-        if (TypeRegistry.DefaultRegistry.TryLookupType(tid, out FifthType ft))
+        if (TypeRegistry.DefaultRegistry.TryLookupType(tid.Name, out FifthType ft))
         {
             return new Some(ft);
         }

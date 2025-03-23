@@ -1,5 +1,7 @@
 using static ast_model.TypeSystem.Maybe<ast.TypeCoertionSeniority>;
+
 #pragma warning disable CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+
 namespace ast_model.TypeSystem;
 
 public static class OperatorPrecedenceCalculator
@@ -11,7 +13,7 @@ public static class OperatorPrecedenceCalculator
     /// <param name="lhs">the tid of the lhs operand</param>
     /// <param name="rhs">the tid of the rhs operand</param>
     /// <returns>tuple (result tid, coercion type for lhs, coercion type for rhs)</returns>
-    public static (TypeId, TypeId?, TypeId?) GetResultType(Operator? op, TypeId lhs, TypeId rhs)
+    public static (FifthType, FifthType?, FifthType?) GetResultType(Operator? op, FifthType lhs, FifthType rhs)
     {
         if (!op.HasValue)
         {
@@ -20,9 +22,10 @@ public static class OperatorPrecedenceCalculator
 
         return GetResultType(op.Value, lhs, rhs);
     }
-    public static (TypeId, TypeId?, TypeId?) GetResultType(Operator op, TypeId lhs, TypeId rhs)
+
+    public static (FifthType, FifthType?, FifthType?) GetResultType(Operator op, FifthType lhs, FifthType rhs)
     {
-        if (IsRelational(op) && TypeRegistry.DefaultRegistry.TryLookupTypeId(typeof(bool), out var tid))
+        if (IsRelational(op) && TypeRegistry.DefaultRegistry.TryLookupFifthType(typeof(bool), out var tid))
         {
             return (tid, null, null);
         }
@@ -37,21 +40,20 @@ public static class OperatorPrecedenceCalculator
 
         if (lhsSeniority is Some lhss && rhsSeniority is Some rhss)
         {
+            if ((ushort)lhss.Value > (ushort)rhss.Value)
+            {
+                return (lhs, null, lhs);
+            }
 
-                if ((ushort)lhss.Value > (ushort)rhss.Value)
-                {
-                    return (lhs, null, lhs);
-                }
-
-                return (rhs, rhs, null);
+            return (rhs, rhs, null);
         }
 
         throw new TypeCheckingException("could not resolve numerical types ofr coercion");
     }
 
-    public static Maybe<TypeCoertionSeniority> GetSeniority(TypeId tid)
+    public static Maybe<TypeCoertionSeniority> GetSeniority(FifthType tid)
     {
-        if (TypeRegistry.DefaultRegistry.TryLookupType(tid, out var fifthType) &&
+        if (TypeRegistry.DefaultRegistry.TryLookupType(tid.Name, out var fifthType) &&
             fifthType is FifthType.TDotnetType netType &&
             TypeRegistry.NumericPrimitive.TryGetValue(netType.TheType, out var seniority))
         {
@@ -94,4 +96,5 @@ public static class OperatorPrecedenceCalculator
         return !IsRelational(op);
     }
 }
+
 #pragma warning restore CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.

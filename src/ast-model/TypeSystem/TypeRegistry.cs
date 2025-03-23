@@ -1,51 +1,26 @@
-using System.Collections.Immutable;
-
 namespace ast_model.TypeSystem;
 
 public class TypeRegistry
 {
     public static readonly TypeRegistry DefaultRegistry = new();
 
-    private ConcurrentDictionary<TypeId, FifthType> _registeredTypes = [];
-    private ConcurrentDictionary<Type, TypeId> _dotnetTypes = [];
-
-    private uint _baseIdCounter = 0;
-
-    private TypeId GetNewId()
+    public static Dictionary<Type, TypeCoertionSeniority> NumericPrimitive = new()
     {
-        var typeId = TypeId.From(Interlocked.Increment(ref _baseIdCounter));
-
-        return typeId;
-    }
-
-    public void Register(TypeId id, FifthType type)
-    {
-        _registeredTypes[id] = type;
-    }
-
-    public TypeId Register(FifthType type)
-    {
-        var typeId = GetNewId();
-        _registeredTypes[typeId] = type;
-        return typeId;
-    }
-
-    public void RegisterPrimitiveTypes()
-    {
-        foreach (var t in Primitives)
-        {
-            var typeId = Register(new FifthType.TDotnetType(t) { Name = TypeName.From(t.Name) });
-            _dotnetTypes[t] = typeId;
-        }
-    }
-
-    private TypeId RegisterDotnetType(Type t)
-    {
-        return Register(new FifthType.TDotnetType(t) { Name = TypeName.From(t.Name) });
-    }
+        [typeof(byte)] = TypeCoertionSeniority.@byte,
+        [typeof(sbyte)] = TypeCoertionSeniority.@byte,
+        [typeof(short)] = TypeCoertionSeniority.@short,
+        [typeof(ushort)] = TypeCoertionSeniority.@short,
+        [typeof(int)] = TypeCoertionSeniority.integer,
+        [typeof(uint)] = TypeCoertionSeniority.integer,
+        [typeof(long)] = TypeCoertionSeniority.@long,
+        [typeof(ulong)] = TypeCoertionSeniority.@long,
+        [typeof(float)] = TypeCoertionSeniority.@float,
+        [typeof(double)] = TypeCoertionSeniority.@double,
+        [typeof(decimal)] = TypeCoertionSeniority.@decimal
+    };
 
     /// <summary>
-    /// These are the types that will be treated as primitives (preloaded into the type registry)
+    /// These are the types that will be treated as primitives (preloaded into the t registry)
     /// </summary>
     public static Type[] Primitives =
     [
@@ -68,48 +43,59 @@ public class TypeRegistry
         typeof(DateTime)
     ];
 
-    public static Dictionary<Type, TypeCoertionSeniority> NumericPrimitive = new()
+    public void Register(FifthType type)
     {
-        [typeof(byte)] = TypeCoertionSeniority.@byte,
-        [typeof(sbyte)] = TypeCoertionSeniority.@byte,
-        [typeof(short)] = TypeCoertionSeniority.@short,
-        [typeof(ushort)] = TypeCoertionSeniority.@short,
-        [typeof(int)] = TypeCoertionSeniority.integer,
-        [typeof(uint)] = TypeCoertionSeniority.integer,
-        [typeof(long)] = TypeCoertionSeniority.@long,
-        [typeof(ulong)] = TypeCoertionSeniority.@long,
-        [typeof(float)] = TypeCoertionSeniority.@float,
-        [typeof(double)] = TypeCoertionSeniority.@double,
-        [typeof(decimal)] = TypeCoertionSeniority.@decimal
-    };
+        _registeredTypes[type.Name] = type;
+    }
 
-    public bool TryLookupType(TypeId tid, out FifthType result)
+    public void RegisterPrimitiveTypes()
+    {
+        foreach (var t in Primitives)
+        {
+            var ft = new FifthType.TDotnetType((Type)t) { Name = TypeName.From((string)t.Name) };
+            Register(ft);
+            _dotnetTypes[(Type)t] = ft;
+        }
+    }
+
+    public bool TryGetTypeByName(string s, out FifthType typeId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool TryLookupFifthType(Type t, out FifthType result)
+    {
+        return _dotnetTypes.TryGetValue(t, out result);
+    }
+
+    public bool TryLookupType(TypeName tid, out FifthType result)
     {
         return _registeredTypes.TryGetValue(tid, out result);
     }
 
     public bool TryLookupType(Type t, out FifthType result)
     {
-        TypeId typeId;
+        FifthType typeId;
         if (_dotnetTypes.TryGetValue(t, out typeId))
         {
-            result = _registeredTypes[typeId];
+            result = _registeredTypes[typeId.Name];
         }
         else
         {
             typeId = RegisterDotnetType(t);
         }
 
-        return _registeredTypes.TryGetValue(typeId, out result);
+        return _registeredTypes.TryGetValue(typeId.Name, out result);
     }
 
-    public bool TryLookupTypeId(Type t, out TypeId result)
-    {
-        return _dotnetTypes.TryGetValue(t, out result);
-    }
+    private uint _baseIdCounter = 0;
+    private ConcurrentDictionary<Type, FifthType> _dotnetTypes = [];
+    private ConcurrentDictionary<TypeName, FifthType> _registeredTypes = [];
 
-    public bool TryGetTypeByName(string s, out TypeId typeId)
+    private FifthType RegisterDotnetType(Type t)
     {
-        throw new NotImplementedException();
+        var result = new FifthType.TDotnetType(t) { Name = TypeName.From(t.Name) };
+        Register(result);
+        return result;
     }
 }
