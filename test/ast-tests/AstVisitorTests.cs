@@ -63,7 +63,7 @@ public class AstVisitorTests
         {
             Annotations = [],
             Name = MemberName.From(name),
-            ReturnType = TypeName.From(returnType),
+            ReturnType = new FifthType.TType() { Name = TypeName.From(returnType) },
             Visibility = Visibility.Public,
             Params = [],
             Body = new BlockStatement()

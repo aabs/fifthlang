@@ -2,6 +2,7 @@
 using compiler.LangProcessingPhases;
 using compiler.LanguageTransformations;
 using Fifth;
+using Fifth.LangProcessingPhases;
 
 namespace compiler;
 
@@ -39,6 +40,8 @@ public static class FifthParserManager
         ast = new ClassCtorInserter().Visit(ast);
         ast = new SymbolTableBuilderVisitor().Visit(ast);
         ast = new PropertyToFieldExpander().Visit(ast);
+        ast = new OverloadGatheringVisitor().Visit(ast);
+        ast = new OverloadTransformingVisitor().Visit(ast);
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);
         return ast;
     }

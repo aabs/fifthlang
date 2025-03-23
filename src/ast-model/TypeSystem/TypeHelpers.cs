@@ -38,8 +38,6 @@ public static class TypeHelpers
         throw new TypeCheckingException("no way to lookup non native types yet");
     }
 
-    // tmp
-
     public static T PeekOrDefault<T>(this Stack<T> s)
     {
         if (s == null || s.Count == 0)
@@ -50,6 +48,7 @@ public static class TypeHelpers
         return s.Peek();
     }
 
+    // tmp
     public static FunctionSignature ToFunctionSignature(this FunctionDef fd)
     {
         return new()
@@ -58,7 +57,7 @@ public static class TypeHelpers
             GenericTypeParameters = [],//fd.GenericParameters.Select(p => p.Type).ToArray(),
             Name = fd.Name,
             ReturnType = fd.Type,
-            DeclaringType = fd.Parent.Type
+            DeclaringType = fd.Parent?.Type ?? new FifthType.UnknownType() { Name = TypeName.unknown }
         };
     }
 
@@ -141,6 +140,21 @@ public static class TypeHelpers
         return AppDomain.CurrentDomain.GetAssemblies()
                         .SelectMany(s => s.GetTypes())
                         .Where(p => type.IsAssignableFrom(p));
+    }
+
+    public static IAstThing WithParent(this IAstThing node, IAstThing other)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        ArgumentNullException.ThrowIfNull(other);
+        node.Parent = other;
+        return node;
+    }
+
+    public static IAstThing WithSameParentAs(this IAstThing node, IAstThing other)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        ArgumentNullException.ThrowIfNull(other);
+        return node.WithParent(other.Parent!);
     }
 
     public static FuncWrapper Wrap(this MethodInfo method)

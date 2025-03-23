@@ -4,14 +4,13 @@ using Antlr4.Runtime.Misc;
 using ast;
 using ast_generated;
 using ast_model.TypeSystem;
-using ast_model.TypeSystem.Inference;
 using Operator = ast.Operator;
 
 namespace compiler.LangProcessingPhases;
 
 public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 {
-    public static readonly FifthType Void = new FifthType.TVoidType(){Name = TypeName.From("void") };
+    public static readonly FifthType Void = new FifthType.TVoidType() { Name = TypeName.From("void") };
 
     #region Helper Functions
 
@@ -23,7 +22,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             Annotations = [],
             Location = GetLocationDetails(ctx),
             Parent = null,
-            Type = new FifthType.TDotnetType(typeof(TBaseType)){Name = TypeName.From(typeof(TBaseType).FullName)},
+            Type = new FifthType.TDotnetType(typeof(TBaseType)) { Name = TypeName.From(typeof(TBaseType).FullName) },
             Value = x(ctx.GetText())
         };
     }
@@ -39,46 +38,15 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             text[..len]
         );
     }
-    #endregion
 
-    protected override IAstThing DefaultResult { get; }
+    #endregion Helper Functions
 
-    public override IAstThing VisitFifth([NotNull] FifthParser.FifthContext context)
+    public override IAstThing VisitAssignment_statement([NotNull] FifthParser.Assignment_statementContext context)
     {
-        var b = new AssemblyDefBuilder();
-        b.WithVisibility(Visibility.Public)
-            .WithPublicKeyToken("abc123") // TODO: need ways to define this
+        var b = new AssignmentStatementBuilder()
             .WithAnnotations([])
-            .WithAssemblyRefs([])
-            .WithName(AssemblyName.anonymous)
-            .WithVersion("0.0.0.0")
-            ;
-        var mb = new ModuleDefBuilder();
-        if (context._classes.Count == 0)
-        {
-            mb.WithClasses([]);
-        }
-        else
-        {
-            foreach (var @class in context._classes)
-            {
-                mb.AddingItemToClasses((ClassDef)Visit(@class));
-            }
-        }
-
-        if (context._functions.Count == 0)
-        {
-            mb.WithFunctions([]);
-        }
-        else
-        {
-            foreach (var @func in context._functions)
-            {
-                mb.AddingItemToFunctions((FunctionDef)Visit(@func));
-            }
-        }
-        b.AddingItemToModules(mb.Build());
-
+            .WithLValue((Expression)Visit(context.lvalue))
+            .WithRValue((Expression)Visit(context.rvalue));
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
@@ -118,21 +86,50 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         var result = b.Build() with
         {
             Location = GetLocationDetails(context),
-            Type = new FifthType.TType(){ Name = TypeName.From(context.name.Text) }
+            Type = new FifthType.TType() { Name = TypeName.From(context.name.Text) }
         };
         return result;
     }
 
-    public override IAstThing VisitExp_exp(FifthParser.Exp_expContext context)
+    public override IAstThing VisitDeclaration([NotNull] FifthParser.DeclarationContext context)
     {
-        var b = new BinaryExpBuilder()
-            .WithAnnotations([]);
+        var b = new VarDeclStatementBuilder()
+                        .WithAnnotations([]);
+        b.WithVariableDecl((VariableDecl)VisitVar_decl(context.var_decl()));
+        if (context.expression() is not null)
+        {
+            var exp = context.expression();
+            var e = base.Visit(exp);
+            b.WithInitialValue((Expression)e);
+        }
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
 
-        b.WithOperator(Operator.ArithmeticPow)
-            .WithLHS((Expression)Visit(context.lhs))
-            .WithRHS((Expression)Visit(context.rhs))
-            ;
+    public override IAstThing VisitDestructure_binding([NotNull] FifthParser.Destructure_bindingContext context)
+    {
+        var b = new PropertyBindingDefBuilder()
+            .WithAnnotations([])
+            .WithVisibility(Visibility.Public)
+            .WithIntroducedVariable(MemberName.From(context.name.Text))
+            .WithReferencedProperty(MemberName.From(context.propname.Text));
+        if (context.destructuring_decl() is not null)
+        {
+            b.WithDestructureDef((ParamDestructureDef)VisitDestructuring_decl(context.destructuring_decl()));
+        }
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
 
+    public override IAstThing VisitDestructuring_decl([NotNull] FifthParser.Destructuring_declContext context)
+    {
+        var b = new ParamDestructureDefBuilder()
+            .WithAnnotations([])
+            .WithVisibility(Visibility.Public);
+        foreach (var pb in context._bindings)
+        {
+            b.AddingItemToBindings((PropertyBindingDef)VisitDestructure_binding(pb));
+        }
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
@@ -165,6 +162,31 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             .WithLHS((Expression)Visit(context.lhs))
             .WithRHS((Expression)Visit(context.rhs))
             ;
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
+
+    public override IAstThing VisitExp_exp(FifthParser.Exp_expContext context)
+    {
+        var b = new BinaryExpBuilder()
+            .WithAnnotations([]);
+
+        b.WithOperator(Operator.ArithmeticPow)
+            .WithLHS((Expression)Visit(context.lhs))
+            .WithRHS((Expression)Visit(context.rhs))
+            ;
+
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
+
+    public override IAstThing VisitExp_member_access([NotNull] FifthParser.Exp_member_accessContext context)
+    {
+        var b = new MemberAccessExpBuilder()
+            .WithAnnotations([]);
+        b.WithLHS((Expression)Visit(context.lhs));
+        if (context.rhs is not null)
+            b.WithRHS((Expression)Visit(context.rhs));
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
@@ -241,12 +263,54 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         return result;
     }
 
+    public override IAstThing VisitFifth([NotNull] FifthParser.FifthContext context)
+    {
+        var b = new AssemblyDefBuilder();
+        b.WithVisibility(Visibility.Public)
+            .WithPublicKeyToken("abc123") // TODO: need ways to define this
+            .WithAnnotations([])
+            .WithAssemblyRefs([])
+            .WithName(AssemblyName.anonymous)
+            .WithVersion("0.0.0.0")
+            ;
+        var mb = new ModuleDefBuilder();
+        if (context._classes.Count == 0)
+        {
+            mb.WithClasses([]);
+        }
+        else
+        {
+            foreach (var @class in context._classes)
+            {
+                mb.AddingItemToClasses((ClassDef)Visit(@class));
+            }
+        }
+
+        if (context._functions.Count == 0)
+        {
+            mb.WithFunctions([]);
+        }
+        else
+        {
+            foreach (var @func in context._functions)
+            {
+                mb.AddingItemToFunctions((FunctionDef)Visit(@func));
+            }
+        }
+        b.AddingItemToModules(mb.Build());
+
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
+
     public override IAstThing VisitFunction_declaration(FifthParser.Function_declarationContext context)
     {
+        var returnTypeUnknown = new FifthType.UnknownType() { Name = (TypeName.From(context.result_type.GetText())) };
+
         var b = new FunctionDefBuilder();
         b.WithName(MemberName.From(context.name.GetText()))
             .WithBody((BlockStatement)VisitBlock(context.body.block()))
-            .WithReturnType(TypeName.From(context.result_type.GetText()))
+            .WithReturnType(returnTypeUnknown)
             .WithAnnotations([])
             .WithVisibility(Visibility.Public) // todo: grammar needs support for member visibility
             ;
@@ -255,6 +319,59 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             b.AddingItemToParams((ParamDef)VisitParamdecl(paramdeclContext));
         }
 
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
+
+    public override IAstThing VisitIf_statement([NotNull] FifthParser.If_statementContext context)
+    {
+        var b = new IfElseStatementBuilder();
+        b.WithAnnotations([])
+            .WithCondition((Expression)Visit(context.condition))
+            .WithThenBlock((BlockStatement)Visit(context.ifpart));
+        if (context.elsepart is not null)
+            b.WithElseBlock((BlockStatement)Visit(context.elsepart));
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
+
+    public override IAstThing VisitList([NotNull] FifthParser.ListContext context)
+    {
+        return base.VisitList_body(context.list_body());
+    }
+
+    public override IAstThing VisitList_body([NotNull] FifthParser.List_bodyContext context)
+    {
+        if (context.list_literal() is not null)
+        {
+            return VisitList_literal(context.list_literal());
+        }
+        else if (context.list_comprehension() is not null)
+        {
+            return VisitList_comprehension(context.list_comprehension());
+        }
+        return base.VisitList_body(context);
+    }
+
+    public override IAstThing VisitList_comprehension([NotNull] FifthParser.List_comprehensionContext context)
+    {
+        var b = new ListComprehensionBuilder()
+            .WithAnnotations([]);
+        b.WithMembershipConstraint((Expression)Visit(context.constraint))
+            .WithVarName(context.var_name().GetText())
+            .WithSourceName(context.source.GetText());
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
+
+    public override IAstThing VisitList_literal([NotNull] FifthParser.List_literalContext context)
+    {
+        var b = new ListLiteralBuilder()
+            .WithAnnotations([]);
+        foreach (var exp in context.expressionList()._expressions)
+        {
+            b.AddingItemToElementExpressions((Expression)Visit(exp));
+        }
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
@@ -335,19 +452,8 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
          .WithAccessConstraints([AccessConstraint.None])
          .WithIsReadOnly(false)
          .WithIsWriteOnly(false);
-        // todo:  There's a lot more detail that could be filled in here, and a lot more sophistication needed in the grammar of the decl
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result;
-    }
-
-    public override IAstThing VisitIf_statement([NotNull] FifthParser.If_statementContext context)
-    {
-        var b = new IfElseStatementBuilder();
-        b.WithAnnotations([])
-            .WithCondition((Expression)Visit(context.condition))
-            .WithThenBlock((BlockStatement)Visit(context.ifpart));
-        if (context.elsepart is not null)
-            b.WithElseBlock((BlockStatement)Visit(context.elsepart));
+        // todo:  There's a lot more detail that could be filled in here, and a lot more
+        // sophistication needed in the grammar of the decl
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
@@ -357,39 +463,6 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         var b = new ReturnStatementBuilder()
             .WithAnnotations([])
             .WithReturnValue((Expression)Visit(context.expression()));
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result;
-    }
-    public override IAstThing VisitVar_name(FifthParser.Var_nameContext context)
-    {
-        var b = new VarRefExpBuilder()
-            .WithVarName(context.GetText())
-            .WithAnnotations([]);
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result;
-    }
-
-    public override IAstThing VisitWhile_statement([NotNull] FifthParser.While_statementContext context)
-    {
-        var b = new WhileStatementBuilder();
-        b.WithAnnotations([])
-            .WithCondition((Expression)Visit(context.condition))
-            .WithBody((BlockStatement)Visit(context.looppart));
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result;
-    }
-
-    public override IAstThing VisitDeclaration([NotNull] FifthParser.DeclarationContext context)
-    {
-        var b = new VarDeclStatementBuilder()
-                        .WithAnnotations([]);
-        b.WithVariableDecl((VariableDecl)VisitVar_decl(context.var_decl()));
-        if (context.expression() is not null)
-        {
-            var exp = context.expression();
-            var e = base.Visit(exp);
-            b.WithInitialValue((Expression)e);
-        }
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
@@ -419,40 +492,11 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         return result;
     }
 
-    public override IAstThing VisitAssignment_statement([NotNull] FifthParser.Assignment_statementContext context)
+    public override IAstThing VisitVar_name(FifthParser.Var_nameContext context)
     {
-        var b = new AssignmentStatementBuilder()
-            .WithAnnotations([])
-            .WithLValue((Expression)Visit(context.lvalue))
-            .WithRValue((Expression)Visit(context.rvalue));
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result;
-    }
-
-    public override IAstThing VisitDestructuring_decl([NotNull] FifthParser.Destructuring_declContext context)
-    {
-        var b = new ParamDestructureDefBuilder()
-            .WithAnnotations([])
-            .WithVisibility(Visibility.Public);
-        foreach (var pb in context._bindings)
-        {
-            b.AddingItemToBindings((PropertyBindingDef)VisitDestructure_binding(pb));
-        }
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result;
-    }
-
-    public override IAstThing VisitDestructure_binding([NotNull] FifthParser.Destructure_bindingContext context)
-    {
-        var b = new PropertyBindingDefBuilder()
-            .WithAnnotations([])
-            .WithVisibility(Visibility.Public)
-            .WithIntroducedVariable(MemberName.From(context.name.Text))
-            .WithReferencedProperty(MemberName.From(context.propname.Text));
-        if (context.destructuring_decl() is not null)
-        {
-            b.WithDestructureDef((ParamDestructureDef)VisitDestructuring_decl(context.destructuring_decl()));
-        }
+        var b = new VarRefExpBuilder()
+            .WithVarName(context.GetText())
+            .WithAnnotations([]);
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
@@ -462,58 +506,17 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         return base.Visit(context.constraint);
     }
 
-    public override IAstThing VisitExp_member_access([NotNull] FifthParser.Exp_member_accessContext context)
+    public override IAstThing VisitWhile_statement([NotNull] FifthParser.While_statementContext context)
     {
-        var b = new MemberAccessExpBuilder()
-            .WithAnnotations([]);
-        b.WithLHS((Expression)Visit(context.lhs));
-        if (context.rhs is not null)
-            b.WithRHS((Expression)Visit(context.rhs));
+        var b = new WhileStatementBuilder();
+        b.WithAnnotations([])
+            .WithCondition((Expression)Visit(context.condition))
+            .WithBody((BlockStatement)Visit(context.looppart));
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
 
-    public override IAstThing VisitList_literal([NotNull] FifthParser.List_literalContext context)
-    {
-        var b = new ListLiteralBuilder()
-            .WithAnnotations([]);
-        foreach (var exp in context.expressionList()._expressions)
-        {
-            b.AddingItemToElementExpressions((Expression)Visit(exp));
-        }
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result;
-    }
-
-    public override IAstThing VisitList_comprehension([NotNull] FifthParser.List_comprehensionContext context)
-    {
-        var b = new ListComprehensionBuilder()
-            .WithAnnotations([]);
-        b.WithMembershipConstraint((Expression)Visit(context.constraint))
-            .WithVarName(context.var_name().GetText())
-            .WithSourceName(context.source.GetText());
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result;
-    }
-
-    public override IAstThing VisitList([NotNull] FifthParser.ListContext context)
-    {
-        return base.VisitList_body(context.list_body());
-    }
-
-    public override IAstThing VisitList_body([NotNull] FifthParser.List_bodyContext context)
-    {
-        if(context.list_literal() is not null)
-        {
-            return VisitList_literal(context.list_literal());
-        }
-        else if (context.list_comprehension() is not null)
-        {
-            return VisitList_comprehension(context.list_comprehension());
-        }
-        return base.VisitList_body(context);
-    }
-
+    protected override IAstThing DefaultResult { get; }
     /*
 
 public override IAstThing VisitExp_memberaccess(FifthParser.Exp_memberaccessContext context)

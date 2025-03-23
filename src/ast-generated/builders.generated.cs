@@ -170,7 +170,7 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
 
     private List<ast.ParamDef> _Params;
     private ast.BlockStatement _Body;
-    private ast_model.TypeSystem.TypeName? _ReturnType;
+    private ast_model.TypeSystem.FifthType _ReturnType;
     private ast.MemberName _Name;
     private System.Boolean _IsStatic;
     private System.Boolean _IsConstructor;
@@ -209,7 +209,7 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
         return this;
     }
 
-    public FunctionDefBuilder WithReturnType(ast_model.TypeSystem.TypeName? value){
+    public FunctionDefBuilder WithReturnType(ast_model.TypeSystem.FifthType value){
         _ReturnType = value;
         return this;
     }

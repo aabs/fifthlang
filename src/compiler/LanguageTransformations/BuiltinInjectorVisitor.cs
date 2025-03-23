@@ -1,3 +1,5 @@
+using static ast_model.TypeSystem.FifthType;
+
 namespace compiler.LanguageTransformations;
 
 /// <summary>
@@ -49,10 +51,10 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
         {
             return default;
         }
-
+        ;
         var builder = new FunctionDefBuilder()
             .WithName(MemberName.From(mi.Name))
-            .WithReturnType(TypeName.From( mi.ReturnType.Name));
+            .WithReturnType(new TDotnetType(mi.ReturnType) { Name = TypeName.From(mi.ReturnType.Name) });
 
         foreach (var pi in mi.Parameters)
         {
@@ -110,6 +112,6 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
         //{
         //    builder.AddingItemToMemberDefs(fd);
         //}
-        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(t){Name = TypeName.From(t.FullName)});
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(t) { Name = TypeName.From(t.FullName) });
     }
 }

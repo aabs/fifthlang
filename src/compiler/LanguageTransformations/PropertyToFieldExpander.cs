@@ -24,7 +24,7 @@ public class PropertyToFieldExpander : DefaultRecursiveDescentVisitor
         // Create getter function using FunctionDefBuilder
         var getter = new FunctionDefBuilder()
             .WithName(MemberName.From($"get_{ctx.Name}"))
-            .WithReturnType(ctx.TypeName)
+            .WithReturnType(ctx.Type)
             .WithIsStatic(false)
             .WithVisibility(ctx.Visibility)
             .WithBody(new ast.BlockStatement

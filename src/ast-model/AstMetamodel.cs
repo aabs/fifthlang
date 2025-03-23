@@ -310,7 +310,7 @@ public record FunctionDef : ScopedDefinition
     // todo: need the possibility of type parameters here.
     public required List<ParamDef> Params { get; set; } = [];
     public required BlockStatement Body { get; set; }
-    public required TypeName? ReturnType { get; init; }
+    public required FifthType ReturnType { get; init; }
     public required MemberName Name { get; init; }
     public required bool IsStatic { get; init; }
     public required bool IsConstructor { get; init; }

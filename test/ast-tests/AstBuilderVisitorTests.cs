@@ -7,46 +7,60 @@ using FluentAssertions;
 using FsCheck.Xunit;
 
 namespace ast_tests;
+
 public class AstBuilderVisitorTests
 {
-
-
-    private static FifthParser GetParserFor(string sourceFile)
+    [Fact]
+    public void can_build_from_function_def()
     {
-        string content = ReadEmbeddedResource(sourceFile);
-        var s = CharStreams.fromString(content);
-        return GetParserFor(s);
-    }
-
-    private static string ReadEmbeddedResource(string resourceName)
-    {
-        Type t = typeof(AstBuilderVisitorTests);
-        Console.WriteLine(string.Join('\n', t.Assembly.GetManifestResourceNames()));
-        using (Stream stream = t.Assembly.GetManifestResourceStream(t.Namespace + ".CodeSamples." + resourceName))
+        var funcdefsrc = $$"""
+                         foo(b: Bar, b2: Baz): Sqz{}
+                         """;
+        var s = CharStreams.fromString(funcdefsrc);
+        var p = GetParserFor(s);
+        var x = p.function_declaration();
+        x.Should().NotBeNull();
+        if (x is FifthParser.Function_declarationContext ctx)
         {
-            if (stream == null)
-            {
-                throw new FileNotFoundException("Resource not found", resourceName);
-            }
-
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                return reader.ReadToEnd();
-            }
+            var v = new AstBuilderVisitor();
+            var a = v.Visit(ctx) as FunctionDef;
+            a.Should().NotBeNull();
         }
     }
 
-
-    private static FifthParser GetParserFor(ICharStream source)
+    [Fact]
+    public void can_build_from_function_def_with_if_statement()
     {
-        var lexer = new FifthLexer(source);
-        lexer.RemoveErrorListeners();
-        lexer.AddErrorListener(new ThrowingErrorListener<int>());
-
-        var parser = new FifthParser(new CommonTokenStream(lexer));
-        parser.RemoveErrorListeners();
-        parser.AddErrorListener(new ThrowingErrorListener<IToken>());
-        return parser;
+        var funcdefsrc = $$"""
+                         foo(b: Bar, b2: Baz): Sqz
+                         {
+                            if(b == 1)
+                            {
+                                return "hello";
+                            }
+                            else
+                            {
+                                return "world";
+                            }
+                         }
+                         """;
+        var s = CharStreams.fromString(funcdefsrc);
+        var p = GetParserFor(s);
+        var x = p.function_declaration();
+        x.Should().NotBeNull();
+        var v = new AstBuilderVisitor();
+        var a = v.VisitFunction_declaration(x) as FunctionDef;
+        a.Should().NotBeNull();
+        var stmt = a.Body.Statements[0];
+        stmt.Should().NotBeNull();
+        if (stmt is IfElseStatement ies)
+        {
+            ies.Condition.Should().BeOfType<BinaryExp>();
+        }
+        else
+        {
+            Assert.Fail();
+        }
     }
 
     [Property]
@@ -137,110 +151,6 @@ public class AstBuilderVisitorTests
             a.Should().BeOfType<Int32LiteralExp>();
     }
 
-    [Fact]
-    public void can_build_from_function_def()
-    {
-        var funcdefsrc = $$"""
-                         foo(b: Bar, b2: Baz): Sqz{}
-                         """;
-        var s = CharStreams.fromString(funcdefsrc);
-        var p = GetParserFor(s);
-        var x = p.function_declaration();
-        x.Should().NotBeNull();
-        if (x is FifthParser.Function_declarationContext ctx)
-        {
-            var v = new AstBuilderVisitor();
-            var a = v.Visit(ctx) as FunctionDef;
-            a.Should().NotBeNull();
-        }
-    }
-    [Fact]
-    public void can_build_from_function_def_with_if_statement()
-    {
-        var funcdefsrc = $$"""
-                         foo(b: Bar, b2: Baz): Sqz
-                         {
-                            if(b == 1)
-                            {
-                                return "hello";
-                            }
-                            else
-                            {
-                                return "world";
-                            }
-                         }
-                         """;
-        var s = CharStreams.fromString(funcdefsrc);
-        var p = GetParserFor(s);
-        var x = p.function_declaration();
-        x.Should().NotBeNull();
-        var v = new AstBuilderVisitor();
-        var a = v.VisitFunction_declaration(x) as FunctionDef;
-        a.Should().NotBeNull();
-        var stmt = a.Body.Statements[0];
-        stmt.Should().NotBeNull();
-        if (stmt is IfElseStatement ies)
-        {
-            ies.Condition.Should().BeOfType<BinaryExp>();
-        }
-        else
-        {
-            Assert.Fail();
-        }
-    }
-
-    [Theory]
-    [InlineData("3 + 7", Operator.ArithmeticAdd)]
-    [InlineData("3 - 7", Operator.ArithmeticSubtract)]
-    [InlineData("3 * 7", Operator.ArithmeticMultiply)]
-    [InlineData("3 / 7", Operator.ArithmeticDivide)]
-    [InlineData("3 ** 7", Operator.ArithmeticPow)]
-    [InlineData("3 % 7", Operator.ArithmeticMod)]
-    [InlineData("3 == 7", Operator.Equal)]
-    [InlineData("3 != 7", Operator.NotEqual)]
-    [InlineData("3 > 7", Operator.GreaterThan)]
-    [InlineData("3 < 7", Operator.LessThan)]
-    [InlineData("3 <= 7", Operator.LessThanOrEqual)]
-    [InlineData("3 >= 7", Operator.GreaterThanOrEqual)]
-    [InlineData("3 & 7", Operator.BitwiseAnd)]
-    [InlineData("3 | 7", Operator.BitwiseOr)]
-    [InlineData("3 << 7", Operator.BitwiseLeftShift)]
-    [InlineData("3 >> 7", Operator.BitwiseRightShift)]
-    [InlineData("3 && 7", Operator.LogicalAnd)]
-    [InlineData("3 || 7", Operator.LogicalOr)]
-    [InlineData("3 ^ 7", Operator.ArithmeticPow)]
-    [InlineData("3 ~ 7", Operator.LogicalXor)]
-    public void should_handle_all_kinds_of_binary_expressions(string exp, Operator op)
-    {
-        var s = CharStreams.fromString(exp);
-        var p = GetParserFor(s);
-        var x = p.expression();
-        var v = new AstBuilderVisitor();
-        var a = v.Visit(x);
-        a.Should().NotBeNull();
-        a.Should().BeOfType<BinaryExp>();
-    }
-
-
-    [Theory]
-    [InlineData("+ 7", Operator.ArithmeticAdd)]
-    [InlineData("+7", Operator.ArithmeticAdd)]
-    [InlineData("- 7", Operator.ArithmeticSubtract)]
-    [InlineData("-7", Operator.ArithmeticSubtract)]
-    [InlineData("! 7", Operator.LogicalNot)]
-    [InlineData("!7", Operator.LogicalNot)]
-    public void should_handle_all_kinds_of_unary_expressions(string exp, Operator op)
-    {
-        var s = CharStreams.fromString(exp);
-        var p = GetParserFor(s);
-        var x = p.expression();
-        var v = new AstBuilderVisitor();
-        var a = v.Visit(x);
-        a.Should().NotBeNull();
-        a.Should().BeOfType<UnaryExp>();
-
-    }
-
     [Theory]
     [InlineData("a = 5;")]
     [InlineData("a = 5 * 6;")]
@@ -253,30 +163,6 @@ public class AstBuilderVisitorTests
         var a = v.Visit(x);
         a.Should().NotBeNull();
         a.Should().BeOfType<AssignmentStatement>();
-    }
-
-    [Theory]
-    [InlineData("a: int;", false)]
-    [InlineData("a: int = 5;", true)]
-    public void handles_vardecl_statements(string exp, bool shouldHaveInitialiserExpression)
-    {
-        var s = CharStreams.fromString(exp);
-        var p = GetParserFor(s);
-        var x = p.statement();
-        var v = new AstBuilderVisitor();
-        var a = v.VisitStatement(x);
-        a.Should().NotBeNull();
-        a.Should().BeOfType<VarDeclStatement>();
-        var vds = a as VarDeclStatement;
-        vds.VariableDecl.Should().NotBeNull();
-        vds.VariableDecl.TypeName.Should().NotBeNull();
-        vds.VariableDecl.TypeName.Value.Should().Be("int");
-        vds.VariableDecl.Name.Should().NotBeNull();
-        vds.VariableDecl.Name.Should().Be("a");
-        if (shouldHaveInitialiserExpression)
-        {
-            vds.InitialValue.Should().NotBeNull();
-        }
     }
 
     [Theory]
@@ -324,7 +210,7 @@ public class AstBuilderVisitorTests
             var func = m.Functions[i] as FunctionDef;
             func.Should().NotBeNull();
             func.Name.Value.Should().Be("foo");
-            func.ReturnType.Value.Value.Should().Be("string");
+            func.ReturnType.Name.Value.Should().Be("string");
         }
 
         // Validate the fourth function
@@ -361,29 +247,83 @@ public class AstBuilderVisitorTests
     }
 
     [Fact]
-    public void handles_recursive_destructure_definitions()
+    public void handles_if_statements()
     {
-        var p = GetParserFor("recursive-destructuring.5th");
+        var p = GetParserFor("statement-if.5th");
         var x = p.fifth();
         var v = new AstBuilderVisitor();
         var a = v.Visit(x) as AssemblyDef;
         a.Should().NotBeNull();
         a.Modules.Should().HaveCount(1);
         var m = a.Modules[0];
-        var p0 = m.Functions[0].Params[0];
-        p0.DestructureDef.Should().NotBeNull();
-        p0.DestructureDef.Should().BeOfType<ParamDestructureDef>();
-        p0.DestructureDef.Bindings.Should().HaveCount(2);
-        var p0b1 = p0.DestructureDef.Bindings[1];
-        p0b1.Should().NotBeNull();
-        p0b1.IntroducedVariable.Value.Should().Be("vitals");
-        p0b1.ReferencedProperty.Value.Should().Be("Vitals");
-        p0b1.DestructureDef.Should().NotBeNull();
-        p0b1.DestructureDef.Should().BeOfType<ParamDestructureDef>();
-        p0b1.DestructureDef.Bindings.Should().HaveCount(3);
-        var p0b1b2 = p0b1.DestructureDef.Bindings[2]; 
-        p0b1b2.IntroducedVariable.Value.Should().Be("weight");
-        p0b1b2.ReferencedProperty.Value.Should().Be("Weight");
+        var s1 = m.Functions[0].Body.Statements[1];
+        s1.Should().NotBeNull().And
+            .Subject.Should().BeOfType<IfElseStatement>();
+        var ifstmt = s1 as IfElseStatement;
+        ifstmt.Condition.Should().NotBeNull();
+        ifstmt.ThenBlock.Should().NotBeNull();
+        ifstmt.ElseBlock.Should().BeNull();
+    }
+
+    [Fact]
+    public void handles_ifelse_statements()
+    {
+        var p = GetParserFor("statement-ifelse.5th");
+        var x = p.fifth();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as AssemblyDef;
+        a.Should().NotBeNull();
+        a.Modules.Should().HaveCount(1);
+        var m = a.Modules[0];
+        var s1 = m.Functions[0].Body.Statements[1];
+        s1.Should().NotBeNull().And
+            .Subject.Should().BeOfType<IfElseStatement>();
+        var ifstmt = s1 as IfElseStatement;
+        ifstmt.Condition.Should().NotBeNull();
+        ifstmt.ThenBlock.Should().NotBeNull();
+        ifstmt.ElseBlock.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void handles_list_comprehensions()
+    {
+        var p = GetParserFor("statement-list-decl.5th");
+        var x = p.fifth();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as AssemblyDef;
+        a.Should().NotBeNull();
+        a.Modules.Should().HaveCount(1);
+        var m = a.Modules[0];
+        var s0 = m.Functions[0].Body.Statements[0];
+        s0.Should().NotBeNull().And
+            .Subject.Should().BeOfType<VarDeclStatement>();
+        var s0vd = s0 as VarDeclStatement;
+        s0vd.VariableDecl.Should().NotBeNull();
+        s0vd.VariableDecl.TypeName.Value.Should().Be("int");
+        s0vd.VariableDecl.CollectionType.Should().Be(CollectionType.List);
+        s0vd.InitialValue.Should().NotBeNull();
+        s0vd.InitialValue.Should().BeOfType<ListComprehension>();
+    }
+
+    [Fact]
+    public void handles_list_literals()
+    {
+        var p = GetParserFor("statement-list-literal.5th");
+        var x = p.fifth();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as AssemblyDef;
+        a.Should().NotBeNull();
+        a.Modules.Should().HaveCount(1);
+        var m = a.Modules[0];
+        var s0 = m.Functions[0].Body.Statements[0];
+        s0.Should().NotBeNull().And
+            .Subject.Should().BeOfType<VarDeclStatement>();
+        var s0vd = s0 as VarDeclStatement;
+        s0vd.VariableDecl.Should().NotBeNull();
+        s0vd.VariableDecl.TypeName.Value.Should().Be("int");
+        s0vd.VariableDecl.CollectionType.Should().Be(CollectionType.List);
+        s0vd.InitialValue.Should().NotBeNull();
+        s0vd.InitialValue.Should().BeOfType<ListLiteral>();
     }
 
     [Fact]
@@ -409,6 +349,57 @@ public class AstBuilderVisitorTests
         var s1aslvr = s1aslv.RHS as VarRefExp;
         s1aslvr.VarName.Should().Be("Weight");
     }
+
+    [Fact]
+    public void handles_recursive_destructure_definitions()
+    {
+        var p = GetParserFor("recursive-destructuring.5th");
+        var x = p.fifth();
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as AssemblyDef;
+        a.Should().NotBeNull();
+        a.Modules.Should().HaveCount(1);
+        var m = a.Modules[0];
+        var p0 = m.Functions[0].Params[0];
+        p0.DestructureDef.Should().NotBeNull();
+        p0.DestructureDef.Should().BeOfType<ParamDestructureDef>();
+        p0.DestructureDef.Bindings.Should().HaveCount(2);
+        var p0b1 = p0.DestructureDef.Bindings[1];
+        p0b1.Should().NotBeNull();
+        p0b1.IntroducedVariable.Value.Should().Be("vitals");
+        p0b1.ReferencedProperty.Value.Should().Be("Vitals");
+        p0b1.DestructureDef.Should().NotBeNull();
+        p0b1.DestructureDef.Should().BeOfType<ParamDestructureDef>();
+        p0b1.DestructureDef.Bindings.Should().HaveCount(3);
+        var p0b1b2 = p0b1.DestructureDef.Bindings[2];
+        p0b1b2.IntroducedVariable.Value.Should().Be("weight");
+        p0b1b2.ReferencedProperty.Value.Should().Be("Weight");
+    }
+
+    [Theory]
+    [InlineData("a: int;", false)]
+    [InlineData("a: int = 5;", true)]
+    public void handles_vardecl_statements(string exp, bool shouldHaveInitialiserExpression)
+    {
+        var s = CharStreams.fromString(exp);
+        var p = GetParserFor(s);
+        var x = p.statement();
+        var v = new AstBuilderVisitor();
+        var a = v.VisitStatement(x);
+        a.Should().NotBeNull();
+        a.Should().BeOfType<VarDeclStatement>();
+        var vds = a as VarDeclStatement;
+        vds.VariableDecl.Should().NotBeNull();
+        vds.VariableDecl.TypeName.Should().NotBeNull();
+        vds.VariableDecl.TypeName.Value.Should().Be("int");
+        vds.VariableDecl.Name.Should().NotBeNull();
+        vds.VariableDecl.Name.Should().Be("a");
+        if (shouldHaveInitialiserExpression)
+        {
+            vds.InitialValue.Should().NotBeNull();
+        }
+    }
+
     [Fact]
     public void handles_while_statements()
     {
@@ -423,80 +414,91 @@ public class AstBuilderVisitorTests
         s1.Should().NotBeNull().And
             .Subject.Should().BeOfType<WhileStatement>();
     }
-    [Fact]
-    public void handles_if_statements()
+
+    [Theory]
+    [InlineData("3 + 7", Operator.ArithmeticAdd)]
+    [InlineData("3 - 7", Operator.ArithmeticSubtract)]
+    [InlineData("3 * 7", Operator.ArithmeticMultiply)]
+    [InlineData("3 / 7", Operator.ArithmeticDivide)]
+    [InlineData("3 ** 7", Operator.ArithmeticPow)]
+    [InlineData("3 % 7", Operator.ArithmeticMod)]
+    [InlineData("3 == 7", Operator.Equal)]
+    [InlineData("3 != 7", Operator.NotEqual)]
+    [InlineData("3 > 7", Operator.GreaterThan)]
+    [InlineData("3 < 7", Operator.LessThan)]
+    [InlineData("3 <= 7", Operator.LessThanOrEqual)]
+    [InlineData("3 >= 7", Operator.GreaterThanOrEqual)]
+    [InlineData("3 & 7", Operator.BitwiseAnd)]
+    [InlineData("3 | 7", Operator.BitwiseOr)]
+    [InlineData("3 << 7", Operator.BitwiseLeftShift)]
+    [InlineData("3 >> 7", Operator.BitwiseRightShift)]
+    [InlineData("3 && 7", Operator.LogicalAnd)]
+    [InlineData("3 || 7", Operator.LogicalOr)]
+    [InlineData("3 ^ 7", Operator.ArithmeticPow)]
+    [InlineData("3 ~ 7", Operator.LogicalXor)]
+    public void should_handle_all_kinds_of_binary_expressions(string exp, Operator op)
     {
-        var p = GetParserFor("statement-if.5th");
-        var x = p.fifth();
+        var s = CharStreams.fromString(exp);
+        var p = GetParserFor(s);
+        var x = p.expression();
         var v = new AstBuilderVisitor();
-        var a = v.Visit(x) as AssemblyDef;
+        var a = v.Visit(x);
         a.Should().NotBeNull();
-        a.Modules.Should().HaveCount(1);
-        var m = a.Modules[0];
-        var s1 = m.Functions[0].Body.Statements[1];
-        s1.Should().NotBeNull().And
-            .Subject.Should().BeOfType<IfElseStatement>();
-        var ifstmt = s1 as IfElseStatement;
-        ifstmt.Condition.Should().NotBeNull();
-        ifstmt.ThenBlock.Should().NotBeNull();
-        ifstmt.ElseBlock.Should().BeNull();
+        a.Should().BeOfType<BinaryExp>();
     }
-    [Fact]
-    public void handles_ifelse_statements()
+
+    [Theory]
+    [InlineData("+ 7", Operator.ArithmeticAdd)]
+    [InlineData("+7", Operator.ArithmeticAdd)]
+    [InlineData("- 7", Operator.ArithmeticSubtract)]
+    [InlineData("-7", Operator.ArithmeticSubtract)]
+    [InlineData("! 7", Operator.LogicalNot)]
+    [InlineData("!7", Operator.LogicalNot)]
+    public void should_handle_all_kinds_of_unary_expressions(string exp, Operator op)
     {
-        var p = GetParserFor("statement-ifelse.5th");
-        var x = p.fifth();
+        var s = CharStreams.fromString(exp);
+        var p = GetParserFor(s);
+        var x = p.expression();
         var v = new AstBuilderVisitor();
-        var a = v.Visit(x) as AssemblyDef;
+        var a = v.Visit(x);
         a.Should().NotBeNull();
-        a.Modules.Should().HaveCount(1);
-        var m = a.Modules[0];
-        var s1 = m.Functions[0].Body.Statements[1];
-        s1.Should().NotBeNull().And
-            .Subject.Should().BeOfType<IfElseStatement>();
-        var ifstmt = s1 as IfElseStatement;
-        ifstmt.Condition.Should().NotBeNull();
-        ifstmt.ThenBlock.Should().NotBeNull();
-        ifstmt.ElseBlock.Should().NotBeNull();
+        a.Should().BeOfType<UnaryExp>();
     }
-    [Fact]
-    public void handles_list_comprehensions()
+
+    private static FifthParser GetParserFor(string sourceFile)
     {
-        var p = GetParserFor("statement-list-decl.5th");
-        var x = p.fifth();
-        var v = new AstBuilderVisitor();
-        var a = v.Visit(x) as AssemblyDef;
-        a.Should().NotBeNull();
-        a.Modules.Should().HaveCount(1);
-        var m = a.Modules[0];
-        var s0 = m.Functions[0].Body.Statements[0];
-        s0.Should().NotBeNull().And
-            .Subject.Should().BeOfType<VarDeclStatement>();
-        var s0vd = s0 as VarDeclStatement;
-        s0vd.VariableDecl.Should().NotBeNull();
-        s0vd.VariableDecl.TypeName.Value.Should().Be("int");
-        s0vd.VariableDecl.CollectionType.Should().Be(CollectionType.List);
-        s0vd.InitialValue.Should().NotBeNull();
-        s0vd.InitialValue.Should().BeOfType<ListComprehension>();
+        string content = ReadEmbeddedResource(sourceFile);
+        var s = CharStreams.fromString(content);
+        return GetParserFor(s);
     }
-    [Fact]
-    public void handles_list_literals()
+
+    private static FifthParser GetParserFor(ICharStream source)
     {
-        var p = GetParserFor("statement-list-literal.5th");
-        var x = p.fifth();
-        var v = new AstBuilderVisitor();
-        var a = v.Visit(x) as AssemblyDef;
-        a.Should().NotBeNull();
-        a.Modules.Should().HaveCount(1);
-        var m = a.Modules[0];
-        var s0 = m.Functions[0].Body.Statements[0];
-        s0.Should().NotBeNull().And
-            .Subject.Should().BeOfType<VarDeclStatement>();
-        var s0vd = s0 as VarDeclStatement;
-        s0vd.VariableDecl.Should().NotBeNull();
-        s0vd.VariableDecl.TypeName.Value.Should().Be("int");
-        s0vd.VariableDecl.CollectionType.Should().Be(CollectionType.List);
-        s0vd.InitialValue.Should().NotBeNull();
-        s0vd.InitialValue.Should().BeOfType<ListLiteral>();
+        var lexer = new FifthLexer(source);
+        lexer.RemoveErrorListeners();
+        lexer.AddErrorListener(new ThrowingErrorListener<int>());
+
+        var parser = new FifthParser(new CommonTokenStream(lexer));
+        parser.RemoveErrorListeners();
+        parser.AddErrorListener(new ThrowingErrorListener<IToken>());
+        return parser;
+    }
+
+    private static string ReadEmbeddedResource(string resourceName)
+    {
+        Type t = typeof(AstBuilderVisitorTests);
+        Console.WriteLine(string.Join('\n', t.Assembly.GetManifestResourceNames()));
+        using (Stream stream = t.Assembly.GetManifestResourceStream(t.Namespace + ".CodeSamples." + resourceName))
+        {
+            if (stream == null)
+            {
+                throw new FileNotFoundException("Resource not found", resourceName);
+            }
+
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                return reader.ReadToEnd();
+            }
+        }
     }
 }

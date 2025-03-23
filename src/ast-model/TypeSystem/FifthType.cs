@@ -1,5 +1,4 @@
-﻿using ast_model.TypeSystem.Inference;
-using Dunet;
+﻿using Dunet;
 
 namespace ast_model.TypeSystem;
 
@@ -32,15 +31,26 @@ namespace ast_model.TypeSystem;
 public partial struct TypeId;
 
 [ValueObject<string>]
+[Instance("unknown", "", "For cases where a typename is mandatory but the type is unknown")]
 [Instance("anonymous", "", "For anonymous types")]
 public partial struct TypeName;
-
 
 [Union, Ignore]
 public partial record FifthType
 {
     public required TypeName Name { get; init; }
 
+    /// <summary>
+    /// When the type is unknown (before type checking and inference), but a FifthType is mandatory
+    /// </summary>
+    /// <seealso cref="System.IEquatable&lt;ast_model.TypeSystem.FifthType.UnknownType&gt;"/>
+    partial record UnknownType();
+    /// <summary>
+    /// When the type is known to be nothing
+    /// </summary>
+    /// <seealso cref="ast_model.TypeSystem.FifthType"/>
+    /// <seealso cref="System.IEquatable&lt;ast_model.TypeSystem.FifthType&gt;"/>
+    /// <seealso cref="System.IEquatable&lt;ast_model.TypeSystem.FifthType.TVoidType&gt;"/>
     partial record TVoidType();
     /// <summary>
     /// Type of some reference to a .NET type
