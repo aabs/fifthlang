@@ -15,6 +15,7 @@ public class SymbolTable : Dictionary<Symbol, ISymbolTableEntry>, ISymbolTable
         }
         return null;
     }
+
     public ISymbolTableEntry ResolveByName(string symbolName)
     {
         foreach (var k in Keys)

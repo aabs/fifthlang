@@ -237,10 +237,9 @@ public abstract record ScopeAstThing : AstThing, IScope
     public bool TryResolve(Symbol symbol, out ISymbolTableEntry result)
     {
         result = null;
-        var tmp = SymbolTable.Resolve(symbol);
-        if (tmp != null)
+
+        if (SymbolTable.TryGetValue(symbol, out result))
         {
-            result = tmp;
             return true;
         }
 

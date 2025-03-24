@@ -1,4 +1,5 @@
 ﻿namespace ast_model.Symbols;
+
 public static class SymbolHelpers
 {
     public static ScopeAstThing NearestScope(this IAstThing node)
@@ -20,6 +21,16 @@ public static class SymbolHelpers
         return node?.Parent?.NearestScope();
     }
 
+    public static ISymbolTableEntry Resolve(this IAstThing node, Symbol symbol)
+    {
+        if (node.TryResolve(symbol, out var ste))
+        {
+            return ste;
+        }
+
+        throw new CompilationException($"Unable to resolve symbol {symbol.Name}");
+    }
+
     public static bool TryResolve(this IAstThing node, Symbol symbol, out ISymbolTableEntry? result)
     {
         if (node is null)
@@ -33,15 +44,5 @@ public static class SymbolHelpers
         }
 
         return node.Parent.TryResolve(symbol, out result);
-    }
-
-    public static ISymbolTableEntry Resolve(this IAstThing node, Symbol symbol)
-    {
-        if (node.TryResolve(symbol, out var ste))
-        {
-            return ste;
-        }
-
-        throw new CompilationException($"Unable to resolve symbol {symbol.Name}");
     }
 }

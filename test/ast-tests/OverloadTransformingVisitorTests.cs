@@ -5,11 +5,8 @@ using Fifth.LangProcessingPhases;
 
 namespace ast_tests;
 
-public class OverloadTransformingVisitorTests
+public class OverloadTransformingVisitorTests : VisitorTestsBase
 {
-    public static BooleanLiteralExp False = new BooleanLiteralExp() { Value = false };
-    public static BooleanLiteralExp True = new BooleanLiteralExp() { Value = true };
-
     [Fact]
     public void GenerateGuardFunction_ShouldCreateGuardFunction()
     {
@@ -78,66 +75,5 @@ public class OverloadTransformingVisitorTests
         // Assert
         Assert.Contains(cd.MemberDefs, m => m.Name == "Test1_subclause1");
         Assert.Contains(cd.MemberDefs, m => m.Name == "Test1_subclause2");
-    }
-
-    private ClassDef CreateClassDef(string name) => new ClassDefBuilder().WithName(TypeName.From(name)).WithMemberDefs([]).Build();
-
-    private FunctionDef CreateFunctionDef(string name, string returnType)
-    {
-        return new FunctionDef
-        {
-            Annotations = [],
-            Name = MemberName.From(name),
-            ReturnType = new FifthType.TType() { Name = TypeName.From(returnType) },
-            Visibility = Visibility.Public,
-            Params = [],
-            Body = new BlockStatement
-            {
-                Statements = new List<Statement>(),
-                Location = null
-            },
-            Location = CreateLocation(),
-            Parent = null,
-            Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From("int") },
-            IsStatic = false,
-            IsConstructor = false
-        };
-    }
-
-    private SourceLocationMetadata CreateLocation()
-    {
-        return new SourceLocationMetadata
-        {
-            Filename = "testFile.cs",
-            OriginalText = "hello world",
-            Line = 1,
-            Column = 1
-        };
-    }
-
-    private MethodDef CreateMethodDef(string name, string returnType)
-    {
-        var result = new MethodDefBuilder()
-            .WithName(MemberName.From(name))
-            .WithVisibility(Visibility.Public)
-            .Build();
-        result.FunctionDef = CreateFunctionDef(name, returnType);
-        result.Type = result.FunctionDef.Type;
-        return result;
-    }
-
-    private ParamDef CreateParamDef(string name, string typeName, Expression constraint)
-    {
-        return new ParamDef
-        {
-            Name = name,
-            TypeName = TypeName.From(typeName),
-            ParameterConstraint = constraint,
-            Visibility = Visibility.Public,
-            Annotations = [],
-            DestructureDef = null,
-            Location = CreateLocation(),
-            Parent = null,
-        };
     }
 }

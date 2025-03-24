@@ -5,6 +5,7 @@ namespace ast_model.Symbols
         IEnumerable<ISymbolTableEntry> All();
 
         ISymbolTableEntry Resolve(Symbol symbol);
+
         ISymbolTableEntry ResolveByName(string symbol);
     }
 }

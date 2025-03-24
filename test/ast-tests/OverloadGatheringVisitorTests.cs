@@ -6,7 +6,7 @@ using FluentAssertions;
 
 namespace ast_tests;
 
-public class OverloadGatheringVisitorTests
+public class OverloadGatheringVisitorTests : VisitorTestsBase
 {
     [Fact]
     public void Gather_ShouldGroupOverloadedFunctionsAndSubstituteThem()
@@ -14,8 +14,8 @@ public class OverloadGatheringVisitorTests
         // Arrange
         var visitor = new OverloadGatheringVisitor();
 
-        var methodDef1 = createMethodDef("Test", "int");
-        var methodDef2 = createMethodDef("Test", "int");
+        var methodDef1 = CreateMethodDef("Test", "int");
+        var methodDef2 = CreateMethodDef("Test", "int");
         var classDef = new ClassDefBuilder().WithName(TypeName.anonymous).WithMemberDefs(new List<MemberDef> { methodDef1, methodDef2 }).Build();
         methodDef1.Parent = methodDef1.FunctionDef.Parent = classDef;
         methodDef2.Parent = methodDef2.FunctionDef.Parent = classDef;
@@ -33,8 +33,8 @@ public class OverloadGatheringVisitorTests
     {
         // Arrange
         var visitor = new OverloadGatheringVisitor();
-        var methodDef1 = createMethodDef("Test", "int");
-        var methodDef2 = createMethodDef("Test", "int");
+        var methodDef1 = CreateMethodDef("Test", "int");
+        var methodDef2 = CreateMethodDef("Test", "int");
         var classDef = new ClassDefBuilder().WithName(TypeName.anonymous).WithMemberDefs(new List<MemberDef> { methodDef1, methodDef2 }).Build();
         methodDef1.Parent = methodDef1.FunctionDef.Parent = classDef;
         methodDef2.Parent = methodDef2.FunctionDef.Parent = classDef;
@@ -51,8 +51,8 @@ public class OverloadGatheringVisitorTests
     {
         // Arrange
         var visitor = new OverloadGatheringVisitor();
-        var methodDef1 = createMethodDef("Test", "int");
-        var methodDef2 = createMethodDef("Test", "int");
+        var methodDef1 = CreateMethodDef("Test", "int");
+        var methodDef2 = CreateMethodDef("Test", "int");
         var classDef = new ClassDefBuilder().WithName(TypeName.anonymous).WithMemberDefs(new List<MemberDef> { methodDef1, methodDef2 }).Build();
         methodDef1.Parent = methodDef1.FunctionDef.Parent = classDef;
         methodDef2.Parent = methodDef2.FunctionDef.Parent = classDef;
@@ -82,52 +82,5 @@ public class OverloadGatheringVisitorTests
         // Assert
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(classDef);
-    }
-
-    private static readonly FifthType voidType = new FifthType.TVoidType() { Name = TypeName.From("void") };
-
-    private static FifthType CreateType(string name, ushort typeId, SymbolKind symbolKind = SymbolKind.Assembly)
-    {
-        return voidType;
-    }
-
-    private FunctionDef createFunctionDef(string name, string returnType)
-    {
-        return new FunctionDef()
-        {
-            Annotations = [],
-            Name = MemberName.From(name),
-            ReturnType = new FifthType.TType() { Name = TypeName.From(returnType) },
-            Visibility = Visibility.Public,
-            Params = [],
-            Body = new BlockStatement()
-            {
-                Statements = [],
-                Location = null
-            },
-            Location = createLocation(),
-            Parent = null,
-            Type = CreateType(name, 0, SymbolKind.MemberDef),
-            IsStatic = false,
-            IsConstructor = false
-        };
-    }
-
-    private SourceLocationMetadata createLocation()
-    {
-        return new SourceLocationMetadata
-        {
-            Filename = "testFile.cs",
-            OriginalText = "hello world",
-            Line = 1,
-            Column = 1
-        };
-    }
-
-    private MethodDef createMethodDef(string name, string returnType)
-    {
-        var result = new MethodDefBuilder().WithName(MemberName.From(name)).WithVisibility(Visibility.Public).Build();
-        result.FunctionDef = createFunctionDef(name, returnType);
-        return result;
     }
 }

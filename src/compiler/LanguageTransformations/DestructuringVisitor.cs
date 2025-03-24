@@ -12,26 +12,30 @@ public class DestructuringVisitor : DefaultRecursiveDescentVisitor
         {
             return ctx;
         }
-        var paramType = ctx.NearestScope().Resolve(new Symbol(ctx.TypeName.Value, SymbolKind.ParamDef));
-        ResolutionScope.Push((ctx.Name, paramType));
-        ParamDef result;
-        try
+        ParamDef? result = null;
+        if (ctx.NearestScope().TryResolveByName(ctx.TypeName.Value, out var paramType))
         {
-            result = base.VisitParamDef(ctx);
+            ResolutionScope.Push((ctx.Name, paramType));
+            try
+            {
+                result = base.VisitParamDef(ctx);
+            }
+            finally
+            {
+                ResolutionScope.Pop();
+            }
         }
-        finally
-        {
-            ResolutionScope.Pop();
-        }
-        return result;
+        return result ?? ctx;
     }
 
     public override ParamDestructureDef VisitParamDestructureDef(ParamDestructureDef ctx)
     {
         if (ctx.Parent is ParamDef pd)
         {
-            var paramType = ctx.NearestScope().Resolve(new Symbol(pd.TypeName.Value, SymbolKind.ParamDef));
-            ResolutionScope.Push((pd.Name, paramType));
+            if (ctx.NearestScope().TryResolveByName(pd.TypeName.Value, out var paramType))
+            {
+                ResolutionScope.Push((pd.Name, paramType));
+            }
         }
         else if (ctx.Parent is PropertyBindingDef db)
         {
@@ -39,8 +43,10 @@ public class DestructuringVisitor : DefaultRecursiveDescentVisitor
             // PropertyBindingToVariableDeclarationTransformer.EnterDestructuringBinding when the
             // propertyDefinitionScope is a classdefinition
             var propdecl = db.ReferencedPropertyName;
-            var paramType = db.NearestScope().Resolve(new Symbol(propdecl.Value, SymbolKind.PropertyDef));
-            ResolutionScope.Push((propdecl.Value, paramType));
+            if (db.NearestScope().TryResolveByName(propdecl.Value, out var paramType))
+            {
+                ResolutionScope.Push((propdecl.Value, paramType));
+            }
         }
         ParamDestructureDef result;
         try
