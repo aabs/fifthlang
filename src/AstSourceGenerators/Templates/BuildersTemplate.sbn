@@ -1,0 +1,44 @@
+{{~ # Builder Generator Template - Replaces AstBuilderGenerator.tt ~}}
+namespace {{ namespace }}_generated;
+using ast_generated;
+using {{ namespace }};
+using System.Collections.Generic;
+#nullable disable
+
+{{~ for type in concrete_types ~}}
+public class {{ type.name }}Builder : IBuilder<{{ type.full_name }}>
+{
+
+{{~ for prop in type.properties ~}}
+    private {{ prop.type_name }} _{{ prop.name }};
+{{~ end ~}}
+    
+    public {{ type.full_name }} Build()
+    {
+        return new {{ type.full_name }}(){
+{{~ sep = " " ~}}
+{{~ for prop in type.properties ~}}
+           {{ sep }} {{ prop.name }} = this._{{ prop.name }} // from {{ prop.declaring_type_name }}
+{{~ sep = "," ~}}
+{{~ end ~}}
+        };
+    }
+{{~ for prop in type.properties ~}}
+    public {{ type.name }}Builder With{{ prop.name }}({{ prop.type_name }} value){
+        _{{ prop.name }} = value;
+        return this;
+    }
+
+{{~ if prop.is_collection ~}}
+{{~ ll_adjust = prop.is_linked_list_collection ? "Last" : "" ~}}
+    public {{ type.name }}Builder AddingItemTo{{ prop.name }}({{ prop.collection_element_type }} value){
+        _{{ prop.name }}  ??= [];
+        _{{ prop.name }}.Add{{ ll_adjust }}(value);
+        return this;
+    }
+{{~ end ~}}
+{{~ end ~}}
+}
+{{~ end ~}}
+
+#nullable restore

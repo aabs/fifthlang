@@ -10,13 +10,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\ast-model\ast_model.csproj" />
+	  <ProjectReference Include="..\AstSourceGenerators\AstSourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-	</ItemGroup>
-
-	<!--<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-		<Exec Command="make -B" />
-	</Target>-->
 </Project>

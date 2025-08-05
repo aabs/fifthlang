@@ -1,0 +1,5 @@
+<Project>
+  <ItemGroup Condition="'$(EnableAstSourceGenerators)' == 'true'">
+    <Analyzer Include="$(MSBuildThisFileDirectory)..\analyzers\AstSourceGenerators.dll" />
+  </ItemGroup>
+</Project>

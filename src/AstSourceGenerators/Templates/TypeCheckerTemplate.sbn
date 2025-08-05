@@ -1,0 +1,35 @@
+{{~ # Type Checker Generator Template - Replaces AstTypeCheckerGenerator.tt ~}}
+namespace {{ namespace }}_generated;
+using {{ namespace }};
+using ast_model.Symbols;
+using ast_model.TypeSystem;
+
+public interface ITypeChecker
+{
+{{~ for type in concrete_types ~}}
+    public FifthType Infer(ScopeAstThing scope, {{ type.name }} node);
+{{~ end ~}}
+}
+
+public abstract class FunctionalTypeChecker : ITypeChecker
+{
+
+    public FifthType Infer(AstThing exp)
+    {
+        if (exp == null) return default;
+        var scope = exp.NearestScope();
+        return exp switch
+        {
+{{~ for type in concrete_types ~}}
+            {{ type.name }} node => Infer(scope, node),
+{{~ end ~}}
+
+            { } node => throw new ast_model.TypeCheckingException("Unrecognised type")
+        };
+    }
+
+{{~ for type in concrete_types ~}}
+    public abstract FifthType Infer(ScopeAstThing scope, {{ type.name }} node);
+{{~ end ~}}
+
+}

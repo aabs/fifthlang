@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <EnableAstSourceGenerators Condition="'$(EnableAstSourceGenerators)' == ''">true</EnableAstSourceGenerators>
+  </PropertyGroup>
+</Project>
