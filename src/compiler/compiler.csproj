@@ -8,9 +8,7 @@
 
   <ItemGroup>
     <Compile Remove="LanguageTransformations\CompoundVariableSplitterVisitor.cs" />
-    <Compile Remove="LanguageTransformations\DestructuringPatternFlattenerVisitor.cs" />
     <Compile Remove="LanguageTransformations\DestructuringVisitorOld.cs" />
-    <Compile Remove="LanguageTransformations\PropertyBindingToVariableDeclarationTransformer.cs" />
     <Compile Remove="LanguageTransformations\PropertyReferenceToGetterInvocation.cs" />
     <Compile Remove="LanguageTransformations\ThrowingErrorListener.cs" />
     <Compile Remove="LanguageTransformations\TypeAnnotatorVisitor.cs" />
@@ -20,9 +18,7 @@
 
   <ItemGroup>
     <None Include="LanguageTransformations\CompoundVariableSplitterVisitor.cs" />
-    <None Include="LanguageTransformations\DestructuringPatternFlattenerVisitor.cs" />
     <None Include="LanguageTransformations\DestructuringVisitorOld.cs" />
-    <None Include="LanguageTransformations\PropertyBindingToVariableDeclarationTransformer.cs" />
     <None Include="LanguageTransformations\PropertyReferenceToGetterInvocation.cs" />
     <None Include="LanguageTransformations\ThrowingErrorListener.cs" />
     <None Include="LanguageTransformations\TypeAnnotatorVisitor.cs" />

@@ -550,7 +550,8 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual PropertyBindingDef VisitPropertyBindingDef(PropertyBindingDef ctx)
     {
      return ctx with {
-         DestructureDef = (ast.ParamDestructureDef)Visit((AstThing)ctx.DestructureDef)
+         ReferencedProperty = (ast.PropertyDef)Visit((AstThing)ctx.ReferencedProperty)
+        ,DestructureDef = (ast.ParamDestructureDef)Visit((AstThing)ctx.DestructureDef)
         };
     }
     public virtual TypeDef VisitTypeDef(TypeDef ctx)
@@ -596,7 +597,6 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual VarRef VisitVarRef(VarRef ctx)
     {
      return ctx with {
-         VarDecl = (ast.VarDeclStatement)Visit((AstThing)ctx.VarDecl)
         };
     }
     public virtual GraphNamespaceAlias VisitGraphNamespaceAlias(GraphNamespaceAlias ctx)

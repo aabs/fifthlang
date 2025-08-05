@@ -112,7 +112,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             .WithAnnotations([])
             .WithVisibility(Visibility.Public)
             .WithIntroducedVariable(MemberName.From(context.name.Text))
-            .WithReferencedProperty(MemberName.From(context.propname.Text));
+            .WithReferencedPropertyName(MemberName.From(context.propname.Text));
         if (context.destructuring_decl() is not null)
         {
             b.WithDestructureDef((ParamDestructureDef)VisitDestructuring_decl(context.destructuring_decl()));

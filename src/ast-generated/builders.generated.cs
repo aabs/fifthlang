@@ -666,7 +666,7 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
 {
 
     private ast.MemberName _IntroducedVariable;
-    private ast.MemberName _ReferencedProperty;
+    private ast.MemberName _ReferencedPropertyName;
     private ast.ParamDestructureDef _DestructureDef;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -675,7 +675,7 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
     {
         return new ast.PropertyBindingDef(){
              IntroducedVariable = this._IntroducedVariable // from PropertyBindingDef
-           , ReferencedPropertyName = this._ReferencedProperty // from PropertyBindingDef
+           , ReferencedPropertyName = this._ReferencedPropertyName // from PropertyBindingDef
            , DestructureDef = this._DestructureDef // from PropertyBindingDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
@@ -686,8 +686,8 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
         return this;
     }
 
-    public PropertyBindingDefBuilder WithReferencedProperty(ast.MemberName value){
-        _ReferencedProperty = value;
+    public PropertyBindingDefBuilder WithReferencedPropertyName(ast.MemberName value){
+        _ReferencedPropertyName = value;
         return this;
     }
 
@@ -932,18 +932,18 @@ public class TypeRefBuilder : IBuilder<ast.TypeRef>
 public class VarRefBuilder : IBuilder<ast.VarRef>
 {
 
-    private ast.VarDeclStatement _VarDecl;
+    private ast.MemberName _ReferencedVariableName;
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.VarRef Build()
     {
         return new ast.VarRef(){
-             VarDecl = this._VarDecl // from VarRef
+             ReferencedVariableName = this._ReferencedVariableName // from VarRef
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public VarRefBuilder WithVarDecl(ast.VarDeclStatement value){
-        _VarDecl = value;
+    public VarRefBuilder WithReferencedVariableName(ast.MemberName value){
+        _ReferencedVariableName = value;
         return this;
     }
 

@@ -268,6 +268,16 @@ public abstract record ScopeAstThing : AstThing, IScope
 
         throw new CompilationException($"Unable to resolve symbol {symbol.Name}");
     }
+
+    public ISymbolTableEntry ResolveByName(string symbolName)
+    {
+        if (TryResolveByName(symbolName, out var ste))
+        {
+            return ste;
+        }
+
+        throw new CompilationException($"Unable to resolve symbol {symbolName}");
+    }
 }
 
 #endregion Core Abstractions
@@ -477,7 +487,7 @@ public record TypeRef : Reference
 
 public record VarRef : Reference
 {
-    public required VarDeclStatement VarDecl { get; set; }
+    public required MemberName ReferencedVariableName { get; set; }
 }
 
 public record GraphNamespaceAlias : AstThing // TODO: is this a reference or something similar?
