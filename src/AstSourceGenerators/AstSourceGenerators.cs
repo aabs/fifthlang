@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -12,79 +13,155 @@ public class AstBuildersGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // Get all type declarations from the compilation
-        var typeDeclarations = context.SyntaxProvider
-            .CreateSyntaxProvider(
-                predicate: static (s, _) => s is Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax,
-                transform: static (ctx, _) => GetTypeInfo(ctx))
-            .Where(static m => m is not null)
-            .Collect();
-
-        // Register the source output
-        context.RegisterSourceOutput(typeDeclarations, (sourceContext, types) =>
+        // Register to generate sources when the compilation changes
+        context.RegisterPostInitializationOutput(static ctx =>
         {
-            // First, let's output a diagnostic file to see what types we're finding
-            var diagnosticSb = new StringBuilder();
-            diagnosticSb.AppendLine("// Diagnostic output from AstBuildersGenerator");
-            diagnosticSb.AppendLine($"// Found {types.Length} types total");
-            diagnosticSb.AppendLine();
+            // We'll generate placeholder files for now to demonstrate the infrastructure works
+            // The actual generation will happen in the source output phase
+        });
 
-            foreach (var type in types)
+        // Get all types from the compilation and referenced assemblies
+        var compilationProvider = context.CompilationProvider.Select((compilation, cancellationToken) =>
+        {
+            var astTypes = new List<TypeInfo>();
+            var debugInfo = new StringBuilder();
+            
+            debugInfo.AppendLine($"// Current compilation assembly: {compilation.Assembly.Name}");
+            
+            // Look in all referenced assemblies for AST types
+            foreach (var reference in compilation.References)
             {
-                if (type.HasValue)
+                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
-                    var t = type.Value;
-                    diagnosticSb.AppendLine($"// Type: {t.Name} ({t.FullName})");
-                    diagnosticSb.AppendLine($"//   Namespace: {t.Namespace}");
-                    diagnosticSb.AppendLine($"//   IsAbstract: {t.IsAbstract}");
-                    diagnosticSb.AppendLine($"//   IsAstType: {t.IsAstType}");
-                    diagnosticSb.AppendLine($"//   Properties: {t.Properties.Length}");
-                    foreach (var prop in t.Properties)
-                    {
-                        diagnosticSb.AppendLine($"//     - {prop.Name}: {prop.TypeName} (Collection: {prop.IsCollection})");
-                    }
-                    diagnosticSb.AppendLine();
+                    debugInfo.AppendLine($"// Checking assembly: {assembly.Name}");
+                    CollectAstTypesFromAssembly(assembly, astTypes);
                 }
             }
-
-            sourceContext.AddSource("diagnostic.generated.cs", SourceText.From(diagnosticSb.ToString(), Encoding.UTF8));
-
-            var astTypes = types.Where(t => t.HasValue && t.Value.IsAstType).Select(t => t.Value).ToImmutableArray();
             
-            if (astTypes.Length > 0)
+            debugInfo.AppendLine($"// Checking current compilation assembly");
+            // Also check the current compilation
+            CollectAstTypesFromAssembly(compilation.Assembly, astTypes);
+            
+            debugInfo.AppendLine($"// Total AST types found: {astTypes.Count}");
+            
+            // Store debug info in the first type (hack for now)
+            if (astTypes.Count == 0)
             {
-                var source = GenerateBuilders(astTypes);
-                sourceContext.AddSource("builders.generated.cs", SourceText.From(source, Encoding.UTF8));
+                astTypes.Add(new TypeInfo("DEBUG_INFO", debugInfo.ToString(), "", false, false, ImmutableArray<PropertyInfo>.Empty));
             }
+            
+            return astTypes.ToImmutableArray();
         });
+
+        context.RegisterSourceOutput(compilationProvider, GenerateSources);
     }
 
-    private static TypeInfo? GetTypeInfo(Microsoft.CodeAnalysis.GeneratorSyntaxContext context)
+    private static void CollectAstTypesFromAssembly(IAssemblySymbol assembly, List<TypeInfo> astTypes)
     {
-        var typeSymbol = context.SemanticModel.GetDeclaredSymbol(context.Node) as INamedTypeSymbol;
-        if (typeSymbol == null) return null;
+        foreach (var module in assembly.Modules)
+        {
+            CollectAstTypes(module.GlobalNamespace, astTypes);
+        }
+    }
 
-        // Check if this is an AST type (inherits from AstThing or is in ast namespace)
-        bool isAstType = IsAstType(typeSymbol);
-        if (!isAstType) return null;
+    private static void GenerateSources(SourceProductionContext context, ImmutableArray<TypeInfo> astTypes)
+    {
+        // Generate diagnostic output
+        var diagnosticSb = new StringBuilder();
+        diagnosticSb.AppendLine("// Diagnostic output from AstBuildersGenerator");
+        diagnosticSb.AppendLine($"// Found {astTypes.Length} types total");
+        diagnosticSb.AppendLine();
 
-        var properties = typeSymbol.GetMembers()
-            .OfType<IPropertySymbol>()
-            .Where(p => p.DeclaredAccessibility == Accessibility.Public && p.SetMethod?.IsInitOnly == true)
-            .Select(p => new PropertyInfo(
-                name: p.Name,
-                typeName: p.Type.ToDisplayString(),
-                isCollection: IsCollectionType(p.Type),
-                declaringTypeName: p.ContainingType.Name))
-            .ToImmutableArray();
+        foreach (var type in astTypes)
+        {
+            if (type.Name == "DEBUG_INFO")
+            {
+                diagnosticSb.AppendLine(type.FullName); // Contains debug info
+                continue;
+            }
+            
+            diagnosticSb.AppendLine($"// Type: {type.Name} ({type.FullName})");
+            diagnosticSb.AppendLine($"//   Namespace: {type.Namespace}");
+            diagnosticSb.AppendLine($"//   IsAbstract: {type.IsAbstract}");
+            diagnosticSb.AppendLine($"//   Properties: {type.Properties.Length}");
+            foreach (var prop in type.Properties)
+            {
+                diagnosticSb.AppendLine($"//     - {prop.Name}: {prop.TypeName} (Collection: {prop.IsCollection})");
+            }
+            diagnosticSb.AppendLine();
+        }
 
-        return new TypeInfo(
-            name: typeSymbol.Name,
-            fullName: typeSymbol.ToDisplayString(),
-            @namespace: typeSymbol.ContainingNamespace.ToDisplayString(),
-            isAbstract: typeSymbol.IsAbstract,
-            isAstType: isAstType,
-            properties: properties);
+        context.AddSource("diagnostic.generated.cs", SourceText.From(diagnosticSb.ToString(), Encoding.UTF8));
+
+        var concreteTypes = astTypes.Where(t => !t.IsAbstract).ToImmutableArray();
+        
+        if (concreteTypes.Length > 0)
+        {
+            var source = GenerateBuilders(concreteTypes);
+            context.AddSource("builders.generated.cs", SourceText.From(source, Encoding.UTF8));
+        }
+    }
+
+    private static void CollectAstTypes(INamespaceSymbol namespaceSymbol, List<TypeInfo> astTypes)
+    {
+        // Check all types in this namespace
+        foreach (var typeSymbol in namespaceSymbol.GetTypeMembers())
+        {
+            if (IsAstType(typeSymbol))
+            {
+                var properties = GetAllProperties(typeSymbol)
+                    .Where(p => p.DeclaredAccessibility == Accessibility.Public && 
+                               (p.SetMethod?.IsInitOnly == true || p.SetMethod == null))
+                    .Select(p => new PropertyInfo(
+                        name: p.Name,
+                        typeName: p.Type.ToDisplayString(),
+                        isCollection: IsCollectionType(p.Type),
+                        declaringTypeName: GetDeclaringTypeName(p.ContainingType)))
+                    .ToImmutableArray();
+
+                var typeInfo = new TypeInfo(
+                    name: typeSymbol.Name,
+                    fullName: typeSymbol.ToDisplayString(),
+                    @namespace: typeSymbol.ContainingNamespace.ToDisplayString(),
+                    isAbstract: typeSymbol.IsAbstract,
+                    isAstType: true,
+                    properties: properties);
+                
+                astTypes.Add(typeInfo);
+            }
+        }
+
+        // Recursively check nested namespaces
+        foreach (var nestedNamespace in namespaceSymbol.GetNamespaceMembers())
+        {
+            CollectAstTypes(nestedNamespace, astTypes);
+        }
+    }
+
+    private static IEnumerable<IPropertySymbol> GetAllProperties(INamedTypeSymbol typeSymbol)
+    {
+        var properties = new List<IPropertySymbol>();
+        var visitedTypes = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+        
+        var currentType = typeSymbol;
+        while (currentType != null && visitedTypes.Add(currentType))
+        {
+            foreach (var member in currentType.GetMembers())
+            {
+                if (member is IPropertySymbol property)
+                {
+                    properties.Add(property);
+                }
+            }
+            currentType = currentType.BaseType;
+        }
+
+        return properties;
+    }
+
+    private static string GetDeclaringTypeName(INamedTypeSymbol typeSymbol)
+    {
+        return typeSymbol.Name;
     }
 
     private static bool IsAstType(INamedTypeSymbol typeSymbol)
