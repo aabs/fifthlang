@@ -48,19 +48,25 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     {
 {{~ for prop in visitable_props | array.where @(do; ret $0.is_collection; end) ~}}
 {{~ var_name = "tmp" + prop.name ~}}
-        {{ prop.type_name }} {{ var_name }} = [];
+        {{ prop.type_name }} {{ var_name }} = new {{ prop.type_name }}();
         {{ var_name }}.AddRange(ctx.{{ prop.name }}.Select(x => ({{ prop.collection_element_type }})Visit(x)));
 {{~ end ~}}
      return ctx with {
-{{~ sep = " " ~}}
 {{~ for prop in visitable_props ~}}
 {{~ if prop.is_collection ~}}
 {{~ var_name = "tmp" + prop.name ~}}
-        {{ sep }}{{ prop.name }} = {{ var_name }}
+{{~ if for.first ~}}
+         {{ prop.name }} = {{ var_name }}
 {{~ else ~}}
-        {{ sep }}{{ prop.name }} = ({{ prop.type_name }})Visit((AstThing)ctx.{{ prop.name }})
+       , {{ prop.name }} = {{ var_name }}
 {{~ end ~}}
-{{~ sep = "," ~}}
+{{~ else ~}}
+{{~ if for.first ~}}
+         {{ prop.name }} = ({{ prop.type_name }})Visit((AstThing)ctx.{{ prop.name }})
+{{~ else ~}}
+       , {{ prop.name }} = ({{ prop.type_name }})Visit((AstThing)ctx.{{ prop.name }})
+{{~ end ~}}
+{{~ end ~}}
 {{~ end ~}}
         };
     }

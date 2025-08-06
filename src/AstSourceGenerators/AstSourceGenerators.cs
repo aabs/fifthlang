@@ -1,9 +1,12 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Scriban;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace AstSourceGenerators;
@@ -14,143 +17,98 @@ public class AstBuildersGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Register to generate sources when the compilation changes
-        context.RegisterPostInitializationOutput(static ctx =>
-        {
-            // We'll generate placeholder files for now to demonstrate the infrastructure works
-            // The actual generation will happen in the source output phase
-        });
-
-        // Get all types from the compilation and referenced assemblies
         var compilationProvider = context.CompilationProvider.Select((compilation, cancellationToken) =>
         {
-            var astTypes = new List<TypeInfo>();
-            var debugInfo = new StringBuilder();
-            
-            debugInfo.AppendLine($"// Current compilation assembly: {compilation.Assembly.Name}");
-            
-            // Look in all referenced assemblies for AST types
-            foreach (var reference in compilation.References)
-            {
-                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
-                {
-                    debugInfo.AppendLine($"// Checking assembly: {assembly.Name}");
-                    CollectAstTypesFromAssembly(assembly, astTypes);
-                }
-            }
-            
-            debugInfo.AppendLine($"// Checking current compilation assembly");
-            // Also check the current compilation
-            CollectAstTypesFromAssembly(compilation.Assembly, astTypes);
-            
-            debugInfo.AppendLine($"// Total AST types found: {astTypes.Count}");
-            
-            // Store debug info regardless of whether AST types are found
-            astTypes.Add(new TypeInfo("DEBUG_INFO", debugInfo.ToString(), "", false, false, ImmutableArray<PropertyInfo>.Empty));
-            
-            return astTypes.ToImmutableArray();
+            var astTypes = ExtractAstTypesFromReferences(compilation);
+            return astTypes;
         });
 
         context.RegisterSourceOutput(compilationProvider, GenerateSources);
     }
 
-    private static void CollectAstTypesFromAssembly(IAssemblySymbol assembly, List<TypeInfo> astTypes)
+    private static List<AstTypeModel> ExtractAstTypesFromReferences(Compilation compilation)
+    {
+        var astTypes = new List<AstTypeModel>();
+        var debugInfo = new StringBuilder();
+        
+        debugInfo.AppendLine($"// Compilation: {compilation.Assembly.Name}");
+        debugInfo.AppendLine($"// References: {compilation.References.Count()}");
+        
+        // Check referenced assemblies for AST types
+        foreach (var reference in compilation.References)
+        {
+            if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
+            {
+                debugInfo.AppendLine($"// Checking assembly: {assembly.Name}");
+                ExtractAstTypesFromAssembly(assembly, astTypes, debugInfo);
+            }
+        }
+        
+        // Also check the current compilation
+        debugInfo.AppendLine($"// Checking current compilation");
+        ExtractAstTypesFromAssembly(compilation.Assembly, astTypes, debugInfo);
+        
+        debugInfo.AppendLine($"// Total AST types found: {astTypes.Count}");
+        
+        // Add debug info as a special type
+        astTypes.Add(new AstTypeModel 
+        { 
+            Name = "DEBUG_INFO", 
+            FullName = debugInfo.ToString(),
+            Namespace = "debug",
+            IsAbstract = false,
+            Properties = new List<AstPropertyModel>()
+        });
+        
+        return astTypes;
+    }
+
+    private static void ExtractAstTypesFromAssembly(IAssemblySymbol assembly, List<AstTypeModel> astTypes, StringBuilder debugInfo)
     {
         foreach (var module in assembly.Modules)
         {
-            CollectAstTypes(module.GlobalNamespace, astTypes);
+            ExtractAstTypesFromNamespace(module.GlobalNamespace, astTypes, debugInfo);
         }
     }
 
-    private static void GenerateSources(SourceProductionContext context, ImmutableArray<TypeInfo> astTypes)
+    private static void ExtractAstTypesFromNamespace(INamespaceSymbol namespaceSymbol, List<AstTypeModel> astTypes, StringBuilder debugInfo)
     {
-        // Generate diagnostic output
-        var diagnosticSb = new StringBuilder();
-        diagnosticSb.AppendLine("// Diagnostic output from AstBuildersGenerator");
-        diagnosticSb.AppendLine($"// Found {astTypes.Length} types total");
-        diagnosticSb.AppendLine();
-
-        foreach (var type in astTypes)
+        // Check for types in 'ast' namespace specifically
+        if (namespaceSymbol.ToDisplayString() == "ast")
         {
-            if (type.Name == "DEBUG_INFO")
-            {
-                diagnosticSb.AppendLine(type.FullName); // Contains debug info
-                continue;
-            }
+            debugInfo.AppendLine($"//   Found ast namespace with {namespaceSymbol.GetTypeMembers().Length} types");
             
-            diagnosticSb.AppendLine($"// Type: {type.Name} ({type.FullName})");
-            diagnosticSb.AppendLine($"//   Namespace: {type.Namespace}");
-            diagnosticSb.AppendLine($"//   IsAbstract: {type.IsAbstract}");
-            diagnosticSb.AppendLine($"//   Properties: {type.Properties.Length}");
-            foreach (var prop in type.Properties)
+            foreach (var typeSymbol in namespaceSymbol.GetTypeMembers())
             {
-                diagnosticSb.AppendLine($"//     - {prop.Name}: {prop.TypeName} (Collection: {prop.IsCollection})");
-            }
-            diagnosticSb.AppendLine();
-        }
-
-        context.AddSource("diagnostic.generated.cs", SourceText.From(diagnosticSb.ToString(), Encoding.UTF8));
-
-        var concreteTypes = astTypes.Where(t => !t.IsAbstract).ToImmutableArray();
-        
-        if (concreteTypes.Length > 0)
-        {
-            var source = GenerateBuilders(concreteTypes);
-            context.AddSource("builders.generated.cs", SourceText.From(source, Encoding.UTF8));
-        }
-    }
-
-    private static void CollectAstTypes(INamespaceSymbol namespaceSymbol, List<TypeInfo> astTypes)
-    {
-        // Check all types in this namespace
-        foreach (var typeSymbol in namespaceSymbol.GetTypeMembers())
-        {
-            // Add debug info for ast namespace types
-            if (namespaceSymbol.ToDisplayString() == "ast")
-            {
-                var debugInfo = new TypeInfo(
-                    name: $"DEBUG_{typeSymbol.Name}",
-                    fullName: $"Found type {typeSymbol.Name} in ast namespace, IsClass: {typeSymbol.TypeKind == TypeKind.Class}, IsAbstract: {typeSymbol.IsAbstract}, BaseType: {typeSymbol.BaseType?.Name ?? "null"}",
-                    @namespace: "debug",
-                    isAbstract: false,
-                    isAstType: false,
-                    properties: ImmutableArray<PropertyInfo>.Empty);
-                astTypes.Add(debugInfo);
-            }
-            
-            if (IsAstType(typeSymbol))
-            {
-                var properties = GetAllProperties(typeSymbol)
-                    .Where(p => p.DeclaredAccessibility == Accessibility.Public && 
-                               (p.SetMethod?.IsInitOnly == true || p.SetMethod == null))
-                    .Select(p => new PropertyInfo(
-                        name: p.Name,
-                        typeName: p.Type.ToDisplayString(),
-                        isCollection: IsCollectionType(p.Type),
-                        declaringTypeName: GetDeclaringTypeName(p.ContainingType)))
-                    .ToImmutableArray();
-
-                var typeInfo = new TypeInfo(
-                    name: typeSymbol.Name,
-                    fullName: typeSymbol.ToDisplayString(),
-                    @namespace: typeSymbol.ContainingNamespace.ToDisplayString(),
-                    isAbstract: typeSymbol.IsAbstract,
-                    isAstType: true,
-                    properties: properties);
-                
-                astTypes.Add(typeInfo);
+                if (typeSymbol.TypeKind == TypeKind.Class || typeSymbol.TypeKind == TypeKind.Struct)
+                {
+                    debugInfo.AppendLine($"//     Type: {typeSymbol.Name}, Kind: {typeSymbol.TypeKind}, Abstract: {typeSymbol.IsAbstract}");
+                    
+                    var properties = ExtractProperties(typeSymbol);
+                    var astType = new AstTypeModel
+                    {
+                        Name = typeSymbol.Name,
+                        FullName = typeSymbol.ToDisplayString(),
+                        Namespace = typeSymbol.ContainingNamespace.ToDisplayString(),
+                        IsAbstract = typeSymbol.IsAbstract,
+                        Properties = properties
+                    };
+                    
+                    astTypes.Add(astType);
+                }
             }
         }
 
         // Recursively check nested namespaces
         foreach (var nestedNamespace in namespaceSymbol.GetNamespaceMembers())
         {
-            CollectAstTypes(nestedNamespace, astTypes);
+            ExtractAstTypesFromNamespace(nestedNamespace, astTypes, debugInfo);
         }
     }
 
-    private static IEnumerable<IPropertySymbol> GetAllProperties(INamedTypeSymbol typeSymbol)
+    private static List<AstPropertyModel> ExtractProperties(INamedTypeSymbol typeSymbol)
     {
-        var properties = new List<IPropertySymbol>();
+        var properties = new List<AstPropertyModel>();
         var visitedTypes = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
         
         var currentType = typeSymbol;
@@ -158,9 +116,20 @@ public class AstBuildersGenerator : IIncrementalGenerator
         {
             foreach (var member in currentType.GetMembers())
             {
-                if (member is IPropertySymbol property)
+                if (member is IPropertySymbol property && 
+                    property.DeclaredAccessibility == Accessibility.Public)
                 {
-                    properties.Add(property);
+                    var (isCollection, elementType) = AnalyzeCollectionType(property.Type);
+                    
+                    properties.Add(new AstPropertyModel
+                    {
+                        Name = property.Name,
+                        TypeName = property.Type.ToDisplayString(),
+                        IsCollection = isCollection,
+                        CollectionElementType = elementType,
+                        DeclaringTypeName = property.ContainingType.Name,
+                        IsVisitable = !HasIgnoreAttribute(property)
+                    });
                 }
             }
             currentType = currentType.BaseType;
@@ -169,160 +138,288 @@ public class AstBuildersGenerator : IIncrementalGenerator
         return properties;
     }
 
-    private static string GetDeclaringTypeName(INamedTypeSymbol typeSymbol)
+    private static (bool isCollection, string? elementType) AnalyzeCollectionType(ITypeSymbol typeSymbol)
     {
-        return typeSymbol.Name;
-    }
-
-    private static bool IsAstType(INamedTypeSymbol typeSymbol)
-    {
-        // Check if type is in ast namespace
-        if (typeSymbol.ContainingNamespace.ToDisplayString() == "ast")
-            return true;
-
-        // Check if inherits from AstThing
-        var currentType = typeSymbol.BaseType;
-        while (currentType != null)
-        {
-            if (currentType.Name == "AstThing")
-                return true;
-            currentType = currentType.BaseType;
-        }
-
-        return false;
-    }
-
-    private static bool IsCollectionType(ITypeSymbol type)
-    {
-        if (type is INamedTypeSymbol namedType && namedType.IsGenericType)
+        if (typeSymbol is INamedTypeSymbol namedType && namedType.IsGenericType)
         {
             var typeName = namedType.ConstructedFrom.ToDisplayString();
-            return typeName.Contains("List<") || typeName.Contains("LinkedList<");
+            if (typeName.Contains("List<") || typeName.Contains("LinkedList<"))
+            {
+                var elementType = namedType.TypeArguments.FirstOrDefault()?.ToDisplayString();
+                return (true, elementType);
+            }
         }
-        return false;
+        return (false, null);
     }
 
-    private static string GenerateBuilders(ImmutableArray<TypeInfo> astTypes)
+    private static bool HasIgnoreAttribute(IPropertySymbol property)
+    {
+        return property.GetAttributes().Any(attr => 
+            attr.AttributeClass?.Name.Contains("Ignore") == true);
+    }
+
+    private static void GenerateSources(SourceProductionContext context, List<AstTypeModel> astTypes)
+    {
+        // Generate diagnostic output
+        var diagnostic = GenerateDiagnostic(astTypes);
+        context.AddSource("diagnostic.generated.cs", SourceText.From(diagnostic, Encoding.UTF8));
+
+        var concreteTypes = astTypes.Where(t => !t.IsAbstract && t.Name != "DEBUG_INFO").ToList();
+        
+        if (concreteTypes.Count > 0)
+        {
+            // Generate builders using template
+            var buildersSource = GenerateFromTemplate("BuildersTemplate.sbn", new { 
+                @namespace = "ast", 
+                concrete_types = concreteTypes 
+            });
+            context.AddSource("builders.generated.cs", SourceText.From(buildersSource, Encoding.UTF8));
+
+            // Generate visitors using template  
+            var visitorsSource = GenerateFromTemplate("VisitorsTemplate.sbn", new { 
+                @namespace = "ast", 
+                concrete_types = concreteTypes 
+            });
+            context.AddSource("visitors.generated.cs", SourceText.From(visitorsSource, Encoding.UTF8));
+
+            // Generate type inference using template
+            var typeInferenceSource = GenerateFromTemplate("TypeCheckerTemplate.sbn", new { 
+                @namespace = "ast", 
+                concrete_types = concreteTypes 
+            });
+            context.AddSource("typeinference.generated.cs", SourceText.From(typeInferenceSource, Encoding.UTF8));
+        }
+    }
+
+    private static string GenerateDiagnostic(List<AstTypeModel> astTypes)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("// Generated by AstBuildersGenerator");
+        sb.AppendLine("// Diagnostic output from AstBuildersGenerator");
+        sb.AppendLine($"// Found {astTypes.Count} types total");
         sb.AppendLine();
-        sb.AppendLine("namespace ast_generated;");
-        sb.AppendLine("using ast_generated;");
-        sb.AppendLine("using ast;");
+
+        foreach (var type in astTypes)
+        {
+            if (type.Name == "DEBUG_INFO")
+            {
+                sb.AppendLine(type.FullName);
+                continue;
+            }
+            
+            sb.AppendLine($"// Type: {type.Name} ({type.FullName})");
+            sb.AppendLine($"//   Namespace: {type.Namespace}");
+            sb.AppendLine($"//   IsAbstract: {type.IsAbstract}");
+            sb.AppendLine($"//   Properties: {type.Properties.Count}");
+            foreach (var prop in type.Properties)
+            {
+                sb.AppendLine($"//     - {prop.Name}: {prop.TypeName} (Collection: {prop.IsCollection})");
+            }
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
+
+    private static string GenerateFromTemplate(string templateName, object model)
+    {
+        try
+        {
+            // For now, use inline templates until we can get resource loading working
+            if (templateName == "BuildersTemplate.sbn")
+            {
+                return GenerateBuildersInline(model);
+            }
+            else if (templateName == "VisitorsTemplate.sbn")
+            {
+                return GenerateVisitorsInline(model);
+            }
+            else if (templateName == "TypeCheckerTemplate.sbn")
+            {
+                return GenerateTypeInferenceInline(model);
+            }
+            
+            return $"// Template {templateName} not implemented";
+        }
+        catch (Exception ex)
+        {
+            return $"// Error generating from template {templateName}: {ex.Message}";
+        }
+    }
+
+    private static string GenerateBuildersInline(object model)
+    {
+        var data = (dynamic)model;
+        var types = (List<AstTypeModel>)data.concrete_types;
+        var namespaceName = (string)data.@namespace;
+        
+        var sb = new StringBuilder();
+        sb.AppendLine($"namespace {namespaceName}_generated;");
+        sb.AppendLine($"using ast_generated;");
+        sb.AppendLine($"using {namespaceName};");
         sb.AppendLine("using System.Collections.Generic;");
         sb.AppendLine("#nullable disable");
         sb.AppendLine();
 
-        foreach (var type in astTypes.Where(t => !t.IsAbstract))
+        foreach (var type in types)
         {
-            GenerateBuilder(sb, type);
+            sb.AppendLine($"public class {type.Name}Builder : IBuilder<{type.FullName}>");
+            sb.AppendLine("{");
+            sb.AppendLine();
+
+            // Generate private fields
+            foreach (var prop in type.Properties)
+            {
+                sb.AppendLine($"    private {prop.TypeName} _{prop.Name};");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine($"    public {type.FullName} Build()");
+            sb.AppendLine("    {");
+            sb.AppendLine($"        return new {type.FullName}(){{");
+
+            for (int i = 0; i < type.Properties.Count; i++)
+            {
+                var prop = type.Properties[i];
+                var prefix = i == 0 ? "             " : "           , ";
+                sb.AppendLine($"{prefix}{prop.Name} = this._{prop.Name} // from {prop.DeclaringTypeName}");
+            }
+
+            sb.AppendLine("        };");
+            sb.AppendLine("    }");
+
+            // Generate With methods
+            foreach (var prop in type.Properties)
+            {
+                sb.AppendLine($"    public {type.Name}Builder With{prop.Name}({prop.TypeName} value){{");
+                sb.AppendLine($"        _{prop.Name} = value;");
+                sb.AppendLine("        return this;");
+                sb.AppendLine("    }");
+                sb.AppendLine();
+
+                // Generate AddingItemTo methods for collections
+                if (prop.IsCollection && prop.CollectionElementType != null)
+                {
+                    sb.AppendLine($"    public {type.Name}Builder AddingItemTo{prop.Name}({prop.CollectionElementType} value){{");
+                    sb.AppendLine($"        _{prop.Name} ??= new {prop.TypeName}();");
+                    sb.AppendLine($"        _{prop.Name}.Add(value);");
+                    sb.AppendLine("        return this;");
+                    sb.AppendLine("    }");
+                    sb.AppendLine();
+                }
+            }
+
+            sb.AppendLine("}");
+            sb.AppendLine();
         }
 
         sb.AppendLine("#nullable restore");
         return sb.ToString();
     }
 
-    private static void GenerateBuilder(StringBuilder sb, TypeInfo type)
+    private static string GenerateVisitorsInline(object model)
     {
-        sb.AppendLine($"public class {type.Name}Builder : IBuilder<{type.FullName}>");
+        var data = (dynamic)model;
+        var types = (List<AstTypeModel>)data.concrete_types;
+        var namespaceName = (string)data.@namespace;
+        
+        var sb = new StringBuilder();
+        sb.AppendLine($"namespace {namespaceName}_generated;");
+        sb.AppendLine($"using {namespaceName};");
+        sb.AppendLine("using System.Collections.Generic;");
+        sb.AppendLine();
+
+        // Generate IAstVisitor interface
+        sb.AppendLine("public interface IAstVisitor");
         sb.AppendLine("{");
-        sb.AppendLine();
-
-        // Generate private fields
-        foreach (var prop in type.Properties)
+        foreach (var type in types)
         {
-            sb.AppendLine($"    private {prop.TypeName} _{prop.Name};");
+            sb.AppendLine($"    public void Enter{type.Name}({type.Name} ctx);");
+            sb.AppendLine($"    public void Leave{type.Name}({type.Name} ctx);");
         }
-
+        sb.AppendLine("}");
         sb.AppendLine();
-        sb.AppendLine($"    public {type.FullName} Build()");
+
+        // Generate BaseAstVisitor
+        sb.AppendLine("public partial class BaseAstVisitor : IAstVisitor");
+        sb.AppendLine("{");
+        foreach (var type in types)
+        {
+            sb.AppendLine($"    public virtual void Enter{type.Name}({type.Name} ctx){{}}");
+            sb.AppendLine($"    public virtual void Leave{type.Name}({type.Name} ctx){{}}");
+        }
+        sb.AppendLine("}");
+        sb.AppendLine();
+
+        return sb.ToString();
+    }
+
+    private static string GenerateTypeInferenceInline(object model)
+    {
+        var data = (dynamic)model;
+        var types = (List<AstTypeModel>)data.concrete_types;
+        var namespaceName = (string)data.@namespace;
+        
+        var sb = new StringBuilder();
+        sb.AppendLine($"namespace {namespaceName}_generated;");
+        sb.AppendLine($"using {namespaceName};");
+        sb.AppendLine("using ast_model.Symbols;");
+        sb.AppendLine("using ast_model.TypeSystem;");
+        sb.AppendLine();
+
+        // Generate ITypeChecker interface
+        sb.AppendLine("public interface ITypeChecker");
+        sb.AppendLine("{");
+        foreach (var type in types)
+        {
+            sb.AppendLine($"    public FifthType Infer(ScopeAstThing scope, {type.Name} node);");
+        }
+        sb.AppendLine("}");
+        sb.AppendLine();
+
+        // Generate abstract base class
+        sb.AppendLine("public abstract class FunctionalTypeChecker : ITypeChecker");
+        sb.AppendLine("{");
+        sb.AppendLine("    public FifthType Infer(AstThing exp)");
         sb.AppendLine("    {");
-        sb.AppendLine($"        return new {type.FullName}(){{");
-
-        var first = true;
-        foreach (var prop in type.Properties)
+        sb.AppendLine("        if (exp == null) return default;");
+        sb.AppendLine("        var scope = exp.NearestScope();");
+        sb.AppendLine("        return exp switch");
+        sb.AppendLine("        {");
+        foreach (var type in types)
         {
-            var separator = first ? " " : ",";
-            sb.AppendLine($"           {separator} {prop.Name} = this._{prop.Name} // from {prop.DeclaringTypeName}");
-            first = false;
+            sb.AppendLine($"            {type.Name} node => Infer(scope, node),");
         }
-
+        sb.AppendLine("            { } node => throw new ast_model.TypeCheckingException(\"Unrecognised type\")");
         sb.AppendLine("        };");
         sb.AppendLine("    }");
+        sb.AppendLine();
 
-        // Generate With methods
-        foreach (var prop in type.Properties)
+        foreach (var type in types)
         {
-            sb.AppendLine($"    public {type.Name}Builder With{prop.Name}({prop.TypeName} value){{");
-            sb.AppendLine($"        _{prop.Name} = value;");
-            sb.AppendLine("        return this;");
-            sb.AppendLine("    }");
-            sb.AppendLine();
-
-            // Generate AddingItemTo methods for collections
-            if (prop.IsCollection)
-            {
-                var elementType = GetCollectionElementType(prop.TypeName);
-                sb.AppendLine($"    public {type.Name}Builder AddingItemTo{prop.Name}({elementType} value){{");
-                sb.AppendLine($"        _{prop.Name}  ??= [];");
-                sb.AppendLine($"        _{prop.Name}.Add(value);");
-                sb.AppendLine("        return this;");
-                sb.AppendLine("    }");
-                sb.AppendLine();
-            }
+            sb.AppendLine($"    public abstract FifthType Infer(ScopeAstThing scope, {type.Name} node);");
         }
 
         sb.AppendLine("}");
-        sb.AppendLine();
+        return sb.ToString();
     }
+}
 
-    private static string GetCollectionElementType(string typeName)
-    {
-        // Extract element type from List<T> or LinkedList<T>
-        var start = typeName.IndexOf('<');
-        var end = typeName.LastIndexOf('>');
-        if (start > 0 && end > start)
-        {
-            return typeName.Substring(start + 1, end - start - 1);
-        }
-        return "object";
-    }
+public class AstTypeModel
+{
+    public string Name { get; set; } = "";
+    public string FullName { get; set; } = "";
+    public string Namespace { get; set; } = "";
+    public bool IsAbstract { get; set; }
+    public List<AstPropertyModel> Properties { get; set; } = new();
+}
 
-    private struct TypeInfo
-    {
-        public string Name { get; }
-        public string FullName { get; }
-        public string Namespace { get; }
-        public bool IsAbstract { get; }
-        public bool IsAstType { get; }
-        public ImmutableArray<PropertyInfo> Properties { get; }
-
-        public TypeInfo(string name, string fullName, string @namespace, bool isAbstract, bool isAstType, ImmutableArray<PropertyInfo> properties)
-        {
-            Name = name;
-            FullName = fullName;
-            Namespace = @namespace;
-            IsAbstract = isAbstract;
-            IsAstType = isAstType;
-            Properties = properties;
-        }
-    }
-
-    private struct PropertyInfo
-    {
-        public string Name { get; }
-        public string TypeName { get; }
-        public bool IsCollection { get; }
-        public string DeclaringTypeName { get; }
-
-        public PropertyInfo(string name, string typeName, bool isCollection, string declaringTypeName)
-        {
-            Name = name;
-            TypeName = typeName;
-            IsCollection = isCollection;
-            DeclaringTypeName = declaringTypeName;
-        }
-    }
+public class AstPropertyModel
+{
+    public string Name { get; set; } = "";
+    public string TypeName { get; set; } = "";
+    public bool IsCollection { get; set; }
+    public string? CollectionElementType { get; set; }
+    public string DeclaringTypeName { get; set; } = "";
+    public bool IsVisitable { get; set; } = true;
 }
 

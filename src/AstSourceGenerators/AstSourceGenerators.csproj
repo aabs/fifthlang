@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Templates\*.sbn" Pack="true" PackagePath="analyzers\" />
+    <EmbeddedResource Include="Templates\*.sbn" />
   </ItemGroup>
 
 </Project>

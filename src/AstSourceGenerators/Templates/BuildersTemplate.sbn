@@ -16,10 +16,12 @@ public class {{ type.name }}Builder : IBuilder<{{ type.full_name }}>
     public {{ type.full_name }} Build()
     {
         return new {{ type.full_name }}(){
-{{~ sep = " " ~}}
 {{~ for prop in type.properties ~}}
-           {{ sep }} {{ prop.name }} = this._{{ prop.name }} // from {{ prop.declaring_type_name }}
-{{~ sep = "," ~}}
+{{~ if for.first ~}}
+             {{ prop.name }} = this._{{ prop.name }} // from {{ prop.declaring_type_name }}
+{{~ else ~}}
+           , {{ prop.name }} = this._{{ prop.name }} // from {{ prop.declaring_type_name }}
+{{~ end ~}}
 {{~ end ~}}
         };
     }
@@ -32,7 +34,7 @@ public class {{ type.name }}Builder : IBuilder<{{ type.full_name }}>
 {{~ if prop.is_collection ~}}
 {{~ ll_adjust = prop.is_linked_list_collection ? "Last" : "" ~}}
     public {{ type.name }}Builder AddingItemTo{{ prop.name }}({{ prop.collection_element_type }} value){
-        _{{ prop.name }}  ??= [];
+        _{{ prop.name }} ??= new {{ prop.type_name }}();
         _{{ prop.name }}.Add{{ ll_adjust }}(value);
         return this;
     }
