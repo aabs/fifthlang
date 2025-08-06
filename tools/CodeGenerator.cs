@@ -76,8 +76,8 @@ namespace CodeGenerator
             var types = new List<TypeInfo>();
             if (string.IsNullOrEmpty(content)) return types;
 
-            // Match public record declarations but exclude record structs
-            var recordRegex = new Regex(@"public\s+record\s+(?!struct\s+)(\w+)\s*(?::\s*\w+)?");
+            // Match public record declarations but exclude record structs and commented lines
+            var recordRegex = new Regex(@"^\s*public\s+record\s+(?!struct\s+)(\w+)\s*(?::\s*\w+)?", RegexOptions.Multiline);
             var matches = recordRegex.Matches(content);
 
             var csharpKeywords = new HashSet<string> 
@@ -86,13 +86,31 @@ namespace CodeGenerator
                 "public", "private", "protected", "internal", "virtual", "override"
             };
 
+            var seenTypes = new HashSet<string>(); // Track seen types to avoid duplicates
+
             foreach (Match match in matches)
             {
                 var typeName = match.Groups[1].Value;
                 
-                // Skip C# keywords and abstract records
-                if (csharpKeywords.Contains(typeName.ToLower()) || match.Value.Contains("abstract")) 
+                // Skip C# keywords, abstract records, and duplicates
+                if (csharpKeywords.Contains(typeName.ToLower()) || 
+                    match.Value.Contains("abstract") ||
+                    seenTypes.Contains(typeName)) 
                     continue;
+
+                // Skip lines that are commented out
+                var lineStart = content.LastIndexOf('\n', match.Index);
+                if (lineStart == -1) lineStart = 0;
+                else lineStart += 1;
+                
+                if (match.Index < lineStart)
+                    continue; // Skip invalid match
+                
+                var lineText = content.Substring(lineStart, match.Index - lineStart);
+                if (lineText.TrimStart().StartsWith("//"))
+                    continue;
+
+                seenTypes.Add(typeName);
 
                 var typeInfo = new TypeInfo
                 {
@@ -113,43 +131,86 @@ namespace CodeGenerator
         {
             var properties = new List<PropertyInfo>();
             
-            // Find the record definition - handle both single line and multi-line definitions
-            var singleLineRegex = new Regex($@"public\s+record\s+{Regex.Escape(typeName)}\s*(?::\s*\w+)?\s*;");
-            var multiLineRegex = new Regex($@"public\s+record\s+{Regex.Escape(typeName)}\s*(?::\s*[^{{]*)?\s*\{{(.*?)\}}", RegexOptions.Singleline);
-            
-            var singleLineMatch = singleLineRegex.Match(content);
-            if (singleLineMatch.Success)
+            // Find the record definition - use a more sophisticated approach to handle nested braces
+            var recordStart = $"public record {typeName}";
+            var startIndex = content.IndexOf(recordStart);
+            if (startIndex == -1)
+                return properties;
+
+            // Check if this is a single-line inheritance record (like: public record TypeName : BaseType;)
+            var lineEnd = content.IndexOf('\n', startIndex);
+            var lineText = content.Substring(startIndex, lineEnd - startIndex);
+            if (lineText.Contains(';') && !lineText.Contains('{'))
             {
-                // This is a simple record without properties - no properties to extract
+                // This is a simple inheritance record without properties
                 return properties;
             }
-            
-            var multiLineMatch = multiLineRegex.Match(content);
-            if (multiLineMatch.Success)
+
+            // Find the opening brace
+            var openBraceIndex = content.IndexOf('{', startIndex);
+            if (openBraceIndex == -1)
             {
-                var body = multiLineMatch.Groups[1].Value;
+                // This might be a simple record like: public record TypeName;
+                return properties;
+            }
+
+            // Make sure the opening brace is for this record and not a later one
+            var firstNewlineAfterRecord = content.IndexOf('\n', startIndex);
+            if (openBraceIndex > firstNewlineAfterRecord + 100) // Allow some reasonable distance
+            {
+                // The brace is probably for a different record
+                return properties;
+            }
+
+            // Find the matching closing brace by counting braces
+            var braceCount = 1;
+            var currentIndex = openBraceIndex + 1;
+            var closeBraceIndex = -1;
+            
+            while (currentIndex < content.Length && braceCount > 0)
+            {
+                if (content[currentIndex] == '{')
+                    braceCount++;
+                else if (content[currentIndex] == '}')
+                    braceCount--;
                 
-                // Extract properties - handle { get; init; } and { get; set; } and defaults
-                var propRegex = new Regex(@"public\s+(?:required\s+)?([^{}\s]+(?:<[^>]+>)?)\s+(\w+)\s*\{\s*[^}]*\}(?:\s*=\s*[^;]+)?");
-                var propMatches = propRegex.Matches(body);
-                
-                foreach (Match propMatch in propMatches)
+                if (braceCount == 0)
                 {
-                    var propType = propMatch.Groups[1].Value.Trim();
-                    var propName = propMatch.Groups[2].Value;
-                    
-                    // Skip invalid property types or attributes
-                    if (string.IsNullOrEmpty(propType) || string.IsNullOrEmpty(propName) || 
-                        propType.StartsWith("[") || propName.StartsWith("["))
-                        continue;
-                    
-                    properties.Add(new PropertyInfo
-                    {
-                        Name = propName,
-                        TypeName = propType,
-                        IsCollection = propType.Contains("List<") || propType.Contains("LinkedList<")
-                    });
+                    closeBraceIndex = currentIndex;
+                    break;
                 }
+                currentIndex++;
+            }
+
+            if (closeBraceIndex == -1)
+                return properties;
+
+            // Extract the body between the braces
+            var body = content.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
+            
+            // Extract properties - handle complex types including generics and arrays
+            var propRegex = new Regex(@"public\s+(?:required\s+)?([^{}\r\n]+?)\s+(\w+)\s*\{\s*[^}]*\}(?:\s*=\s*[^;]+)?", RegexOptions.Multiline);
+            var propMatches = propRegex.Matches(body);
+            
+            foreach (Match propMatch in propMatches)
+            {
+                var propType = propMatch.Groups[1].Value.Trim();
+                var propName = propMatch.Groups[2].Value;
+                
+                // Skip invalid property types or attributes
+                if (string.IsNullOrEmpty(propType) || string.IsNullOrEmpty(propName) || 
+                    propType.StartsWith("[") || propName.StartsWith("["))
+                    continue;
+                
+                // Clean up the type name (remove extra whitespace)
+                propType = Regex.Replace(propType, @"\s+", " ").Trim();
+                
+                properties.Add(new PropertyInfo
+                {
+                    Name = propName,
+                    TypeName = propType,
+                    IsCollection = propType.Contains("List<") || propType.Contains("LinkedList<") || propType.Contains("[]")
+                });
             }
 
             return properties;
@@ -161,12 +222,17 @@ namespace CodeGenerator
             sb.AppendLine($"namespace {namespaceName}_generated;");
             sb.AppendLine($"using ast_generated;");
             sb.AppendLine($"using {namespaceName};");
+            sb.AppendLine("using ast_model.TypeSystem;");
             sb.AppendLine("using System.Collections.Generic;");
             sb.AppendLine("#nullable disable");
             sb.AppendLine();
 
             foreach (var type in types)
             {
+                // Skip generic types for now - they need special handling
+                if (type.Name.Contains("<") || type.Name == "Literal")
+                    continue;
+
                 sb.AppendLine($"public class {type.Name}Builder : IBuilder<{type.FullName}>");
                 sb.AppendLine("{");
 
@@ -235,10 +301,13 @@ namespace CodeGenerator
             sb.AppendLine("using System.Collections.Generic;");
             sb.AppendLine();
 
+            // Filter out generic types
+            var filteredTypes = types.Where(t => !t.Name.Contains("<") && t.Name != "Literal").ToList();
+
             // Generate IAstVisitor interface
             sb.AppendLine("public interface IAstVisitor");
             sb.AppendLine("{");
-            foreach (var type in types)
+            foreach (var type in filteredTypes)
             {
                 sb.AppendLine($"    public void Enter{type.Name}({type.Name} ctx);");
                 sb.AppendLine($"    public void Leave{type.Name}({type.Name} ctx);");
@@ -249,7 +318,7 @@ namespace CodeGenerator
             // Generate BaseAstVisitor
             sb.AppendLine("public partial class BaseAstVisitor : IAstVisitor");
             sb.AppendLine("{");
-            foreach (var type in types)
+            foreach (var type in filteredTypes)
             {
                 sb.AppendLine($"    public virtual void Enter{type.Name}({type.Name} ctx) {{ }}");
                 sb.AppendLine($"    public virtual void Leave{type.Name}({type.Name} ctx) {{ }}");
@@ -268,10 +337,13 @@ namespace CodeGenerator
             sb.AppendLine("using ast_model.TypeSystem;");
             sb.AppendLine();
 
+            // Filter out generic types
+            var filteredTypes = types.Where(t => !t.Name.Contains("<") && t.Name != "Literal").ToList();
+
             // Generate ITypeChecker interface
             sb.AppendLine("public interface ITypeChecker");
             sb.AppendLine("{");
-            foreach (var type in types)
+            foreach (var type in filteredTypes)
             {
                 sb.AppendLine($"    public FifthType Infer(ScopeAstThing scope, {type.Name} node);");
             }
@@ -287,7 +359,7 @@ namespace CodeGenerator
             sb.AppendLine("        var scope = exp.NearestScope();");
             sb.AppendLine("        return exp switch");
             sb.AppendLine("        {");
-            foreach (var type in types)
+            foreach (var type in filteredTypes)
             {
                 sb.AppendLine($"            {type.Name} node => Infer(scope, node),");
             }
@@ -296,7 +368,7 @@ namespace CodeGenerator
             sb.AppendLine("    }");
             sb.AppendLine();
 
-            foreach (var type in types)
+            foreach (var type in filteredTypes)
             {
                 sb.AppendLine($"    public abstract FifthType Infer(ScopeAstThing scope, {type.Name} node);");
             }
