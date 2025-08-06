@@ -137,12 +137,37 @@ namespace CodeGenerator
             if (startIndex == -1)
                 return properties;
 
-            // Check if this is a single-line inheritance record (like: public record TypeName : BaseType;)
+            // Extract base type if any
+            string baseType = null;
             var lineEnd = content.IndexOf('\n', startIndex);
             var lineText = content.Substring(startIndex, lineEnd - startIndex);
+            var colonIndex = lineText.IndexOf(':');
+            if (colonIndex != -1)
+            {
+                var baseTypePart = lineText.Substring(colonIndex + 1).Trim();
+                var spaceIndex = baseTypePart.IndexOf(' ');
+                var braceIndex = baseTypePart.IndexOf('{');
+                var semicolonIndex = baseTypePart.IndexOf(';');
+                
+                var endIndex = baseTypePart.Length;
+                if (spaceIndex != -1) endIndex = Math.Min(endIndex, spaceIndex);
+                if (braceIndex != -1) endIndex = Math.Min(endIndex, braceIndex);
+                if (semicolonIndex != -1) endIndex = Math.Min(endIndex, semicolonIndex);
+                
+                baseType = baseTypePart.Substring(0, endIndex).Trim();
+            }
+
+            // Add required properties from base types
+            if (!string.IsNullOrEmpty(baseType))
+            {
+                var baseProperties = GetRequiredPropertiesFromBaseType(baseType);
+                properties.AddRange(baseProperties);
+            }
+
+            // Check if this is a single-line inheritance record (like: public record TypeName : BaseType;)
             if (lineText.Contains(';') && !lineText.Contains('{'))
             {
-                // This is a simple inheritance record without properties
+                // This is a simple inheritance record without additional properties
                 return properties;
             }
 
@@ -215,6 +240,67 @@ namespace CodeGenerator
 
             return properties;
         }
+        
+        static List<PropertyInfo> GetRequiredPropertiesFromBaseType(string baseType)
+        {
+            var properties = new List<PropertyInfo>();
+            
+            switch (baseType)
+            {
+                case "Definition":
+                    properties.Add(new PropertyInfo 
+                    { 
+                        Name = "Visibility", 
+                        TypeName = "Visibility",
+                        IsRequired = true,
+                        DefaultValue = "Visibility.Public"
+                    });
+                    break;
+                    
+                case "ScopedDefinition":
+                    properties.Add(new PropertyInfo 
+                    { 
+                        Name = "Visibility", 
+                        TypeName = "Visibility",
+                        IsRequired = true,
+                        DefaultValue = "Visibility.Public"
+                    });
+                    break;
+                    
+                case "MemberDef":
+                    properties.Add(new PropertyInfo 
+                    { 
+                        Name = "Visibility", 
+                        TypeName = "Visibility",
+                        IsRequired = true,
+                        DefaultValue = "Visibility.Public"
+                    });
+                    properties.Add(new PropertyInfo 
+                    { 
+                        Name = "Name", 
+                        TypeName = "MemberName",
+                        IsRequired = true,
+                        DefaultValue = "MemberName.From(\"DefaultName\")"
+                    });
+                    properties.Add(new PropertyInfo 
+                    { 
+                        Name = "TypeName", 
+                        TypeName = "TypeName",
+                        IsRequired = true,
+                        DefaultValue = "TypeName.From(\"DefaultType\")"
+                    });
+                    properties.Add(new PropertyInfo 
+                    { 
+                        Name = "IsReadOnly", 
+                        TypeName = "bool",
+                        IsRequired = true,
+                        DefaultValue = "false"
+                    });
+                    break;
+            }
+            
+            return properties;
+        }
 
         static string GenerateBuilders(List<TypeInfo> types, string namespaceName)
         {
@@ -239,7 +325,14 @@ namespace CodeGenerator
                 // Generate private fields
                 foreach (var prop in type.Properties)
                 {
-                    sb.AppendLine($"    private {prop.TypeName} _{prop.Name};");
+                    if (prop.IsRequired && !string.IsNullOrEmpty(prop.DefaultValue))
+                    {
+                        sb.AppendLine($"    private {prop.TypeName} _{prop.Name} = {prop.DefaultValue};");
+                    }
+                    else
+                    {
+                        sb.AppendLine($"    private {prop.TypeName} _{prop.Name};");
+                    }
                 }
 
                 sb.AppendLine();
@@ -404,5 +497,7 @@ namespace CodeGenerator
         public string Name { get; set; } = "";
         public string TypeName { get; set; } = "";
         public bool IsCollection { get; set; }
+        public bool IsRequired { get; set; }
+        public string DefaultValue { get; set; } = "";
     }
 }

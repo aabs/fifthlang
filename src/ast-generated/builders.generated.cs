@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
 {
+    private Visibility _Visibility = Visibility.Public;
     private List<ParamDef> _Params;
     private BlockStatement _Body;
     private FifthType _ReturnType;
@@ -18,6 +19,7 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
     {
         return new ast.FunctionDef()
         {
+            Visibility = this._Visibility,
             Params = this._Params,
             Body = this._Body,
             ReturnType = this._ReturnType,
@@ -26,6 +28,12 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
             IsConstructor = this._IsConstructor
         };
     }
+    public FunctionDefBuilder WithVisibility(Visibility value)
+    {
+        _Visibility = value;
+        return this;
+    }
+
     public FunctionDefBuilder WithParams(List<ParamDef> value)
     {
         _Params = value;
@@ -92,15 +100,47 @@ public class FunctorDefBuilder : IBuilder<ast.FunctorDef>
 
 public class MethodDefBuilder : IBuilder<ast.MethodDef>
 {
+    private Visibility _Visibility = Visibility.Public;
+    private MemberName _Name = MemberName.From("DefaultName");
+    private TypeName _TypeName = TypeName.From("DefaultType");
+    private bool _IsReadOnly = false;
     private FunctionDef _FunctionDef;
 
     public ast.MethodDef Build()
     {
         return new ast.MethodDef()
         {
+            Visibility = this._Visibility,
+            Name = this._Name,
+            TypeName = this._TypeName,
+            IsReadOnly = this._IsReadOnly,
             FunctionDef = this._FunctionDef
         };
     }
+    public MethodDefBuilder WithVisibility(Visibility value)
+    {
+        _Visibility = value;
+        return this;
+    }
+
+    public MethodDefBuilder WithName(MemberName value)
+    {
+        _Name = value;
+        return this;
+    }
+
+    public MethodDefBuilder WithTypeName(TypeName value)
+    {
+        _TypeName = value;
+        return this;
+    }
+
+    public MethodDefBuilder WithIsReadOnly(bool value)
+    {
+        _IsReadOnly = value;
+        return this;
+    }
+
     public MethodDefBuilder WithFunctionDef(FunctionDef value)
     {
         _FunctionDef = value;
@@ -111,6 +151,7 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
 
 public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
 {
+    private Visibility _Visibility = Visibility.Public;
     private Expression _Antecedent;
     private KnowledgeManagementBlock _Consequent;
 
@@ -118,10 +159,17 @@ public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
     {
         return new ast.InferenceRuleDef()
         {
+            Visibility = this._Visibility,
             Antecedent = this._Antecedent,
             Consequent = this._Consequent
         };
     }
+    public InferenceRuleDefBuilder WithVisibility(Visibility value)
+    {
+        _Visibility = value;
+        return this;
+    }
+
     public InferenceRuleDefBuilder WithAntecedent(Expression value)
     {
         _Antecedent = value;
