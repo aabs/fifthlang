@@ -15,4 +15,9 @@
 	  <ProjectReference Include="..\AstSourceGenerators\AstSourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <AdditionalFiles Include="..\ast-model\AstMetamodel.cs" />
+	  <AdditionalFiles Include="..\ast-model\ILMetamodel.cs" />
+	</ItemGroup>
+
 </Project>
