@@ -44,11 +44,8 @@ public class AstBuildersGenerator : IIncrementalGenerator
             
             debugInfo.AppendLine($"// Total AST types found: {astTypes.Count}");
             
-            // Store debug info in the first type (hack for now)
-            if (astTypes.Count == 0)
-            {
-                astTypes.Add(new TypeInfo("DEBUG_INFO", debugInfo.ToString(), "", false, false, ImmutableArray<PropertyInfo>.Empty));
-            }
+            // Store debug info regardless of whether AST types are found
+            astTypes.Add(new TypeInfo("DEBUG_INFO", debugInfo.ToString(), "", false, false, ImmutableArray<PropertyInfo>.Empty));
             
             return astTypes.ToImmutableArray();
         });
@@ -107,6 +104,19 @@ public class AstBuildersGenerator : IIncrementalGenerator
         // Check all types in this namespace
         foreach (var typeSymbol in namespaceSymbol.GetTypeMembers())
         {
+            // Add debug info for ast namespace types
+            if (namespaceSymbol.ToDisplayString() == "ast")
+            {
+                var debugInfo = new TypeInfo(
+                    name: $"DEBUG_{typeSymbol.Name}",
+                    fullName: $"Found type {typeSymbol.Name} in ast namespace, IsClass: {typeSymbol.TypeKind == TypeKind.Class}, IsAbstract: {typeSymbol.IsAbstract}, BaseType: {typeSymbol.BaseType?.Name ?? "null"}",
+                    @namespace: "debug",
+                    isAbstract: false,
+                    isAstType: false,
+                    properties: ImmutableArray<PropertyInfo>.Empty);
+                astTypes.Add(debugInfo);
+            }
+            
             if (IsAstType(typeSymbol))
             {
                 var properties = GetAllProperties(typeSymbol)
