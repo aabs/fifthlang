@@ -1,5 +1,3 @@
-
-
 namespace ast_generated;
 using ast;
 using ast_model.Symbols;
@@ -21,6 +19,7 @@ public interface ITypeChecker
     public FifthType Infer(ScopeAstThing scope, PropertyBindingDef node);
     public FifthType Infer(ScopeAstThing scope, TypeDef node);
     public FifthType Infer(ScopeAstThing scope, ClassDef node);
+    public FifthType Infer(ScopeAstThing scope, StructDef node);
     public FifthType Infer(ScopeAstThing scope, VariableDecl node);
     public FifthType Infer(ScopeAstThing scope, AssemblyRef node);
     public FifthType Infer(ScopeAstThing scope, MemberRef node);
@@ -83,7 +82,6 @@ public interface ITypeChecker
 
 public abstract class FunctionalTypeChecker : ITypeChecker
 {
-
     public FifthType Infer(AstThing exp)
     {
         if (exp == null) return default;
@@ -104,6 +102,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             PropertyBindingDef node => Infer(scope, node),
             TypeDef node => Infer(scope, node),
             ClassDef node => Infer(scope, node),
+            StructDef node => Infer(scope, node),
             VariableDecl node => Infer(scope, node),
             AssemblyRef node => Infer(scope, node),
             MemberRef node => Infer(scope, node),
@@ -162,7 +161,6 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             Atom node => Infer(scope, node),
             Triple node => Infer(scope, node),
             Graph node => Infer(scope, node),
-
             { } node => throw new ast_model.TypeCheckingException("Unrecognised type")
         };
     }
@@ -181,6 +179,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, PropertyBindingDef node);
     public abstract FifthType Infer(ScopeAstThing scope, TypeDef node);
     public abstract FifthType Infer(ScopeAstThing scope, ClassDef node);
+    public abstract FifthType Infer(ScopeAstThing scope, StructDef node);
     public abstract FifthType Infer(ScopeAstThing scope, VariableDecl node);
     public abstract FifthType Infer(ScopeAstThing scope, AssemblyRef node);
     public abstract FifthType Infer(ScopeAstThing scope, MemberRef node);
@@ -239,6 +238,4 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, Atom node);
     public abstract FifthType Infer(ScopeAstThing scope, Triple node);
     public abstract FifthType Infer(ScopeAstThing scope, Graph node);
-
 }
-

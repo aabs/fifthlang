@@ -1,5 +1,3 @@
-
-
 namespace il_ast_generated;
 using il_ast;
 using System.Collections.Generic;
@@ -64,6 +62,8 @@ public interface IAstVisitor
     public void LeaveTypeCastExpression(TypeCastExpression ctx);
     public void EnterFuncCallExp(FuncCallExp ctx);
     public void LeaveFuncCallExp(FuncCallExp ctx);
+    public void EnterLiteral(Literal ctx);
+    public void LeaveLiteral(Literal ctx);
     public void EnterBoolLiteral(BoolLiteral ctx);
     public void LeaveBoolLiteral(BoolLiteral ctx);
     public void EnterCharLiteral(CharLiteral ctx);
@@ -78,6 +78,12 @@ public interface IAstVisitor
     public void LeaveDateOnlyLiteral(DateOnlyLiteral ctx);
     public void EnterTimeOnlyLiteral(TimeOnlyLiteral ctx);
     public void LeaveTimeOnlyLiteral(TimeOnlyLiteral ctx);
+    public void EnterUriLiteral(UriLiteral ctx);
+    public void LeaveUriLiteral(UriLiteral ctx);
+    public void EnterUriLiteral(UriLiteral ctx);
+    public void LeaveUriLiteral(UriLiteral ctx);
+    public void EnterUriLiteral(UriLiteral ctx);
+    public void LeaveUriLiteral(UriLiteral ctx);
     public void EnterSByteLiteral(SByteLiteral ctx);
     public void LeaveSByteLiteral(SByteLiteral ctx);
     public void EnterByteLiteral(ByteLiteral ctx);
@@ -104,521 +110,106 @@ public interface IAstVisitor
 
 public partial class BaseAstVisitor : IAstVisitor
 {
-    public virtual void EnterAssemblyDeclaration(AssemblyDeclaration ctx){}
-    public virtual void LeaveAssemblyDeclaration(AssemblyDeclaration ctx){}
-    public virtual void EnterAssemblyReference(AssemblyReference ctx){}
-    public virtual void LeaveAssemblyReference(AssemblyReference ctx){}
-    public virtual void EnterModuleDeclaration(ModuleDeclaration ctx){}
-    public virtual void LeaveModuleDeclaration(ModuleDeclaration ctx){}
-    public virtual void EnterVersion(Version ctx){}
-    public virtual void LeaveVersion(Version ctx){}
-    public virtual void EnterClassDefinition(ClassDefinition ctx){}
-    public virtual void LeaveClassDefinition(ClassDefinition ctx){}
-    public virtual void EnterMemberAccessExpression(MemberAccessExpression ctx){}
-    public virtual void LeaveMemberAccessExpression(MemberAccessExpression ctx){}
-    public virtual void EnterParameterDeclaration(ParameterDeclaration ctx){}
-    public virtual void LeaveParameterDeclaration(ParameterDeclaration ctx){}
-    public virtual void EnterParameterSignature(ParameterSignature ctx){}
-    public virtual void LeaveParameterSignature(ParameterSignature ctx){}
-    public virtual void EnterMethodSignature(MethodSignature ctx){}
-    public virtual void LeaveMethodSignature(MethodSignature ctx){}
-    public virtual void EnterMethodHeader(MethodHeader ctx){}
-    public virtual void LeaveMethodHeader(MethodHeader ctx){}
-    public virtual void EnterMethodRef(MethodRef ctx){}
-    public virtual void LeaveMethodRef(MethodRef ctx){}
-    public virtual void EnterMethodImpl(MethodImpl ctx){}
-    public virtual void LeaveMethodImpl(MethodImpl ctx){}
-    public virtual void EnterMethodDefinition(MethodDefinition ctx){}
-    public virtual void LeaveMethodDefinition(MethodDefinition ctx){}
-    public virtual void EnterTypeReference(TypeReference ctx){}
-    public virtual void LeaveTypeReference(TypeReference ctx){}
-    public virtual void EnterMemberRef(MemberRef ctx){}
-    public virtual void LeaveMemberRef(MemberRef ctx){}
-    public virtual void EnterFieldDefinition(FieldDefinition ctx){}
-    public virtual void LeaveFieldDefinition(FieldDefinition ctx){}
-    public virtual void EnterPropertyDefinition(PropertyDefinition ctx){}
-    public virtual void LeavePropertyDefinition(PropertyDefinition ctx){}
-    public virtual void EnterBlock(Block ctx){}
-    public virtual void LeaveBlock(Block ctx){}
-    public virtual void EnterIfStatement(IfStatement ctx){}
-    public virtual void LeaveIfStatement(IfStatement ctx){}
-    public virtual void EnterVariableAssignmentStatement(VariableAssignmentStatement ctx){}
-    public virtual void LeaveVariableAssignmentStatement(VariableAssignmentStatement ctx){}
-    public virtual void EnterVariableDeclarationStatement(VariableDeclarationStatement ctx){}
-    public virtual void LeaveVariableDeclarationStatement(VariableDeclarationStatement ctx){}
-    public virtual void EnterReturnStatement(ReturnStatement ctx){}
-    public virtual void LeaveReturnStatement(ReturnStatement ctx){}
-    public virtual void EnterWhileStatement(WhileStatement ctx){}
-    public virtual void LeaveWhileStatement(WhileStatement ctx){}
-    public virtual void EnterExpressionStatement(ExpressionStatement ctx){}
-    public virtual void LeaveExpressionStatement(ExpressionStatement ctx){}
-    public virtual void EnterUnaryExpression(UnaryExpression ctx){}
-    public virtual void LeaveUnaryExpression(UnaryExpression ctx){}
-    public virtual void EnterBinaryExpression(BinaryExpression ctx){}
-    public virtual void LeaveBinaryExpression(BinaryExpression ctx){}
-    public virtual void EnterVariableReferenceExpression(VariableReferenceExpression ctx){}
-    public virtual void LeaveVariableReferenceExpression(VariableReferenceExpression ctx){}
-    public virtual void EnterTypeCastExpression(TypeCastExpression ctx){}
-    public virtual void LeaveTypeCastExpression(TypeCastExpression ctx){}
-    public virtual void EnterFuncCallExp(FuncCallExp ctx){}
-    public virtual void LeaveFuncCallExp(FuncCallExp ctx){}
-    public virtual void EnterBoolLiteral(BoolLiteral ctx){}
-    public virtual void LeaveBoolLiteral(BoolLiteral ctx){}
-    public virtual void EnterCharLiteral(CharLiteral ctx){}
-    public virtual void LeaveCharLiteral(CharLiteral ctx){}
-    public virtual void EnterStringLiteral(StringLiteral ctx){}
-    public virtual void LeaveStringLiteral(StringLiteral ctx){}
-    public virtual void EnterUriLiteral(UriLiteral ctx){}
-    public virtual void LeaveUriLiteral(UriLiteral ctx){}
-    public virtual void EnterDateTimeOffsetLiteral(DateTimeOffsetLiteral ctx){}
-    public virtual void LeaveDateTimeOffsetLiteral(DateTimeOffsetLiteral ctx){}
-    public virtual void EnterDateOnlyLiteral(DateOnlyLiteral ctx){}
-    public virtual void LeaveDateOnlyLiteral(DateOnlyLiteral ctx){}
-    public virtual void EnterTimeOnlyLiteral(TimeOnlyLiteral ctx){}
-    public virtual void LeaveTimeOnlyLiteral(TimeOnlyLiteral ctx){}
-    public virtual void EnterSByteLiteral(SByteLiteral ctx){}
-    public virtual void LeaveSByteLiteral(SByteLiteral ctx){}
-    public virtual void EnterByteLiteral(ByteLiteral ctx){}
-    public virtual void LeaveByteLiteral(ByteLiteral ctx){}
-    public virtual void EnterShortLiteral(ShortLiteral ctx){}
-    public virtual void LeaveShortLiteral(ShortLiteral ctx){}
-    public virtual void EnterUShortLiteral(UShortLiteral ctx){}
-    public virtual void LeaveUShortLiteral(UShortLiteral ctx){}
-    public virtual void EnterIntLiteral(IntLiteral ctx){}
-    public virtual void LeaveIntLiteral(IntLiteral ctx){}
-    public virtual void EnterUIntLiteral(UIntLiteral ctx){}
-    public virtual void LeaveUIntLiteral(UIntLiteral ctx){}
-    public virtual void EnterLongLiteral(LongLiteral ctx){}
-    public virtual void LeaveLongLiteral(LongLiteral ctx){}
-    public virtual void EnterULongLiteral(ULongLiteral ctx){}
-    public virtual void LeaveULongLiteral(ULongLiteral ctx){}
-    public virtual void EnterFloatLiteral(FloatLiteral ctx){}
-    public virtual void LeaveFloatLiteral(FloatLiteral ctx){}
-    public virtual void EnterDoubleLiteral(DoubleLiteral ctx){}
-    public virtual void LeaveDoubleLiteral(DoubleLiteral ctx){}
-    public virtual void EnterDecimalLiteral(DecimalLiteral ctx){}
-    public virtual void LeaveDecimalLiteral(DecimalLiteral ctx){}
+    public virtual void EnterAssemblyDeclaration(AssemblyDeclaration ctx) { }
+    public virtual void LeaveAssemblyDeclaration(AssemblyDeclaration ctx) { }
+    public virtual void EnterAssemblyReference(AssemblyReference ctx) { }
+    public virtual void LeaveAssemblyReference(AssemblyReference ctx) { }
+    public virtual void EnterModuleDeclaration(ModuleDeclaration ctx) { }
+    public virtual void LeaveModuleDeclaration(ModuleDeclaration ctx) { }
+    public virtual void EnterVersion(Version ctx) { }
+    public virtual void LeaveVersion(Version ctx) { }
+    public virtual void EnterClassDefinition(ClassDefinition ctx) { }
+    public virtual void LeaveClassDefinition(ClassDefinition ctx) { }
+    public virtual void EnterMemberAccessExpression(MemberAccessExpression ctx) { }
+    public virtual void LeaveMemberAccessExpression(MemberAccessExpression ctx) { }
+    public virtual void EnterParameterDeclaration(ParameterDeclaration ctx) { }
+    public virtual void LeaveParameterDeclaration(ParameterDeclaration ctx) { }
+    public virtual void EnterParameterSignature(ParameterSignature ctx) { }
+    public virtual void LeaveParameterSignature(ParameterSignature ctx) { }
+    public virtual void EnterMethodSignature(MethodSignature ctx) { }
+    public virtual void LeaveMethodSignature(MethodSignature ctx) { }
+    public virtual void EnterMethodHeader(MethodHeader ctx) { }
+    public virtual void LeaveMethodHeader(MethodHeader ctx) { }
+    public virtual void EnterMethodRef(MethodRef ctx) { }
+    public virtual void LeaveMethodRef(MethodRef ctx) { }
+    public virtual void EnterMethodImpl(MethodImpl ctx) { }
+    public virtual void LeaveMethodImpl(MethodImpl ctx) { }
+    public virtual void EnterMethodDefinition(MethodDefinition ctx) { }
+    public virtual void LeaveMethodDefinition(MethodDefinition ctx) { }
+    public virtual void EnterTypeReference(TypeReference ctx) { }
+    public virtual void LeaveTypeReference(TypeReference ctx) { }
+    public virtual void EnterMemberRef(MemberRef ctx) { }
+    public virtual void LeaveMemberRef(MemberRef ctx) { }
+    public virtual void EnterFieldDefinition(FieldDefinition ctx) { }
+    public virtual void LeaveFieldDefinition(FieldDefinition ctx) { }
+    public virtual void EnterPropertyDefinition(PropertyDefinition ctx) { }
+    public virtual void LeavePropertyDefinition(PropertyDefinition ctx) { }
+    public virtual void EnterBlock(Block ctx) { }
+    public virtual void LeaveBlock(Block ctx) { }
+    public virtual void EnterIfStatement(IfStatement ctx) { }
+    public virtual void LeaveIfStatement(IfStatement ctx) { }
+    public virtual void EnterVariableAssignmentStatement(VariableAssignmentStatement ctx) { }
+    public virtual void LeaveVariableAssignmentStatement(VariableAssignmentStatement ctx) { }
+    public virtual void EnterVariableDeclarationStatement(VariableDeclarationStatement ctx) { }
+    public virtual void LeaveVariableDeclarationStatement(VariableDeclarationStatement ctx) { }
+    public virtual void EnterReturnStatement(ReturnStatement ctx) { }
+    public virtual void LeaveReturnStatement(ReturnStatement ctx) { }
+    public virtual void EnterWhileStatement(WhileStatement ctx) { }
+    public virtual void LeaveWhileStatement(WhileStatement ctx) { }
+    public virtual void EnterExpressionStatement(ExpressionStatement ctx) { }
+    public virtual void LeaveExpressionStatement(ExpressionStatement ctx) { }
+    public virtual void EnterUnaryExpression(UnaryExpression ctx) { }
+    public virtual void LeaveUnaryExpression(UnaryExpression ctx) { }
+    public virtual void EnterBinaryExpression(BinaryExpression ctx) { }
+    public virtual void LeaveBinaryExpression(BinaryExpression ctx) { }
+    public virtual void EnterVariableReferenceExpression(VariableReferenceExpression ctx) { }
+    public virtual void LeaveVariableReferenceExpression(VariableReferenceExpression ctx) { }
+    public virtual void EnterTypeCastExpression(TypeCastExpression ctx) { }
+    public virtual void LeaveTypeCastExpression(TypeCastExpression ctx) { }
+    public virtual void EnterFuncCallExp(FuncCallExp ctx) { }
+    public virtual void LeaveFuncCallExp(FuncCallExp ctx) { }
+    public virtual void EnterLiteral(Literal ctx) { }
+    public virtual void LeaveLiteral(Literal ctx) { }
+    public virtual void EnterBoolLiteral(BoolLiteral ctx) { }
+    public virtual void LeaveBoolLiteral(BoolLiteral ctx) { }
+    public virtual void EnterCharLiteral(CharLiteral ctx) { }
+    public virtual void LeaveCharLiteral(CharLiteral ctx) { }
+    public virtual void EnterStringLiteral(StringLiteral ctx) { }
+    public virtual void LeaveStringLiteral(StringLiteral ctx) { }
+    public virtual void EnterUriLiteral(UriLiteral ctx) { }
+    public virtual void LeaveUriLiteral(UriLiteral ctx) { }
+    public virtual void EnterDateTimeOffsetLiteral(DateTimeOffsetLiteral ctx) { }
+    public virtual void LeaveDateTimeOffsetLiteral(DateTimeOffsetLiteral ctx) { }
+    public virtual void EnterDateOnlyLiteral(DateOnlyLiteral ctx) { }
+    public virtual void LeaveDateOnlyLiteral(DateOnlyLiteral ctx) { }
+    public virtual void EnterTimeOnlyLiteral(TimeOnlyLiteral ctx) { }
+    public virtual void LeaveTimeOnlyLiteral(TimeOnlyLiteral ctx) { }
+    public virtual void EnterUriLiteral(UriLiteral ctx) { }
+    public virtual void LeaveUriLiteral(UriLiteral ctx) { }
+    public virtual void EnterUriLiteral(UriLiteral ctx) { }
+    public virtual void LeaveUriLiteral(UriLiteral ctx) { }
+    public virtual void EnterUriLiteral(UriLiteral ctx) { }
+    public virtual void LeaveUriLiteral(UriLiteral ctx) { }
+    public virtual void EnterSByteLiteral(SByteLiteral ctx) { }
+    public virtual void LeaveSByteLiteral(SByteLiteral ctx) { }
+    public virtual void EnterByteLiteral(ByteLiteral ctx) { }
+    public virtual void LeaveByteLiteral(ByteLiteral ctx) { }
+    public virtual void EnterShortLiteral(ShortLiteral ctx) { }
+    public virtual void LeaveShortLiteral(ShortLiteral ctx) { }
+    public virtual void EnterUShortLiteral(UShortLiteral ctx) { }
+    public virtual void LeaveUShortLiteral(UShortLiteral ctx) { }
+    public virtual void EnterIntLiteral(IntLiteral ctx) { }
+    public virtual void LeaveIntLiteral(IntLiteral ctx) { }
+    public virtual void EnterUIntLiteral(UIntLiteral ctx) { }
+    public virtual void LeaveUIntLiteral(UIntLiteral ctx) { }
+    public virtual void EnterLongLiteral(LongLiteral ctx) { }
+    public virtual void LeaveLongLiteral(LongLiteral ctx) { }
+    public virtual void EnterULongLiteral(ULongLiteral ctx) { }
+    public virtual void LeaveULongLiteral(ULongLiteral ctx) { }
+    public virtual void EnterFloatLiteral(FloatLiteral ctx) { }
+    public virtual void LeaveFloatLiteral(FloatLiteral ctx) { }
+    public virtual void EnterDoubleLiteral(DoubleLiteral ctx) { }
+    public virtual void LeaveDoubleLiteral(DoubleLiteral ctx) { }
+    public virtual void EnterDecimalLiteral(DecimalLiteral ctx) { }
+    public virtual void LeaveDecimalLiteral(DecimalLiteral ctx) { }
 }
-
-
-public interface IAstRecursiveDescentVisitor
-{
-    public AstThing Visit(AstThing ctx);
-    public AssemblyDeclaration VisitAssemblyDeclaration(AssemblyDeclaration ctx);
-    public AssemblyReference VisitAssemblyReference(AssemblyReference ctx);
-    public ModuleDeclaration VisitModuleDeclaration(ModuleDeclaration ctx);
-    public Version VisitVersion(Version ctx);
-    public ClassDefinition VisitClassDefinition(ClassDefinition ctx);
-    public MemberAccessExpression VisitMemberAccessExpression(MemberAccessExpression ctx);
-    public ParameterDeclaration VisitParameterDeclaration(ParameterDeclaration ctx);
-    public ParameterSignature VisitParameterSignature(ParameterSignature ctx);
-    public MethodSignature VisitMethodSignature(MethodSignature ctx);
-    public MethodHeader VisitMethodHeader(MethodHeader ctx);
-    public MethodRef VisitMethodRef(MethodRef ctx);
-    public MethodImpl VisitMethodImpl(MethodImpl ctx);
-    public MethodDefinition VisitMethodDefinition(MethodDefinition ctx);
-    public TypeReference VisitTypeReference(TypeReference ctx);
-    public MemberRef VisitMemberRef(MemberRef ctx);
-    public FieldDefinition VisitFieldDefinition(FieldDefinition ctx);
-    public PropertyDefinition VisitPropertyDefinition(PropertyDefinition ctx);
-    public Block VisitBlock(Block ctx);
-    public IfStatement VisitIfStatement(IfStatement ctx);
-    public VariableAssignmentStatement VisitVariableAssignmentStatement(VariableAssignmentStatement ctx);
-    public VariableDeclarationStatement VisitVariableDeclarationStatement(VariableDeclarationStatement ctx);
-    public ReturnStatement VisitReturnStatement(ReturnStatement ctx);
-    public WhileStatement VisitWhileStatement(WhileStatement ctx);
-    public ExpressionStatement VisitExpressionStatement(ExpressionStatement ctx);
-    public UnaryExpression VisitUnaryExpression(UnaryExpression ctx);
-    public BinaryExpression VisitBinaryExpression(BinaryExpression ctx);
-    public VariableReferenceExpression VisitVariableReferenceExpression(VariableReferenceExpression ctx);
-    public TypeCastExpression VisitTypeCastExpression(TypeCastExpression ctx);
-    public FuncCallExp VisitFuncCallExp(FuncCallExp ctx);
-    public BoolLiteral VisitBoolLiteral(BoolLiteral ctx);
-    public CharLiteral VisitCharLiteral(CharLiteral ctx);
-    public StringLiteral VisitStringLiteral(StringLiteral ctx);
-    public UriLiteral VisitUriLiteral(UriLiteral ctx);
-    public DateTimeOffsetLiteral VisitDateTimeOffsetLiteral(DateTimeOffsetLiteral ctx);
-    public DateOnlyLiteral VisitDateOnlyLiteral(DateOnlyLiteral ctx);
-    public TimeOnlyLiteral VisitTimeOnlyLiteral(TimeOnlyLiteral ctx);
-    public SByteLiteral VisitSByteLiteral(SByteLiteral ctx);
-    public ByteLiteral VisitByteLiteral(ByteLiteral ctx);
-    public ShortLiteral VisitShortLiteral(ShortLiteral ctx);
-    public UShortLiteral VisitUShortLiteral(UShortLiteral ctx);
-    public IntLiteral VisitIntLiteral(IntLiteral ctx);
-    public UIntLiteral VisitUIntLiteral(UIntLiteral ctx);
-    public LongLiteral VisitLongLiteral(LongLiteral ctx);
-    public ULongLiteral VisitULongLiteral(ULongLiteral ctx);
-    public FloatLiteral VisitFloatLiteral(FloatLiteral ctx);
-    public DoubleLiteral VisitDoubleLiteral(DoubleLiteral ctx);
-    public DecimalLiteral VisitDecimalLiteral(DecimalLiteral ctx);
-}
-
-public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
-{
-    public virtual AstThing Visit(AstThing ctx){
-        if(ctx == null) return ctx;
-        return ctx switch
-        {
-             AssemblyDeclaration node => VisitAssemblyDeclaration(node),
-             AssemblyReference node => VisitAssemblyReference(node),
-             ModuleDeclaration node => VisitModuleDeclaration(node),
-             Version node => VisitVersion(node),
-             ClassDefinition node => VisitClassDefinition(node),
-             MemberAccessExpression node => VisitMemberAccessExpression(node),
-             ParameterDeclaration node => VisitParameterDeclaration(node),
-             ParameterSignature node => VisitParameterSignature(node),
-             MethodSignature node => VisitMethodSignature(node),
-             MethodHeader node => VisitMethodHeader(node),
-             MethodRef node => VisitMethodRef(node),
-             MethodImpl node => VisitMethodImpl(node),
-             MethodDefinition node => VisitMethodDefinition(node),
-             TypeReference node => VisitTypeReference(node),
-             MemberRef node => VisitMemberRef(node),
-             FieldDefinition node => VisitFieldDefinition(node),
-             PropertyDefinition node => VisitPropertyDefinition(node),
-             Block node => VisitBlock(node),
-             IfStatement node => VisitIfStatement(node),
-             VariableAssignmentStatement node => VisitVariableAssignmentStatement(node),
-             VariableDeclarationStatement node => VisitVariableDeclarationStatement(node),
-             ReturnStatement node => VisitReturnStatement(node),
-             WhileStatement node => VisitWhileStatement(node),
-             ExpressionStatement node => VisitExpressionStatement(node),
-             UnaryExpression node => VisitUnaryExpression(node),
-             BinaryExpression node => VisitBinaryExpression(node),
-             VariableReferenceExpression node => VisitVariableReferenceExpression(node),
-             TypeCastExpression node => VisitTypeCastExpression(node),
-             FuncCallExp node => VisitFuncCallExp(node),
-             BoolLiteral node => VisitBoolLiteral(node),
-             CharLiteral node => VisitCharLiteral(node),
-             StringLiteral node => VisitStringLiteral(node),
-             UriLiteral node => VisitUriLiteral(node),
-             DateTimeOffsetLiteral node => VisitDateTimeOffsetLiteral(node),
-             DateOnlyLiteral node => VisitDateOnlyLiteral(node),
-             TimeOnlyLiteral node => VisitTimeOnlyLiteral(node),
-             SByteLiteral node => VisitSByteLiteral(node),
-             ByteLiteral node => VisitByteLiteral(node),
-             ShortLiteral node => VisitShortLiteral(node),
-             UShortLiteral node => VisitUShortLiteral(node),
-             IntLiteral node => VisitIntLiteral(node),
-             UIntLiteral node => VisitUIntLiteral(node),
-             LongLiteral node => VisitLongLiteral(node),
-             ULongLiteral node => VisitULongLiteral(node),
-             FloatLiteral node => VisitFloatLiteral(node),
-             DoubleLiteral node => VisitDoubleLiteral(node),
-             DecimalLiteral node => VisitDecimalLiteral(node),
-
-            { } node => null,
-        };
-    }
-
-    public virtual AssemblyDeclaration VisitAssemblyDeclaration(AssemblyDeclaration ctx)
-    {
-        List<il_ast.AssemblyReference> tmpAssemblyReferences = [];
-        tmpAssemblyReferences.AddRange(ctx.AssemblyReferences.Select(x => (il_ast.AssemblyReference)Visit(x)));
-     return ctx with {
-         Version = (il_ast.Version)Visit((AstThing)ctx.Version)
-        ,PrimeModule = (il_ast.ModuleDeclaration)Visit((AstThing)ctx.PrimeModule)
-        ,AssemblyReferences = tmpAssemblyReferences
-        };
-    }
-    public virtual AssemblyReference VisitAssemblyReference(AssemblyReference ctx)
-    {
-     return ctx with {
-         Version = (il_ast.Version)Visit((AstThing)ctx.Version)
-        };
-    }
-    public virtual ModuleDeclaration VisitModuleDeclaration(ModuleDeclaration ctx)
-    {
-        List<il_ast.ClassDefinition> tmpClasses = [];
-        tmpClasses.AddRange(ctx.Classes.Select(x => (il_ast.ClassDefinition)Visit(x)));
-        List<il_ast.MethodDefinition> tmpFunctions = [];
-        tmpFunctions.AddRange(ctx.Functions.Select(x => (il_ast.MethodDefinition)Visit(x)));
-     return ctx with {
-         Classes = tmpClasses
-        ,Functions = tmpFunctions
-        };
-    }
-    public virtual Version VisitVersion(Version ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual ClassDefinition VisitClassDefinition(ClassDefinition ctx)
-    {
-        List<il_ast.FieldDefinition> tmpFields = [];
-        tmpFields.AddRange(ctx.Fields.Select(x => (il_ast.FieldDefinition)Visit(x)));
-        List<il_ast.PropertyDefinition> tmpProperties = [];
-        tmpProperties.AddRange(ctx.Properties.Select(x => (il_ast.PropertyDefinition)Visit(x)));
-        List<il_ast.MethodDefinition> tmpMethods = [];
-        tmpMethods.AddRange(ctx.Methods.Select(x => (il_ast.MethodDefinition)Visit(x)));
-        List<il_ast.ClassDefinition> tmpBaseClasses = [];
-        tmpBaseClasses.AddRange(ctx.BaseClasses.Select(x => (il_ast.ClassDefinition)Visit(x)));
-     return ctx with {
-         Fields = tmpFields
-        ,Properties = tmpProperties
-        ,Methods = tmpMethods
-        ,BaseClasses = tmpBaseClasses
-        ,ParentAssembly = (il_ast.AssemblyDeclaration)Visit((AstThing)ctx.ParentAssembly)
-        };
-    }
-    public virtual MemberAccessExpression VisitMemberAccessExpression(MemberAccessExpression ctx)
-    {
-     return ctx with {
-         Lhs = (il_ast.Expression)Visit((AstThing)ctx.Lhs)
-        ,Rhs = (il_ast.Expression)Visit((AstThing)ctx.Rhs)
-        };
-    }
-    public virtual ParameterDeclaration VisitParameterDeclaration(ParameterDeclaration ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual ParameterSignature VisitParameterSignature(ParameterSignature ctx)
-    {
-     return ctx with {
-         TypeReference = (il_ast.TypeReference)Visit((AstThing)ctx.TypeReference)
-        };
-    }
-    public virtual MethodSignature VisitMethodSignature(MethodSignature ctx)
-    {
-        List<il_ast.ParameterSignature> tmpParameterSignatures = [];
-        tmpParameterSignatures.AddRange(ctx.ParameterSignatures.Select(x => (il_ast.ParameterSignature)Visit(x)));
-     return ctx with {
-         ParameterSignatures = tmpParameterSignatures
-        ,ReturnTypeSignature = (il_ast.TypeReference)Visit((AstThing)ctx.ReturnTypeSignature)
-        };
-    }
-    public virtual MethodHeader VisitMethodHeader(MethodHeader ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual MethodRef VisitMethodRef(MethodRef ctx)
-    {
-     return ctx with {
-         ClassDefinition = (il_ast.ClassDefinition)Visit((AstThing)ctx.ClassDefinition)
-        ,Sig = (il_ast.MethodSignature)Visit((AstThing)ctx.Sig)
-        ,Field = (il_ast.FieldDefinition)Visit((AstThing)ctx.Field)
-        };
-    }
-    public virtual MethodImpl VisitMethodImpl(MethodImpl ctx)
-    {
-     return ctx with {
-         Body = (il_ast.Block)Visit((AstThing)ctx.Body)
-        };
-    }
-    public virtual MethodDefinition VisitMethodDefinition(MethodDefinition ctx)
-    {
-     return ctx with {
-         Header = (il_ast.MethodHeader)Visit((AstThing)ctx.Header)
-        ,Signature = (il_ast.MethodSignature)Visit((AstThing)ctx.Signature)
-        ,Impl = (il_ast.MethodImpl)Visit((AstThing)ctx.Impl)
-        ,TheType = (il_ast.TypeReference)Visit((AstThing)ctx.TheType)
-        ,ParentClass = (il_ast.ClassDefinition)Visit((AstThing)ctx.ParentClass)
-        ,AssociatedProperty = (il_ast.PropertyDefinition)Visit((AstThing)ctx.AssociatedProperty)
-        };
-    }
-    public virtual TypeReference VisitTypeReference(TypeReference ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual MemberRef VisitMemberRef(MemberRef ctx)
-    {
-     return ctx with {
-         ClassDefinition = (il_ast.ClassDefinition)Visit((AstThing)ctx.ClassDefinition)
-        ,Sig = (il_ast.MethodSignature)Visit((AstThing)ctx.Sig)
-        ,Field = (il_ast.FieldDefinition)Visit((AstThing)ctx.Field)
-        };
-    }
-    public virtual FieldDefinition VisitFieldDefinition(FieldDefinition ctx)
-    {
-     return ctx with {
-         TheType = (il_ast.TypeReference)Visit((AstThing)ctx.TheType)
-        ,ParentClass = (il_ast.ClassDefinition)Visit((AstThing)ctx.ParentClass)
-        ,AssociatedProperty = (il_ast.PropertyDefinition)Visit((AstThing)ctx.AssociatedProperty)
-        };
-    }
-    public virtual PropertyDefinition VisitPropertyDefinition(PropertyDefinition ctx)
-    {
-     return ctx with {
-         FieldDefinition = (il_ast.FieldDefinition)Visit((AstThing)ctx.FieldDefinition)
-        ,TheType = (il_ast.TypeReference)Visit((AstThing)ctx.TheType)
-        ,ParentClass = (il_ast.ClassDefinition)Visit((AstThing)ctx.ParentClass)
-        ,AssociatedProperty = (il_ast.PropertyDefinition)Visit((AstThing)ctx.AssociatedProperty)
-        };
-    }
-    public virtual Block VisitBlock(Block ctx)
-    {
-        List<il_ast.Statement> tmpStatements = [];
-        tmpStatements.AddRange(ctx.Statements.Select(x => (il_ast.Statement)Visit(x)));
-     return ctx with {
-         Statements = tmpStatements
-        };
-    }
-    public virtual IfStatement VisitIfStatement(IfStatement ctx)
-    {
-     return ctx with {
-         Conditional = (il_ast.Expression)Visit((AstThing)ctx.Conditional)
-        ,IfBlock = (il_ast.Block)Visit((AstThing)ctx.IfBlock)
-        ,ElseBlock = (il_ast.Block)Visit((AstThing)ctx.ElseBlock)
-        };
-    }
-    public virtual VariableAssignmentStatement VisitVariableAssignmentStatement(VariableAssignmentStatement ctx)
-    {
-     return ctx with {
-         RHS = (il_ast.Expression)Visit((AstThing)ctx.RHS)
-        };
-    }
-    public virtual VariableDeclarationStatement VisitVariableDeclarationStatement(VariableDeclarationStatement ctx)
-    {
-     return ctx with {
-         InitialisationExpression = (il_ast.Expression)Visit((AstThing)ctx.InitialisationExpression)
-        };
-    }
-    public virtual ReturnStatement VisitReturnStatement(ReturnStatement ctx)
-    {
-     return ctx with {
-         Exp = (il_ast.Expression)Visit((AstThing)ctx.Exp)
-        };
-    }
-    public virtual WhileStatement VisitWhileStatement(WhileStatement ctx)
-    {
-     return ctx with {
-         Conditional = (il_ast.Expression)Visit((AstThing)ctx.Conditional)
-        ,LoopBlock = (il_ast.Block)Visit((AstThing)ctx.LoopBlock)
-        };
-    }
-    public virtual ExpressionStatement VisitExpressionStatement(ExpressionStatement ctx)
-    {
-     return ctx with {
-         Expression = (il_ast.Expression)Visit((AstThing)ctx.Expression)
-        };
-    }
-    public virtual UnaryExpression VisitUnaryExpression(UnaryExpression ctx)
-    {
-     return ctx with {
-         Exp = (il_ast.Expression)Visit((AstThing)ctx.Exp)
-        };
-    }
-    public virtual BinaryExpression VisitBinaryExpression(BinaryExpression ctx)
-    {
-     return ctx with {
-         LHS = (il_ast.Expression)Visit((AstThing)ctx.LHS)
-        ,RHS = (il_ast.Expression)Visit((AstThing)ctx.RHS)
-        };
-    }
-    public virtual VariableReferenceExpression VisitVariableReferenceExpression(VariableReferenceExpression ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual TypeCastExpression VisitTypeCastExpression(TypeCastExpression ctx)
-    {
-     return ctx with {
-         Expression = (il_ast.Expression)Visit((AstThing)ctx.Expression)
-        };
-    }
-    public virtual FuncCallExp VisitFuncCallExp(FuncCallExp ctx)
-    {
-        List<il_ast.Expression> tmpArgs = [];
-        tmpArgs.AddRange(ctx.Args.Select(x => (il_ast.Expression)Visit(x)));
-     return ctx with {
-         Args = tmpArgs
-        ,ClassDefinition = (il_ast.ClassDefinition)Visit((AstThing)ctx.ClassDefinition)
-        };
-    }
-    public virtual BoolLiteral VisitBoolLiteral(BoolLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual CharLiteral VisitCharLiteral(CharLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual StringLiteral VisitStringLiteral(StringLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual UriLiteral VisitUriLiteral(UriLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual DateTimeOffsetLiteral VisitDateTimeOffsetLiteral(DateTimeOffsetLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual DateOnlyLiteral VisitDateOnlyLiteral(DateOnlyLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual TimeOnlyLiteral VisitTimeOnlyLiteral(TimeOnlyLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual SByteLiteral VisitSByteLiteral(SByteLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual ByteLiteral VisitByteLiteral(ByteLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual ShortLiteral VisitShortLiteral(ShortLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual UShortLiteral VisitUShortLiteral(UShortLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual IntLiteral VisitIntLiteral(IntLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual UIntLiteral VisitUIntLiteral(UIntLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual LongLiteral VisitLongLiteral(LongLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual ULongLiteral VisitULongLiteral(ULongLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual FloatLiteral VisitFloatLiteral(FloatLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual DoubleLiteral VisitDoubleLiteral(DoubleLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual DecimalLiteral VisitDecimalLiteral(DecimalLiteral ctx)
-    {
-     return ctx with {
-        };
-    }
-
-}
-
-

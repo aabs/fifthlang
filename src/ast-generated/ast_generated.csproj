@@ -6,18 +6,15 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
-		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
 	</PropertyGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\ast-model\ast_model.csproj" />
-	  <ProjectReference Include="..\AstSourceGenerators\AstSourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <AdditionalFiles Include="..\ast-model\AstMetamodel.cs" />
-	  <AdditionalFiles Include="..\ast-model\ILMetamodel.cs" />
-	</ItemGroup>
+	<Target Name="GenerateAstCode" BeforeTargets="CoreCompile">
+		<Message Text="Running AST code generation..." Importance="high" />
+		<Exec Command="dotnet run --project $(MSBuildProjectDirectory)/../../tools/CodeGenerator.csproj $(MSBuildProjectDirectory)/../ast-model/AstMetamodel.cs $(MSBuildProjectDirectory)" />
+	</Target>
 
 </Project>
