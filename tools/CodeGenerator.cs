@@ -103,10 +103,8 @@ namespace CodeGenerator
                 if (lineStart == -1) lineStart = 0;
                 else lineStart += 1;
                 
-                if (match.Index < lineStart)
-                    continue; // Skip invalid match
-                
-                var lineText = content.Substring(lineStart, match.Index - lineStart);
+                // Get the line content before the match to check for comments
+                var lineText = lineStart <= match.Index ? content.Substring(lineStart, match.Index - lineStart) : "";
                 if (lineText.TrimStart().StartsWith("//"))
                     continue;
 
@@ -131,11 +129,13 @@ namespace CodeGenerator
         {
             var properties = new List<PropertyInfo>();
             
-            // Find the record definition - use a more sophisticated approach to handle nested braces
-            var recordStart = $"public record {typeName}";
-            var startIndex = content.IndexOf(recordStart);
-            if (startIndex == -1)
+            // Find the record definition - use word boundaries to avoid partial matches
+            var recordPattern = $@"\bpublic\s+record\s+{Regex.Escape(typeName)}\b";
+            var match = Regex.Match(content, recordPattern);
+            if (!match.Success)
                 return properties;
+
+            var startIndex = match.Index;
 
             // Extract base type if any
             string baseType = null;
@@ -335,17 +335,37 @@ namespace CodeGenerator
                     }
                 }
 
+                // Add Annotations field only for AST types (which inherit from AnnotatedThing)
+                if (namespaceName == "ast")
+                {
+                    sb.AppendLine("    private Dictionary<string, object> _Annotations = new();");
+                }
+                
                 sb.AppendLine();
                 sb.AppendLine($"    public {type.FullName} Build()");
                 sb.AppendLine("    {");
                 sb.AppendLine($"        return new {type.FullName}()");
                 sb.AppendLine("        {");
 
-                for (int i = 0; i < type.Properties.Count; i++)
+                var allProperties = new List<string>();
+                
+                // Add regular properties
+                foreach (var prop in type.Properties)
                 {
-                    var prop = type.Properties[i];
-                    var separator = i == type.Properties.Count - 1 ? "" : ",";
-                    sb.AppendLine($"            {prop.Name} = this._{prop.Name}{separator}");
+                    allProperties.Add($"            {prop.Name} = this._{prop.Name}");
+                }
+                
+                // Add Annotations property only for AST types (which inherit from AnnotatedThing)
+                if (namespaceName == "ast")
+                {
+                    allProperties.Add("            Annotations = this._Annotations");
+                }
+                
+                // Write all properties with commas, except the last one
+                for (int i = 0; i < allProperties.Count; i++)
+                {
+                    var suffix = i == allProperties.Count - 1 ? "" : ",";
+                    sb.AppendLine($"{allProperties[i]}{suffix}");
                 }
 
                 sb.AppendLine("        };");
@@ -376,6 +396,17 @@ namespace CodeGenerator
                             sb.AppendLine();
                         }
                     }
+                }
+
+                // Add WithAnnotations method only for AST types (which inherit from AnnotatedThing)
+                if (namespaceName == "ast")
+                {
+                    sb.AppendLine($"    public {type.Name}Builder WithAnnotations(Dictionary<string, object> value)");
+                    sb.AppendLine("    {");
+                    sb.AppendLine("        _Annotations = value;");
+                    sb.AppendLine("        return this;");
+                    sb.AppendLine("    }");
+                    sb.AppendLine();
                 }
 
                 sb.AppendLine("}");
