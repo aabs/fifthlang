@@ -1,6 +1,6 @@
 # AST Builder for Fifth Language
 
-AST Builder is a C# .NET 8.0 solution that provides Abstract Syntax Tree (AST) construction capabilities for the Fifth programming language. It includes an ANTLR-based parser, code generation for AST builders and visitors, and a compiler with various language transformations.
+AST Builder is a C# .NET 9.0 solution that provides Abstract Syntax Tree (AST) construction capabilities for the Fifth programming language. It includes an ANTLR-based parser, code generation for AST builders and visitors, and a compiler with various language transformations.
 
 Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
@@ -8,9 +8,9 @@ Always reference these instructions first and fallback to search or bash command
 
 ### Bootstrap, Build, and Test
 ```bash
-# Prerequisites: .NET 8.0 SDK and Java 17+ are required and available
+# Prerequisites: .NET 9.0.303 SDK and Java 17+ are required and available
 # Verify prerequisites
-dotnet --version  # Should show 8.0.118 or compatible
+dotnet --version  # Should show 9.0.303 or compatible
 java -version     # Should show Java 17+ for ANTLR
 
 # Initial setup and build (run these commands in sequence)
