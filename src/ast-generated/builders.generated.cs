@@ -1,2494 +1,2058 @@
 namespace ast_generated;
 using ast_generated;
 using ast;
-using ast_model.TypeSystem;
 using System.Collections.Generic;
 #nullable disable
 
 public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
 {
-    private Visibility _Visibility = Visibility.Public;
-    private AssemblyName _Name;
-    private string _PublicKeyToken;
-    private string _Version;
-    private List<AssemblyRef> _AssemblyRefs;
-    private List<ModuleDef> _Modules;
-    private string _TestProperty;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.AssemblyName _Name;
+    private System.String _PublicKeyToken;
+    private System.String _Version;
+    private List<ast.AssemblyRef> _AssemblyRefs;
+    private List<ast.ModuleDef> _Modules;
+    private System.String _TestProperty;
+    private ast.Visibility _Visibility;
+    private ast_model.Symbols.IScope _EnclosingScope;
+    private ast_model.Symbols.ISymbolTable _SymbolTable;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.AssemblyDef Build()
     {
-        return new ast.AssemblyDef()
-        {
-            Visibility = this._Visibility,
-            Name = this._Name,
-            PublicKeyToken = this._PublicKeyToken,
-            Version = this._Version,
-            AssemblyRefs = this._AssemblyRefs,
-            Modules = this._Modules,
-            TestProperty = this._TestProperty,
-            Annotations = this._Annotations
+        return new ast.AssemblyDef(){
+             Name = this._Name // from AssemblyDef
+           , PublicKeyToken = this._PublicKeyToken // from AssemblyDef
+           , Version = this._Version // from AssemblyDef
+           , AssemblyRefs = this._AssemblyRefs // from AssemblyDef
+           , Modules = this._Modules // from AssemblyDef
+           , TestProperty = this._TestProperty // from AssemblyDef
+           , Visibility = this._Visibility // from ScopedDefinition
+           , EnclosingScope = this._EnclosingScope // from ScopeAstThing
+           , SymbolTable = this._SymbolTable // from ScopeAstThing
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssemblyDefBuilder WithVisibility(Visibility value)
-    {
-        _Visibility = value;
-        return this;
-    }
-
-    public AssemblyDefBuilder WithName(AssemblyName value)
-    {
+    public AssemblyDefBuilder WithName(ast.AssemblyName value){
         _Name = value;
         return this;
     }
 
-    public AssemblyDefBuilder WithPublicKeyToken(string value)
-    {
+    public AssemblyDefBuilder WithPublicKeyToken(System.String value){
         _PublicKeyToken = value;
         return this;
     }
 
-    public AssemblyDefBuilder WithVersion(string value)
-    {
+    public AssemblyDefBuilder WithVersion(System.String value){
         _Version = value;
         return this;
     }
 
-    public AssemblyDefBuilder WithAssemblyRefs(List<AssemblyRef> value)
-    {
+    public AssemblyDefBuilder WithAssemblyRefs(List<ast.AssemblyRef> value){
         _AssemblyRefs = value;
         return this;
     }
 
-    public AssemblyDefBuilder AddingItemToAssemblyRefs(AssemblyRef value)
-    {
-        _AssemblyRefs ??= new List<AssemblyRef>();
+    public AssemblyDefBuilder AddingItemToAssemblyRefs(ast.AssemblyRef value){
+        _AssemblyRefs  ??= [];
         _AssemblyRefs.Add(value);
         return this;
     }
-
-    public AssemblyDefBuilder WithModules(List<ModuleDef> value)
-    {
+    public AssemblyDefBuilder WithModules(List<ast.ModuleDef> value){
         _Modules = value;
         return this;
     }
 
-    public AssemblyDefBuilder AddingItemToModules(ModuleDef value)
-    {
-        _Modules ??= new List<ModuleDef>();
+    public AssemblyDefBuilder AddingItemToModules(ast.ModuleDef value){
+        _Modules  ??= [];
         _Modules.Add(value);
         return this;
     }
-
-    public AssemblyDefBuilder WithTestProperty(string value)
-    {
+    public AssemblyDefBuilder WithTestProperty(System.String value){
         _TestProperty = value;
         return this;
     }
 
-    public AssemblyDefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public AssemblyDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public AssemblyDefBuilder WithEnclosingScope(ast_model.Symbols.IScope value){
+        _EnclosingScope = value;
+        return this;
+    }
+
+    public AssemblyDefBuilder WithSymbolTable(ast_model.Symbols.ISymbolTable value){
+        _SymbolTable = value;
+        return this;
+    }
+
+    public AssemblyDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
 {
-    private Visibility _Visibility = Visibility.Public;
-    private string _OriginalModuleName;
-    private NamespaceName _NamespaceDecl;
-    private List<ClassDef> _Classes;
-    private List<FunctionDef> _Functions;
-    private Dictionary<string, object> _Annotations = new();
-
+    private System.String _OriginalModuleName;
+    private ast.NamespaceName _NamespaceDecl;
+    private List<ast.ClassDef> _Classes;
+    private List<ast.FunctionDef> _Functions;
+    private ast.Visibility _Visibility;
+    private ast_model.Symbols.IScope _EnclosingScope;
+    private ast_model.Symbols.ISymbolTable _SymbolTable;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.ModuleDef Build()
     {
-        return new ast.ModuleDef()
-        {
-            Visibility = this._Visibility,
-            OriginalModuleName = this._OriginalModuleName,
-            NamespaceDecl = this._NamespaceDecl,
-            Classes = this._Classes,
-            Functions = this._Functions,
-            Annotations = this._Annotations
+        return new ast.ModuleDef(){
+             OriginalModuleName = this._OriginalModuleName // from ModuleDef
+           , NamespaceDecl = this._NamespaceDecl // from ModuleDef
+           , Classes = this._Classes // from ModuleDef
+           , Functions = this._Functions // from ModuleDef
+           , Visibility = this._Visibility // from ScopedDefinition
+           , EnclosingScope = this._EnclosingScope // from ScopeAstThing
+           , SymbolTable = this._SymbolTable // from ScopeAstThing
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ModuleDefBuilder WithVisibility(Visibility value)
-    {
-        _Visibility = value;
-        return this;
-    }
-
-    public ModuleDefBuilder WithOriginalModuleName(string value)
-    {
+    public ModuleDefBuilder WithOriginalModuleName(System.String value){
         _OriginalModuleName = value;
         return this;
     }
 
-    public ModuleDefBuilder WithNamespaceDecl(NamespaceName value)
-    {
+    public ModuleDefBuilder WithNamespaceDecl(ast.NamespaceName value){
         _NamespaceDecl = value;
         return this;
     }
 
-    public ModuleDefBuilder WithClasses(List<ClassDef> value)
-    {
+    public ModuleDefBuilder WithClasses(List<ast.ClassDef> value){
         _Classes = value;
         return this;
     }
 
-    public ModuleDefBuilder AddingItemToClasses(ClassDef value)
-    {
-        _Classes ??= new List<ClassDef>();
+    public ModuleDefBuilder AddingItemToClasses(ast.ClassDef value){
+        _Classes  ??= [];
         _Classes.Add(value);
         return this;
     }
-
-    public ModuleDefBuilder WithFunctions(List<FunctionDef> value)
-    {
+    public ModuleDefBuilder WithFunctions(List<ast.FunctionDef> value){
         _Functions = value;
         return this;
     }
 
-    public ModuleDefBuilder AddingItemToFunctions(FunctionDef value)
-    {
-        _Functions ??= new List<FunctionDef>();
+    public ModuleDefBuilder AddingItemToFunctions(ast.FunctionDef value){
+        _Functions  ??= [];
         _Functions.Add(value);
         return this;
     }
+    public ModuleDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
 
-    public ModuleDefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public ModuleDefBuilder WithEnclosingScope(ast_model.Symbols.IScope value){
+        _EnclosingScope = value;
+        return this;
+    }
+
+    public ModuleDefBuilder WithSymbolTable(ast_model.Symbols.ISymbolTable value){
+        _SymbolTable = value;
+        return this;
+    }
+
+    public ModuleDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
 {
-    private Visibility _Visibility = Visibility.Public;
-    private List<ParamDef> _Params;
-    private BlockStatement _Body;
-    private FifthType _ReturnType;
-    private MemberName _Name;
-    private bool _IsStatic;
-    private bool _IsConstructor;
-    private Dictionary<string, object> _Annotations = new();
-
+    private List<ast.ParamDef> _Params;
+    private ast.BlockStatement _Body;
+    private ast_model.TypeSystem.FifthType _ReturnType;
+    private ast.MemberName _Name;
+    private System.Boolean _IsStatic;
+    private System.Boolean _IsConstructor;
+    private ast.Visibility _Visibility;
+    private ast_model.Symbols.IScope _EnclosingScope;
+    private ast_model.Symbols.ISymbolTable _SymbolTable;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.FunctionDef Build()
     {
-        return new ast.FunctionDef()
-        {
-            Visibility = this._Visibility,
-            Params = this._Params,
-            Body = this._Body,
-            ReturnType = this._ReturnType,
-            Name = this._Name,
-            IsStatic = this._IsStatic,
-            IsConstructor = this._IsConstructor,
-            Annotations = this._Annotations
+        return new ast.FunctionDef(){
+             Params = this._Params // from FunctionDef
+           , Body = this._Body // from FunctionDef
+           , ReturnType = this._ReturnType // from FunctionDef
+           , Name = this._Name // from FunctionDef
+           , IsStatic = this._IsStatic // from FunctionDef
+           , IsConstructor = this._IsConstructor // from FunctionDef
+           , Visibility = this._Visibility // from ScopedDefinition
+           , EnclosingScope = this._EnclosingScope // from ScopeAstThing
+           , SymbolTable = this._SymbolTable // from ScopeAstThing
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public FunctionDefBuilder WithVisibility(Visibility value)
-    {
-        _Visibility = value;
-        return this;
-    }
-
-    public FunctionDefBuilder WithParams(List<ParamDef> value)
-    {
+    public FunctionDefBuilder WithParams(List<ast.ParamDef> value){
         _Params = value;
         return this;
     }
 
-    public FunctionDefBuilder AddingItemToParams(ParamDef value)
-    {
-        _Params ??= new List<ParamDef>();
+    public FunctionDefBuilder AddingItemToParams(ast.ParamDef value){
+        _Params  ??= [];
         _Params.Add(value);
         return this;
     }
-
-    public FunctionDefBuilder WithBody(BlockStatement value)
-    {
+    public FunctionDefBuilder WithBody(ast.BlockStatement value){
         _Body = value;
         return this;
     }
 
-    public FunctionDefBuilder WithReturnType(FifthType value)
-    {
+    public FunctionDefBuilder WithReturnType(ast_model.TypeSystem.FifthType value){
         _ReturnType = value;
         return this;
     }
 
-    public FunctionDefBuilder WithName(MemberName value)
-    {
+    public FunctionDefBuilder WithName(ast.MemberName value){
         _Name = value;
         return this;
     }
 
-    public FunctionDefBuilder WithIsStatic(bool value)
-    {
+    public FunctionDefBuilder WithIsStatic(System.Boolean value){
         _IsStatic = value;
         return this;
     }
 
-    public FunctionDefBuilder WithIsConstructor(bool value)
-    {
+    public FunctionDefBuilder WithIsConstructor(System.Boolean value){
         _IsConstructor = value;
         return this;
     }
 
-    public FunctionDefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public FunctionDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public FunctionDefBuilder WithEnclosingScope(ast_model.Symbols.IScope value){
+        _EnclosingScope = value;
+        return this;
+    }
+
+    public FunctionDefBuilder WithSymbolTable(ast_model.Symbols.ISymbolTable value){
+        _SymbolTable = value;
+        return this;
+    }
+
+    public FunctionDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class FunctorDefBuilder : IBuilder<ast.FunctorDef>
 {
-    private FunctionDef _InvocationFuncDev;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.FunctionDef _InvocationFuncDev;
+    private ast_model.Symbols.IScope _EnclosingScope;
+    private ast_model.Symbols.ISymbolTable _SymbolTable;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.FunctorDef Build()
     {
-        return new ast.FunctorDef()
-        {
-            InvocationFuncDev = this._InvocationFuncDev,
-            Annotations = this._Annotations
+        return new ast.FunctorDef(){
+             InvocationFuncDev = this._InvocationFuncDev // from FunctorDef
+           , EnclosingScope = this._EnclosingScope // from ScopeAstThing
+           , SymbolTable = this._SymbolTable // from ScopeAstThing
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public FunctorDefBuilder WithInvocationFuncDev(FunctionDef value)
-    {
+    public FunctorDefBuilder WithInvocationFuncDev(ast.FunctionDef value){
         _InvocationFuncDev = value;
         return this;
     }
 
-    public FunctorDefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public FunctorDefBuilder WithEnclosingScope(ast_model.Symbols.IScope value){
+        _EnclosingScope = value;
+        return this;
+    }
+
+    public FunctorDefBuilder WithSymbolTable(ast_model.Symbols.ISymbolTable value){
+        _SymbolTable = value;
+        return this;
+    }
+
+    public FunctorDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class FieldDefBuilder : IBuilder<ast.FieldDef>
 {
-    private Visibility _Visibility = Visibility.Public;
-    private MemberName _Name = MemberName.From("DefaultName");
-    private TypeName _TypeName = TypeName.From("DefaultType");
-    private bool _IsReadOnly = false;
-    private AccessConstraint[] _AccessConstraints;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.AccessConstraint[] _AccessConstraints;
+    private ast.MemberName _Name;
+    private ast_model.TypeSystem.TypeName _TypeName;
+    private System.Boolean _IsReadOnly;
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.FieldDef Build()
     {
-        return new ast.FieldDef()
-        {
-            Visibility = this._Visibility,
-            Name = this._Name,
-            TypeName = this._TypeName,
-            IsReadOnly = this._IsReadOnly,
-            AccessConstraints = this._AccessConstraints,
-            Annotations = this._Annotations
+        return new ast.FieldDef(){
+             AccessConstraints = this._AccessConstraints // from FieldDef
+           , Name = this._Name // from MemberDef
+           , TypeName = this._TypeName // from MemberDef
+           , IsReadOnly = this._IsReadOnly // from MemberDef
+           , Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public FieldDefBuilder WithVisibility(Visibility value)
-    {
-        _Visibility = value;
-        return this;
-    }
-
-    public FieldDefBuilder WithName(MemberName value)
-    {
-        _Name = value;
-        return this;
-    }
-
-    public FieldDefBuilder WithTypeName(TypeName value)
-    {
-        _TypeName = value;
-        return this;
-    }
-
-    public FieldDefBuilder WithIsReadOnly(bool value)
-    {
-        _IsReadOnly = value;
-        return this;
-    }
-
-    public FieldDefBuilder WithAccessConstraints(AccessConstraint[] value)
-    {
+    public FieldDefBuilder WithAccessConstraints(ast.AccessConstraint[] value){
         _AccessConstraints = value;
         return this;
     }
 
-    public FieldDefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public FieldDefBuilder WithName(ast.MemberName value){
+        _Name = value;
+        return this;
+    }
+
+    public FieldDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
+        _TypeName = value;
+        return this;
+    }
+
+    public FieldDefBuilder WithIsReadOnly(System.Boolean value){
+        _IsReadOnly = value;
+        return this;
+    }
+
+    public FieldDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public FieldDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
 {
-    private Visibility _Visibility = Visibility.Public;
-    private MemberName _Name = MemberName.From("DefaultName");
-    private TypeName _TypeName = TypeName.From("DefaultType");
-    private bool _IsReadOnly = false;
-    private AccessConstraint[] _AccessConstraints;
-    private bool _IsWriteOnly;
-    private FieldDef? _BackingField;
-    private MethodDef? _Getter;
-    private MethodDef? _Setter;
-    private bool _CtorOnlySetter;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.AccessConstraint[] _AccessConstraints;
+    private System.Boolean _IsWriteOnly;
+    private ast.FieldDef _BackingField;
+    private ast.MethodDef _Getter;
+    private ast.MethodDef _Setter;
+    private System.Boolean _CtorOnlySetter;
+    private ast.MemberName _Name;
+    private ast_model.TypeSystem.TypeName _TypeName;
+    private System.Boolean _IsReadOnly;
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.PropertyDef Build()
     {
-        return new ast.PropertyDef()
-        {
-            Visibility = this._Visibility,
-            Name = this._Name,
-            TypeName = this._TypeName,
-            IsReadOnly = this._IsReadOnly,
-            AccessConstraints = this._AccessConstraints,
-            IsWriteOnly = this._IsWriteOnly,
-            BackingField = this._BackingField,
-            Getter = this._Getter,
-            Setter = this._Setter,
-            CtorOnlySetter = this._CtorOnlySetter,
-            Annotations = this._Annotations
+        return new ast.PropertyDef(){
+             AccessConstraints = this._AccessConstraints // from PropertyDef
+           , IsWriteOnly = this._IsWriteOnly // from PropertyDef
+           , BackingField = this._BackingField // from PropertyDef
+           , Getter = this._Getter // from PropertyDef
+           , Setter = this._Setter // from PropertyDef
+           , CtorOnlySetter = this._CtorOnlySetter // from PropertyDef
+           , Name = this._Name // from MemberDef
+           , TypeName = this._TypeName // from MemberDef
+           , IsReadOnly = this._IsReadOnly // from MemberDef
+           , Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public PropertyDefBuilder WithVisibility(Visibility value)
-    {
-        _Visibility = value;
-        return this;
-    }
-
-    public PropertyDefBuilder WithName(MemberName value)
-    {
-        _Name = value;
-        return this;
-    }
-
-    public PropertyDefBuilder WithTypeName(TypeName value)
-    {
-        _TypeName = value;
-        return this;
-    }
-
-    public PropertyDefBuilder WithIsReadOnly(bool value)
-    {
-        _IsReadOnly = value;
-        return this;
-    }
-
-    public PropertyDefBuilder WithAccessConstraints(AccessConstraint[] value)
-    {
+    public PropertyDefBuilder WithAccessConstraints(ast.AccessConstraint[] value){
         _AccessConstraints = value;
         return this;
     }
 
-    public PropertyDefBuilder WithIsWriteOnly(bool value)
-    {
+    public PropertyDefBuilder WithIsWriteOnly(System.Boolean value){
         _IsWriteOnly = value;
         return this;
     }
 
-    public PropertyDefBuilder WithBackingField(FieldDef? value)
-    {
+    public PropertyDefBuilder WithBackingField(ast.FieldDef value){
         _BackingField = value;
         return this;
     }
 
-    public PropertyDefBuilder WithGetter(MethodDef? value)
-    {
+    public PropertyDefBuilder WithGetter(ast.MethodDef value){
         _Getter = value;
         return this;
     }
 
-    public PropertyDefBuilder WithSetter(MethodDef? value)
-    {
+    public PropertyDefBuilder WithSetter(ast.MethodDef value){
         _Setter = value;
         return this;
     }
 
-    public PropertyDefBuilder WithCtorOnlySetter(bool value)
-    {
+    public PropertyDefBuilder WithCtorOnlySetter(System.Boolean value){
         _CtorOnlySetter = value;
         return this;
     }
 
-    public PropertyDefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public PropertyDefBuilder WithName(ast.MemberName value){
+        _Name = value;
+        return this;
+    }
+
+    public PropertyDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
+        _TypeName = value;
+        return this;
+    }
+
+    public PropertyDefBuilder WithIsReadOnly(System.Boolean value){
+        _IsReadOnly = value;
+        return this;
+    }
+
+    public PropertyDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public PropertyDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class MethodDefBuilder : IBuilder<ast.MethodDef>
 {
-    private Visibility _Visibility = Visibility.Public;
-    private MemberName _Name = MemberName.From("DefaultName");
-    private TypeName _TypeName = TypeName.From("DefaultType");
-    private bool _IsReadOnly = false;
-    private FunctionDef _FunctionDef;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.MemberName _Name;
+    private ast_model.TypeSystem.TypeName _TypeName;
+    private System.Boolean _IsReadOnly;
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.MethodDef Build()
     {
-        return new ast.MethodDef()
-        {
-            Visibility = this._Visibility,
-            Name = this._Name,
-            TypeName = this._TypeName,
-            IsReadOnly = this._IsReadOnly,
-            FunctionDef = this._FunctionDef,
-            Annotations = this._Annotations
+        return new ast.MethodDef(){
+             Name = this._Name // from MemberDef
+           , TypeName = this._TypeName // from MemberDef
+           , IsReadOnly = this._IsReadOnly // from MemberDef
+           , Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public MethodDefBuilder WithVisibility(Visibility value)
-    {
-        _Visibility = value;
-        return this;
-    }
-
-    public MethodDefBuilder WithName(MemberName value)
-    {
+    public MethodDefBuilder WithName(ast.MemberName value){
         _Name = value;
         return this;
     }
 
-    public MethodDefBuilder WithTypeName(TypeName value)
-    {
+    public MethodDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
         _TypeName = value;
         return this;
     }
 
-    public MethodDefBuilder WithIsReadOnly(bool value)
-    {
+    public MethodDefBuilder WithIsReadOnly(System.Boolean value){
         _IsReadOnly = value;
         return this;
     }
 
-    public MethodDefBuilder WithFunctionDef(FunctionDef value)
-    {
-        _FunctionDef = value;
+    public MethodDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
         return this;
     }
 
-    public MethodDefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public MethodDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class OverloadedFunctionDefinitionBuilder : IBuilder<ast.OverloadedFunctionDefinition>
 {
-    private Visibility _Visibility = Visibility.Public;
-    private MemberName _Name = MemberName.From("DefaultName");
-    private TypeName _TypeName = TypeName.From("DefaultType");
-    private bool _IsReadOnly = false;
-    private List<MethodDef> _OverloadClauses;
-    private IFunctionSignature _Signature;
-    private Dictionary<string, object> _Annotations = new();
-
+    private List<ast.MethodDef> _OverloadClauses;
+    private ast_model.TypeSystem.IFunctionSignature _Signature;
+    private ast.MemberName _Name;
+    private ast_model.TypeSystem.TypeName _TypeName;
+    private System.Boolean _IsReadOnly;
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.OverloadedFunctionDefinition Build()
     {
-        return new ast.OverloadedFunctionDefinition()
-        {
-            Visibility = this._Visibility,
-            Name = this._Name,
-            TypeName = this._TypeName,
-            IsReadOnly = this._IsReadOnly,
-            OverloadClauses = this._OverloadClauses,
-            Signature = this._Signature,
-            Annotations = this._Annotations
+        return new ast.OverloadedFunctionDefinition(){
+             OverloadClauses = this._OverloadClauses // from OverloadedFunctionDefinition
+           , Signature = this._Signature // from OverloadedFunctionDefinition
+           , Name = this._Name // from MemberDef
+           , TypeName = this._TypeName // from MemberDef
+           , IsReadOnly = this._IsReadOnly // from MemberDef
+           , Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public OverloadedFunctionDefinitionBuilder WithVisibility(Visibility value)
-    {
-        _Visibility = value;
-        return this;
-    }
-
-    public OverloadedFunctionDefinitionBuilder WithName(MemberName value)
-    {
-        _Name = value;
-        return this;
-    }
-
-    public OverloadedFunctionDefinitionBuilder WithTypeName(TypeName value)
-    {
-        _TypeName = value;
-        return this;
-    }
-
-    public OverloadedFunctionDefinitionBuilder WithIsReadOnly(bool value)
-    {
-        _IsReadOnly = value;
-        return this;
-    }
-
-    public OverloadedFunctionDefinitionBuilder WithOverloadClauses(List<MethodDef> value)
-    {
+    public OverloadedFunctionDefinitionBuilder WithOverloadClauses(List<ast.MethodDef> value){
         _OverloadClauses = value;
         return this;
     }
 
-    public OverloadedFunctionDefinitionBuilder AddingItemToOverloadClauses(MethodDef value)
-    {
-        _OverloadClauses ??= new List<MethodDef>();
+    public OverloadedFunctionDefinitionBuilder AddingItemToOverloadClauses(ast.MethodDef value){
+        _OverloadClauses  ??= [];
         _OverloadClauses.Add(value);
         return this;
     }
-
-    public OverloadedFunctionDefinitionBuilder WithSignature(IFunctionSignature value)
-    {
+    public OverloadedFunctionDefinitionBuilder WithSignature(ast_model.TypeSystem.IFunctionSignature value){
         _Signature = value;
         return this;
     }
 
-    public OverloadedFunctionDefinitionBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public OverloadedFunctionDefinitionBuilder WithName(ast.MemberName value){
+        _Name = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefinitionBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
+        _TypeName = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefinitionBuilder WithIsReadOnly(System.Boolean value){
+        _IsReadOnly = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefinitionBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefinitionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
 {
-    private Visibility _Visibility = Visibility.Public;
-    private Expression _Antecedent;
-    private KnowledgeManagementBlock _Consequent;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.Expression _Antecedent;
+    private ast.KnowledgeManagementBlock _Consequent;
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.InferenceRuleDef Build()
     {
-        return new ast.InferenceRuleDef()
-        {
-            Visibility = this._Visibility,
-            Antecedent = this._Antecedent,
-            Consequent = this._Consequent,
-            Annotations = this._Annotations
+        return new ast.InferenceRuleDef(){
+             Antecedent = this._Antecedent // from InferenceRuleDef
+           , Consequent = this._Consequent // from InferenceRuleDef
+           , Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public InferenceRuleDefBuilder WithVisibility(Visibility value)
-    {
-        _Visibility = value;
-        return this;
-    }
-
-    public InferenceRuleDefBuilder WithAntecedent(Expression value)
-    {
+    public InferenceRuleDefBuilder WithAntecedent(ast.Expression value){
         _Antecedent = value;
         return this;
     }
 
-    public InferenceRuleDefBuilder WithConsequent(KnowledgeManagementBlock value)
-    {
+    public InferenceRuleDefBuilder WithConsequent(ast.KnowledgeManagementBlock value){
         _Consequent = value;
         return this;
     }
 
-    public InferenceRuleDefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public InferenceRuleDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public InferenceRuleDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class ParamDefBuilder : IBuilder<ast.ParamDef>
 {
-    private Visibility _Visibility = Visibility.Public;
-    private TypeName _TypeName;
-    private string _Name;
-    private Expression? _ParameterConstraint;
-    private ParamDestructureDef? _DestructureDef;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast_model.TypeSystem.TypeName _TypeName;
+    private System.String _Name;
+    private ast.Expression _ParameterConstraint;
+    private ast.ParamDestructureDef _DestructureDef;
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.ParamDef Build()
     {
-        return new ast.ParamDef()
-        {
-            Visibility = this._Visibility,
-            TypeName = this._TypeName,
-            Name = this._Name,
-            ParameterConstraint = this._ParameterConstraint,
-            DestructureDef = this._DestructureDef,
-            Annotations = this._Annotations
+        return new ast.ParamDef(){
+             TypeName = this._TypeName // from ParamDef
+           , Name = this._Name // from ParamDef
+           , ParameterConstraint = this._ParameterConstraint // from ParamDef
+           , DestructureDef = this._DestructureDef // from ParamDef
+           , Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ParamDefBuilder WithVisibility(Visibility value)
-    {
-        _Visibility = value;
-        return this;
-    }
-
-    public ParamDefBuilder WithTypeName(TypeName value)
-    {
+    public ParamDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
         _TypeName = value;
         return this;
     }
 
-    public ParamDefBuilder WithName(string value)
-    {
+    public ParamDefBuilder WithName(System.String value){
         _Name = value;
         return this;
     }
 
-    public ParamDefBuilder WithParameterConstraint(Expression? value)
-    {
+    public ParamDefBuilder WithParameterConstraint(ast.Expression value){
         _ParameterConstraint = value;
         return this;
     }
 
-    public ParamDefBuilder WithDestructureDef(ParamDestructureDef? value)
-    {
+    public ParamDefBuilder WithDestructureDef(ast.ParamDestructureDef value){
         _DestructureDef = value;
         return this;
     }
 
-    public ParamDefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public ParamDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public ParamDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class ParamDestructureDefBuilder : IBuilder<ast.ParamDestructureDef>
 {
-    private Visibility _Visibility = Visibility.Public;
-    private List<PropertyBindingDef> _Bindings;
-    private Dictionary<string, object> _Annotations = new();
-
+    private List<ast.PropertyBindingDef> _Bindings;
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.ParamDestructureDef Build()
     {
-        return new ast.ParamDestructureDef()
-        {
-            Visibility = this._Visibility,
-            Bindings = this._Bindings,
-            Annotations = this._Annotations
+        return new ast.ParamDestructureDef(){
+             Bindings = this._Bindings // from ParamDestructureDef
+           , Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ParamDestructureDefBuilder WithVisibility(Visibility value)
-    {
-        _Visibility = value;
-        return this;
-    }
-
-    public ParamDestructureDefBuilder WithBindings(List<PropertyBindingDef> value)
-    {
+    public ParamDestructureDefBuilder WithBindings(List<ast.PropertyBindingDef> value){
         _Bindings = value;
         return this;
     }
 
-    public ParamDestructureDefBuilder AddingItemToBindings(PropertyBindingDef value)
-    {
-        _Bindings ??= new List<PropertyBindingDef>();
+    public ParamDestructureDefBuilder AddingItemToBindings(ast.PropertyBindingDef value){
+        _Bindings  ??= [];
         _Bindings.Add(value);
         return this;
     }
+    public ParamDestructureDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
 
-    public ParamDestructureDefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public ParamDestructureDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
 {
-    private Visibility _Visibility = Visibility.Public;
-    private MemberName _IntroducedVariable;
-    private MemberName _ReferencedPropertyName;
-    private PropertyDef? _ReferencedProperty;
-    private ParamDestructureDef? _DestructureDef;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.MemberName _IntroducedVariable;
+    private ast.MemberName _ReferencedPropertyName;
+    private ast.ParamDestructureDef _DestructureDef;
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.PropertyBindingDef Build()
     {
-        return new ast.PropertyBindingDef()
-        {
-            Visibility = this._Visibility,
-            IntroducedVariable = this._IntroducedVariable,
-            ReferencedPropertyName = this._ReferencedPropertyName,
-            ReferencedProperty = this._ReferencedProperty,
-            DestructureDef = this._DestructureDef,
-            Annotations = this._Annotations
+        return new ast.PropertyBindingDef(){
+             IntroducedVariable = this._IntroducedVariable // from PropertyBindingDef
+           , ReferencedPropertyName = this._ReferencedPropertyName // from PropertyBindingDef
+           , DestructureDef = this._DestructureDef // from PropertyBindingDef
+           , Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public PropertyBindingDefBuilder WithVisibility(Visibility value)
-    {
-        _Visibility = value;
-        return this;
-    }
-
-    public PropertyBindingDefBuilder WithIntroducedVariable(MemberName value)
-    {
+    public PropertyBindingDefBuilder WithIntroducedVariable(ast.MemberName value){
         _IntroducedVariable = value;
         return this;
     }
 
-    public PropertyBindingDefBuilder WithReferencedPropertyName(MemberName value)
-    {
+    public PropertyBindingDefBuilder WithReferencedPropertyName(ast.MemberName value){
         _ReferencedPropertyName = value;
         return this;
     }
 
-    public PropertyBindingDefBuilder WithReferencedProperty(PropertyDef? value)
-    {
-        _ReferencedProperty = value;
-        return this;
-    }
-
-    public PropertyBindingDefBuilder WithDestructureDef(ParamDestructureDef? value)
-    {
+    public PropertyBindingDefBuilder WithDestructureDef(ast.ParamDestructureDef value){
         _DestructureDef = value;
         return this;
     }
 
-    public PropertyBindingDefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public PropertyBindingDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public PropertyBindingDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class TypeDefBuilder : IBuilder<ast.TypeDef>
 {
-    private Visibility _Visibility = Visibility.Public;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.TypeDef Build()
     {
-        return new ast.TypeDef()
-        {
-            Visibility = this._Visibility,
-            Annotations = this._Annotations
+        return new ast.TypeDef(){
+             Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public TypeDefBuilder WithVisibility(Visibility value)
-    {
+    public TypeDefBuilder WithVisibility(ast.Visibility value){
         _Visibility = value;
         return this;
     }
 
-    public TypeDefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public TypeDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class ClassDefBuilder : IBuilder<ast.ClassDef>
 {
-    private Visibility _Visibility = Visibility.Public;
-    private TypeName _Name;
-    private List<MemberDef> _MemberDefs;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast_model.TypeSystem.TypeName _Name;
+    private List<ast.MemberDef> _MemberDefs;
+    private ast.Visibility _Visibility;
+    private ast_model.Symbols.IScope _EnclosingScope;
+    private ast_model.Symbols.ISymbolTable _SymbolTable;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.ClassDef Build()
     {
-        return new ast.ClassDef()
-        {
-            Visibility = this._Visibility,
-            Name = this._Name,
-            MemberDefs = this._MemberDefs,
-            Annotations = this._Annotations
+        return new ast.ClassDef(){
+             Name = this._Name // from ClassDef
+           , MemberDefs = this._MemberDefs // from ClassDef
+           , Visibility = this._Visibility // from ScopedDefinition
+           , EnclosingScope = this._EnclosingScope // from ScopeAstThing
+           , SymbolTable = this._SymbolTable // from ScopeAstThing
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ClassDefBuilder WithVisibility(Visibility value)
-    {
-        _Visibility = value;
-        return this;
-    }
-
-    public ClassDefBuilder WithName(TypeName value)
-    {
+    public ClassDefBuilder WithName(ast_model.TypeSystem.TypeName value){
         _Name = value;
         return this;
     }
 
-    public ClassDefBuilder WithMemberDefs(List<MemberDef> value)
-    {
+    public ClassDefBuilder WithMemberDefs(List<ast.MemberDef> value){
         _MemberDefs = value;
         return this;
     }
 
-    public ClassDefBuilder AddingItemToMemberDefs(MemberDef value)
-    {
-        _MemberDefs ??= new List<MemberDef>();
+    public ClassDefBuilder AddingItemToMemberDefs(ast.MemberDef value){
+        _MemberDefs  ??= [];
         _MemberDefs.Add(value);
         return this;
     }
-
-    public ClassDefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
-        _Annotations = value;
-        return this;
-    }
-
-}
-
-public class VariableDeclBuilder : IBuilder<ast.VariableDecl>
-{
-    private Visibility _Visibility = Visibility.Public;
-    private string _Name;
-    private TypeName _TypeName;
-    private CollectionType _CollectionType;
-    private Dictionary<string, object> _Annotations = new();
-
-    public ast.VariableDecl Build()
-    {
-        return new ast.VariableDecl()
-        {
-            Visibility = this._Visibility,
-            Name = this._Name,
-            TypeName = this._TypeName,
-            CollectionType = this._CollectionType,
-            Annotations = this._Annotations
-        };
-    }
-    public VariableDeclBuilder WithVisibility(Visibility value)
-    {
+    public ClassDefBuilder WithVisibility(ast.Visibility value){
         _Visibility = value;
         return this;
     }
 
-    public VariableDeclBuilder WithName(string value)
+    public ClassDefBuilder WithEnclosingScope(ast_model.Symbols.IScope value){
+        _EnclosingScope = value;
+        return this;
+    }
+
+    public ClassDefBuilder WithSymbolTable(ast_model.Symbols.ISymbolTable value){
+        _SymbolTable = value;
+        return this;
+    }
+
+    public ClassDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class VariableDeclBuilder : IBuilder<ast.VariableDecl>
+{
+    private System.String _Name;
+    private ast_model.TypeSystem.TypeName _TypeName;
+    private ast.CollectionType _CollectionType;
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.VariableDecl Build()
     {
+        return new ast.VariableDecl(){
+             Name = this._Name // from VariableDecl
+           , TypeName = this._TypeName // from VariableDecl
+           , CollectionType = this._CollectionType // from VariableDecl
+           , Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public VariableDeclBuilder WithName(System.String value){
         _Name = value;
         return this;
     }
 
-    public VariableDeclBuilder WithTypeName(TypeName value)
-    {
+    public VariableDeclBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
         _TypeName = value;
         return this;
     }
 
-    public VariableDeclBuilder WithCollectionType(CollectionType value)
-    {
+    public VariableDeclBuilder WithCollectionType(ast.CollectionType value){
         _CollectionType = value;
         return this;
     }
 
-    public VariableDeclBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public VariableDeclBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public VariableDeclBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class AssemblyRefBuilder : IBuilder<ast.AssemblyRef>
 {
-    private string _PublicKeyToken;
-    private string _Version;
-    private Dictionary<string, object> _Annotations = new();
-
+    private System.String _PublicKeyToken;
+    private System.String _Version;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.AssemblyRef Build()
     {
-        return new ast.AssemblyRef()
-        {
-            PublicKeyToken = this._PublicKeyToken,
-            Version = this._Version,
-            Annotations = this._Annotations
+        return new ast.AssemblyRef(){
+             PublicKeyToken = this._PublicKeyToken // from AssemblyRef
+           , Version = this._Version // from AssemblyRef
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssemblyRefBuilder WithPublicKeyToken(string value)
-    {
+    public AssemblyRefBuilder WithPublicKeyToken(System.String value){
         _PublicKeyToken = value;
         return this;
     }
 
-    public AssemblyRefBuilder WithVersion(string value)
-    {
+    public AssemblyRefBuilder WithVersion(System.String value){
         _Version = value;
         return this;
     }
 
-    public AssemblyRefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public AssemblyRefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class MemberRefBuilder : IBuilder<ast.MemberRef>
 {
-    private MemberDef _Member;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.MemberDef _Member;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.MemberRef Build()
     {
-        return new ast.MemberRef()
-        {
-            Member = this._Member,
-            Annotations = this._Annotations
+        return new ast.MemberRef(){
+             Member = this._Member // from MemberRef
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public MemberRefBuilder WithMember(MemberDef value)
-    {
+    public MemberRefBuilder WithMember(ast.MemberDef value){
         _Member = value;
         return this;
     }
 
-    public MemberRefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public MemberRefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class PropertyRefBuilder : IBuilder<ast.PropertyRef>
 {
-    private PropertyDef _Property;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.PropertyDef _Property;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.PropertyRef Build()
     {
-        return new ast.PropertyRef()
-        {
-            Property = this._Property,
-            Annotations = this._Annotations
+        return new ast.PropertyRef(){
+             Property = this._Property // from PropertyRef
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public PropertyRefBuilder WithProperty(PropertyDef value)
-    {
+    public PropertyRefBuilder WithProperty(ast.PropertyDef value){
         _Property = value;
         return this;
     }
 
-    public PropertyRefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public PropertyRefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class TypeRefBuilder : IBuilder<ast.TypeRef>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.TypeRef Build()
     {
-        return new ast.TypeRef()
-        {
-            Annotations = this._Annotations
+        return new ast.TypeRef(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public TypeRefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public TypeRefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class VarRefBuilder : IBuilder<ast.VarRef>
 {
-    private MemberName _ReferencedVariableName;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.MemberName _ReferencedVariableName;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.VarRef Build()
     {
-        return new ast.VarRef()
-        {
-            ReferencedVariableName = this._ReferencedVariableName,
-            Annotations = this._Annotations
+        return new ast.VarRef(){
+             ReferencedVariableName = this._ReferencedVariableName // from VarRef
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public VarRefBuilder WithReferencedVariableName(MemberName value)
-    {
+    public VarRefBuilder WithReferencedVariableName(ast.MemberName value){
         _ReferencedVariableName = value;
         return this;
     }
 
-    public VarRefBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public VarRefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class GraphNamespaceAliasBuilder : IBuilder<ast.GraphNamespaceAlias>
 {
-    private Uri _Uri;
-    private Dictionary<string, object> _Annotations = new();
-
+    private System.Uri _Uri;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.GraphNamespaceAlias Build()
     {
-        return new ast.GraphNamespaceAlias()
-        {
-            Uri = this._Uri,
-            Annotations = this._Annotations
+        return new ast.GraphNamespaceAlias(){
+             Uri = this._Uri // from GraphNamespaceAlias
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public GraphNamespaceAliasBuilder WithUri(Uri value)
-    {
+    public GraphNamespaceAliasBuilder WithUri(System.Uri value){
         _Uri = value;
         return this;
     }
 
-    public GraphNamespaceAliasBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public GraphNamespaceAliasBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class AssignmentStatementBuilder : IBuilder<ast.AssignmentStatement>
 {
-    private Expression _LValue;
-    private Expression _RValue;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.Expression _LValue;
+    private ast.Expression _RValue;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.AssignmentStatement Build()
     {
-        return new ast.AssignmentStatement()
-        {
-            LValue = this._LValue,
-            RValue = this._RValue,
-            Annotations = this._Annotations
+        return new ast.AssignmentStatement(){
+             LValue = this._LValue // from AssignmentStatement
+           , RValue = this._RValue // from AssignmentStatement
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssignmentStatementBuilder WithLValue(Expression value)
-    {
+    public AssignmentStatementBuilder WithLValue(ast.Expression value){
         _LValue = value;
         return this;
     }
 
-    public AssignmentStatementBuilder WithRValue(Expression value)
-    {
+    public AssignmentStatementBuilder WithRValue(ast.Expression value){
         _RValue = value;
         return this;
     }
 
-    public AssignmentStatementBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public AssignmentStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class BlockStatementBuilder : IBuilder<ast.BlockStatement>
 {
-    private List<Statement> _Statements;
-    private Dictionary<string, object> _Annotations = new();
-
+    private List<ast.Statement> _Statements;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.BlockStatement Build()
     {
-        return new ast.BlockStatement()
-        {
-            Statements = this._Statements,
-            Annotations = this._Annotations
+        return new ast.BlockStatement(){
+             Statements = this._Statements // from BlockStatement
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public BlockStatementBuilder WithStatements(List<Statement> value)
-    {
+    public BlockStatementBuilder WithStatements(List<ast.Statement> value){
         _Statements = value;
         return this;
     }
 
-    public BlockStatementBuilder AddingItemToStatements(Statement value)
-    {
-        _Statements ??= new List<Statement>();
+    public BlockStatementBuilder AddingItemToStatements(ast.Statement value){
+        _Statements  ??= [];
         _Statements.Add(value);
         return this;
     }
-
-    public BlockStatementBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public BlockStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class KnowledgeManagementBlockBuilder : IBuilder<ast.KnowledgeManagementBlock>
 {
-    private List<KnowledgeManagementStatement> _Statements;
-    private Dictionary<string, object> _Annotations = new();
-
+    private List<ast.KnowledgeManagementStatement> _Statements;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.KnowledgeManagementBlock Build()
     {
-        return new ast.KnowledgeManagementBlock()
-        {
-            Statements = this._Statements,
-            Annotations = this._Annotations
+        return new ast.KnowledgeManagementBlock(){
+             Statements = this._Statements // from KnowledgeManagementBlock
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public KnowledgeManagementBlockBuilder WithStatements(List<KnowledgeManagementStatement> value)
-    {
+    public KnowledgeManagementBlockBuilder WithStatements(List<ast.KnowledgeManagementStatement> value){
         _Statements = value;
         return this;
     }
 
-    public KnowledgeManagementBlockBuilder AddingItemToStatements(KnowledgeManagementStatement value)
-    {
-        _Statements ??= new List<KnowledgeManagementStatement>();
+    public KnowledgeManagementBlockBuilder AddingItemToStatements(ast.KnowledgeManagementStatement value){
+        _Statements  ??= [];
         _Statements.Add(value);
         return this;
     }
-
-    public KnowledgeManagementBlockBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public KnowledgeManagementBlockBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class ExpStatementBuilder : IBuilder<ast.ExpStatement>
 {
-    private Expression _RHS;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.Expression _RHS;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.ExpStatement Build()
     {
-        return new ast.ExpStatement()
-        {
-            RHS = this._RHS,
-            Annotations = this._Annotations
+        return new ast.ExpStatement(){
+             RHS = this._RHS // from ExpStatement
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ExpStatementBuilder WithRHS(Expression value)
-    {
+    public ExpStatementBuilder WithRHS(ast.Expression value){
         _RHS = value;
         return this;
     }
 
-    public ExpStatementBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public ExpStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class ForStatementBuilder : IBuilder<ast.ForStatement>
 {
-    private Expression _InitialValue;
-    private Expression _Constraint;
-    private Expression _IncrementExpression;
-    private VariableDecl _LoopVariable;
-    private BlockStatement _Body;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.Expression _InitialValue;
+    private ast.Expression _Constraint;
+    private ast.Expression _IncrementExpression;
+    private ast.VariableDecl _LoopVariable;
+    private ast.BlockStatement _Body;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.ForStatement Build()
     {
-        return new ast.ForStatement()
-        {
-            InitialValue = this._InitialValue,
-            Constraint = this._Constraint,
-            IncrementExpression = this._IncrementExpression,
-            LoopVariable = this._LoopVariable,
-            Body = this._Body,
-            Annotations = this._Annotations
+        return new ast.ForStatement(){
+             InitialValue = this._InitialValue // from ForStatement
+           , Constraint = this._Constraint // from ForStatement
+           , IncrementExpression = this._IncrementExpression // from ForStatement
+           , LoopVariable = this._LoopVariable // from ForStatement
+           , Body = this._Body // from ForStatement
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ForStatementBuilder WithInitialValue(Expression value)
-    {
+    public ForStatementBuilder WithInitialValue(ast.Expression value){
         _InitialValue = value;
         return this;
     }
 
-    public ForStatementBuilder WithConstraint(Expression value)
-    {
+    public ForStatementBuilder WithConstraint(ast.Expression value){
         _Constraint = value;
         return this;
     }
 
-    public ForStatementBuilder WithIncrementExpression(Expression value)
-    {
+    public ForStatementBuilder WithIncrementExpression(ast.Expression value){
         _IncrementExpression = value;
         return this;
     }
 
-    public ForStatementBuilder WithLoopVariable(VariableDecl value)
-    {
+    public ForStatementBuilder WithLoopVariable(ast.VariableDecl value){
         _LoopVariable = value;
         return this;
     }
 
-    public ForStatementBuilder WithBody(BlockStatement value)
-    {
+    public ForStatementBuilder WithBody(ast.BlockStatement value){
         _Body = value;
         return this;
     }
 
-    public ForStatementBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public ForStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class ForeachStatementBuilder : IBuilder<ast.ForeachStatement>
 {
-    private Expression _Collection;
-    private VariableDecl _LoopVariable;
-    private BlockStatement _Body;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.Expression _Collection;
+    private ast.VariableDecl _LoopVariable;
+    private ast.BlockStatement _Body;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.ForeachStatement Build()
     {
-        return new ast.ForeachStatement()
-        {
-            Collection = this._Collection,
-            LoopVariable = this._LoopVariable,
-            Body = this._Body,
-            Annotations = this._Annotations
+        return new ast.ForeachStatement(){
+             Collection = this._Collection // from ForeachStatement
+           , LoopVariable = this._LoopVariable // from ForeachStatement
+           , Body = this._Body // from ForeachStatement
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ForeachStatementBuilder WithCollection(Expression value)
-    {
+    public ForeachStatementBuilder WithCollection(ast.Expression value){
         _Collection = value;
         return this;
     }
 
-    public ForeachStatementBuilder WithLoopVariable(VariableDecl value)
-    {
+    public ForeachStatementBuilder WithLoopVariable(ast.VariableDecl value){
         _LoopVariable = value;
         return this;
     }
 
-    public ForeachStatementBuilder WithBody(BlockStatement value)
-    {
+    public ForeachStatementBuilder WithBody(ast.BlockStatement value){
         _Body = value;
         return this;
     }
 
-    public ForeachStatementBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public ForeachStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class GuardStatementBuilder : IBuilder<ast.GuardStatement>
 {
-    private Expression _Condition;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.Expression _Condition;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.GuardStatement Build()
     {
-        return new ast.GuardStatement()
-        {
-            Condition = this._Condition,
-            Annotations = this._Annotations
+        return new ast.GuardStatement(){
+             Condition = this._Condition // from GuardStatement
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public GuardStatementBuilder WithCondition(Expression value)
-    {
+    public GuardStatementBuilder WithCondition(ast.Expression value){
         _Condition = value;
         return this;
     }
 
-    public GuardStatementBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public GuardStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class IfElseStatementBuilder : IBuilder<ast.IfElseStatement>
 {
-    private Expression _Condition;
-    private BlockStatement _ThenBlock;
-    private BlockStatement _ElseBlock;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.Expression _Condition;
+    private ast.BlockStatement _ThenBlock;
+    private ast.BlockStatement _ElseBlock;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.IfElseStatement Build()
     {
-        return new ast.IfElseStatement()
-        {
-            Condition = this._Condition,
-            ThenBlock = this._ThenBlock,
-            ElseBlock = this._ElseBlock,
-            Annotations = this._Annotations
+        return new ast.IfElseStatement(){
+             Condition = this._Condition // from IfElseStatement
+           , ThenBlock = this._ThenBlock // from IfElseStatement
+           , ElseBlock = this._ElseBlock // from IfElseStatement
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public IfElseStatementBuilder WithCondition(Expression value)
-    {
+    public IfElseStatementBuilder WithCondition(ast.Expression value){
         _Condition = value;
         return this;
     }
 
-    public IfElseStatementBuilder WithThenBlock(BlockStatement value)
-    {
+    public IfElseStatementBuilder WithThenBlock(ast.BlockStatement value){
         _ThenBlock = value;
         return this;
     }
 
-    public IfElseStatementBuilder WithElseBlock(BlockStatement value)
-    {
+    public IfElseStatementBuilder WithElseBlock(ast.BlockStatement value){
         _ElseBlock = value;
         return this;
     }
 
-    public IfElseStatementBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public IfElseStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class ReturnStatementBuilder : IBuilder<ast.ReturnStatement>
 {
-    private Expression _ReturnValue;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.Expression _ReturnValue;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.ReturnStatement Build()
     {
-        return new ast.ReturnStatement()
-        {
-            ReturnValue = this._ReturnValue,
-            Annotations = this._Annotations
+        return new ast.ReturnStatement(){
+             ReturnValue = this._ReturnValue // from ReturnStatement
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ReturnStatementBuilder WithReturnValue(Expression value)
-    {
+    public ReturnStatementBuilder WithReturnValue(ast.Expression value){
         _ReturnValue = value;
         return this;
     }
 
-    public ReturnStatementBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public ReturnStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class VarDeclStatementBuilder : IBuilder<ast.VarDeclStatement>
 {
-    private VariableDecl _VariableDecl;
-    private Expression? _InitialValue;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.VariableDecl _VariableDecl;
+    private ast.Expression _InitialValue;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.VarDeclStatement Build()
     {
-        return new ast.VarDeclStatement()
-        {
-            VariableDecl = this._VariableDecl,
-            InitialValue = this._InitialValue,
-            Annotations = this._Annotations
+        return new ast.VarDeclStatement(){
+             VariableDecl = this._VariableDecl // from VarDeclStatement
+           , InitialValue = this._InitialValue // from VarDeclStatement
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public VarDeclStatementBuilder WithVariableDecl(VariableDecl value)
-    {
+    public VarDeclStatementBuilder WithVariableDecl(ast.VariableDecl value){
         _VariableDecl = value;
         return this;
     }
 
-    public VarDeclStatementBuilder WithInitialValue(Expression? value)
-    {
+    public VarDeclStatementBuilder WithInitialValue(ast.Expression value){
         _InitialValue = value;
         return this;
     }
 
-    public VarDeclStatementBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public VarDeclStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class WhileStatementBuilder : IBuilder<ast.WhileStatement>
 {
-    private Expression _Condition;
-    private BlockStatement _Body;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.Expression _Condition;
+    private ast.BlockStatement _Body;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.WhileStatement Build()
     {
-        return new ast.WhileStatement()
-        {
-            Condition = this._Condition,
-            Body = this._Body,
-            Annotations = this._Annotations
+        return new ast.WhileStatement(){
+             Condition = this._Condition // from WhileStatement
+           , Body = this._Body // from WhileStatement
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public WhileStatementBuilder WithCondition(Expression value)
-    {
+    public WhileStatementBuilder WithCondition(ast.Expression value){
         _Condition = value;
         return this;
     }
 
-    public WhileStatementBuilder WithBody(BlockStatement value)
-    {
+    public WhileStatementBuilder WithBody(ast.BlockStatement value){
         _Body = value;
         return this;
     }
 
-    public WhileStatementBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public WhileStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class AssertionStatementBuilder : IBuilder<ast.AssertionStatement>
 {
-    private Triple _Assertion;
-    private AssertionSubject _AssertionSubject;
-    private AssertionPredicate _AssertionPredicate;
-    private AssertionObject _AssertionObject;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.AssertionSubject _AssertionSubject;
+    private ast.AssertionPredicate _AssertionPredicate;
+    private ast.AssertionObject _AssertionObject;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.AssertionStatement Build()
     {
-        return new ast.AssertionStatement()
-        {
-            Assertion = this._Assertion,
-            AssertionSubject = this._AssertionSubject,
-            AssertionPredicate = this._AssertionPredicate,
-            AssertionObject = this._AssertionObject,
-            Annotations = this._Annotations
+        return new ast.AssertionStatement(){
+             AssertionSubject = this._AssertionSubject // from AssertionStatement
+           , AssertionPredicate = this._AssertionPredicate // from AssertionStatement
+           , AssertionObject = this._AssertionObject // from AssertionStatement
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssertionStatementBuilder WithAssertion(Triple value)
-    {
-        _Assertion = value;
-        return this;
-    }
-
-    public AssertionStatementBuilder WithAssertionSubject(AssertionSubject value)
-    {
+    public AssertionStatementBuilder WithAssertionSubject(ast.AssertionSubject value){
         _AssertionSubject = value;
         return this;
     }
 
-    public AssertionStatementBuilder WithAssertionPredicate(AssertionPredicate value)
-    {
+    public AssertionStatementBuilder WithAssertionPredicate(ast.AssertionPredicate value){
         _AssertionPredicate = value;
         return this;
     }
 
-    public AssertionStatementBuilder WithAssertionObject(AssertionObject value)
-    {
+    public AssertionStatementBuilder WithAssertionObject(ast.AssertionObject value){
         _AssertionObject = value;
         return this;
     }
 
-    public AssertionStatementBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public AssertionStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class AssertionObjectBuilder : IBuilder<ast.AssertionObject>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.AssertionObject Build()
     {
-        return new ast.AssertionObject()
-        {
-            Annotations = this._Annotations
+        return new ast.AssertionObject(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssertionObjectBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public AssertionObjectBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class AssertionPredicateBuilder : IBuilder<ast.AssertionPredicate>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.AssertionPredicate Build()
     {
-        return new ast.AssertionPredicate()
-        {
-            Annotations = this._Annotations
+        return new ast.AssertionPredicate(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssertionPredicateBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public AssertionPredicateBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class AssertionSubjectBuilder : IBuilder<ast.AssertionSubject>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.AssertionSubject Build()
     {
-        return new ast.AssertionSubject()
-        {
-            Annotations = this._Annotations
+        return new ast.AssertionSubject(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AssertionSubjectBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public AssertionSubjectBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class RetractionStatementBuilder : IBuilder<ast.RetractionStatement>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.RetractionStatement Build()
     {
-        return new ast.RetractionStatement()
-        {
-            Annotations = this._Annotations
+        return new ast.RetractionStatement(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public RetractionStatementBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public RetractionStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class WithScopeStatementBuilder : IBuilder<ast.WithScopeStatement>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.WithScopeStatement Build()
     {
-        return new ast.WithScopeStatement()
-        {
-            Annotations = this._Annotations
+        return new ast.WithScopeStatement(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public WithScopeStatementBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public WithScopeStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
 {
-    private Expression _LHS;
-    private Operator _Operator;
-    private Expression _RHS;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.Expression _LHS;
+    private ast.Operator _Operator;
+    private ast.Expression _RHS;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.BinaryExp Build()
     {
-        return new ast.BinaryExp()
-        {
-            LHS = this._LHS,
-            Operator = this._Operator,
-            RHS = this._RHS,
-            Annotations = this._Annotations
+        return new ast.BinaryExp(){
+             LHS = this._LHS // from BinaryExp
+           , Operator = this._Operator // from BinaryExp
+           , RHS = this._RHS // from BinaryExp
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public BinaryExpBuilder WithLHS(Expression value)
-    {
+    public BinaryExpBuilder WithLHS(ast.Expression value){
         _LHS = value;
         return this;
     }
 
-    public BinaryExpBuilder WithOperator(Operator value)
-    {
+    public BinaryExpBuilder WithOperator(ast.Operator value){
         _Operator = value;
         return this;
     }
 
-    public BinaryExpBuilder WithRHS(Expression value)
-    {
+    public BinaryExpBuilder WithRHS(ast.Expression value){
         _RHS = value;
         return this;
     }
 
-    public BinaryExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public BinaryExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class CastExpBuilder : IBuilder<ast.CastExp>
 {
-    private FifthType _TargetType;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast_model.TypeSystem.FifthType _TargetType;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.CastExp Build()
     {
-        return new ast.CastExp()
-        {
-            TargetType = this._TargetType,
-            Annotations = this._Annotations
+        return new ast.CastExp(){
+             TargetType = this._TargetType // from CastExp
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public CastExpBuilder WithTargetType(FifthType value)
-    {
+    public CastExpBuilder WithTargetType(ast_model.TypeSystem.FifthType value){
         _TargetType = value;
         return this;
     }
 
-    public CastExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public CastExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class LambdaExpBuilder : IBuilder<ast.LambdaExp>
 {
-    private FunctorDef _FunctorDef;
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.LambdaExp Build()
     {
-        return new ast.LambdaExp()
-        {
-            FunctorDef = this._FunctorDef,
-            Annotations = this._Annotations
+        return new ast.LambdaExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public LambdaExpBuilder WithFunctorDef(FunctorDef value)
-    {
-        _FunctorDef = value;
-        return this;
-    }
-
-    public LambdaExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public LambdaExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class FuncCallExpBuilder : IBuilder<ast.FuncCallExp>
 {
-    private FunctionDef _FunctionDef;
-    private List<Expression> _InvocationArguments;
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.FuncCallExp Build()
     {
-        return new ast.FuncCallExp()
-        {
-            FunctionDef = this._FunctionDef,
-            InvocationArguments = this._InvocationArguments,
-            Annotations = this._Annotations
+        return new ast.FuncCallExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public FuncCallExpBuilder WithFunctionDef(FunctionDef value)
-    {
-        _FunctionDef = value;
-        return this;
-    }
-
-    public FuncCallExpBuilder WithInvocationArguments(List<Expression> value)
-    {
-        _InvocationArguments = value;
-        return this;
-    }
-
-    public FuncCallExpBuilder AddingItemToInvocationArguments(Expression value)
-    {
-        _InvocationArguments ??= new List<Expression>();
-        _InvocationArguments.Add(value);
-        return this;
-    }
-
-    public FuncCallExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public FuncCallExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class Int8LiteralExpBuilder : IBuilder<ast.Int8LiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.Int8LiteralExp Build()
     {
-        return new ast.Int8LiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.Int8LiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Int8LiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public Int8LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class Int16LiteralExpBuilder : IBuilder<ast.Int16LiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.Int16LiteralExp Build()
     {
-        return new ast.Int16LiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.Int16LiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Int16LiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public Int16LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class Int32LiteralExpBuilder : IBuilder<ast.Int32LiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.Int32LiteralExp Build()
     {
-        return new ast.Int32LiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.Int32LiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Int32LiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public Int32LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class Int64LiteralExpBuilder : IBuilder<ast.Int64LiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.Int64LiteralExp Build()
     {
-        return new ast.Int64LiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.Int64LiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Int64LiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public Int64LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class UnsignedInt8LiteralExpBuilder : IBuilder<ast.UnsignedInt8LiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.UnsignedInt8LiteralExp Build()
     {
-        return new ast.UnsignedInt8LiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.UnsignedInt8LiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnsignedInt8LiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public UnsignedInt8LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class UnsignedInt16LiteralExpBuilder : IBuilder<ast.UnsignedInt16LiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.UnsignedInt16LiteralExp Build()
     {
-        return new ast.UnsignedInt16LiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.UnsignedInt16LiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnsignedInt16LiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public UnsignedInt16LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class UnsignedInt32LiteralExpBuilder : IBuilder<ast.UnsignedInt32LiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.UnsignedInt32LiteralExp Build()
     {
-        return new ast.UnsignedInt32LiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.UnsignedInt32LiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnsignedInt32LiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public UnsignedInt32LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class UnsignedInt64LiteralExpBuilder : IBuilder<ast.UnsignedInt64LiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.UnsignedInt64LiteralExp Build()
     {
-        return new ast.UnsignedInt64LiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.UnsignedInt64LiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnsignedInt64LiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public UnsignedInt64LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class Float4LiteralExpBuilder : IBuilder<ast.Float4LiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.Float4LiteralExp Build()
     {
-        return new ast.Float4LiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.Float4LiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Float4LiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public Float4LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class Float8LiteralExpBuilder : IBuilder<ast.Float8LiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.Float8LiteralExp Build()
     {
-        return new ast.Float8LiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.Float8LiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Float8LiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public Float8LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class Float16LiteralExpBuilder : IBuilder<ast.Float16LiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.Float16LiteralExp Build()
     {
-        return new ast.Float16LiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.Float16LiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public Float16LiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public Float16LiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class BooleanLiteralExpBuilder : IBuilder<ast.BooleanLiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.BooleanLiteralExp Build()
     {
-        return new ast.BooleanLiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.BooleanLiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public BooleanLiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public BooleanLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class CharLiteralExpBuilder : IBuilder<ast.CharLiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.CharLiteralExp Build()
     {
-        return new ast.CharLiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.CharLiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public CharLiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public CharLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class StringLiteralExpBuilder : IBuilder<ast.StringLiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.StringLiteralExp Build()
     {
-        return new ast.StringLiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.StringLiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public StringLiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public StringLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class DateLiteralExpBuilder : IBuilder<ast.DateLiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.DateLiteralExp Build()
     {
-        return new ast.DateLiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.DateLiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public DateLiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public DateLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class TimeLiteralExpBuilder : IBuilder<ast.TimeLiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.TimeLiteralExp Build()
     {
-        return new ast.TimeLiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.TimeLiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public TimeLiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public TimeLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class DateTimeLiteralExpBuilder : IBuilder<ast.DateTimeLiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.DateTimeLiteralExp Build()
     {
-        return new ast.DateTimeLiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.DateTimeLiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public DateTimeLiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public DateTimeLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class DurationLiteralExpBuilder : IBuilder<ast.DurationLiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.DurationLiteralExp Build()
     {
-        return new ast.DurationLiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.DurationLiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public DurationLiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public DurationLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class UriLiteralExpBuilder : IBuilder<ast.UriLiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.UriLiteralExp Build()
     {
-        return new ast.UriLiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.UriLiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UriLiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public UriLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class AtomLiteralExpBuilder : IBuilder<ast.AtomLiteralExp>
 {
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.AtomLiteralExp Build()
     {
-        return new ast.AtomLiteralExp()
-        {
-            Annotations = this._Annotations
+        return new ast.AtomLiteralExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AtomLiteralExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public AtomLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
 {
-    private Expression _LHS;
-    private Expression? _RHS;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.Expression _LHS;
+    private ast.Expression _RHS;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.MemberAccessExp Build()
     {
-        return new ast.MemberAccessExp()
-        {
-            LHS = this._LHS,
-            RHS = this._RHS,
-            Annotations = this._Annotations
+        return new ast.MemberAccessExp(){
+             LHS = this._LHS // from MemberAccessExp
+           , RHS = this._RHS // from MemberAccessExp
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public MemberAccessExpBuilder WithLHS(Expression value)
-    {
+    public MemberAccessExpBuilder WithLHS(ast.Expression value){
         _LHS = value;
         return this;
     }
 
-    public MemberAccessExpBuilder WithRHS(Expression? value)
-    {
+    public MemberAccessExpBuilder WithRHS(ast.Expression value){
         _RHS = value;
         return this;
     }
 
-    public MemberAccessExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public MemberAccessExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class ObjectInitializerExpBuilder : IBuilder<ast.ObjectInitializerExp>
 {
-    private FifthType _TypeToInitialize;
-    private List<PropertyInitializerExp> _PropertyInitialisers;
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.ObjectInitializerExp Build()
     {
-        return new ast.ObjectInitializerExp()
-        {
-            TypeToInitialize = this._TypeToInitialize,
-            PropertyInitialisers = this._PropertyInitialisers,
-            Annotations = this._Annotations
+        return new ast.ObjectInitializerExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ObjectInitializerExpBuilder WithTypeToInitialize(FifthType value)
-    {
-        _TypeToInitialize = value;
-        return this;
-    }
-
-    public ObjectInitializerExpBuilder WithPropertyInitialisers(List<PropertyInitializerExp> value)
-    {
-        _PropertyInitialisers = value;
-        return this;
-    }
-
-    public ObjectInitializerExpBuilder AddingItemToPropertyInitialisers(PropertyInitializerExp value)
-    {
-        _PropertyInitialisers ??= new List<PropertyInitializerExp>();
-        _PropertyInitialisers.Add(value);
-        return this;
-    }
-
-    public ObjectInitializerExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public ObjectInitializerExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class PropertyInitializerExpBuilder : IBuilder<ast.PropertyInitializerExp>
 {
-    private PropertyRef _PropertyToInitialize;
-    private Expression _RHS;
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.PropertyInitializerExp Build()
     {
-        return new ast.PropertyInitializerExp()
-        {
-            PropertyToInitialize = this._PropertyToInitialize,
-            RHS = this._RHS,
-            Annotations = this._Annotations
+        return new ast.PropertyInitializerExp(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public PropertyInitializerExpBuilder WithPropertyToInitialize(PropertyRef value)
-    {
-        _PropertyToInitialize = value;
-        return this;
-    }
-
-    public PropertyInitializerExpBuilder WithRHS(Expression value)
-    {
-        _RHS = value;
-        return this;
-    }
-
-    public PropertyInitializerExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public PropertyInitializerExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
 {
-    private Operator _Operator;
-    private Expression _Operand;
-    private Dictionary<string, object> _Annotations = new();
-
+    private ast.Operator _Operator;
+    private ast.Expression _Operand;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.UnaryExp Build()
     {
-        return new ast.UnaryExp()
-        {
-            Operator = this._Operator,
-            Operand = this._Operand,
-            Annotations = this._Annotations
+        return new ast.UnaryExp(){
+             Operator = this._Operator // from UnaryExp
+           , Operand = this._Operand // from UnaryExp
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public UnaryExpBuilder WithOperator(Operator value)
-    {
+    public UnaryExpBuilder WithOperator(ast.Operator value){
         _Operator = value;
         return this;
     }
 
-    public UnaryExpBuilder WithOperand(Expression value)
-    {
+    public UnaryExpBuilder WithOperand(ast.Expression value){
         _Operand = value;
         return this;
     }
 
-    public UnaryExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public UnaryExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class VarRefExpBuilder : IBuilder<ast.VarRefExp>
 {
-    private string _VarName;
-    private VariableDecl _VariableDecl;
-    private Dictionary<string, object> _Annotations = new();
-
+    private System.String _VarName;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.VarRefExp Build()
     {
-        return new ast.VarRefExp()
-        {
-            VarName = this._VarName,
-            VariableDecl = this._VariableDecl,
-            Annotations = this._Annotations
+        return new ast.VarRefExp(){
+             VarName = this._VarName // from VarRefExp
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public VarRefExpBuilder WithVarName(string value)
-    {
+    public VarRefExpBuilder WithVarName(System.String value){
         _VarName = value;
         return this;
     }
 
-    public VarRefExpBuilder WithVariableDecl(VariableDecl value)
-    {
-        _VariableDecl = value;
-        return this;
-    }
-
-    public VarRefExpBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public VarRefExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class ListLiteralBuilder : IBuilder<ast.ListLiteral>
 {
-    private List<Expression> _ElementExpressions;
-    private Dictionary<string, object> _Annotations = new();
-
+    private List<ast.Expression> _ElementExpressions;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.ListLiteral Build()
     {
-        return new ast.ListLiteral()
-        {
-            ElementExpressions = this._ElementExpressions,
-            Annotations = this._Annotations
+        return new ast.ListLiteral(){
+             ElementExpressions = this._ElementExpressions // from ListLiteral
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ListLiteralBuilder WithElementExpressions(List<Expression> value)
-    {
+    public ListLiteralBuilder WithElementExpressions(List<ast.Expression> value){
         _ElementExpressions = value;
         return this;
     }
 
-    public ListLiteralBuilder AddingItemToElementExpressions(Expression value)
-    {
-        _ElementExpressions ??= new List<Expression>();
+    public ListLiteralBuilder AddingItemToElementExpressions(ast.Expression value){
+        _ElementExpressions  ??= [];
         _ElementExpressions.Add(value);
         return this;
     }
-
-    public ListLiteralBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public ListLiteralBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class ListComprehensionBuilder : IBuilder<ast.ListComprehension>
 {
-    private string _VarName;
-    private string _SourceName;
-    private Expression? _MembershipConstraint;
-    private Dictionary<string, object> _Annotations = new();
-
+    private System.String _VarName;
+    private System.String _SourceName;
+    private ast.Expression _MembershipConstraint;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.ListComprehension Build()
     {
-        return new ast.ListComprehension()
-        {
-            VarName = this._VarName,
-            SourceName = this._SourceName,
-            MembershipConstraint = this._MembershipConstraint,
-            Annotations = this._Annotations
+        return new ast.ListComprehension(){
+             VarName = this._VarName // from ListComprehension
+           , SourceName = this._SourceName // from ListComprehension
+           , MembershipConstraint = this._MembershipConstraint // from ListComprehension
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public ListComprehensionBuilder WithVarName(string value)
-    {
+    public ListComprehensionBuilder WithVarName(System.String value){
         _VarName = value;
         return this;
     }
 
-    public ListComprehensionBuilder WithSourceName(string value)
-    {
+    public ListComprehensionBuilder WithSourceName(System.String value){
         _SourceName = value;
         return this;
     }
 
-    public ListComprehensionBuilder WithMembershipConstraint(Expression? value)
-    {
+    public ListComprehensionBuilder WithMembershipConstraint(ast.Expression value){
         _MembershipConstraint = value;
         return this;
     }
 
-    public ListComprehensionBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public ListComprehensionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class AtomBuilder : IBuilder<ast.Atom>
 {
-    private AtomLiteralExp _AtomExp;
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.Atom Build()
     {
-        return new ast.Atom()
-        {
-            AtomExp = this._AtomExp,
-            Annotations = this._Annotations
+        return new ast.Atom(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public AtomBuilder WithAtomExp(AtomLiteralExp value)
-    {
-        _AtomExp = value;
-        return this;
-    }
-
-    public AtomBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public AtomBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class TripleBuilder : IBuilder<ast.Triple>
 {
-    private UriLiteralExp _SubjectExp;
-    private UriLiteralExp _PredicateExp;
-    private Expression _ObjectExp;
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.Triple Build()
     {
-        return new ast.Triple()
-        {
-            SubjectExp = this._SubjectExp,
-            PredicateExp = this._PredicateExp,
-            ObjectExp = this._ObjectExp,
-            Annotations = this._Annotations
+        return new ast.Triple(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public TripleBuilder WithSubjectExp(UriLiteralExp value)
-    {
-        _SubjectExp = value;
-        return this;
-    }
-
-    public TripleBuilder WithPredicateExp(UriLiteralExp value)
-    {
-        _PredicateExp = value;
-        return this;
-    }
-
-    public TripleBuilder WithObjectExp(Expression value)
-    {
-        _ObjectExp = value;
-        return this;
-    }
-
-    public TripleBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public TripleBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
 
 }
-
 public class GraphBuilder : IBuilder<ast.Graph>
 {
-    private UriLiteralExp _GraphUri;
-    private List<Triple> _Triples;
-    private Dictionary<string, object> _Annotations = new();
-
+    private Dictionary<System.String, System.Object> _Annotations;
+    
     public ast.Graph Build()
     {
-        return new ast.Graph()
-        {
-            GraphUri = this._GraphUri,
-            Triples = this._Triples,
-            Annotations = this._Annotations
+        return new ast.Graph(){
+             Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public GraphBuilder WithGraphUri(UriLiteralExp value)
-    {
-        _GraphUri = value;
-        return this;
-    }
-
-    public GraphBuilder WithTriples(List<Triple> value)
-    {
-        _Triples = value;
-        return this;
-    }
-
-    public GraphBuilder AddingItemToTriples(Triple value)
-    {
-        _Triples ??= new List<Triple>();
-        _Triples.Add(value);
-        return this;
-    }
-
-    public GraphBuilder WithAnnotations(Dictionary<string, object> value)
-    {
+    public GraphBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }

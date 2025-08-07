@@ -14,7 +14,7 @@
 
 	<Target Name="GenerateAstCode" BeforeTargets="CoreCompile">
 		<Message Text="Running AST code generation..." Importance="high" />
-		<Exec Command="dotnet run --project $(MSBuildProjectDirectory)/../../tools/CodeGenerator.csproj $(MSBuildProjectDirectory)/../ast-model/AstMetamodel.cs $(MSBuildProjectDirectory)" />
+		<Exec Command="dotnet run --project $(MSBuildProjectDirectory)/../ast_generator/ast_generator.csproj -- --folder $(MSBuildProjectDirectory)" />
 	</Target>
 
 </Project>

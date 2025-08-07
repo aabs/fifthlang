@@ -52,6 +52,7 @@ public class AstVisitorTests
             Type = CreateType("myAsm", 0, SymbolKind.Assembly),
             Parent = null,
             PublicKeyToken = "ajhsgjsfdhg",
+            TestProperty = "test-value",
             Version = "0.1.1.1",
             Visibility = Visibility.Public
         };

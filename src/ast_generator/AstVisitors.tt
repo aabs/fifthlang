@@ -1,2 +1,0 @@
-<#@ include file="ast.metamodel.ttinclude"#>
-<#@ include file="ast.visitors.ttinclude"#>
