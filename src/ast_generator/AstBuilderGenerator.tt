@@ -1,3 +1,0 @@
-<#@ include file="ast.metamodel.ttinclude"#>
-<#@ include file="ast.builders.ttinclude"#>
-<#@ import namespace="System.Reflection" #>

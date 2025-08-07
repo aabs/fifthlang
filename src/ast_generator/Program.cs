@@ -22,12 +22,12 @@ return await rootCommand.InvokeAsync(args);
 static async Task GenerateSource(DirectoryInfo folder)
 {
     var astTypeProvider = new TypeProvider<ast.AstThing>();
-    await WriteSourceToFile(Path.Combine(folder.FullName, "builders.generated.cs"), new AstBuilderGenerator(astTypeProvider).TransformText());
-    await WriteSourceToFile(Path.Combine(folder.FullName, "visitors.generated.cs"), new AstVisitors(astTypeProvider).TransformText());
-    await WriteSourceToFile(Path.Combine(folder.FullName, "typeinference.generated.cs"), new AstTypeCheckerGenerator(astTypeProvider).TransformText());
+    await WriteSourceToFile(Path.Combine(folder.FullName, "builders.generated.cs"), await new RazorLightBuilderGenerator(astTypeProvider).TransformTextAsync());
+    await WriteSourceToFile(Path.Combine(folder.FullName, "visitors.generated.cs"), await new RazorLightVisitorGenerator(astTypeProvider).TransformTextAsync());
+    await WriteSourceToFile(Path.Combine(folder.FullName, "typeinference.generated.cs"), await new RazorLightTypeCheckerGenerator(astTypeProvider).TransformTextAsync());
     var ilAstTypeProvider = new TypeProvider<il_ast.AstThing>();
-    await WriteSourceToFile(Path.Combine(folder.FullName, "il.builders.generated.cs"), new AstBuilderGenerator(ilAstTypeProvider).TransformText());
-    await WriteSourceToFile(Path.Combine(folder.FullName, "il.visitors.generated.cs"), new AstVisitors(ilAstTypeProvider).TransformText());
+    await WriteSourceToFile(Path.Combine(folder.FullName, "il.builders.generated.cs"), await new RazorLightBuilderGenerator(ilAstTypeProvider).TransformTextAsync());
+    await WriteSourceToFile(Path.Combine(folder.FullName, "il.visitors.generated.cs"), await new RazorLightVisitorGenerator(ilAstTypeProvider).TransformTextAsync());
 }
 
 static async Task WriteSourceToFile(string path, string source)

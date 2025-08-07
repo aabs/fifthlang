@@ -2,17 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <TransformOnBuild>true</TransformOnBuild>
-    <TransformOutOfDateOnly>false</TransformOutOfDateOnly>
-    <OverwriteReadOnlyOutputFiles>true</OverwriteReadOnlyOutputFiles>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v17.0\TextTemplating\Microsoft.TextTemplating.targets" />
 
   <ItemGroup>
-    <PackageReference Include="System.CodeDom" Version="9.0.0-rc.1.24431.7" />
+    <PackageReference Include="RazorLight" Version="2.3.1" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
 
@@ -21,40 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="AstTypeCheckerGenerator.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>AstTypeCheckerGenerator.cs</LastGenOutput>
-    </None>
-    <None Update="AstVisitors.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>AstVisitors.cs</LastGenOutput>
-    </None>
-    <None Update="AstBuilderGenerator.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>AstBuilderGenerator.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="AstTypeCheckerGenerator.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>AstTypeCheckerGenerator.tt</DependentUpon>
-    </Compile>
-    <Compile Update="AstVisitors.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>AstVisitors.tt</DependentUpon>
-    </Compile>
-    <Compile Update="AstBuilderGenerator.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>AstBuilderGenerator.tt</DependentUpon>
-    </Compile>
+    <EmbeddedResource Include="Templates\*.cshtml" />
   </ItemGroup>
 
 </Project>

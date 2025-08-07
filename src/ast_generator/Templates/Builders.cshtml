@@ -1,0 +1,55 @@
+@model ast_generator.TemplateModel
+@using ast_model
+@{
+    var genNs = Model.NamespaceScope + "_generated";
+}
+namespace @genNs;
+using ast_generated;
+using @Model.NamespaceScope;
+using System.Collections.Generic;
+#nullable disable
+
+@foreach (var t in Model.ConcreteTypes)
+{
+    var allProps = Model.TypeProperties[t];
+
+@:public class @(t.Name)Builder : IBuilder<@(t.FullName)>
+@:{
+
+@foreach (var prop in allProps)
+{
+@:    private @(prop.PropertyType.BuildTypeName()) _@(prop.Name);
+}
+@:    
+@:    public @(t.FullName) Build()
+@:    {
+@:        return new @(t.FullName)(){
+    var sep = " ";
+    foreach (var prop in allProps)
+    {
+@:           @(sep) @(prop.Name) = this._@(prop.Name) // from @(prop.DeclaringType.Name)
+        sep = ",";
+    }
+@:        };
+@:    }
+@foreach (var prop in allProps)
+{
+@:    public @(t.Name)Builder With@(prop.Name)(@(prop.PropertyType.BuildTypeName()) value){
+@:        _@(prop.Name) = value;
+@:        return this;
+@:    }
+@:
+@if (prop.PropertyType.IsCollectionType())
+{
+    var llAdjust = prop.PropertyType.IsLinkedListCollectionType() ? "Last" : "";
+@:    public @(t.Name)Builder AddingItemTo@(prop.Name)(@(prop.PropertyType.BuildInstanceTypeName()) value){
+@:        _@(prop.Name)  ??= [];
+@:        _@(prop.Name).Add@(llAdjust)(value);
+@:        return this;
+@:    }
+}
+}
+@:}
+}
+
+#nullable restore

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" InitialTargets="GenerateParser">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <RootNamespace>Fifth</RootNamespace>
   </PropertyGroup>
@@ -16,7 +16,7 @@
 
   <Target Name="GenerateParser">
     <Message Text="Generating Parser" />
-    <Exec Command="java -jar $(ProjectDir)tools\antlr-4.8-complete.jar -Dlanguage=CSharp -visitor -listener -o grammar -lib grammar grammar/Fifth.g4" ConsoleToMsBuild="true" WorkingDirectory="$(MSBuildThisFileDirectory)">
+    <Exec Command="java -jar ../tools/antlr-4.8-complete.jar -Dlanguage=CSharp -visitor -listener -o grammar -lib . Fifth.g4" ConsoleToMsBuild="true" WorkingDirectory="$(MSBuildThisFileDirectory)grammar">
       <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
     </Exec>
     <Message Text="----------------------------------------" />

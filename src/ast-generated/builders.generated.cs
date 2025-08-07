@@ -1,5 +1,3 @@
-
-
 namespace ast_generated;
 using ast_generated;
 using ast;
@@ -8,12 +6,12 @@ using System.Collections.Generic;
 
 public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
 {
-
     private ast.AssemblyName _Name;
     private System.String _PublicKeyToken;
     private System.String _Version;
     private List<ast.AssemblyRef> _AssemblyRefs;
     private List<ast.ModuleDef> _Modules;
+    private System.String _TestProperty;
     private ast.Visibility _Visibility;
     private ast_model.Symbols.IScope _EnclosingScope;
     private ast_model.Symbols.ISymbolTable _SymbolTable;
@@ -27,6 +25,7 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
            , Version = this._Version // from AssemblyDef
            , AssemblyRefs = this._AssemblyRefs // from AssemblyDef
            , Modules = this._Modules // from AssemblyDef
+           , TestProperty = this._TestProperty // from AssemblyDef
            , Visibility = this._Visibility // from ScopedDefinition
            , EnclosingScope = this._EnclosingScope // from ScopeAstThing
            , SymbolTable = this._SymbolTable // from ScopeAstThing
@@ -68,6 +67,11 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
         _Modules.Add(value);
         return this;
     }
+    public AssemblyDefBuilder WithTestProperty(System.String value){
+        _TestProperty = value;
+        return this;
+    }
+
     public AssemblyDefBuilder WithVisibility(ast.Visibility value){
         _Visibility = value;
         return this;
@@ -91,7 +95,6 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
 }
 public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
 {
-
     private System.String _OriginalModuleName;
     private ast.NamespaceName _NamespaceDecl;
     private List<ast.ClassDef> _Classes;
@@ -167,7 +170,6 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
 }
 public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
 {
-
     private List<ast.ParamDef> _Params;
     private ast.BlockStatement _Body;
     private ast_model.TypeSystem.FifthType _ReturnType;
@@ -252,7 +254,6 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
 }
 public class FunctorDefBuilder : IBuilder<ast.FunctorDef>
 {
-
     private ast.FunctionDef _InvocationFuncDev;
     private ast_model.Symbols.IScope _EnclosingScope;
     private ast_model.Symbols.ISymbolTable _SymbolTable;
@@ -290,7 +291,6 @@ public class FunctorDefBuilder : IBuilder<ast.FunctorDef>
 }
 public class FieldDefBuilder : IBuilder<ast.FieldDef>
 {
-
     private ast.AccessConstraint[] _AccessConstraints;
     private ast.MemberName _Name;
     private ast_model.TypeSystem.TypeName _TypeName;
@@ -342,7 +342,6 @@ public class FieldDefBuilder : IBuilder<ast.FieldDef>
 }
 public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
 {
-
     private ast.AccessConstraint[] _AccessConstraints;
     private System.Boolean _IsWriteOnly;
     private ast.FieldDef _BackingField;
@@ -429,7 +428,6 @@ public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
 }
 public class MethodDefBuilder : IBuilder<ast.MethodDef>
 {
-
     private ast.MemberName _Name;
     private ast_model.TypeSystem.TypeName _TypeName;
     private System.Boolean _IsReadOnly;
@@ -474,7 +472,6 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
 }
 public class OverloadedFunctionDefinitionBuilder : IBuilder<ast.OverloadedFunctionDefinition>
 {
-
     private List<ast.MethodDef> _OverloadClauses;
     private ast_model.TypeSystem.IFunctionSignature _Signature;
     private ast.MemberName _Name;
@@ -538,7 +535,6 @@ public class OverloadedFunctionDefinitionBuilder : IBuilder<ast.OverloadedFuncti
 }
 public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
 {
-
     private ast.Expression _Antecedent;
     private ast.KnowledgeManagementBlock _Consequent;
     private ast.Visibility _Visibility;
@@ -576,7 +572,6 @@ public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
 }
 public class ParamDefBuilder : IBuilder<ast.ParamDef>
 {
-
     private ast_model.TypeSystem.TypeName _TypeName;
     private System.String _Name;
     private ast.Expression _ParameterConstraint;
@@ -628,7 +623,6 @@ public class ParamDefBuilder : IBuilder<ast.ParamDef>
 }
 public class ParamDestructureDefBuilder : IBuilder<ast.ParamDestructureDef>
 {
-
     private List<ast.PropertyBindingDef> _Bindings;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -664,7 +658,6 @@ public class ParamDestructureDefBuilder : IBuilder<ast.ParamDestructureDef>
 }
 public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
 {
-
     private ast.MemberName _IntroducedVariable;
     private ast.MemberName _ReferencedPropertyName;
     private ast.ParamDestructureDef _DestructureDef;
@@ -709,7 +702,6 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
 }
 public class TypeDefBuilder : IBuilder<ast.TypeDef>
 {
-
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -733,7 +725,6 @@ public class TypeDefBuilder : IBuilder<ast.TypeDef>
 }
 public class ClassDefBuilder : IBuilder<ast.ClassDef>
 {
-
     private ast_model.TypeSystem.TypeName _Name;
     private List<ast.MemberDef> _MemberDefs;
     private ast.Visibility _Visibility;
@@ -790,7 +781,6 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
 }
 public class VariableDeclBuilder : IBuilder<ast.VariableDecl>
 {
-
     private System.String _Name;
     private ast_model.TypeSystem.TypeName _TypeName;
     private ast.CollectionType _CollectionType;
@@ -835,7 +825,6 @@ public class VariableDeclBuilder : IBuilder<ast.VariableDecl>
 }
 public class AssemblyRefBuilder : IBuilder<ast.AssemblyRef>
 {
-
     private System.String _PublicKeyToken;
     private System.String _Version;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -866,7 +855,6 @@ public class AssemblyRefBuilder : IBuilder<ast.AssemblyRef>
 }
 public class MemberRefBuilder : IBuilder<ast.MemberRef>
 {
-
     private ast.MemberDef _Member;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -890,7 +878,6 @@ public class MemberRefBuilder : IBuilder<ast.MemberRef>
 }
 public class PropertyRefBuilder : IBuilder<ast.PropertyRef>
 {
-
     private ast.PropertyDef _Property;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -914,7 +901,6 @@ public class PropertyRefBuilder : IBuilder<ast.PropertyRef>
 }
 public class TypeRefBuilder : IBuilder<ast.TypeRef>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.TypeRef Build()
@@ -931,7 +917,6 @@ public class TypeRefBuilder : IBuilder<ast.TypeRef>
 }
 public class VarRefBuilder : IBuilder<ast.VarRef>
 {
-
     private ast.MemberName _ReferencedVariableName;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -955,7 +940,6 @@ public class VarRefBuilder : IBuilder<ast.VarRef>
 }
 public class GraphNamespaceAliasBuilder : IBuilder<ast.GraphNamespaceAlias>
 {
-
     private System.Uri _Uri;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -979,7 +963,6 @@ public class GraphNamespaceAliasBuilder : IBuilder<ast.GraphNamespaceAlias>
 }
 public class AssignmentStatementBuilder : IBuilder<ast.AssignmentStatement>
 {
-
     private ast.Expression _LValue;
     private ast.Expression _RValue;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -1010,7 +993,6 @@ public class AssignmentStatementBuilder : IBuilder<ast.AssignmentStatement>
 }
 public class BlockStatementBuilder : IBuilder<ast.BlockStatement>
 {
-
     private List<ast.Statement> _Statements;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1039,7 +1021,6 @@ public class BlockStatementBuilder : IBuilder<ast.BlockStatement>
 }
 public class KnowledgeManagementBlockBuilder : IBuilder<ast.KnowledgeManagementBlock>
 {
-
     private List<ast.KnowledgeManagementStatement> _Statements;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1068,7 +1049,6 @@ public class KnowledgeManagementBlockBuilder : IBuilder<ast.KnowledgeManagementB
 }
 public class ExpStatementBuilder : IBuilder<ast.ExpStatement>
 {
-
     private ast.Expression _RHS;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1092,7 +1072,6 @@ public class ExpStatementBuilder : IBuilder<ast.ExpStatement>
 }
 public class ForStatementBuilder : IBuilder<ast.ForStatement>
 {
-
     private ast.Expression _InitialValue;
     private ast.Expression _Constraint;
     private ast.Expression _IncrementExpression;
@@ -1144,7 +1123,6 @@ public class ForStatementBuilder : IBuilder<ast.ForStatement>
 }
 public class ForeachStatementBuilder : IBuilder<ast.ForeachStatement>
 {
-
     private ast.Expression _Collection;
     private ast.VariableDecl _LoopVariable;
     private ast.BlockStatement _Body;
@@ -1182,7 +1160,6 @@ public class ForeachStatementBuilder : IBuilder<ast.ForeachStatement>
 }
 public class GuardStatementBuilder : IBuilder<ast.GuardStatement>
 {
-
     private ast.Expression _Condition;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1206,7 +1183,6 @@ public class GuardStatementBuilder : IBuilder<ast.GuardStatement>
 }
 public class IfElseStatementBuilder : IBuilder<ast.IfElseStatement>
 {
-
     private ast.Expression _Condition;
     private ast.BlockStatement _ThenBlock;
     private ast.BlockStatement _ElseBlock;
@@ -1244,7 +1220,6 @@ public class IfElseStatementBuilder : IBuilder<ast.IfElseStatement>
 }
 public class ReturnStatementBuilder : IBuilder<ast.ReturnStatement>
 {
-
     private ast.Expression _ReturnValue;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1268,7 +1243,6 @@ public class ReturnStatementBuilder : IBuilder<ast.ReturnStatement>
 }
 public class VarDeclStatementBuilder : IBuilder<ast.VarDeclStatement>
 {
-
     private ast.VariableDecl _VariableDecl;
     private ast.Expression _InitialValue;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -1299,7 +1273,6 @@ public class VarDeclStatementBuilder : IBuilder<ast.VarDeclStatement>
 }
 public class WhileStatementBuilder : IBuilder<ast.WhileStatement>
 {
-
     private ast.Expression _Condition;
     private ast.BlockStatement _Body;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -1330,7 +1303,6 @@ public class WhileStatementBuilder : IBuilder<ast.WhileStatement>
 }
 public class AssertionStatementBuilder : IBuilder<ast.AssertionStatement>
 {
-
     private ast.AssertionSubject _AssertionSubject;
     private ast.AssertionPredicate _AssertionPredicate;
     private ast.AssertionObject _AssertionObject;
@@ -1368,7 +1340,6 @@ public class AssertionStatementBuilder : IBuilder<ast.AssertionStatement>
 }
 public class AssertionObjectBuilder : IBuilder<ast.AssertionObject>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AssertionObject Build()
@@ -1385,7 +1356,6 @@ public class AssertionObjectBuilder : IBuilder<ast.AssertionObject>
 }
 public class AssertionPredicateBuilder : IBuilder<ast.AssertionPredicate>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AssertionPredicate Build()
@@ -1402,7 +1372,6 @@ public class AssertionPredicateBuilder : IBuilder<ast.AssertionPredicate>
 }
 public class AssertionSubjectBuilder : IBuilder<ast.AssertionSubject>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AssertionSubject Build()
@@ -1419,7 +1388,6 @@ public class AssertionSubjectBuilder : IBuilder<ast.AssertionSubject>
 }
 public class RetractionStatementBuilder : IBuilder<ast.RetractionStatement>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.RetractionStatement Build()
@@ -1436,7 +1404,6 @@ public class RetractionStatementBuilder : IBuilder<ast.RetractionStatement>
 }
 public class WithScopeStatementBuilder : IBuilder<ast.WithScopeStatement>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.WithScopeStatement Build()
@@ -1453,7 +1420,6 @@ public class WithScopeStatementBuilder : IBuilder<ast.WithScopeStatement>
 }
 public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
 {
-
     private ast.Expression _LHS;
     private ast.Operator _Operator;
     private ast.Expression _RHS;
@@ -1491,7 +1457,6 @@ public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
 }
 public class CastExpBuilder : IBuilder<ast.CastExp>
 {
-
     private ast_model.TypeSystem.FifthType _TargetType;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -1515,7 +1480,6 @@ public class CastExpBuilder : IBuilder<ast.CastExp>
 }
 public class LambdaExpBuilder : IBuilder<ast.LambdaExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.LambdaExp Build()
@@ -1532,7 +1496,6 @@ public class LambdaExpBuilder : IBuilder<ast.LambdaExp>
 }
 public class FuncCallExpBuilder : IBuilder<ast.FuncCallExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.FuncCallExp Build()
@@ -1549,7 +1512,6 @@ public class FuncCallExpBuilder : IBuilder<ast.FuncCallExp>
 }
 public class Int8LiteralExpBuilder : IBuilder<ast.Int8LiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Int8LiteralExp Build()
@@ -1566,7 +1528,6 @@ public class Int8LiteralExpBuilder : IBuilder<ast.Int8LiteralExp>
 }
 public class Int16LiteralExpBuilder : IBuilder<ast.Int16LiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Int16LiteralExp Build()
@@ -1583,7 +1544,6 @@ public class Int16LiteralExpBuilder : IBuilder<ast.Int16LiteralExp>
 }
 public class Int32LiteralExpBuilder : IBuilder<ast.Int32LiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Int32LiteralExp Build()
@@ -1600,7 +1560,6 @@ public class Int32LiteralExpBuilder : IBuilder<ast.Int32LiteralExp>
 }
 public class Int64LiteralExpBuilder : IBuilder<ast.Int64LiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Int64LiteralExp Build()
@@ -1617,7 +1576,6 @@ public class Int64LiteralExpBuilder : IBuilder<ast.Int64LiteralExp>
 }
 public class UnsignedInt8LiteralExpBuilder : IBuilder<ast.UnsignedInt8LiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.UnsignedInt8LiteralExp Build()
@@ -1634,7 +1592,6 @@ public class UnsignedInt8LiteralExpBuilder : IBuilder<ast.UnsignedInt8LiteralExp
 }
 public class UnsignedInt16LiteralExpBuilder : IBuilder<ast.UnsignedInt16LiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.UnsignedInt16LiteralExp Build()
@@ -1651,7 +1608,6 @@ public class UnsignedInt16LiteralExpBuilder : IBuilder<ast.UnsignedInt16LiteralE
 }
 public class UnsignedInt32LiteralExpBuilder : IBuilder<ast.UnsignedInt32LiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.UnsignedInt32LiteralExp Build()
@@ -1668,7 +1624,6 @@ public class UnsignedInt32LiteralExpBuilder : IBuilder<ast.UnsignedInt32LiteralE
 }
 public class UnsignedInt64LiteralExpBuilder : IBuilder<ast.UnsignedInt64LiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.UnsignedInt64LiteralExp Build()
@@ -1685,7 +1640,6 @@ public class UnsignedInt64LiteralExpBuilder : IBuilder<ast.UnsignedInt64LiteralE
 }
 public class Float4LiteralExpBuilder : IBuilder<ast.Float4LiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Float4LiteralExp Build()
@@ -1702,7 +1656,6 @@ public class Float4LiteralExpBuilder : IBuilder<ast.Float4LiteralExp>
 }
 public class Float8LiteralExpBuilder : IBuilder<ast.Float8LiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Float8LiteralExp Build()
@@ -1719,7 +1672,6 @@ public class Float8LiteralExpBuilder : IBuilder<ast.Float8LiteralExp>
 }
 public class Float16LiteralExpBuilder : IBuilder<ast.Float16LiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Float16LiteralExp Build()
@@ -1736,7 +1688,6 @@ public class Float16LiteralExpBuilder : IBuilder<ast.Float16LiteralExp>
 }
 public class BooleanLiteralExpBuilder : IBuilder<ast.BooleanLiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.BooleanLiteralExp Build()
@@ -1753,7 +1704,6 @@ public class BooleanLiteralExpBuilder : IBuilder<ast.BooleanLiteralExp>
 }
 public class CharLiteralExpBuilder : IBuilder<ast.CharLiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.CharLiteralExp Build()
@@ -1770,7 +1720,6 @@ public class CharLiteralExpBuilder : IBuilder<ast.CharLiteralExp>
 }
 public class StringLiteralExpBuilder : IBuilder<ast.StringLiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.StringLiteralExp Build()
@@ -1787,7 +1736,6 @@ public class StringLiteralExpBuilder : IBuilder<ast.StringLiteralExp>
 }
 public class DateLiteralExpBuilder : IBuilder<ast.DateLiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.DateLiteralExp Build()
@@ -1804,7 +1752,6 @@ public class DateLiteralExpBuilder : IBuilder<ast.DateLiteralExp>
 }
 public class TimeLiteralExpBuilder : IBuilder<ast.TimeLiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.TimeLiteralExp Build()
@@ -1821,7 +1768,6 @@ public class TimeLiteralExpBuilder : IBuilder<ast.TimeLiteralExp>
 }
 public class DateTimeLiteralExpBuilder : IBuilder<ast.DateTimeLiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.DateTimeLiteralExp Build()
@@ -1838,7 +1784,6 @@ public class DateTimeLiteralExpBuilder : IBuilder<ast.DateTimeLiteralExp>
 }
 public class DurationLiteralExpBuilder : IBuilder<ast.DurationLiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.DurationLiteralExp Build()
@@ -1855,7 +1800,6 @@ public class DurationLiteralExpBuilder : IBuilder<ast.DurationLiteralExp>
 }
 public class UriLiteralExpBuilder : IBuilder<ast.UriLiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.UriLiteralExp Build()
@@ -1872,7 +1816,6 @@ public class UriLiteralExpBuilder : IBuilder<ast.UriLiteralExp>
 }
 public class AtomLiteralExpBuilder : IBuilder<ast.AtomLiteralExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.AtomLiteralExp Build()
@@ -1889,7 +1832,6 @@ public class AtomLiteralExpBuilder : IBuilder<ast.AtomLiteralExp>
 }
 public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
 {
-
     private ast.Expression _LHS;
     private ast.Expression _RHS;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -1920,7 +1862,6 @@ public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
 }
 public class ObjectInitializerExpBuilder : IBuilder<ast.ObjectInitializerExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ObjectInitializerExp Build()
@@ -1937,7 +1878,6 @@ public class ObjectInitializerExpBuilder : IBuilder<ast.ObjectInitializerExp>
 }
 public class PropertyInitializerExpBuilder : IBuilder<ast.PropertyInitializerExp>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.PropertyInitializerExp Build()
@@ -1954,7 +1894,6 @@ public class PropertyInitializerExpBuilder : IBuilder<ast.PropertyInitializerExp
 }
 public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
 {
-
     private ast.Operator _Operator;
     private ast.Expression _Operand;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -1985,7 +1924,6 @@ public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
 }
 public class VarRefExpBuilder : IBuilder<ast.VarRefExp>
 {
-
     private System.String _VarName;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2009,7 +1947,6 @@ public class VarRefExpBuilder : IBuilder<ast.VarRefExp>
 }
 public class ListLiteralBuilder : IBuilder<ast.ListLiteral>
 {
-
     private List<ast.Expression> _ElementExpressions;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -2038,7 +1975,6 @@ public class ListLiteralBuilder : IBuilder<ast.ListLiteral>
 }
 public class ListComprehensionBuilder : IBuilder<ast.ListComprehension>
 {
-
     private System.String _VarName;
     private System.String _SourceName;
     private ast.Expression _MembershipConstraint;
@@ -2076,7 +2012,6 @@ public class ListComprehensionBuilder : IBuilder<ast.ListComprehension>
 }
 public class AtomBuilder : IBuilder<ast.Atom>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Atom Build()
@@ -2093,7 +2028,6 @@ public class AtomBuilder : IBuilder<ast.Atom>
 }
 public class TripleBuilder : IBuilder<ast.Triple>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Triple Build()
@@ -2110,7 +2044,6 @@ public class TripleBuilder : IBuilder<ast.Triple>
 }
 public class GraphBuilder : IBuilder<ast.Graph>
 {
-
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Graph Build()
@@ -2127,4 +2060,3 @@ public class GraphBuilder : IBuilder<ast.Graph>
 }
 
 #nullable restore
-

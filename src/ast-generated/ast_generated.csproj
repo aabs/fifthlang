@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>ast_generated</RootNamespace>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
@@ -12,11 +12,9 @@
 	  <ProjectReference Include="..\ast-model\ast_model.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-	</ItemGroup>
+	<Target Name="GenerateAstCode" BeforeTargets="CoreCompile">
+		<Message Text="Running AST code generation..." Importance="high" />
+		<Exec Command="dotnet run --project $(MSBuildProjectDirectory)/../ast_generator/ast_generator.csproj -- --folder $(MSBuildProjectDirectory)" />
+	</Target>
 
-	<!--<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-		<Exec Command="make -B" />
-	</Target>-->
 </Project>

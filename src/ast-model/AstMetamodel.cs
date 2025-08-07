@@ -301,6 +301,7 @@ public record AssemblyDef : ScopedDefinition
     public required string Version { get; init; }
     public required List<AssemblyRef> AssemblyRefs { get; init; } = [];
     public required List<ModuleDef> Modules { get; init; }
+    public required string TestProperty { get; init; } = ""; // Test property added for code generation demo
 }
 
 public record ModuleDef : ScopedDefinition

@@ -1,5 +1,3 @@
-
-
 namespace ast_generated;
 using ast;
 using ast_model.Symbols;
@@ -241,4 +239,3 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, Graph node);
 
 }
-

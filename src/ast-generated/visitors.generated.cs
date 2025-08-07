@@ -1,5 +1,3 @@
-
-
 namespace ast_generated;
 using ast;
 using System.Collections.Generic;
@@ -919,5 +917,3 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     }
 
 }
-
-
