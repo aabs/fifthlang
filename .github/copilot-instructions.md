@@ -129,7 +129,7 @@ myprint(int x) => std.print(x);
 ## Dependencies and Requirements
 
 ### System Requirements
-- **.NET 8.0 SDK** (version 8.0.118 or compatible)
+- **.NET 9.0 SDK** (version 8.0.118 or compatible)
 - **Java 17+** (for ANTLR grammar compilation)
 - **ANTLR 4.8** (jar file included at `src/parser/tools/antlr-4.8-complete.jar`)
 
