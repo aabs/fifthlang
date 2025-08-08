@@ -409,4 +409,89 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         resolvedVarRefExp.VariableDecl.Should().NotBeNull();
         resolvedVarRefExp.VariableDecl.Name.Should().Be("localVar");
     }
+
+    [Fact]
+    public void VarRefResolverVisitor_WorksWithParsedCode()
+    {
+        // Arrange - parse actual Fifth language code that contains variable references
+        var assembly = ParseProgram("statement-if.5th");
+        assembly.Should().NotBeNull();
+
+        // Find a function with variable references - main function should have parameter 'x'
+        var mainFunction = assembly.Modules[0].Functions.FirstOrDefault(f => f.Name.Value == "main");
+        mainFunction.Should().NotBeNull();
+
+        // Check that we have VarRefExp nodes that could be resolved
+        var varRefExpressions = FindVarRefExpressionsInFunction(mainFunction);
+        varRefExpressions.Should().NotBeEmpty("Function should contain variable references");
+
+        // Act - apply the VarRefResolverVisitor
+        var resolvedAssembly = (AssemblyDef)_visitor.Visit(assembly);
+
+        // Assert - verify that the VarRefExp nodes are properly handled
+        resolvedAssembly.Should().NotBeNull();
+        var resolvedMainFunction = resolvedAssembly.Modules[0].Functions.FirstOrDefault(f => f.Name.Value == "main");
+        resolvedMainFunction.Should().NotBeNull();
+
+        // The visitor should not have broken the AST structure
+        var resolvedVarRefExpressions = FindVarRefExpressionsInFunction(resolvedMainFunction);
+        resolvedVarRefExpressions.Should().HaveCount(varRefExpressions.Count, "Visitor should preserve all VarRefExp nodes");
+    }
+
+    private List<VarRefExp> FindVarRefExpressionsInFunction(FunctionDef function)
+    {
+        var varRefExpressions = new List<VarRefExp>();
+        
+        void VisitExpression(Expression expr)
+        {
+            if (expr is VarRefExp varRef)
+            {
+                varRefExpressions.Add(varRef);
+            }
+            else if (expr is BinaryExp binaryExp)
+            {
+                VisitExpression(binaryExp.LHS);
+                VisitExpression(binaryExp.RHS);
+            }
+            else if (expr is UnaryExp unaryExp)
+            {
+                VisitExpression(unaryExp.Operand);
+            }
+            // Add other expression types as needed
+        }
+
+        void VisitStatement(Statement stmt)
+        {
+            switch (stmt)
+            {
+                case BlockStatement block:
+                    foreach (var s in block.Statements)
+                        VisitStatement(s);
+                    break;
+                case VarDeclStatement varDecl:
+                    if (varDecl.InitialValue != null)
+                        VisitExpression(varDecl.InitialValue);
+                    break;
+                case ReturnStatement ret:
+                    VisitExpression(ret.ReturnValue);
+                    break;
+                case IfElseStatement ifElse:
+                    VisitExpression(ifElse.Condition);
+                    VisitStatement(ifElse.ThenBlock);
+                    VisitStatement(ifElse.ElseBlock);
+                    break;
+                case ExpStatement expStmt:
+                    VisitExpression(expStmt.RHS);
+                    break;
+                // Add other statement types as needed
+            }
+        }
+
+        if (function.Body != null)
+        {
+            VisitStatement(function.Body);
+        }
+
+        return varRefExpressions;
+    }
 }
