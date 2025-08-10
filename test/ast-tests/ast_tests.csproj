@@ -46,6 +46,7 @@
     <ProjectReference Include="..\..\src\ast-model\ast_model.csproj" />
     <ProjectReference Include="..\..\src\compiler\compiler.csproj" />
     <ProjectReference Include="..\..\src\parser\parser.csproj" />
+    <ProjectReference Include="..\..\src\code_generator\code_generator.csproj" />
   </ItemGroup>
 
   <ItemGroup>
