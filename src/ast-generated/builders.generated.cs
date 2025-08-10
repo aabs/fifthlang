@@ -9,8 +9,8 @@ public class AssemblyDefBuilder : IBuilder<ast.AssemblyDef>
     private ast.AssemblyName _Name;
     private System.String _PublicKeyToken;
     private System.String _Version;
-    private List<ast.AssemblyRef> _AssemblyRefs;
-    private List<ast.ModuleDef> _Modules;
+    private List<ast.AssemblyRef> _AssemblyRefs = [];
+    private List<ast.ModuleDef> _Modules = [];
     private System.String _TestProperty;
     private ast.Visibility _Visibility;
     private ast_model.Symbols.IScope _EnclosingScope;
@@ -97,8 +97,8 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
 {
     private System.String _OriginalModuleName;
     private ast.NamespaceName _NamespaceDecl;
-    private List<ast.ClassDef> _Classes;
-    private List<ast.FunctionDef> _Functions;
+    private List<ast.ClassDef> _Classes = [];
+    private List<ast.FunctionDef> _Functions = [];
     private ast.Visibility _Visibility;
     private ast_model.Symbols.IScope _EnclosingScope;
     private ast_model.Symbols.ISymbolTable _SymbolTable;
@@ -170,7 +170,7 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
 }
 public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
 {
-    private List<ast.ParamDef> _Params;
+    private List<ast.ParamDef> _Params = [];
     private ast.BlockStatement _Body;
     private ast_model.TypeSystem.FifthType _ReturnType;
     private ast.MemberName _Name;
@@ -472,7 +472,7 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
 }
 public class OverloadedFunctionDefinitionBuilder : IBuilder<ast.OverloadedFunctionDefinition>
 {
-    private List<ast.MethodDef> _OverloadClauses;
+    private List<ast.MethodDef> _OverloadClauses = [];
     private ast_model.TypeSystem.IFunctionSignature _Signature;
     private ast.MemberName _Name;
     private ast_model.TypeSystem.TypeName _TypeName;
@@ -623,7 +623,7 @@ public class ParamDefBuilder : IBuilder<ast.ParamDef>
 }
 public class ParamDestructureDefBuilder : IBuilder<ast.ParamDestructureDef>
 {
-    private List<ast.PropertyBindingDef> _Bindings;
+    private List<ast.PropertyBindingDef> _Bindings = [];
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -726,7 +726,7 @@ public class TypeDefBuilder : IBuilder<ast.TypeDef>
 public class ClassDefBuilder : IBuilder<ast.ClassDef>
 {
     private ast_model.TypeSystem.TypeName _Name;
-    private List<ast.MemberDef> _MemberDefs;
+    private List<ast.MemberDef> _MemberDefs = [];
     private ast.Visibility _Visibility;
     private ast_model.Symbols.IScope _EnclosingScope;
     private ast_model.Symbols.ISymbolTable _SymbolTable;
@@ -993,7 +993,7 @@ public class AssignmentStatementBuilder : IBuilder<ast.AssignmentStatement>
 }
 public class BlockStatementBuilder : IBuilder<ast.BlockStatement>
 {
-    private List<ast.Statement> _Statements;
+    private List<ast.Statement> _Statements = [];
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.BlockStatement Build()
@@ -1021,7 +1021,7 @@ public class BlockStatementBuilder : IBuilder<ast.BlockStatement>
 }
 public class KnowledgeManagementBlockBuilder : IBuilder<ast.KnowledgeManagementBlock>
 {
-    private List<ast.KnowledgeManagementStatement> _Statements;
+    private List<ast.KnowledgeManagementStatement> _Statements = [];
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.KnowledgeManagementBlock Build()
@@ -1947,7 +1947,7 @@ public class VarRefExpBuilder : IBuilder<ast.VarRefExp>
 }
 public class ListLiteralBuilder : IBuilder<ast.ListLiteral>
 {
-    private List<ast.Expression> _ElementExpressions;
+    private List<ast.Expression> _ElementExpressions = [];
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ListLiteral Build()
