@@ -11,7 +11,6 @@
     <Compile Remove="LanguageTransformations\DestructuringVisitorOld.cs" />
     <Compile Remove="LanguageTransformations\PropertyReferenceToGetterInvocation.cs" />
     <Compile Remove="LanguageTransformations\ThrowingErrorListener.cs" />
-    <Compile Remove="LanguageTransformations\TypeAnnotatorVisitor.cs" />
     <Compile Remove="LanguageTransformations\TypeCheckingError.cs" />
     <Compile Remove="LanguageTransformations\VariableReferenceResolver.cs" />
   </ItemGroup>
@@ -21,7 +20,6 @@
     <None Include="LanguageTransformations\DestructuringVisitorOld.cs" />
     <None Include="LanguageTransformations\PropertyReferenceToGetterInvocation.cs" />
     <None Include="LanguageTransformations\ThrowingErrorListener.cs" />
-    <None Include="LanguageTransformations\TypeAnnotatorVisitor.cs" />
     <None Include="LanguageTransformations\TypeCheckingError.cs" />
     <None Include="LanguageTransformations\VariableReferenceResolver.cs" />
   </ItemGroup>

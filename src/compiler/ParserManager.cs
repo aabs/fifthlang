@@ -10,31 +10,7 @@ public static class FifthParserManager
 {
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast)
     {
-        /*
-            BuiltinInjectorVisitor
-            ClassCtorInserter
-            VerticalLinkageVisitor
-            PropertyToFieldExpander
-            // does this vvv need to be replaced with an equivalent for member accesses?
-            //CompoundVariableSplitterVisitor
-            OverloadGatheringVisitor
-            OverloadTransformingVisitor
-            VerticalLinkageVisitor
-            SymbolTableBuilderVisitor
-            // after this point, it is the responsibility of any transformative visitors to keep the
-            // symtab in order.
-            DestructuringVisitor
-            ast = new DestructuringPatternFlattenerVisitor().Process(ast as AstThing, new DummyContext
-            // with the introduction of a bunch of new vardecls by the destructuring flattener, we
-            // need to rebuild the symtab
-            VerticalLinkageVisitor
-            SymbolTableBuilderVisitor
-            //TypeAnnotatorVisitor
-            VariableReferenceResolver
-            TypeAnnotatorVisitor
-            //StringifyVisitor(Console.Out));
-            return ast;
-        */
+        ArgumentNullException.ThrowIfNull(ast);
         ast = new TreeLinkageVisitor().Visit(ast);
         ast = new BuiltinInjectorVisitor().Visit(ast);
         ast = new ClassCtorInserter().Visit(ast);
@@ -46,6 +22,7 @@ public static class FifthParserManager
         ast = new DestructuringPatternFlattenerVisitor().Visit(ast);
         ast = new TreeLinkageVisitor().Visit(ast);
         ast = new SymbolTableBuilderVisitor().Visit(ast);
+        ast = new TypeAnnotationVisitor().Visit(ast);
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);
         return ast;
     }
