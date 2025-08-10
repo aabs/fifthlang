@@ -1,12 +1,14 @@
 using ast;
+using ast_model;
 using il_ast;
 using il_ast_generated;
 
 namespace code_generator;
 
-public class ILCodeGenerator : ICodeGenerator
+public class ILCodeGenerator
 {
     private readonly ILCodeGeneratorConfiguration _configuration;
+    private readonly List<Func<AssemblyDeclaration, AssemblyDeclaration>> _transformationPipeline;
     private readonly AstToIlTransformationVisitor _transformationVisitor;
     private readonly ILEmissionVisitor _emissionVisitor;
 
@@ -17,13 +19,18 @@ public class ILCodeGenerator : ICodeGenerator
     public ILCodeGenerator(ILCodeGeneratorConfiguration configuration)
     {
         _configuration = configuration;
+        _transformationPipeline = new List<Func<AssemblyDeclaration, AssemblyDeclaration>>();
         _transformationVisitor = new AstToIlTransformationVisitor();
         _emissionVisitor = new ILEmissionVisitor();
     }
 
-    public void GenerateCode()
+    public ILCodeGenerator(ILCodeGeneratorConfiguration configuration, 
+        IEnumerable<Func<AssemblyDeclaration, AssemblyDeclaration>> transformations)
     {
-        throw new InvalidOperationException("Use GenerateCode(AstThing ast) method instead.");
+        _configuration = configuration;
+        _transformationPipeline = new List<Func<AssemblyDeclaration, AssemblyDeclaration>>(transformations);
+        _transformationVisitor = new AstToIlTransformationVisitor();
+        _emissionVisitor = new ILEmissionVisitor();
     }
 
     /// <summary>
@@ -33,28 +40,73 @@ public class ILCodeGenerator : ICodeGenerator
     /// <returns>The path to the generated IL file</returns>
     public string GenerateCode(ast.AstThing ast)
     {
-        if (ast == null)
-            throw new ArgumentNullException(nameof(ast));
+        ArgumentNullException.ThrowIfNull(ast);
 
-        // Transform AST to IL metamodel
-        var ilAssembly = TransformAstToIl(ast);
-        
-        // Generate IL code
-        var ilCode = EmitILCode(ilAssembly);
-        
-        // Write to file
-        var outputPath = GetOutputPath(ilAssembly);
-        EnsureOutputDirectoryExists(outputPath);
-        File.WriteAllText(outputPath, ilCode);
-        
-        return outputPath;
+        try
+        {
+            // Transform AST to IL metamodel
+            var ilAssembly = TransformAstToIl(ast);
+            
+            // Apply transformation pipeline
+            ilAssembly = ApplyTransformationPipeline(ilAssembly);
+            
+            // Generate IL code
+            var ilCode = EmitILCode(ilAssembly);
+            
+            // Write to file
+            var outputPath = GetOutputPath(ilAssembly);
+            EnsureOutputDirectoryExists(outputPath);
+            File.WriteAllText(outputPath, ilCode);
+            
+            return outputPath;
+        }
+        catch (System.Exception ex) when (!(ex is CodeGenerationException))
+        {
+            throw new CodeGenerationException($"IL code generation failed: {ex.Message}", ex);
+        }
     }
 
     /// <summary>
-    /// Validates that the generated IL file can be compiled by ILASM
+    /// Adds a transformation function to the pipeline that will be applied to the IL metamodel
+    /// </summary>
+    /// <param name="transformation">A function that transforms an AssemblyDeclaration</param>
+    public void AddTransformation(Func<AssemblyDeclaration, AssemblyDeclaration> transformation)
+    {
+        ArgumentNullException.ThrowIfNull(transformation);
+        _transformationPipeline.Add(transformation);
+    }
+
+    /// <summary>
+    /// Applies all registered transformations to the IL assembly in order
+    /// </summary>
+    /// <param name="ilAssembly">The IL assembly to transform</param>
+    /// <returns>The transformed assembly</returns>
+    private AssemblyDeclaration ApplyTransformationPipeline(AssemblyDeclaration ilAssembly)
+    {
+        ArgumentNullException.ThrowIfNull(ilAssembly);
+        
+        var result = ilAssembly;
+        foreach (var transformation in _transformationPipeline)
+        {
+            try
+            {
+                result = transformation(result);
+            }
+            catch (System.Exception ex)
+            {
+                throw new CodeGenerationException($"Transformation pipeline failed: {ex.Message}", ex);
+            }
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Performs basic structural validation of the IL file content.
+    /// Note: This does NOT validate IL correctness or compilability. 
+    /// Use ILASM compilation in tests to validate actual IL correctness.
     /// </summary>
     /// <param name="ilFilePath">Path to the IL file to validate</param>
-    /// <returns>True if the IL file is valid and compiles successfully</returns>
+    /// <returns>True if the IL file has basic required structure</returns>
     public bool ValidateILFile(string ilFilePath)
     {
         if (!File.Exists(ilFilePath))
@@ -78,16 +130,30 @@ public class ILCodeGenerator : ICodeGenerator
 
     private AssemblyDeclaration TransformAstToIl(ast.AstThing ast)
     {
-        return ast switch
+        try
         {
-            AssemblyDef assemblyDef => _transformationVisitor.TransformAssembly(assemblyDef),
-            _ => throw new ArgumentException($"Unsupported AST type: {ast.GetType().Name}")
-        };
+            return ast switch
+            {
+                AssemblyDef assemblyDef => _transformationVisitor.TransformAssembly(assemblyDef),
+                _ => throw new ArgumentException($"Unsupported AST type: {ast.GetType().Name}")
+            };
+        }
+        catch (System.Exception ex) when (!(ex is CodeGenerationException))
+        {
+            throw new CodeGenerationException($"AST to IL transformation failed: {ex.Message}", ex);
+        }
     }
 
     private string EmitILCode(AssemblyDeclaration ilAssembly)
     {
-        return _emissionVisitor.EmitAssembly(ilAssembly);
+        try
+        {
+            return _emissionVisitor.EmitAssembly(ilAssembly);
+        }
+        catch (System.Exception ex) when (!(ex is CodeGenerationException))
+        {
+            throw new CodeGenerationException($"IL code emission failed: {ex.Message}", ex);
+        }
     }
 
     private string GetOutputPath(AssemblyDeclaration assembly)
