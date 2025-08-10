@@ -23,7 +23,7 @@ public abstract record AnnotatedThing : IAnnotated
     }
 
     [IgnoreDuringVisit]
-    public Dictionary<string, object> Annotations { get; init; }
+    public Dictionary<string, object> Annotations { get; init; } = [];
 
     public bool HasAnnotation(string key)
     {

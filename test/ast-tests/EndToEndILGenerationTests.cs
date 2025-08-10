@@ -12,9 +12,7 @@ public class EndToEndILGenerationTests
     public void GenerateIL_FromSimpleFifthProgram_ShouldProduceValidIL()
     {
         // Arrange
-        var fifthCode = @"
-main() => 42;
-";
+        var fifthCode = @"main():int{return 42;}";
         var generator = new ILCodeGenerator();
 
         // Act & Assert: Parse the Fifth code and generate IL

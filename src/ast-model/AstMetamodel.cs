@@ -300,7 +300,7 @@ public record AssemblyDef : ScopedDefinition
     public required string PublicKeyToken { get; init; }
     public required string Version { get; init; }
     public required List<AssemblyRef> AssemblyRefs { get; init; } = [];
-    public required List<ModuleDef> Modules { get; init; }
+    public required List<ModuleDef> Modules { get; init; } = [];
     public required string TestProperty { get; init; } = ""; // Test property added for code generation demo
 }
 
@@ -308,8 +308,8 @@ public record ModuleDef : ScopedDefinition
 {
     public required string OriginalModuleName { get; init; }
     public required NamespaceName NamespaceDecl { get; init; }
-    public required List<ClassDef> Classes { get; init; }
-    public required List<FunctionDef> Functions { get; init; }
+    public required List<ClassDef> Classes { get; init; } = [];
+    public required List<FunctionDef> Functions { get; init; } = [];
 }
 
 /// <summary>
@@ -388,7 +388,7 @@ public record MethodDef : MemberDef
 
 public record OverloadedFunctionDefinition : MemberDef
 {
-    public List<MethodDef> OverloadClauses { get; init; }
+    public List<MethodDef> OverloadClauses { get; init; } = [];
     public IFunctionSignature Signature { get; init; }
 }
 
@@ -424,7 +424,7 @@ public record ParamDef : Definition
 
 public record ParamDestructureDef : Definition
 {
-    public required List<PropertyBindingDef> Bindings { get; set; }
+    public required List<PropertyBindingDef> Bindings { get; set; } = [];
 }
 
 public record PropertyBindingDef : Definition
@@ -442,7 +442,7 @@ public record TypeDef : Definition
 public record ClassDef : ScopedDefinition
 {
     public required TypeName Name { get; init; }
-    public required List<MemberDef> MemberDefs { get; set; }
+    public required List<MemberDef> MemberDefs { get; set; } = [];
 }
 
 // out of scope for now...
