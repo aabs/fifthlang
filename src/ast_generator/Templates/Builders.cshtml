@@ -18,7 +18,14 @@ using System.Collections.Generic;
 
 @foreach (var prop in allProps)
 {
+@if (prop.PropertyType.IsCollectionType())
+{
+@:    private @(prop.PropertyType.BuildTypeName()) _@(prop.Name) = [];
+}
+else
+{
 @:    private @(prop.PropertyType.BuildTypeName()) _@(prop.Name);
+}
 }
 @:    
 @:    public @(t.FullName) Build()
