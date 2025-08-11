@@ -210,7 +210,7 @@ public class AstBuilderVisitorTests
             var func = m.Functions[i] as FunctionDef;
             func.Should().NotBeNull();
             func.Name.Value.Should().Be("foo");
-            func.ReturnType.Name.Value.Should().Be("string");
+            func.ReturnType.Name.Value.ToLowerInvariant().Should().Be("string");
         }
 
         // Validate the fourth function
@@ -482,6 +482,72 @@ public class AstBuilderVisitorTests
         parser.RemoveErrorListeners();
         parser.AddErrorListener(new ThrowingErrorListener<IToken>());
         return parser;
+    }
+
+    [Fact]
+    public void function_with_int_return_type_should_have_correct_type_annotation()
+    {
+        // Initialize TypeRegistry with primitive types
+        TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
+        
+        var funcdefsrc = "main():int{return 42;}";
+        var s = CharStreams.fromString(funcdefsrc);
+        var p = GetParserFor(s);
+        var x = p.function_declaration();
+        x.Should().NotBeNull();
+        
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as FunctionDef;
+        a.Should().NotBeNull();
+        
+        // The function should have the correct name
+        a.Name.Value.Should().Be("main");
+        
+        // The return type should NOT be UnknownType
+        a.ReturnType.Should().NotBeOfType<FifthType.UnknownType>();
+        
+        // The return type should be a TDotnetType wrapping int
+        a.ReturnType.Should().BeOfType<FifthType.TDotnetType>();
+        
+        if (a.ReturnType is FifthType.TDotnetType dotnetType)
+        {
+            dotnetType.TheType.Should().Be(typeof(int));
+            dotnetType.Name.Value.Should().Be("Int32");
+        }
+    }
+
+    [Theory]
+    [InlineData("int", typeof(int), "Int32")]
+    [InlineData("string", typeof(string), "String")]
+    [InlineData("bool", typeof(bool), "Boolean")]
+    [InlineData("float", typeof(float), "Single")]
+    [InlineData("double", typeof(double), "Double")]
+    public void function_return_type_mappings_should_work_correctly(string languageTypeName, Type expectedDotnetType, string expectedTypeName)
+    {
+        // Initialize TypeRegistry with primitive types
+        TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
+        
+        var funcdefsrc = $"test():{languageTypeName}{{return null;}}";
+        var s = CharStreams.fromString(funcdefsrc);
+        var p = GetParserFor(s);
+        var x = p.function_declaration();
+        x.Should().NotBeNull();
+        
+        var v = new AstBuilderVisitor();
+        var a = v.Visit(x) as FunctionDef;
+        a.Should().NotBeNull();
+        
+        // The return type should NOT be UnknownType
+        a.ReturnType.Should().NotBeOfType<FifthType.UnknownType>();
+        
+        // The return type should be a TDotnetType wrapping the expected type
+        a.ReturnType.Should().BeOfType<FifthType.TDotnetType>();
+        
+        if (a.ReturnType is FifthType.TDotnetType dotnetType)
+        {
+            dotnetType.TheType.Should().Be(expectedDotnetType);
+            dotnetType.Name.Value.Should().Be(expectedTypeName);
+        }
     }
 
     private static string ReadEmbeddedResource(string resourceName)

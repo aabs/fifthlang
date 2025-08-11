@@ -22,12 +22,33 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
     
     private void InitializeBuiltinTypes()
     {
+        // Map Fifth language type names to System types
         _typeMap["int"] = new TypeReference { Namespace = "System", Name = "Int32" };
         _typeMap["string"] = new TypeReference { Namespace = "System", Name = "String" };
         _typeMap["float"] = new TypeReference { Namespace = "System", Name = "Single" };
         _typeMap["double"] = new TypeReference { Namespace = "System", Name = "Double" };
         _typeMap["bool"] = new TypeReference { Namespace = "System", Name = "Boolean" };
         _typeMap["void"] = new TypeReference { Namespace = "System", Name = "Void" };
+        
+        // Also map .NET type names to System types (for cases where AST contains .NET type names)
+        _typeMap["Int32"] = new TypeReference { Namespace = "System", Name = "Int32" };
+        _typeMap["String"] = new TypeReference { Namespace = "System", Name = "String" };
+        _typeMap["Single"] = new TypeReference { Namespace = "System", Name = "Single" };
+        _typeMap["Double"] = new TypeReference { Namespace = "System", Name = "Double" };
+        _typeMap["Boolean"] = new TypeReference { Namespace = "System", Name = "Boolean" };
+        _typeMap["Void"] = new TypeReference { Namespace = "System", Name = "Void" };
+        
+        // Additional .NET primitive types
+        _typeMap["byte"] = new TypeReference { Namespace = "System", Name = "Byte" };
+        _typeMap["Byte"] = new TypeReference { Namespace = "System", Name = "Byte" };
+        _typeMap["char"] = new TypeReference { Namespace = "System", Name = "Char" };
+        _typeMap["Char"] = new TypeReference { Namespace = "System", Name = "Char" };
+        _typeMap["long"] = new TypeReference { Namespace = "System", Name = "Int64" };
+        _typeMap["Int64"] = new TypeReference { Namespace = "System", Name = "Int64" };
+        _typeMap["short"] = new TypeReference { Namespace = "System", Name = "Int16" };
+        _typeMap["Int16"] = new TypeReference { Namespace = "System", Name = "Int16" };
+        _typeMap["decimal"] = new TypeReference { Namespace = "System", Name = "Decimal" };
+        _typeMap["Decimal"] = new TypeReference { Namespace = "System", Name = "Decimal" };
     }
 
     /// <summary>

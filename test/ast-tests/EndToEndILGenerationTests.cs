@@ -85,6 +85,105 @@ main():int { return 0; }
     }
 
     [Fact]
+    public void GenerateIL_WithIntReturnType_ShouldShowCorrectReturnTypeInIL()
+    {
+        // Arrange
+        var fifthCode = @"main():int{return 42;}";
+        var generator = new ILCodeGenerator();
+
+        // Act
+        var ast = FifthParserManager.ParseString(fifthCode);
+        ast.Should().NotBeNull();
+
+        var processedAst = FifthParserManager.ApplyLanguageAnalysisPhases(ast);
+        processedAst.Should().NotBeNull();
+
+        if (processedAst is AssemblyDef assemblyDef)
+        {
+            var ilFilePath = generator.GenerateCode(assemblyDef);
+            
+            // Assert
+            ilFilePath.Should().NotBeNullOrEmpty();
+            File.Exists(ilFilePath).Should().BeTrue();
+            
+            var ilContent = File.ReadAllText(ilFilePath);
+            ilContent.Should().Contain(".assembly");
+            ilContent.Should().Contain(".method");
+            ilContent.Should().Contain("main");
+            
+            // Most importantly, check that the IL contains the correct return type
+            // The IL should show proper .NET primitive types (like System.Int32, Int32, System.String, etc.)
+            // instead of Fifth.Generated types for primitive types
+            
+            // Check for proper IL primitive types (like int32, string, etc.)
+            // The IL emitter correctly converts System.Int32 to int32 for IL output
+            ilContent.Should().Contain("int32", 
+                "IL should contain proper IL primitive type 'int32' for integer return types");
+                
+            // Ensure it doesn't contain Fifth.Generated types for primitives
+            ilContent.Should().NotContain("Fifth.Generated.Int32", 
+                "Primitive types should map to .NET types, not Fifth.Generated types");
+            
+            // Also ensure it doesn't contain unknown types
+            ilContent.Should().NotContain("unknown", "The return type should be properly resolved, not unknown");
+            
+            // Cleanup
+            File.Delete(ilFilePath);
+        }
+        else
+        {
+            processedAst.Should().NotBeNull();
+        }
+    }
+
+    [Theory]
+    [InlineData("string", "main():string{return \"hello\";}", "string")]
+    [InlineData("bool", "main():bool{return true;}", "bool")]
+    [InlineData("float", "main():float{return 3.14;}", "float32")]
+    [InlineData("double", "main():double{return 3.14;}", "float64")]
+    public void GenerateIL_WithPrimitiveReturnTypes_ShouldUseDotNetTypes(string fifthType, string code, string expectedILType)
+    {
+        // Arrange
+        var generator = new ILCodeGenerator();
+
+        // Act
+        var ast = FifthParserManager.ParseString(code);
+        ast.Should().NotBeNull();
+
+        var processedAst = FifthParserManager.ApplyLanguageAnalysisPhases(ast);
+        processedAst.Should().NotBeNull();
+
+        if (processedAst is AssemblyDef assemblyDef)
+        {
+            var ilFilePath = generator.GenerateCode(assemblyDef);
+            
+            // Assert
+            ilFilePath.Should().NotBeNullOrEmpty();
+            File.Exists(ilFilePath).Should().BeTrue();
+            
+            var ilContent = File.ReadAllText(ilFilePath);
+            
+            // Check for proper IL primitive types instead of Fifth.Generated types
+            ilContent.Should().Contain(expectedILType, 
+                $"IL should contain proper IL primitive type '{expectedILType}' for {fifthType} return type");
+                
+            // Ensure it doesn't contain Fifth.Generated types for primitives
+            ilContent.Should().NotContain($"Fifth.Generated.", 
+                $"Primitive type {fifthType} should map to IL primitive type, not Fifth.Generated types");
+            
+            // Also ensure it doesn't contain unknown types
+            ilContent.Should().NotContain("unknown", "The return type should be properly resolved, not unknown");
+            
+            // Cleanup
+            File.Delete(ilFilePath);
+        }
+        else
+        {
+            processedAst.Should().NotBeNull();
+        }
+    }
+
+    [Fact]
     public void ValidateILFile_WithMalformedContent_ShouldReturnFalse()
     {
         // Arrange
