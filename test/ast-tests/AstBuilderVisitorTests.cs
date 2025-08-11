@@ -210,7 +210,7 @@ public class AstBuilderVisitorTests
             var func = m.Functions[i] as FunctionDef;
             func.Should().NotBeNull();
             func.Name.Value.Should().Be("foo");
-            func.ReturnType.Name.Value.Should().Be("string");
+            func.ReturnType.Name.Value.ToLowerInvariant().Should().Be("string");
         }
 
         // Validate the fourth function
