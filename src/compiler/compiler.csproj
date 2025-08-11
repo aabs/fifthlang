@@ -1,34 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="LanguageTransformations\CompoundVariableSplitterVisitor.cs" />
-    <Compile Remove="LanguageTransformations\DestructuringVisitorOld.cs" />
-    <Compile Remove="LanguageTransformations\PropertyReferenceToGetterInvocation.cs" />
-    <Compile Remove="LanguageTransformations\ThrowingErrorListener.cs" />
-    <Compile Remove="LanguageTransformations\TypeCheckingError.cs" />
-    <Compile Remove="LanguageTransformations\VariableReferenceResolver.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="LanguageTransformations\CompoundVariableSplitterVisitor.cs" />
-    <None Include="LanguageTransformations\DestructuringVisitorOld.cs" />
-    <None Include="LanguageTransformations\PropertyReferenceToGetterInvocation.cs" />
-    <None Include="LanguageTransformations\ThrowingErrorListener.cs" />
-    <None Include="LanguageTransformations\TypeCheckingError.cs" />
-    <None Include="LanguageTransformations\VariableReferenceResolver.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ast-generated\ast_generated.csproj" />
     <ProjectReference Include="..\ast-model\ast_model.csproj" />
     <ProjectReference Include="..\fifthlang.system\Fifth.System.csproj" />
     <ProjectReference Include="..\parser\parser.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
 
 </Project>
