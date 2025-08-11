@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using ast;
@@ -37,6 +38,39 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             context.Start.Line,
             text[..len]
         );
+    }
+
+    private FifthType ResolveTypeFromName(string typeName)
+    {
+        // Ensure the TypeRegistry is initialized with primitive types
+        TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
+        
+        // Create a mapping from Fifth language type names to .NET type names
+        var typeNameMapping = new Dictionary<string, string>
+        {
+            { "int", "Int32" },
+            { "float", "Single" },
+            { "double", "Double" },
+            { "bool", "Boolean" },
+            { "string", "String" },
+            { "byte", "Byte" },
+            { "char", "Char" },
+            { "long", "Int64" },
+            { "short", "Int16" },
+            { "decimal", "Decimal" }
+        };
+        
+        // Try to map the language type name to .NET type name
+        string dotnetTypeName = typeNameMapping.TryGetValue(typeName, out string mappedName) ? mappedName : typeName;
+        
+        // Try to resolve the type name using the TypeRegistry
+        if (TypeRegistry.DefaultRegistry.TryGetTypeByName(dotnetTypeName, out FifthType resolvedType) && resolvedType != null)
+        {
+            return resolvedType;
+        }
+        
+        // Fall back to UnknownType if the type cannot be resolved
+        return new FifthType.UnknownType() { Name = TypeName.From(typeName) };
     }
 
     #endregion Helper Functions
@@ -305,12 +339,12 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 
     public override IAstThing VisitFunction_declaration(FifthParser.Function_declarationContext context)
     {
-        var returnTypeUnknown = new FifthType.UnknownType() { Name = (TypeName.From(context.result_type.GetText())) };
+        var returnType = ResolveTypeFromName(context.result_type.GetText());
 
         var b = new FunctionDefBuilder();
         b.WithName(MemberName.From(context.name.GetText()))
             .WithBody((BlockStatement)VisitBlock(context.body.block()))
-            .WithReturnType(returnTypeUnknown)
+            .WithReturnType(returnType)
             .WithAnnotations([])
             .WithVisibility(Visibility.Public) // todo: grammar needs support for member visibility
             ;

@@ -85,6 +85,50 @@ main():int { return 0; }
     }
 
     [Fact]
+    public void GenerateIL_WithIntReturnType_ShouldShowCorrectReturnTypeInIL()
+    {
+        // Arrange
+        var fifthCode = @"main():int{return 42;}";
+        var generator = new ILCodeGenerator();
+
+        // Act
+        var ast = FifthParserManager.ParseString(fifthCode);
+        ast.Should().NotBeNull();
+
+        var processedAst = FifthParserManager.ApplyLanguageAnalysisPhases(ast);
+        processedAst.Should().NotBeNull();
+
+        if (processedAst is AssemblyDef assemblyDef)
+        {
+            var ilFilePath = generator.GenerateCode(assemblyDef);
+            
+            // Assert
+            ilFilePath.Should().NotBeNullOrEmpty();
+            File.Exists(ilFilePath).Should().BeTrue();
+            
+            var ilContent = File.ReadAllText(ilFilePath);
+            ilContent.Should().Contain(".assembly");
+            ilContent.Should().Contain(".method");
+            ilContent.Should().Contain("main");
+            
+            // Most importantly, check that the IL contains the correct return type
+            // The IL should show Fifth.Generated.Int32 as the return type for main()
+            // instead of an unknown/void type
+            ilContent.Should().Contain("Fifth.Generated.Int32");
+            
+            // Also ensure it doesn't contain unknown types
+            ilContent.Should().NotContain("unknown", "The return type should be properly resolved, not unknown");
+            
+            // Cleanup
+            File.Delete(ilFilePath);
+        }
+        else
+        {
+            processedAst.Should().NotBeNull();
+        }
+    }
+
+    [Fact]
     public void ValidateILFile_WithMalformedContent_ShouldReturnFalse()
     {
         // Arrange
