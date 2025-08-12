@@ -356,8 +356,19 @@ Examples:
                 Directory.CreateDirectory(outputDir);
             }
 
-            // Run ilasm
-            var arguments = $"\"{ilPath}\" /output=\"{options.Output}\"";
+            // Run ilasm - different syntax for different implementations
+            string arguments;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // Microsoft ilasm syntax
+                arguments = $"\"{ilPath}\" /output=\"{options.Output}\"";
+            }
+            else
+            {
+                // Mono ilasm syntax
+                arguments = $"\"{ilPath}\" /output:\"{options.Output}\" /exe";
+            }
+            
             var result = await _processRunner.RunAsync(ilasmPath, arguments);
 
             if (!result.Success)
