@@ -301,19 +301,26 @@ Examples:
             var outputName = Path.GetFileNameWithoutExtension(options.Output);
             var tempIlPath = Path.Combine(Path.GetDirectoryName(options.Output) ?? ".", $"{outputName}.tmp.{pid}.il");
 
+            // Cast to AssemblyDef as expected by ILCodeGenerator
+            if (ast is not AssemblyDef assemblyDef)
+            {
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Expected AssemblyDef but got {ast.GetType().Name}"));
+                return null;
+            }
+
             // Generate IL using existing ILCodeGenerator, but write to our temp file
-            var ilCode = _ilCodeGenerator.GenerateCode(ast);
+            var ilFilePath = _ilCodeGenerator.GenerateCode(assemblyDef);
             
-            // The ILCodeGenerator.GenerateCode returns a path, but we want to control the temp naming
-            var generatedIlCode = File.ReadAllText(ilCode);
+            // The ILCodeGenerator.GenerateCode returns a path, read the content and write to our temp file
+            var generatedIlCode = File.ReadAllText(ilFilePath);
             File.WriteAllText(tempIlPath, generatedIlCode);
             
             // Clean up the original file if it's different from our temp file
-            if (ilCode != tempIlPath)
+            if (ilFilePath != tempIlPath)
             {
                 try
                 {
-                    File.Delete(ilCode);
+                    File.Delete(ilFilePath);
                 }
                 catch
                 {
