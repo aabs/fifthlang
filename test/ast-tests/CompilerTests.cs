@@ -116,36 +116,19 @@ public class CompilerIntegrationTests
             
             var result = await compiler.CompileAsync(options);
             
-            // The build might fail due to missing ilasm, but we should at least get through parsing
-            // and transformation phases
+            // The build should succeed completely - this is an integration test
+            // that verifies the entire compilation pipeline works
             result.Should().NotBeNull();
+            result.Success.Should().BeTrue("Build should succeed completely. " +
+                "If this fails due to missing ilasm, the test environment needs to be properly configured with IL assembler.");
             
-            if (!result.Success)
-            {
-                // If it failed, it should be due to missing ilasm (exit code 4) or semantic errors (exit code 3)
-                // but not parse errors (exit code 2)
-                result.ExitCode.Should().NotBe(2, "Should not fail at parse phase");
-                
-                // Check if failure is due to missing ilasm
-                var hasIlasmError = result.Diagnostics.Any(d => 
-                    d.Message.Contains("IL Assembler") || d.Message.Contains("ilasm"));
-                
-                if (hasIlasmError)
-                {
-                    result.ExitCode.Should().Be(4, "Should fail with ilasm not found error");
-                }
-            }
-            else
-            {
-                // If successful, should have produced an output file
-                result.OutputPath.Should().Be(outputFile);
-            }
+            // Verify the output file was actually created
+            File.Exists(outputFile).Should().BeTrue("Output executable should be created");
+            result.OutputPath.Should().Be(outputFile);
             
             // Should have some diagnostics if diagnostics mode is enabled
-            if (result.Diagnostics.Any(d => d.Level == DiagnosticLevel.Info))
-            {
-                result.Diagnostics.Should().Contain(d => d.Message.Contains("phase"));
-            }
+            result.Diagnostics.Should().Contain(d => d.Message.Contains("phase"), 
+                "Should have phase diagnostics when diagnostics mode is enabled");
         }
         finally
         {
