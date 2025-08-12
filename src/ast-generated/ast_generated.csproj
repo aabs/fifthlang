@@ -12,7 +12,9 @@
 	  <ProjectReference Include="..\ast-model\ast_model.csproj" />
 	</ItemGroup>
 
-	<Target Name="GenerateAstCode" BeforeTargets="CoreCompile">
+	<Target Name="GenerateAstCode" BeforeTargets="CoreCompile" 
+			Inputs="$(MSBuildProjectDirectory)/../ast-model/AstMetamodel.cs;$(MSBuildProjectDirectory)/../ast-model/ILMetamodel.cs" 
+			Outputs="$(MSBuildProjectDirectory)/builders.generated.cs;$(MSBuildProjectDirectory)/visitors.generated.cs;$(MSBuildProjectDirectory)/typeinference.generated.cs;$(MSBuildProjectDirectory)/il.builders.generated.cs;$(MSBuildProjectDirectory)/il.visitors.generated.cs">
 		<Message Text="Running AST code generation..." Importance="high" />
 		<Exec Command="dotnet run --project $(MSBuildProjectDirectory)/../ast_generator/ast_generator.csproj -- --folder $(MSBuildProjectDirectory)" />
 	</Target>
