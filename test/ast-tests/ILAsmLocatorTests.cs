@@ -1,6 +1,7 @@
 using Xunit;
 using FluentAssertions;
 using compiler;
+using System.Runtime.InteropServices;
 
 namespace ast_tests;
 
@@ -55,14 +56,19 @@ public class ILAsmLocatorTests
     [Fact]
     public void FindILAsm_WithInvalidILASM_PATH_ShouldFallback()
     {
+        // Use platform-appropriate invalid path
+        var invalidPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) 
+            ? @"C:\nonexistent\path\ilasm.exe"
+            : "/nonexistent/path/ilasm";
+            
         // Set environment variable to non-existent file
-        Environment.SetEnvironmentVariable("ILASM_PATH", "/nonexistent/path/ilasm");
+        Environment.SetEnvironmentVariable("ILASM_PATH", invalidPath);
         try
         {
             var result = ILAsmLocator.FindILAsm();
             
             // Should either find ilasm elsewhere or return null, but not use the invalid path
-            result.Should().NotBe("/nonexistent/path/ilasm");
+            result.Should().NotBe(invalidPath);
         }
         finally
         {

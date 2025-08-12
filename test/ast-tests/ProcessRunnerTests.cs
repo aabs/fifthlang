@@ -1,6 +1,7 @@
 using Xunit;
 using FluentAssertions;
 using compiler;
+using System.Runtime.InteropServices;
 
 namespace ast_tests;
 
@@ -11,8 +12,16 @@ public class ProcessRunnerTests
     {
         var runner = new ProcessRunner();
         
-        // Use a simple command that should exist on most systems
-        var result = await runner.RunAsync("echo", "hello world");
+        // Use platform-appropriate commands
+        ProcessResult result;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            result = await runner.RunAsync("cmd", "/c echo hello world");
+        }
+        else
+        {
+            result = await runner.RunAsync("echo", "hello world");
+        }
         
         result.Success.Should().BeTrue();
         result.ExitCode.Should().Be(0);
@@ -26,13 +35,12 @@ public class ProcessRunnerTests
     {
         var runner = new ProcessRunner();
         
-        // Use a command that should exist but fail
-        // On Unix: false command, On Windows: cmd with exit 1
+        // Use platform-appropriate failing commands
         ProcessResult result;
         
         try
         {
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 result = await runner.RunAsync("cmd", "/c exit 1");
             }
@@ -57,21 +65,25 @@ public class ProcessRunnerTests
         var runner = new ProcessRunner();
         var tempDir = Path.GetTempPath();
         
-        // Get current directory from the process
-        var result = await runner.RunAsync("pwd", workingDirectory: tempDir);
+        // Use platform-appropriate commands to get current directory
+        ProcessResult result;
         
-        if (result.Success)
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            // On Unix-like systems, pwd should return the working directory
-            result.StandardOutput.Trim().Should().Be(tempDir.TrimEnd(Path.DirectorySeparatorChar));
-        }
-        else
-        {
-            // On Windows, use echo %cd% instead
+            // On Windows, use echo %cd% to get current directory
             result = await runner.RunAsync("cmd", "/c echo %cd%", tempDir);
             if (result.Success)
             {
                 result.StandardOutput.Should().Contain(tempDir.TrimEnd(Path.DirectorySeparatorChar));
+            }
+        }
+        else
+        {
+            // On Unix-like systems, use pwd to get current directory
+            result = await runner.RunAsync("pwd", workingDirectory: tempDir);
+            if (result.Success)
+            {
+                result.StandardOutput.Trim().Should().Be(tempDir.TrimEnd(Path.DirectorySeparatorChar));
             }
         }
     }
