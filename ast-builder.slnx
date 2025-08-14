@@ -1,9 +1,0 @@
-<Solution>
-  <Project Path="src/ast-generated/ast_generated.csproj" />
-  <Project Path="src/ast-model/ast_model.csproj" />
-  <Project Path="src/ast_generator/ast_generator.csproj" />
-  <Project Path="src/compiler/compiler.csproj" />
-  <Project Path="src/fifthlang.system/Fifth.System.csproj" />
-  <Project Path="src/parser/parser.csproj" />
-  <Project Path="test/ast-tests/ast_tests.csproj" />
-</Solution>

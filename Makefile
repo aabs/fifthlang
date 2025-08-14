@@ -18,10 +18,10 @@ help:
 	@echo "  help              - Show this help message"
 
 build-all: restore run-generator
-	dotnet build ast-builder.sln
+	dotnet build fifthlang.sln
 
 restore:
-	dotnet restore ast-builder.sln
+	dotnet restore fifthlang.sln
 
 test:
 	dotnet test test/ast-tests/ast_tests.csproj
@@ -30,7 +30,7 @@ run-generator:
 	dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
 
 clean:
-	dotnet clean ast-builder.sln
+	dotnet clean fifthlang.sln
 
 build-ast-model:
 	dotnet build src/ast-model/ast_model.csproj
