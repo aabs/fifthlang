@@ -83,7 +83,9 @@ public class ProcessRunnerTests
             result = await runner.RunAsync("pwd", workingDirectory: tempDir);
             if (result.Success)
             {
-                result.StandardOutput.Trim().Should().Be(tempDir.TrimEnd(Path.DirectorySeparatorChar));
+                // Use Contains() instead of Be() to handle symlink resolution differences on macOS
+                // where /var may be a symlink to /private/var
+                result.StandardOutput.Should().Contain(tempDir.TrimEnd(Path.DirectorySeparatorChar));
             }
         }
     }
