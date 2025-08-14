@@ -31,7 +31,8 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
         }
 
         // Emit assembly declaration
-        EmitLine($".assembly {assembly.Name}");
+        var assemblyName = string.IsNullOrWhiteSpace(assembly.Name) ? "FifthProgram" : assembly.Name;
+        EmitLine($".assembly {assemblyName}");
         EmitLine("{");
         IncreaseIndent();
         EmitLine($".ver {assembly.Version.Major}:{assembly.Version.Minor}:{assembly.Version.Build}:{assembly.Version.Patch}");
