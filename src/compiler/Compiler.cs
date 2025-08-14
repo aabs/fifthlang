@@ -130,6 +130,7 @@ public class Compiler
 
             stopwatch.Stop();
             return CompilationResult.Successful(
+                diagnostics,
                 outputPath: assemblyResult.outputPath,
                 ilPath: options.KeepTemp ? ilPath : null,
                 elapsed: stopwatch.Elapsed);
@@ -201,7 +202,7 @@ public class Compiler
             }
 
             // Successful lint
-            return CompilationResult.Successful();
+            return CompilationResult.Successful(diagnostics);
         }
         catch (System.Exception ex)
         {
@@ -385,12 +386,71 @@ Examples:
                 return (false, null);
             }
 
+            // Generate runtime configuration file for framework-dependent execution
+            await GenerateRuntimeConfigAsync(options.Output, diagnostics);
+
+            // Set execute permission on Unix-like systems
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                try
+                {
+                    // Use chmod to set execute permission
+                    var chmodResult = await _processRunner.RunAsync("chmod", $"+x \"{options.Output}\"");
+                    if (!chmodResult.Success && diagnostics.Any(d => d.Level == DiagnosticLevel.Info && d.Message.Contains("Diagnostics mode")))
+                    {
+                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission on {options.Output}"));
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission: {ex.Message}"));
+                }
+            }
+
             return (true, options.Output);
         }
         catch (System.Exception ex)
         {
             diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Assembly error: {ex.Message}"));
             return (false, null);
+        }
+    }
+
+    private async Task GenerateRuntimeConfigAsync(string executablePath, List<Diagnostic> diagnostics)
+    {
+        try
+        {
+            var executableName = Path.GetFileNameWithoutExtension(executablePath);
+            var runtimeConfigPath = Path.Combine(Path.GetDirectoryName(executablePath) ?? "", $"{executableName}.runtimeconfig.json");
+
+            var runtimeConfig = new
+            {
+                runtimeOptions = new
+                {
+                    tfm = "net8.0",
+                    framework = new
+                    {
+                        name = "Microsoft.NETCore.App",
+                        version = "8.0.0"
+                    }
+                }
+            };
+
+            var json = System.Text.Json.JsonSerializer.Serialize(runtimeConfig, new System.Text.Json.JsonSerializerOptions 
+            { 
+                WriteIndented = true 
+            });
+
+            await File.WriteAllTextAsync(runtimeConfigPath, json);
+            
+            if (diagnostics.Any(d => d.Level == DiagnosticLevel.Info && d.Message.Contains("Diagnostics mode")))
+            {
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated runtime config: {runtimeConfigPath}"));
+            }
+        }
+        catch (System.Exception ex)
+        {
+            diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to generate runtime config: {ex.Message}"));
         }
     }
 

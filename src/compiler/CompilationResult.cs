@@ -44,6 +44,14 @@ public record CompilationResult(
     }
 
     /// <summary>
+    /// Create a successful result with diagnostics
+    /// </summary>
+    public static CompilationResult Successful(IEnumerable<Diagnostic> diagnostics, string? outputPath = null, string? ilPath = null, TimeSpan? elapsed = null)
+    {
+        return new CompilationResult(true, 0, diagnostics.ToArray(), outputPath, ilPath, elapsed);
+    }
+
+    /// <summary>
     /// Create a failed result with an error message
     /// </summary>
     public static CompilationResult Failed(int exitCode, string errorMessage, string? source = null)
