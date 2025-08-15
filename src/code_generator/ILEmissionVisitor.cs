@@ -240,7 +240,6 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
         EmitLine($"br {startLabel}");
         EmitLine($"{endLabel}:");
     }
-    */
     {
         // IL uses locals for local variables
         EmitLine($".locals init ({GetTypeNameForLocal(varDecl.TypeName)} {varDecl.Name})");
@@ -319,7 +318,7 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
         // TODO: Update to handle ast.Expression types with instruction generation
         throw new NotImplementedException("Expression emission needs to be updated for new instruction-level model");
     }
-
+    */
     /* Removed old expression handling methods - now using instruction sequences only */
     private void EmitInstructionSequence(InstructionSequence sequence)
     {
@@ -328,6 +327,7 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
             EmitInstruction(instruction);
         }
     }
+
     
     /// <summary>
     /// Emits a single CIL instruction
