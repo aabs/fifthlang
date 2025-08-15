@@ -38,6 +38,24 @@ public interface IAstVisitor
     public void LeaveFieldDefinition(FieldDefinition ctx);
     public void EnterPropertyDefinition(PropertyDefinition ctx);
     public void LeavePropertyDefinition(PropertyDefinition ctx);
+    public void EnterLoadInstruction(LoadInstruction ctx);
+    public void LeaveLoadInstruction(LoadInstruction ctx);
+    public void EnterStoreInstruction(StoreInstruction ctx);
+    public void LeaveStoreInstruction(StoreInstruction ctx);
+    public void EnterArithmeticInstruction(ArithmeticInstruction ctx);
+    public void LeaveArithmeticInstruction(ArithmeticInstruction ctx);
+    public void EnterBranchInstruction(BranchInstruction ctx);
+    public void LeaveBranchInstruction(BranchInstruction ctx);
+    public void EnterCallInstruction(CallInstruction ctx);
+    public void LeaveCallInstruction(CallInstruction ctx);
+    public void EnterStackInstruction(StackInstruction ctx);
+    public void LeaveStackInstruction(StackInstruction ctx);
+    public void EnterReturnInstruction(ReturnInstruction ctx);
+    public void LeaveReturnInstruction(ReturnInstruction ctx);
+    public void EnterLabelInstruction(LabelInstruction ctx);
+    public void LeaveLabelInstruction(LabelInstruction ctx);
+    public void EnterInstructionSequence(InstructionSequence ctx);
+    public void LeaveInstructionSequence(InstructionSequence ctx);
     public void EnterBlock(Block ctx);
     public void LeaveBlock(Block ctx);
     public void EnterIfStatement(IfStatement ctx);
@@ -52,6 +70,8 @@ public interface IAstVisitor
     public void LeaveWhileStatement(WhileStatement ctx);
     public void EnterExpressionStatement(ExpressionStatement ctx);
     public void LeaveExpressionStatement(ExpressionStatement ctx);
+    public void EnterInstructionStatement(InstructionStatement ctx);
+    public void LeaveInstructionStatement(InstructionStatement ctx);
     public void EnterUnaryExpression(UnaryExpression ctx);
     public void LeaveUnaryExpression(UnaryExpression ctx);
     public void EnterBinaryExpression(BinaryExpression ctx);
@@ -136,6 +156,24 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveFieldDefinition(FieldDefinition ctx){}
     public virtual void EnterPropertyDefinition(PropertyDefinition ctx){}
     public virtual void LeavePropertyDefinition(PropertyDefinition ctx){}
+    public virtual void EnterLoadInstruction(LoadInstruction ctx){}
+    public virtual void LeaveLoadInstruction(LoadInstruction ctx){}
+    public virtual void EnterStoreInstruction(StoreInstruction ctx){}
+    public virtual void LeaveStoreInstruction(StoreInstruction ctx){}
+    public virtual void EnterArithmeticInstruction(ArithmeticInstruction ctx){}
+    public virtual void LeaveArithmeticInstruction(ArithmeticInstruction ctx){}
+    public virtual void EnterBranchInstruction(BranchInstruction ctx){}
+    public virtual void LeaveBranchInstruction(BranchInstruction ctx){}
+    public virtual void EnterCallInstruction(CallInstruction ctx){}
+    public virtual void LeaveCallInstruction(CallInstruction ctx){}
+    public virtual void EnterStackInstruction(StackInstruction ctx){}
+    public virtual void LeaveStackInstruction(StackInstruction ctx){}
+    public virtual void EnterReturnInstruction(ReturnInstruction ctx){}
+    public virtual void LeaveReturnInstruction(ReturnInstruction ctx){}
+    public virtual void EnterLabelInstruction(LabelInstruction ctx){}
+    public virtual void LeaveLabelInstruction(LabelInstruction ctx){}
+    public virtual void EnterInstructionSequence(InstructionSequence ctx){}
+    public virtual void LeaveInstructionSequence(InstructionSequence ctx){}
     public virtual void EnterBlock(Block ctx){}
     public virtual void LeaveBlock(Block ctx){}
     public virtual void EnterIfStatement(IfStatement ctx){}
@@ -150,6 +188,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveWhileStatement(WhileStatement ctx){}
     public virtual void EnterExpressionStatement(ExpressionStatement ctx){}
     public virtual void LeaveExpressionStatement(ExpressionStatement ctx){}
+    public virtual void EnterInstructionStatement(InstructionStatement ctx){}
+    public virtual void LeaveInstructionStatement(InstructionStatement ctx){}
     public virtual void EnterUnaryExpression(UnaryExpression ctx){}
     public virtual void LeaveUnaryExpression(UnaryExpression ctx){}
     public virtual void EnterBinaryExpression(BinaryExpression ctx){}
@@ -219,6 +259,15 @@ public interface IAstRecursiveDescentVisitor
     public MemberRef VisitMemberRef(MemberRef ctx);
     public FieldDefinition VisitFieldDefinition(FieldDefinition ctx);
     public PropertyDefinition VisitPropertyDefinition(PropertyDefinition ctx);
+    public LoadInstruction VisitLoadInstruction(LoadInstruction ctx);
+    public StoreInstruction VisitStoreInstruction(StoreInstruction ctx);
+    public ArithmeticInstruction VisitArithmeticInstruction(ArithmeticInstruction ctx);
+    public BranchInstruction VisitBranchInstruction(BranchInstruction ctx);
+    public CallInstruction VisitCallInstruction(CallInstruction ctx);
+    public StackInstruction VisitStackInstruction(StackInstruction ctx);
+    public ReturnInstruction VisitReturnInstruction(ReturnInstruction ctx);
+    public LabelInstruction VisitLabelInstruction(LabelInstruction ctx);
+    public InstructionSequence VisitInstructionSequence(InstructionSequence ctx);
     public Block VisitBlock(Block ctx);
     public IfStatement VisitIfStatement(IfStatement ctx);
     public VariableAssignmentStatement VisitVariableAssignmentStatement(VariableAssignmentStatement ctx);
@@ -226,6 +275,7 @@ public interface IAstRecursiveDescentVisitor
     public ReturnStatement VisitReturnStatement(ReturnStatement ctx);
     public WhileStatement VisitWhileStatement(WhileStatement ctx);
     public ExpressionStatement VisitExpressionStatement(ExpressionStatement ctx);
+    public InstructionStatement VisitInstructionStatement(InstructionStatement ctx);
     public UnaryExpression VisitUnaryExpression(UnaryExpression ctx);
     public BinaryExpression VisitBinaryExpression(BinaryExpression ctx);
     public VariableReferenceExpression VisitVariableReferenceExpression(VariableReferenceExpression ctx);
@@ -274,6 +324,15 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              MemberRef node => VisitMemberRef(node),
              FieldDefinition node => VisitFieldDefinition(node),
              PropertyDefinition node => VisitPropertyDefinition(node),
+             LoadInstruction node => VisitLoadInstruction(node),
+             StoreInstruction node => VisitStoreInstruction(node),
+             ArithmeticInstruction node => VisitArithmeticInstruction(node),
+             BranchInstruction node => VisitBranchInstruction(node),
+             CallInstruction node => VisitCallInstruction(node),
+             StackInstruction node => VisitStackInstruction(node),
+             ReturnInstruction node => VisitReturnInstruction(node),
+             LabelInstruction node => VisitLabelInstruction(node),
+             InstructionSequence node => VisitInstructionSequence(node),
              Block node => VisitBlock(node),
              IfStatement node => VisitIfStatement(node),
              VariableAssignmentStatement node => VisitVariableAssignmentStatement(node),
@@ -281,6 +340,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              ReturnStatement node => VisitReturnStatement(node),
              WhileStatement node => VisitWhileStatement(node),
              ExpressionStatement node => VisitExpressionStatement(node),
+             InstructionStatement node => VisitInstructionStatement(node),
              UnaryExpression node => VisitUnaryExpression(node),
              BinaryExpression node => VisitBinaryExpression(node),
              VariableReferenceExpression node => VisitVariableReferenceExpression(node),
@@ -446,6 +506,54 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         ,AssociatedProperty = (il_ast.PropertyDefinition)Visit((AstThing)ctx.AssociatedProperty)
         };
     }
+    public virtual LoadInstruction VisitLoadInstruction(LoadInstruction ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual StoreInstruction VisitStoreInstruction(StoreInstruction ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual ArithmeticInstruction VisitArithmeticInstruction(ArithmeticInstruction ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual BranchInstruction VisitBranchInstruction(BranchInstruction ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual CallInstruction VisitCallInstruction(CallInstruction ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual StackInstruction VisitStackInstruction(StackInstruction ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual ReturnInstruction VisitReturnInstruction(ReturnInstruction ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual LabelInstruction VisitLabelInstruction(LabelInstruction ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual InstructionSequence VisitInstructionSequence(InstructionSequence ctx)
+    {
+        List<il_ast.CilInstruction> tmpInstructions = [];
+        tmpInstructions.AddRange(ctx.Instructions.Select(x => (il_ast.CilInstruction)Visit(x)));
+     return ctx with {
+         Instructions = tmpInstructions
+        };
+    }
     public virtual Block VisitBlock(Block ctx)
     {
         List<il_ast.Statement> tmpStatements = [];
@@ -491,6 +599,12 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     {
      return ctx with {
          Expression = (il_ast.Expression)Visit((AstThing)ctx.Expression)
+        };
+    }
+    public virtual InstructionStatement VisitInstructionStatement(InstructionStatement ctx)
+    {
+     return ctx with {
+         Instructions = (il_ast.InstructionSequence)Visit((AstThing)ctx.Instructions)
         };
     }
     public virtual UnaryExpression VisitUnaryExpression(UnaryExpression ctx)

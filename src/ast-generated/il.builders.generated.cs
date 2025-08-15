@@ -157,6 +157,122 @@ public class PropertyDefinitionBuilder : IBuilder<il_ast.PropertyDefinition>
         };
     }
 }
+public class LoadInstructionBuilder : IBuilder<il_ast.LoadInstruction>
+{
+    private System.Object _Value;
+    
+    public il_ast.LoadInstruction Build()
+    {
+        return new il_ast.LoadInstruction(){
+             Value = this._Value // from LoadInstruction
+        };
+    }
+    public LoadInstructionBuilder WithValue(System.Object value){
+        _Value = value;
+        return this;
+    }
+
+}
+public class StoreInstructionBuilder : IBuilder<il_ast.StoreInstruction>
+{
+    private System.String _Target;
+    
+    public il_ast.StoreInstruction Build()
+    {
+        return new il_ast.StoreInstruction(){
+             Target = this._Target // from StoreInstruction
+        };
+    }
+    public StoreInstructionBuilder WithTarget(System.String value){
+        _Target = value;
+        return this;
+    }
+
+}
+public class ArithmeticInstructionBuilder : IBuilder<il_ast.ArithmeticInstruction>
+{
+    
+    public il_ast.ArithmeticInstruction Build()
+    {
+        return new il_ast.ArithmeticInstruction(){
+        };
+    }
+}
+public class BranchInstructionBuilder : IBuilder<il_ast.BranchInstruction>
+{
+    private System.String _TargetLabel;
+    
+    public il_ast.BranchInstruction Build()
+    {
+        return new il_ast.BranchInstruction(){
+             TargetLabel = this._TargetLabel // from BranchInstruction
+        };
+    }
+    public BranchInstructionBuilder WithTargetLabel(System.String value){
+        _TargetLabel = value;
+        return this;
+    }
+
+}
+public class CallInstructionBuilder : IBuilder<il_ast.CallInstruction>
+{
+    private System.String _MethodSignature;
+    
+    public il_ast.CallInstruction Build()
+    {
+        return new il_ast.CallInstruction(){
+             MethodSignature = this._MethodSignature // from CallInstruction
+        };
+    }
+    public CallInstructionBuilder WithMethodSignature(System.String value){
+        _MethodSignature = value;
+        return this;
+    }
+
+}
+public class StackInstructionBuilder : IBuilder<il_ast.StackInstruction>
+{
+    
+    public il_ast.StackInstruction Build()
+    {
+        return new il_ast.StackInstruction(){
+        };
+    }
+}
+public class ReturnInstructionBuilder : IBuilder<il_ast.ReturnInstruction>
+{
+    
+    public il_ast.ReturnInstruction Build()
+    {
+        return new il_ast.ReturnInstruction(){
+        };
+    }
+}
+public class LabelInstructionBuilder : IBuilder<il_ast.LabelInstruction>
+{
+    private System.String _Label;
+    
+    public il_ast.LabelInstruction Build()
+    {
+        return new il_ast.LabelInstruction(){
+             Label = this._Label // from LabelInstruction
+        };
+    }
+    public LabelInstructionBuilder WithLabel(System.String value){
+        _Label = value;
+        return this;
+    }
+
+}
+public class InstructionSequenceBuilder : IBuilder<il_ast.InstructionSequence>
+{
+    
+    public il_ast.InstructionSequence Build()
+    {
+        return new il_ast.InstructionSequence(){
+        };
+    }
+}
 public class BlockBuilder : IBuilder<il_ast.Block>
 {
     
@@ -217,6 +333,15 @@ public class ExpressionStatementBuilder : IBuilder<il_ast.ExpressionStatement>
     public il_ast.ExpressionStatement Build()
     {
         return new il_ast.ExpressionStatement(){
+        };
+    }
+}
+public class InstructionStatementBuilder : IBuilder<il_ast.InstructionStatement>
+{
+    
+    public il_ast.InstructionStatement Build()
+    {
+        return new il_ast.InstructionStatement(){
         };
     }
 }

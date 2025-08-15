@@ -185,6 +185,9 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
                 EmitExpression(exprStmt.Expression);
                 EmitLine("pop"); // Pop result if not used
                 break;
+            case InstructionStatement instrStmt:
+                EmitInstructionSequence(instrStmt.Instructions);
+                break;
         }
     }
 
@@ -455,5 +458,139 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
     private void DecreaseIndent()
     {
         _indentLevel = Math.Max(0, _indentLevel - 1);
+    }
+    
+    /// <summary>
+    /// Emits an instruction sequence directly to IL
+    /// </summary>
+    private void EmitInstructionSequence(InstructionSequence sequence)
+    {
+        foreach (var instruction in sequence.Instructions)
+        {
+            EmitInstruction(instruction);
+        }
+    }
+    
+    /// <summary>
+    /// Emits a single CIL instruction
+    /// </summary>
+    private void EmitInstruction(CilInstruction instruction)
+    {
+        switch (instruction)
+        {
+            case LoadInstruction loadInstr:
+                EmitLoadInstruction(loadInstr);
+                break;
+                
+            case StoreInstruction storeInstr:
+                EmitStoreInstruction(storeInstr);
+                break;
+                
+            case ArithmeticInstruction arithInstr:
+                EmitArithmeticInstruction(arithInstr);
+                break;
+                
+            case BranchInstruction branchInstr:
+                EmitBranchInstruction(branchInstr);
+                break;
+                
+            case CallInstruction callInstr:
+                EmitCallInstruction(callInstr);
+                break;
+                
+            case StackInstruction stackInstr:
+                EmitStackInstruction(stackInstr);
+                break;
+                
+            case ReturnInstruction:
+                EmitLine("ret");
+                break;
+                
+            case LabelInstruction labelInstr:
+                EmitLine($"{labelInstr.Label}:");
+                break;
+        }
+    }
+    
+    private void EmitLoadInstruction(LoadInstruction loadInstr)
+    {
+        if (loadInstr.Value != null)
+        {
+            EmitLine($"{loadInstr.Opcode} {loadInstr.Value}");
+        }
+        else
+        {
+            EmitLine(loadInstr.Opcode);
+        }
+    }
+    
+    private void EmitStoreInstruction(StoreInstruction storeInstr)
+    {
+        if (storeInstr.Target != null)
+        {
+            EmitLine($"{storeInstr.Opcode} {storeInstr.Target}");
+        }
+        else
+        {
+            EmitLine(storeInstr.Opcode);
+        }
+    }
+    
+    private void EmitArithmeticInstruction(ArithmeticInstruction arithInstr)
+    {
+        switch (arithInstr.Opcode)
+        {
+            case "ceq_neg": // Special handling for !=
+                EmitLine("ceq");
+                EmitLine("ldc.i4.0");
+                EmitLine("ceq");
+                break;
+            case "not": // Special handling for logical not
+                EmitLine("ldc.i4.0");
+                EmitLine("ceq");
+                break;
+            case "cle": // Special handling for <=
+                EmitLine("cgt");
+                EmitLine("ldc.i4.0");
+                EmitLine("ceq");
+                break;
+            case "cge": // Special handling for >=
+                EmitLine("clt");
+                EmitLine("ldc.i4.0");
+                EmitLine("ceq");
+                break;
+            default:
+                EmitLine(arithInstr.Opcode);
+                break;
+        }
+    }
+    
+    private void EmitBranchInstruction(BranchInstruction branchInstr)
+    {
+        if (branchInstr.TargetLabel != null)
+        {
+            EmitLine($"{branchInstr.Opcode} {branchInstr.TargetLabel}");
+        }
+        else
+        {
+            EmitLine(branchInstr.Opcode);
+        }
+    }
+    
+    private void EmitCallInstruction(CallInstruction callInstr)
+    {
+        if (callInstr.MethodSignature != null)
+        {
+            EmitLine($"{callInstr.Opcode} {callInstr.MethodSignature}");
+        }
+        else
+        {
+            EmitLine(callInstr.Opcode);
+        }
+    }
+    
+    private void EmitStackInstruction(StackInstruction stackInstr)
+    {
+        EmitLine(stackInstr.Opcode);
     }
 }

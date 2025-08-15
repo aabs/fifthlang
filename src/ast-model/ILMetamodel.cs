@@ -321,6 +321,158 @@ public record PropertyDefinition : MemberDefinition
 
 #endregion
 
+#region Instructions
+
+/// <summary>
+/// Base type for all CIL instructions that map directly to IL opcodes
+/// </summary>
+[Ignore]
+public abstract record CilInstruction : AstThing
+{
+    public abstract string Opcode { get; }
+}
+
+/// <summary>
+/// Load instructions (ldc.i4, ldloc, ldarg, ldstr, etc.)
+/// </summary>
+public record LoadInstruction : CilInstruction
+{
+    public LoadInstruction() { }
+    public LoadInstruction(string opcode, object? value = null)
+    {
+        _opcode = opcode;
+        Value = value;
+    }
+
+    private readonly string _opcode = "";
+    public override string Opcode => _opcode;
+    public object? Value { get; init; }
+}
+
+/// <summary>
+/// Store instructions (stloc, stfld, starg, etc.)
+/// </summary>
+public record StoreInstruction : CilInstruction
+{
+    public StoreInstruction() { }
+    public StoreInstruction(string opcode, string? target = null)
+    {
+        _opcode = opcode;
+        Target = target;
+    }
+
+    private readonly string _opcode = "";
+    public override string Opcode => _opcode;
+    public string? Target { get; init; }
+}
+
+/// <summary>
+/// Arithmetic and logical instructions (add, sub, mul, div, ceq, clt, etc.)
+/// </summary>
+public record ArithmeticInstruction : CilInstruction
+{
+    public ArithmeticInstruction() { }
+    public ArithmeticInstruction(string opcode)
+    {
+        _opcode = opcode;
+    }
+
+    private readonly string _opcode = "";
+    public override string Opcode => _opcode;
+}
+
+/// <summary>
+/// Branch instructions (br, brtrue, brfalse, etc.)
+/// </summary>
+public record BranchInstruction : CilInstruction
+{
+    public BranchInstruction() { }
+    public BranchInstruction(string opcode, string? targetLabel = null)
+    {
+        _opcode = opcode;
+        TargetLabel = targetLabel;
+    }
+
+    private readonly string _opcode = "";
+    public override string Opcode => _opcode;
+    public string? TargetLabel { get; init; }
+}
+
+/// <summary>
+/// Call instructions (call, callvirt, newobj, etc.)
+/// </summary>
+public record CallInstruction : CilInstruction
+{
+    public CallInstruction() { }
+    public CallInstruction(string opcode, string? methodSignature = null)
+    {
+        _opcode = opcode;
+        MethodSignature = methodSignature;
+    }
+
+    private readonly string _opcode = "";
+    public override string Opcode => _opcode;
+    public string? MethodSignature { get; init; }
+}
+
+/// <summary>
+/// Stack manipulation instructions (dup, pop, etc.)
+/// </summary>
+public record StackInstruction : CilInstruction
+{
+    public StackInstruction() { }
+    public StackInstruction(string opcode)
+    {
+        _opcode = opcode;
+    }
+
+    private readonly string _opcode = "";
+    public override string Opcode => _opcode;
+}
+
+/// <summary>
+/// Return instruction
+/// </summary>
+public record ReturnInstruction : CilInstruction
+{
+    public override string Opcode => "ret";
+}
+
+/// <summary>
+/// Label marker for branch targets
+/// </summary>
+public record LabelInstruction : CilInstruction
+{
+    public LabelInstruction() { }
+    public LabelInstruction(string label)
+    {
+        Label = label;
+    }
+
+    public override string Opcode => "";
+    public string Label { get; init; } = "";
+}
+
+/// <summary>
+/// Container for a sequence of CIL instructions
+/// </summary>
+public record InstructionSequence : AstThing
+{
+    public List<CilInstruction> Instructions { get; set; } = new();
+    
+    public void Add(CilInstruction instruction)
+    {
+        Instructions.Add(instruction);
+    }
+    
+    public void AddRange(IEnumerable<CilInstruction> instructions)
+    {
+        Instructions.AddRange(instructions);
+    }
+}
+
+#endregion
+
 #region Statements
 
 [Ignore]
@@ -369,6 +521,15 @@ public record WhileStatement : Statement
 public record ExpressionStatement : Statement
 {
     public Expression Expression { get; set; }
+}
+
+/// <summary>
+/// Statement that contains a sequence of CIL instructions
+/// This is the bridge between high-level IL constructs and instruction-level IL
+/// </summary>
+public record InstructionStatement : Statement
+{
+    public InstructionSequence Instructions { get; set; } = new();
 }
 
 #endregion
