@@ -14,7 +14,6 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
     private AssemblyDeclaration? _currentAssembly;
     private ModuleDeclaration? _currentModule;
     private ClassDefinition? _currentClass;
-    private readonly InstructionSequenceGenerator _instructionGenerator = new();
     
     public AstToIlTransformationVisitor()
     {
@@ -261,109 +260,19 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         return ilBlock;
     }
 
-    private il_ast.Statement? TransformStatement(ast.Statement astStatement)
+    private ast.Statement? TransformStatement(ast.Statement astStatement)
     {
-        return astStatement switch
-        {
-            VarDeclStatement varDecl => TransformVariableDeclaration(varDecl),
-            ast.ReturnStatement returnStmt => TransformReturn(returnStmt),
-            IfElseStatement ifStmt => TransformIfElse(ifStmt),
-            ast.WhileStatement whileStmt => TransformWhile(whileStmt),
-            AssignmentStatement assignment => TransformAssignment(assignment),
-            ExpStatement exprStmt => new il_ast.ExpressionStatement 
-            { 
-                Expression = TransformExpression(exprStmt.RHS) 
-            },
-            _ => null
-        };
+        // With the new approach, we keep the ast.Statement types as-is
+        // and only convert to instruction sequences when generating IL
+        return astStatement;
     }
 
-    private VariableDeclarationStatement TransformVariableDeclaration(VarDeclStatement astVarDecl)
-    {
-        return new VariableDeclarationStatement
-        {
-            Name = astVarDecl.VariableDecl.Name ?? "temp",
-            TypeName = astVarDecl.VariableDecl.TypeName.Value?.ToString() ?? "object",
-            InitialisationExpression = astVarDecl.InitialValue != null 
-                ? TransformExpression(astVarDecl.InitialValue)
-                : null
-        };
-    }
 
-    private il_ast.ReturnStatement TransformReturn(ast.ReturnStatement astReturn)
-    {
-        return new il_ast.ReturnStatement
-        {
-            Exp = TransformExpression(astReturn.ReturnValue)
-        };
-    }
 
-    private IfStatement TransformIfElse(IfElseStatement astIfElse)
-    {
-        return new IfStatement
-        {
-            Conditional = TransformExpression(astIfElse.Condition),
-            IfBlock = TransformBlock(astIfElse.ThenBlock),
-            ElseBlock = TransformBlock(astIfElse.ElseBlock)
-        };
-    }
-
-    private il_ast.WhileStatement TransformWhile(ast.WhileStatement astWhile)
-    {
-        return new il_ast.WhileStatement
-        {
-            Conditional = TransformExpression(astWhile.Condition),
-            LoopBlock = TransformBlock(astWhile.Body)
-        };
-    }
-
-    private VariableAssignmentStatement TransformAssignment(AssignmentStatement astAssignment)
-    {
-        // For simplicity, we assume LValue is a variable reference
-        var lvalueName = "temp";
-        if (astAssignment.LValue is VarRefExp varRef)
-        {
-            lvalueName = varRef.VarName;
-        }
-
-        return new VariableAssignmentStatement
-        {
-            LHS = lvalueName,
-            RHS = TransformExpression(astAssignment.RValue)
-        };
-    }
-
-    private il_ast.Expression TransformExpression(ast.Expression astExpression)
-    {
-        return astExpression switch
-        {
-            Int32LiteralExp intLit => new IntLiteral(intLit.Value),
-            Float8LiteralExp doubleLit => new DoubleLiteral(doubleLit.Value),
-            Float4LiteralExp floatLit => new FloatLiteral(floatLit.Value),
-            StringLiteralExp stringLit => new StringLiteral(stringLit.Value),
-            BooleanLiteralExp boolLit => new BoolLiteral(boolLit.Value),
-            BinaryExp binaryExp => new BinaryExpression(
-                GetOperatorString(binaryExp.Operator),
-                TransformExpression(binaryExp.LHS),
-                TransformExpression(binaryExp.RHS)
-            ),
-            UnaryExp unaryExp => new UnaryExpression(
-                GetOperatorString(unaryExp.Operator),
-                TransformExpression(unaryExp.Operand)
-            ),
-            VarRefExp varRef => new VariableReferenceExpression
-            {
-                Name = varRef.VarName
-            },
-            ast.FuncCallExp funcCall => new il_ast.FuncCallExp
-            {
-                Name = funcCall.FunctionDef?.Name.Value ?? "unknown",
-                Args = funcCall.InvocationArguments?.Select(TransformExpression).ToList() ?? new List<il_ast.Expression>(),
-                ReturnType = "object"
-            },
-            _ => new VariableReferenceExpression { Name = "unknown" }
-        };
-    }
+    /// <summary>
+    /// Gets the label counter for generating unique labels
+    /// </summary>
+    private int _labelCounter = 0;
 
     private string GetOperatorString(Operator op)
     {
@@ -398,79 +307,74 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             Name = typeName
         };
     }
-}
-
-/// <summary>
-/// Helper class to generate instruction sequences from high-level IL constructs
-/// </summary>
-public class InstructionSequenceGenerator
-{
-    private int _labelCounter = 0;
     
     /// <summary>
     /// Generates instruction sequence for an expression that evaluates to a value on the stack
     /// </summary>
-    public InstructionSequence GenerateExpression(il_ast.Expression expression)
+    public InstructionSequence GenerateExpression(ast.Expression expression)
     {
         var sequence = new InstructionSequence();
         
         switch (expression)
         {
-            case IntLiteral intLit:
+            case Int32LiteralExp intLit:
                 sequence.Add(new LoadInstruction("ldc.i4", intLit.Value));
                 break;
                 
-            case FloatLiteral floatLit:
+            case Float4LiteralExp floatLit:
                 sequence.Add(new LoadInstruction("ldc.r4", floatLit.Value));
                 break;
                 
-            case DoubleLiteral doubleLit:
+            case Float8LiteralExp doubleLit:
                 sequence.Add(new LoadInstruction("ldc.r8", doubleLit.Value));
                 break;
                 
-            case StringLiteral stringLit:
+            case StringLiteralExp stringLit:
                 sequence.Add(new LoadInstruction("ldstr", $"\"{EscapeString(stringLit.Value)}\""));
                 break;
                 
-            case BoolLiteral boolLit:
+            case BooleanLiteralExp boolLit:
                 sequence.Add(new LoadInstruction("ldc.i4", boolLit.Value ? 1 : 0));
                 break;
                 
-            case VariableReferenceExpression varRef:
-                sequence.Add(new LoadInstruction("ldloc", varRef.Name));
+            case VarRefExp varRef:
+                sequence.Add(new LoadInstruction("ldloc", varRef.VarName));
                 break;
                 
-            case BinaryExpression binaryExp:
+            case BinaryExp binaryExp:
                 // Emit left operand
                 sequence.AddRange(GenerateExpression(binaryExp.LHS).Instructions);
                 // Emit right operand
                 sequence.AddRange(GenerateExpression(binaryExp.RHS).Instructions);
                 // Emit operation
-                sequence.Add(new ArithmeticInstruction(GetBinaryOpCode(binaryExp.Op)));
+                sequence.Add(new ArithmeticInstruction(GetBinaryOpCode(GetOperatorString(binaryExp.Operator))));
                 break;
                 
-            case UnaryExpression unaryExp:
+            case UnaryExp unaryExp:
                 // Emit operand
-                sequence.AddRange(GenerateExpression(unaryExp.Exp).Instructions);
+                sequence.AddRange(GenerateExpression(unaryExp.Operand).Instructions);
                 // Emit operation
-                sequence.Add(new ArithmeticInstruction(GetUnaryOpCode(unaryExp.Op)));
+                sequence.Add(new ArithmeticInstruction(GetUnaryOpCode(GetOperatorString(unaryExp.Operator))));
                 break;
                 
-            case il_ast.FuncCallExp funcCall:
+            case ast.FuncCallExp funcCall:
                 // Emit arguments
-                foreach (var arg in funcCall.Args)
+                if (funcCall.InvocationArguments != null)
                 {
-                    sequence.AddRange(GenerateExpression(arg).Instructions);
+                    foreach (var arg in funcCall.InvocationArguments)
+                    {
+                        sequence.AddRange(GenerateExpression(arg).Instructions);
+                    }
                 }
                 // Emit call
-                if (funcCall.Name == "print" || funcCall.Name == "myprint")
+                var functionName = funcCall.FunctionDef?.Name.Value ?? "unknown";
+                if (functionName == "print" || functionName == "myprint")
                 {
                     sequence.Add(new CallInstruction("call", "void [System.Console]System.Console::WriteLine(object)"));
                 }
                 else
                 {
-                    var argTypes = string.Join(", ", funcCall.ArgTypes);
-                    sequence.Add(new CallInstruction("call", $"{funcCall.ReturnType} {funcCall.Name}({argTypes})"));
+                    sequence.Add(new CallInstruction("call", $"void {functionName}()"));
                 }
                 break;
         }
@@ -481,20 +385,20 @@ public class InstructionSequenceGenerator
     /// <summary>
     /// Generates instruction sequence for an if statement using branch instructions
     /// </summary>
-    public InstructionSequence GenerateIfStatement(il_ast.IfStatement ifStmt)
+    public InstructionSequence GenerateIfStatement(IfElseStatement ifStmt)
     {
         var sequence = new InstructionSequence();
         var falseLabel = $"IL_false_{_labelCounter++}";
         var endLabel = $"IL_end_{_labelCounter++}";
         
         // Emit condition evaluation
-        sequence.AddRange(GenerateExpression(ifStmt.Conditional).Instructions);
+        sequence.AddRange(GenerateExpression(ifStmt.Condition).Instructions);
         
         // Branch to false label if condition is false
         sequence.Add(new BranchInstruction("brfalse", falseLabel));
         
         // Emit if block instructions
-        foreach (var stmt in ifStmt.IfBlock.Statements)
+        foreach (var stmt in ifStmt.ThenBlock.Statements)
         {
             sequence.AddRange(GenerateStatement(stmt).Instructions);
         }
@@ -505,13 +409,10 @@ public class InstructionSequenceGenerator
         // False label
         sequence.Add(new LabelInstruction(falseLabel));
         
-        // Emit else block if present
-        if (ifStmt.ElseBlock != null)
+        // Emit else block
+        foreach (var stmt in ifStmt.ElseBlock.Statements)
         {
-            foreach (var stmt in ifStmt.ElseBlock.Statements)
-            {
-                sequence.AddRange(GenerateStatement(stmt).Instructions);
-            }
+            sequence.AddRange(GenerateStatement(stmt).Instructions);
         }
         
         // End label
@@ -523,7 +424,7 @@ public class InstructionSequenceGenerator
     /// <summary>
     /// Generates instruction sequence for a while loop using branch instructions
     /// </summary>
-    public InstructionSequence GenerateWhileStatement(il_ast.WhileStatement whileStmt)
+    public InstructionSequence GenerateWhileStatement(ast.WhileStatement whileStmt)
     {
         var sequence = new InstructionSequence();
         var startLabel = $"IL_loop_{_labelCounter++}";
@@ -533,13 +434,13 @@ public class InstructionSequenceGenerator
         sequence.Add(new LabelInstruction(startLabel));
         
         // Emit condition evaluation
-        sequence.AddRange(GenerateExpression(whileStmt.Conditional).Instructions);
+        sequence.AddRange(GenerateExpression(whileStmt.Condition).Instructions);
         
         // Branch to end if condition is false
         sequence.Add(new BranchInstruction("brfalse", endLabel));
         
         // Emit loop body
-        foreach (var stmt in whileStmt.LoopBlock.Statements)
+        foreach (var stmt in whileStmt.Body.Statements)
         {
             sequence.AddRange(GenerateStatement(stmt).Instructions);
         }
@@ -556,45 +457,48 @@ public class InstructionSequenceGenerator
     /// <summary>
     /// Generates instruction sequence for any statement
     /// </summary>
-    public InstructionSequence GenerateStatement(il_ast.Statement statement)
+    public InstructionSequence GenerateStatement(ast.Statement statement)
     {
         var sequence = new InstructionSequence();
         
         switch (statement)
         {
-            case il_ast.VariableDeclarationStatement varDecl:
+            case VarDeclStatement varDecl:
                 // IL locals are typically declared in method header, 
                 // so we just handle initialization if present
-                if (varDecl.InitialisationExpression != null)
+                if (varDecl.InitialValue != null)
                 {
-                    sequence.AddRange(GenerateExpression(varDecl.InitialisationExpression).Instructions);
-                    sequence.Add(new StoreInstruction("stloc", varDecl.Name));
+                    sequence.AddRange(GenerateExpression(varDecl.InitialValue).Instructions);
+                    sequence.Add(new StoreInstruction("stloc", varDecl.VariableDecl.Name ?? "temp"));
                 }
                 break;
                 
-            case il_ast.VariableAssignmentStatement assignment:
-                sequence.AddRange(GenerateExpression(assignment.RHS).Instructions);
-                sequence.Add(new StoreInstruction("stloc", assignment.LHS));
+            case AssignmentStatement assignment:
+                sequence.AddRange(GenerateExpression(assignment.RValue).Instructions);
+                // Extract variable name from LValue if it's a VarRefExp
+                var targetName = assignment.LValue switch
+                {
+                    VarRefExp varRef => varRef.VarName,
+                    _ => "unknown"
+                };
+                sequence.Add(new StoreInstruction("stloc", targetName));
                 break;
                 
-            case il_ast.ReturnStatement returnStmt:
-                if (returnStmt.Exp != null)
-                {
-                    sequence.AddRange(GenerateExpression(returnStmt.Exp).Instructions);
-                }
+            case ast.ReturnStatement returnStmt:
+                sequence.AddRange(GenerateExpression(returnStmt.ReturnValue).Instructions);
                 sequence.Add(new ReturnInstruction());
                 break;
                 
-            case il_ast.IfStatement ifStmt:
+            case IfElseStatement ifStmt:
                 sequence.AddRange(GenerateIfStatement(ifStmt).Instructions);
                 break;
                 
-            case il_ast.WhileStatement whileStmt:
+            case ast.WhileStatement whileStmt:
                 sequence.AddRange(GenerateWhileStatement(whileStmt).Instructions);
                 break;
                 
-            case il_ast.ExpressionStatement exprStmt:
-                sequence.AddRange(GenerateExpression(exprStmt.Expression).Instructions);
+            case ExpStatement exprStmt:
+                sequence.AddRange(GenerateExpression(exprStmt.RHS).Instructions);
                 sequence.Add(new StackInstruction("pop")); // Pop unused result
                 break;
         }
