@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Xunit;
 using il_ast;
+using ast;
 using code_generator;
 using System.Linq;
 
@@ -11,13 +12,13 @@ namespace ast_tests;
 /// </summary>
 public class InstructionLevelILTests
 {
-    private readonly InstructionSequenceGenerator _generator = new();
+    private readonly AstToIlTransformationVisitor _generator = new();
 
     [Fact]
     public void GenerateExpression_ForIntLiteral_ShouldProduceLdcI4Instruction()
     {
         // Arrange
-        var intLiteral = new IntLiteral(42);
+        var intLiteral = new Int32LiteralExp { Value = 42 };
 
         // Act
         var sequence = _generator.GenerateExpression(intLiteral);
@@ -34,9 +35,14 @@ public class InstructionLevelILTests
     public void GenerateExpression_ForBinaryAddition_ShouldProduceCorrectInstructionSequence()
     {
         // Arrange
-        var left = new IntLiteral(10);
-        var right = new IntLiteral(20);
-        var binaryExp = new BinaryExpression("+", left, right);
+        var left = new Int32LiteralExp { Value = 10 };
+        var right = new Int32LiteralExp { Value = 20 };
+        var binaryExp = new BinaryExp 
+        { 
+            LHS = left, 
+            RHS = right, 
+            Operator = Operator.ArithmeticAdd 
+        };
 
         // Act
         var sequence = _generator.GenerateExpression(binaryExp);
@@ -66,11 +72,12 @@ public class InstructionLevelILTests
     public void GenerateStatement_ForVariableAssignment_ShouldProduceLoadAndStoreInstructions()
     {
         // Arrange
-        var value = new IntLiteral(100);
-        var assignment = new VariableAssignmentStatement
+        var value = new Int32LiteralExp { Value = 100 };
+        var varRef = new VarRefExp { VarName = "myVar" };
+        var assignment = new AssignmentStatement
         {
-            LHS = "myVar",
-            RHS = value
+            LValue = varRef,
+            RValue = value
         };
 
         // Act
@@ -96,16 +103,19 @@ public class InstructionLevelILTests
     public void GenerateIfStatement_ShouldProduceBranchInstructions()
     {
         // Arrange
-        var condition = new BoolLiteral(true);
-        var thenStatement = new VariableAssignmentStatement
+        var condition = new BooleanLiteralExp { Value = true };
+        var varRef = new VarRefExp { VarName = "result" };
+        var value = new Int32LiteralExp { Value = 1 };
+        var thenStatement = new AssignmentStatement
         {
-            LHS = "result",
-            RHS = new IntLiteral(1)
+            LValue = varRef,
+            RValue = value
         };
-        var ifStatement = new IfStatement
+        var ifStatement = new IfElseStatement
         {
-            Conditional = condition,
-            IfBlock = new Block { Statements = { thenStatement } }
+            Condition = condition,
+            ThenBlock = new BlockStatement { Statements = { thenStatement } },
+            ElseBlock = new BlockStatement { Statements = { } }
         };
 
         // Act

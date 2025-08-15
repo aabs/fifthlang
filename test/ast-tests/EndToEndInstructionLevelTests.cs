@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Xunit;
 using il_ast;
+using ast;
 using code_generator;
 using System.Linq;
 
@@ -12,15 +13,20 @@ namespace ast_tests;
 /// </summary>
 public class EndToEndInstructionLevelTests
 {
-    private readonly InstructionSequenceGenerator _generator = new();
+    private readonly AstToIlTransformationVisitor _generator = new();
 
     [Fact]
     public void EndToEnd_SimpleArithmetic_ShouldGenerateCorrectInstructionSequence()
     {
         // Arrange - Create a simple arithmetic expression: 5 + 3
-        var left = new IntLiteral(5);
-        var right = new IntLiteral(3);
-        var addExpression = new BinaryExpression("+", left, right);
+        var left = new Int32LiteralExp { Value = 5 };
+        var right = new Int32LiteralExp { Value = 3 };
+        var addExpression = new BinaryExp 
+        { 
+            LHS = left, 
+            RHS = right, 
+            Operator = Operator.ArithmeticAdd 
+        };
 
         // Act - Generate instruction sequence
         var sequence = _generator.GenerateExpression(addExpression);
@@ -50,27 +56,36 @@ public class EndToEndInstructionLevelTests
     public void EndToEnd_IfElseStatement_ShouldGenerateBranchInstructions()
     {
         // Arrange - Create if (x > 0) { y = 1; } else { y = 2; }
-        var condition = new BinaryExpression(">", 
-            new VariableReferenceExpression { Name = "x" },
-            new IntLiteral(0));
-
-        var thenStatement = new VariableAssignmentStatement
-        {
-            LHS = "y",
-            RHS = new IntLiteral(1)
+        var xVar = new VarRefExp { VarName = "x" };
+        var zero = new Int32LiteralExp { Value = 0 };
+        var condition = new BinaryExp 
+        { 
+            LHS = xVar, 
+            RHS = zero, 
+            Operator = Operator.GreaterThan 
         };
 
-        var elseStatement = new VariableAssignmentStatement
+        var yVar1 = new VarRefExp { VarName = "y" };
+        var one = new Int32LiteralExp { Value = 1 };
+        var thenStatement = new AssignmentStatement
         {
-            LHS = "y", 
-            RHS = new IntLiteral(2)
+            LValue = yVar1,
+            RValue = one
         };
 
-        var ifStatement = new IfStatement
+        var yVar2 = new VarRefExp { VarName = "y" };
+        var two = new Int32LiteralExp { Value = 2 };
+        var elseStatement = new AssignmentStatement
         {
-            Conditional = condition,
-            IfBlock = new Block { Statements = { thenStatement } },
-            ElseBlock = new Block { Statements = { elseStatement } }
+            LValue = yVar2,
+            RValue = two
+        };
+
+        var ifStatement = new IfElseStatement
+        {
+            Condition = condition,
+            ThenBlock = new BlockStatement { Statements = { thenStatement } },
+            ElseBlock = new BlockStatement { Statements = { elseStatement } }
         };
 
         // Act
@@ -108,14 +123,29 @@ public class EndToEndInstructionLevelTests
     public void EndToEnd_ComplexExpression_ShouldGenerateStackBasedInstructions()
     {
         // Arrange - Create: (a + b) * (c - d)
-        var a = new VariableReferenceExpression { Name = "a" };
-        var b = new VariableReferenceExpression { Name = "b" };
-        var c = new VariableReferenceExpression { Name = "c" };
-        var d = new VariableReferenceExpression { Name = "d" };
+        var a = new VarRefExp { VarName = "a" };
+        var b = new VarRefExp { VarName = "b" };
+        var c = new VarRefExp { VarName = "c" };
+        var d = new VarRefExp { VarName = "d" };
 
-        var leftExpression = new BinaryExpression("+", a, b);   // a + b
-        var rightExpression = new BinaryExpression("-", c, d);  // c - d
-        var multiplyExpression = new BinaryExpression("*", leftExpression, rightExpression); // (a + b) * (c - d)
+        var leftExpression = new BinaryExp 
+        { 
+            LHS = a, 
+            RHS = b, 
+            Operator = Operator.ArithmeticAdd 
+        };   // a + b
+        var rightExpression = new BinaryExp 
+        { 
+            LHS = c, 
+            RHS = d, 
+            Operator = Operator.ArithmeticSubtract 
+        };  // c - d
+        var multiplyExpression = new BinaryExp 
+        { 
+            LHS = leftExpression, 
+            RHS = rightExpression, 
+            Operator = Operator.ArithmeticMultiply 
+        }; // (a + b) * (c - d)
 
         // Act
         var sequence = _generator.GenerateExpression(multiplyExpression);
@@ -139,48 +169,61 @@ public class EndToEndInstructionLevelTests
     }
 
     [Fact]
-    public void EndToEnd_MethodWithInstructions_ShouldAllowInstructionStatements()
+    public void EndToEnd_MethodWithInstructions_ShouldAllowInstructionSequences()
     {
-        // Arrange - Create a method body using instruction statements
+        // Arrange - Create instruction sequences directly (low-level IL approach)
         var instructionSequence = new InstructionSequence();
         instructionSequence.Add(new LoadInstruction("ldc.i4", 10));
         instructionSequence.Add(new LoadInstruction("ldc.i4", 20));
         instructionSequence.Add(new ArithmeticInstruction("add"));
         instructionSequence.Add(new ReturnInstruction());
 
-        var instructionStatement = new InstructionStatement
-        {
-            Instructions = instructionSequence
-        };
-
-        var methodBody = new Block
-        {
-            Statements = { instructionStatement }
-        };
-
-        // Act & Assert - Verify the method body can contain instruction statements
-        methodBody.Statements.Should().HaveCount(1);
-        var stmt = methodBody.Statements[0] as InstructionStatement;
-        stmt.Should().NotBeNull();
-        stmt!.Instructions.Instructions.Should().HaveCount(4);
+        // Act & Assert - Verify instruction sequences can be created and manipulated
+        instructionSequence.Should().NotBeNull();
+        instructionSequence.Instructions.Should().HaveCount(4);
 
         // Verify the instructions are properly structured
-        stmt.Instructions.Instructions[0].Should().BeOfType<LoadInstruction>();
-        stmt.Instructions.Instructions[1].Should().BeOfType<LoadInstruction>();
-        stmt.Instructions.Instructions[2].Should().BeOfType<ArithmeticInstruction>();
-        stmt.Instructions.Instructions[3].Should().BeOfType<ReturnInstruction>();
+        instructionSequence.Instructions[0].Should().BeOfType<LoadInstruction>();
+        instructionSequence.Instructions[1].Should().BeOfType<LoadInstruction>();
+        instructionSequence.Instructions[2].Should().BeOfType<ArithmeticInstruction>();
+        instructionSequence.Instructions[3].Should().BeOfType<ReturnInstruction>();
+        
+        // Verify opcodes
+        var loadInstr1 = instructionSequence.Instructions[0] as LoadInstruction;
+        loadInstr1!.Opcode.Should().Be("ldc.i4");
+        loadInstr1.Value.Should().Be(10);
+        
+        var loadInstr2 = instructionSequence.Instructions[1] as LoadInstruction;
+        loadInstr2!.Opcode.Should().Be("ldc.i4");
+        loadInstr2.Value.Should().Be(20);
+        
+        var arithInstr = instructionSequence.Instructions[2] as ArithmeticInstruction;
+        arithInstr!.Opcode.Should().Be("add");
+        
+        var retInstr = instructionSequence.Instructions[3] as ReturnInstruction;
+        retInstr!.Opcode.Should().Be("ret");
     }
 
     [Fact]
     public void EndToEnd_NestedExpressions_ShouldMaintainEvaluationOrder()
     {
         // Arrange - Create: x + (y * z)
-        var x = new VariableReferenceExpression { Name = "x" };
-        var y = new VariableReferenceExpression { Name = "y" };
-        var z = new VariableReferenceExpression { Name = "z" };
+        var x = new VarRefExp { VarName = "x" };
+        var y = new VarRefExp { VarName = "y" };
+        var z = new VarRefExp { VarName = "z" };
 
-        var multiply = new BinaryExpression("*", y, z);    // y * z
-        var add = new BinaryExpression("+", x, multiply);  // x + (y * z)
+        var multiply = new BinaryExp 
+        { 
+            LHS = y, 
+            RHS = z, 
+            Operator = Operator.ArithmeticMultiply 
+        };    // y * z
+        var add = new BinaryExp 
+        { 
+            LHS = x, 
+            RHS = multiply, 
+            Operator = Operator.ArithmeticAdd 
+        };  // x + (y * z)
 
         // Act
         var sequence = _generator.GenerateExpression(add);

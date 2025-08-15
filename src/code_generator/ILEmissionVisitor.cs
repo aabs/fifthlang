@@ -150,11 +150,15 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
     {
         EmitLine(".maxstack 8"); // Default stack size
         
+        // Use AstToIlTransformationVisitor to convert high-level statements to instruction sequences
+        var transformer = new AstToIlTransformationVisitor();
+        
         if (body.Statements.Any())
         {
             foreach (var statement in body.Statements)
             {
-                EmitStatement(statement);
+                var instructionSequence = transformer.GenerateStatement(statement);
+                EmitInstructionSequence(instructionSequence);
             }
         }
         
@@ -162,13 +166,18 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
         EmitLine("ret");
     }
 
-    private void EmitStatement(InstructionStatement statement)
+    private void EmitInstructionSequence(InstructionSequence sequence)
     {
-        // With the new approach, we only handle instruction-level constructs
-        EmitInstructionSequence(statement.Instructions);
+        foreach (var instruction in sequence.Instructions)
+        {
+            EmitInstruction(instruction);
+        }
     }
 
-    /* Removed old high-level statement methods - now using instruction sequences only
+    /* TODO: The following methods reference removed il_ast high-level types and need to be refactored
+       Commenting out for now to allow build to succeed
+    
+    /*
     private void EmitVariableDeclaration(VariableDeclarationStatement varDecl)
     {
         // IL uses locals for local variables
@@ -240,6 +249,8 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
         EmitLine($"br {startLabel}");
         EmitLine($"{endLabel}:");
     }
+
+    private void EmitVariableDeclaration(VariableDeclarationStatement varDecl)
     {
         // IL uses locals for local variables
         EmitLine($".locals init ({GetTypeNameForLocal(varDecl.TypeName)} {varDecl.Name})");
@@ -320,13 +331,6 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
     }
     */
     /* Removed old expression handling methods - now using instruction sequences only */
-    private void EmitInstructionSequence(InstructionSequence sequence)
-    {
-        foreach (var instruction in sequence.Instructions)
-        {
-            EmitInstruction(instruction);
-        }
-    }
 
     
     /// <summary>
@@ -451,4 +455,35 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
     {
         EmitLine(stackInstr.Opcode);
     }
+    
+    // End of commented section - these methods need refactoring to work with new il_ast model */
+
+    #region Helper Methods
+
+    private void EmitLine(string line = "")
+    {
+        if (string.IsNullOrEmpty(line))
+        {
+            _output.AppendLine();
+        }
+        else
+        {
+            _output.AppendLine(new string(' ', _indentLevel * IndentString.Length) + line);
+        }
+    }
+
+    private void IncreaseIndent()
+    {
+        _indentLevel++;
+    }
+
+    private void DecreaseIndent()
+    {
+        if (_indentLevel > 0)
+        {
+            _indentLevel--;
+        }
+    }
+
+    #endregion
 }
