@@ -49,15 +49,6 @@ public class ClassDefinitionBuilder : IBuilder<il_ast.ClassDefinition>
         };
     }
 }
-public class MemberAccessExpressionBuilder : IBuilder<il_ast.MemberAccessExpression>
-{
-    
-    public il_ast.MemberAccessExpression Build()
-    {
-        return new il_ast.MemberAccessExpression(){
-        };
-    }
-}
 public class ParameterDeclarationBuilder : IBuilder<il_ast.ParameterDeclaration>
 {
     
@@ -157,273 +148,137 @@ public class PropertyDefinitionBuilder : IBuilder<il_ast.PropertyDefinition>
         };
     }
 }
+public class LoadInstructionBuilder : IBuilder<il_ast.LoadInstruction>
+{
+    private System.Object _Value;
+    
+    public il_ast.LoadInstruction Build()
+    {
+        return new il_ast.LoadInstruction(){
+             Value = this._Value // from LoadInstruction
+        };
+    }
+    public LoadInstructionBuilder WithValue(System.Object value){
+        _Value = value;
+        return this;
+    }
+
+}
+public class StoreInstructionBuilder : IBuilder<il_ast.StoreInstruction>
+{
+    private System.String _Target;
+    
+    public il_ast.StoreInstruction Build()
+    {
+        return new il_ast.StoreInstruction(){
+             Target = this._Target // from StoreInstruction
+        };
+    }
+    public StoreInstructionBuilder WithTarget(System.String value){
+        _Target = value;
+        return this;
+    }
+
+}
+public class ArithmeticInstructionBuilder : IBuilder<il_ast.ArithmeticInstruction>
+{
+    
+    public il_ast.ArithmeticInstruction Build()
+    {
+        return new il_ast.ArithmeticInstruction(){
+        };
+    }
+}
+public class BranchInstructionBuilder : IBuilder<il_ast.BranchInstruction>
+{
+    private System.String _TargetLabel;
+    
+    public il_ast.BranchInstruction Build()
+    {
+        return new il_ast.BranchInstruction(){
+             TargetLabel = this._TargetLabel // from BranchInstruction
+        };
+    }
+    public BranchInstructionBuilder WithTargetLabel(System.String value){
+        _TargetLabel = value;
+        return this;
+    }
+
+}
+public class CallInstructionBuilder : IBuilder<il_ast.CallInstruction>
+{
+    private System.String _MethodSignature;
+    
+    public il_ast.CallInstruction Build()
+    {
+        return new il_ast.CallInstruction(){
+             MethodSignature = this._MethodSignature // from CallInstruction
+        };
+    }
+    public CallInstructionBuilder WithMethodSignature(System.String value){
+        _MethodSignature = value;
+        return this;
+    }
+
+}
+public class StackInstructionBuilder : IBuilder<il_ast.StackInstruction>
+{
+    
+    public il_ast.StackInstruction Build()
+    {
+        return new il_ast.StackInstruction(){
+        };
+    }
+}
+public class ReturnInstructionBuilder : IBuilder<il_ast.ReturnInstruction>
+{
+    
+    public il_ast.ReturnInstruction Build()
+    {
+        return new il_ast.ReturnInstruction(){
+        };
+    }
+}
+public class LabelInstructionBuilder : IBuilder<il_ast.LabelInstruction>
+{
+    private System.String _Label;
+    
+    public il_ast.LabelInstruction Build()
+    {
+        return new il_ast.LabelInstruction(){
+             Label = this._Label // from LabelInstruction
+        };
+    }
+    public LabelInstructionBuilder WithLabel(System.String value){
+        _Label = value;
+        return this;
+    }
+
+}
+public class InstructionSequenceBuilder : IBuilder<il_ast.InstructionSequence>
+{
+    
+    public il_ast.InstructionSequence Build()
+    {
+        return new il_ast.InstructionSequence(){
+        };
+    }
+}
+public class InstructionStatementBuilder : IBuilder<il_ast.InstructionStatement>
+{
+    
+    public il_ast.InstructionStatement Build()
+    {
+        return new il_ast.InstructionStatement(){
+        };
+    }
+}
 public class BlockBuilder : IBuilder<il_ast.Block>
 {
     
     public il_ast.Block Build()
     {
         return new il_ast.Block(){
-        };
-    }
-}
-public class IfStatementBuilder : IBuilder<il_ast.IfStatement>
-{
-    
-    public il_ast.IfStatement Build()
-    {
-        return new il_ast.IfStatement(){
-        };
-    }
-}
-public class VariableAssignmentStatementBuilder : IBuilder<il_ast.VariableAssignmentStatement>
-{
-    
-    public il_ast.VariableAssignmentStatement Build()
-    {
-        return new il_ast.VariableAssignmentStatement(){
-        };
-    }
-}
-public class VariableDeclarationStatementBuilder : IBuilder<il_ast.VariableDeclarationStatement>
-{
-    
-    public il_ast.VariableDeclarationStatement Build()
-    {
-        return new il_ast.VariableDeclarationStatement(){
-        };
-    }
-}
-public class ReturnStatementBuilder : IBuilder<il_ast.ReturnStatement>
-{
-    
-    public il_ast.ReturnStatement Build()
-    {
-        return new il_ast.ReturnStatement(){
-        };
-    }
-}
-public class WhileStatementBuilder : IBuilder<il_ast.WhileStatement>
-{
-    
-    public il_ast.WhileStatement Build()
-    {
-        return new il_ast.WhileStatement(){
-        };
-    }
-}
-public class ExpressionStatementBuilder : IBuilder<il_ast.ExpressionStatement>
-{
-    
-    public il_ast.ExpressionStatement Build()
-    {
-        return new il_ast.ExpressionStatement(){
-        };
-    }
-}
-public class UnaryExpressionBuilder : IBuilder<il_ast.UnaryExpression>
-{
-    
-    public il_ast.UnaryExpression Build()
-    {
-        return new il_ast.UnaryExpression(){
-        };
-    }
-}
-public class BinaryExpressionBuilder : IBuilder<il_ast.BinaryExpression>
-{
-    
-    public il_ast.BinaryExpression Build()
-    {
-        return new il_ast.BinaryExpression(){
-        };
-    }
-}
-public class VariableReferenceExpressionBuilder : IBuilder<il_ast.VariableReferenceExpression>
-{
-    
-    public il_ast.VariableReferenceExpression Build()
-    {
-        return new il_ast.VariableReferenceExpression(){
-        };
-    }
-}
-public class TypeCastExpressionBuilder : IBuilder<il_ast.TypeCastExpression>
-{
-    
-    public il_ast.TypeCastExpression Build()
-    {
-        return new il_ast.TypeCastExpression(){
-        };
-    }
-}
-public class FuncCallExpBuilder : IBuilder<il_ast.FuncCallExp>
-{
-    
-    public il_ast.FuncCallExp Build()
-    {
-        return new il_ast.FuncCallExp(){
-        };
-    }
-}
-public class BoolLiteralBuilder : IBuilder<il_ast.BoolLiteral>
-{
-    
-    public il_ast.BoolLiteral Build()
-    {
-        return new il_ast.BoolLiteral(){
-        };
-    }
-}
-public class CharLiteralBuilder : IBuilder<il_ast.CharLiteral>
-{
-    
-    public il_ast.CharLiteral Build()
-    {
-        return new il_ast.CharLiteral(){
-        };
-    }
-}
-public class StringLiteralBuilder : IBuilder<il_ast.StringLiteral>
-{
-    
-    public il_ast.StringLiteral Build()
-    {
-        return new il_ast.StringLiteral(){
-        };
-    }
-}
-public class UriLiteralBuilder : IBuilder<il_ast.UriLiteral>
-{
-    
-    public il_ast.UriLiteral Build()
-    {
-        return new il_ast.UriLiteral(){
-        };
-    }
-}
-public class DateTimeOffsetLiteralBuilder : IBuilder<il_ast.DateTimeOffsetLiteral>
-{
-    
-    public il_ast.DateTimeOffsetLiteral Build()
-    {
-        return new il_ast.DateTimeOffsetLiteral(){
-        };
-    }
-}
-public class DateOnlyLiteralBuilder : IBuilder<il_ast.DateOnlyLiteral>
-{
-    
-    public il_ast.DateOnlyLiteral Build()
-    {
-        return new il_ast.DateOnlyLiteral(){
-        };
-    }
-}
-public class TimeOnlyLiteralBuilder : IBuilder<il_ast.TimeOnlyLiteral>
-{
-    
-    public il_ast.TimeOnlyLiteral Build()
-    {
-        return new il_ast.TimeOnlyLiteral(){
-        };
-    }
-}
-public class SByteLiteralBuilder : IBuilder<il_ast.SByteLiteral>
-{
-    
-    public il_ast.SByteLiteral Build()
-    {
-        return new il_ast.SByteLiteral(){
-        };
-    }
-}
-public class ByteLiteralBuilder : IBuilder<il_ast.ByteLiteral>
-{
-    
-    public il_ast.ByteLiteral Build()
-    {
-        return new il_ast.ByteLiteral(){
-        };
-    }
-}
-public class ShortLiteralBuilder : IBuilder<il_ast.ShortLiteral>
-{
-    
-    public il_ast.ShortLiteral Build()
-    {
-        return new il_ast.ShortLiteral(){
-        };
-    }
-}
-public class UShortLiteralBuilder : IBuilder<il_ast.UShortLiteral>
-{
-    
-    public il_ast.UShortLiteral Build()
-    {
-        return new il_ast.UShortLiteral(){
-        };
-    }
-}
-public class IntLiteralBuilder : IBuilder<il_ast.IntLiteral>
-{
-    
-    public il_ast.IntLiteral Build()
-    {
-        return new il_ast.IntLiteral(){
-        };
-    }
-}
-public class UIntLiteralBuilder : IBuilder<il_ast.UIntLiteral>
-{
-    
-    public il_ast.UIntLiteral Build()
-    {
-        return new il_ast.UIntLiteral(){
-        };
-    }
-}
-public class LongLiteralBuilder : IBuilder<il_ast.LongLiteral>
-{
-    
-    public il_ast.LongLiteral Build()
-    {
-        return new il_ast.LongLiteral(){
-        };
-    }
-}
-public class ULongLiteralBuilder : IBuilder<il_ast.ULongLiteral>
-{
-    
-    public il_ast.ULongLiteral Build()
-    {
-        return new il_ast.ULongLiteral(){
-        };
-    }
-}
-public class FloatLiteralBuilder : IBuilder<il_ast.FloatLiteral>
-{
-    
-    public il_ast.FloatLiteral Build()
-    {
-        return new il_ast.FloatLiteral(){
-        };
-    }
-}
-public class DoubleLiteralBuilder : IBuilder<il_ast.DoubleLiteral>
-{
-    
-    public il_ast.DoubleLiteral Build()
-    {
-        return new il_ast.DoubleLiteral(){
-        };
-    }
-}
-public class DecimalLiteralBuilder : IBuilder<il_ast.DecimalLiteral>
-{
-    
-    public il_ast.DecimalLiteral Build()
-    {
-        return new il_ast.DecimalLiteral(){
         };
     }
 }

@@ -210,11 +210,6 @@ public abstract record MemberDefinition : AstThing
     public MemberAccessability Visibility { get; set; }
 }
 
-public record MemberAccessExpression : Expression
-{
-    public Expression Lhs { get; set; }
-    public Expression Rhs { get; set; }
-}
 
 public enum MemberTarget
 {
@@ -321,284 +316,176 @@ public record PropertyDefinition : MemberDefinition
 
 #endregion
 
-#region Statements
+#region Instructions
 
+/// <summary>
+/// Base type for all CIL instructions that map directly to IL opcodes
+/// </summary>
 [Ignore]
-public abstract record Statement : AstThing
+public abstract record CilInstruction : AstThing
 {
+    public abstract string Opcode { get; }
 }
 
-public record Block : AstThing
+/// <summary>
+/// Load instructions (ldc.i4, ldloc, ldarg, ldstr, etc.)
+/// </summary>
+public record LoadInstruction : CilInstruction
 {
-    public List<Statement> Statements { get; set; } = new();
+    public LoadInstruction() { }
+    public LoadInstruction(string opcode, object? value = null)
+    {
+        _opcode = opcode;
+        Value = value;
+    }
+
+    private readonly string _opcode = "";
+    public override string Opcode => _opcode;
+    public object? Value { get; init; }
 }
 
-public record IfStatement : Statement
+/// <summary>
+/// Store instructions (stloc, stfld, starg, etc.)
+/// </summary>
+public record StoreInstruction : CilInstruction
 {
-    public Expression Conditional { get; set; }
-    public Block IfBlock { get; set; } = new();
-    public Block? ElseBlock { get; set; } = new();
+    public StoreInstruction() { }
+    public StoreInstruction(string opcode, string? target = null)
+    {
+        _opcode = opcode;
+        Target = target;
+    }
+
+    private readonly string _opcode = "";
+    public override string Opcode => _opcode;
+    public string? Target { get; init; }
 }
 
-public record VariableAssignmentStatement : Statement
+/// <summary>
+/// Arithmetic and logical instructions (add, sub, mul, div, ceq, clt, etc.)
+/// </summary>
+public record ArithmeticInstruction : CilInstruction
 {
-    public int? Ordinal { get; set; }
-    public string LHS { get; set; }
-    public Expression RHS { get; set; }
+    public ArithmeticInstruction() { }
+    public ArithmeticInstruction(string opcode)
+    {
+        _opcode = opcode;
+    }
+
+    private readonly string _opcode = "";
+    public override string Opcode => _opcode;
 }
 
-public record VariableDeclarationStatement : Statement
+/// <summary>
+/// Branch instructions (br, brtrue, brfalse, etc.)
+/// </summary>
+public record BranchInstruction : CilInstruction
 {
-    public int? Ordinal { get; set; }
-    public string Name { get; set; }
-    public string TypeName { get; set; }
-    public Expression? InitialisationExpression { get; set; }
+    public BranchInstruction() { }
+    public BranchInstruction(string opcode, string? targetLabel = null)
+    {
+        _opcode = opcode;
+        TargetLabel = targetLabel;
+    }
+
+    private readonly string _opcode = "";
+    public override string Opcode => _opcode;
+    public string? TargetLabel { get; init; }
 }
 
-public record ReturnStatement : Statement
+/// <summary>
+/// Call instructions (call, callvirt, newobj, etc.)
+/// </summary>
+public record CallInstruction : CilInstruction
 {
-    public Expression Exp { get; set; }
+    public CallInstruction() { }
+    public CallInstruction(string opcode, string? methodSignature = null)
+    {
+        _opcode = opcode;
+        MethodSignature = methodSignature;
+    }
+
+    private readonly string _opcode = "";
+    public override string Opcode => _opcode;
+    public string? MethodSignature { get; init; }
 }
 
-public record WhileStatement : Statement
+/// <summary>
+/// Stack manipulation instructions (dup, pop, etc.)
+/// </summary>
+public record StackInstruction : CilInstruction
 {
-    public Expression Conditional { get; set; }
-    public Block LoopBlock { get; set; } = new();
+    public StackInstruction() { }
+    public StackInstruction(string opcode)
+    {
+        _opcode = opcode;
+    }
+
+    private readonly string _opcode = "";
+    public override string Opcode => _opcode;
 }
 
-public record ExpressionStatement : Statement
+/// <summary>
+/// Return instruction
+/// </summary>
+public record ReturnInstruction : CilInstruction
 {
-    public Expression Expression { get; set; }
+    public override string Opcode => "ret";
+}
+
+/// <summary>
+/// Label marker for branch targets
+/// </summary>
+public record LabelInstruction : CilInstruction
+{
+    public LabelInstruction() { }
+    public LabelInstruction(string label)
+    {
+        Label = label;
+    }
+
+    public override string Opcode => "";
+    public string Label { get; init; } = "";
+}
+
+/// <summary>
+/// Container for a sequence of CIL instructions
+/// </summary>
+public record InstructionSequence : AstThing
+{
+    public List<CilInstruction> Instructions { get; set; } = new();
+    
+    public void Add(CilInstruction instruction)
+    {
+        Instructions.Add(instruction);
+    }
+    
+    public void AddRange(IEnumerable<CilInstruction> instructions)
+    {
+        Instructions.AddRange(instructions);
+    }
 }
 
 #endregion
 
-#region Expressions
+#region Statements
 
-public abstract record Expression : AstThing
+/// <summary>
+/// Statement that contains a sequence of CIL instructions
+/// This is the bridge between high-level IL constructs and instruction-level IL
+/// </summary>
+public record InstructionStatement : AstThing
 {
+    public InstructionSequence Instructions { get; set; } = new();
 }
 
-public record UnaryExpression : Expression
+#endregion
+
+#region Block and Method Body
+
+public record Block : AstThing
 {
-    public UnaryExpression() { }
-
-    public UnaryExpression(string op, Expression exp)
-    {
-        Op = op;
-        Exp = exp;
-    }
-
-    public string Op { get; set; }
-    public Expression Exp { get; set; }
-}
-
-public record BinaryExpression : Expression
-{
-    public BinaryExpression() { }
-
-    public BinaryExpression(string op, Expression lhs, Expression rhs)
-    {
-        Op = op;
-        LHS = lhs;
-        RHS = rhs;
-    }
-
-    public string Op { get; set; }
-    public Expression LHS { get; set; }
-    public Expression RHS { get; set; }
-}
-
-public record VariableReferenceExpression : Expression
-{
-    public string Name { get; set; }
-    public object SymTabEntry { get; set; }
-    public bool IsParameterReference { get; set; }
-    public int Ordinal { get; set; }
-}
-
-public interface ILiteralValue
-{
-    public string TypeName { get; }
-}
-
-public record TypeCastExpression : Expression
-{
-    public TypeCastExpression() { }
-
-    public TypeCastExpression(string targetTypeName, string targetTypeCilName, Expression expression)
-    {
-        TargetTypeName = targetTypeName;
-        TargetTypeCilName = targetTypeCilName;
-        Expression = expression;
-    }
-
-    public string TargetTypeName { get; set; }
-    public string TargetTypeCilName { get; set; }
-    public Expression Expression { get; set; }
-}
-
-public record FuncCallExp : Expression
-{
-    public FuncCallExp()
-    {
-    }
-
-    public FuncCallExp(string name, string typename, Expression[] args)
-    {
-        Name = name;
-        Args = new List<Expression>(args);
-        ArgTypes = new List<string>();
-        ReturnType = typename;
-    }
-
-    public string Name { get; set; }
-    public List<Expression> Args { get; set; }
-    public string ReturnType { get; set; }
-    public ClassDefinition ClassDefinition { get; set; }
-    public List<string> ArgTypes { get; set; }
-}
-
-[Ignore]
-public record Literal<T> : Expression, ILiteralValue
-{
-    public Literal() => Value = default(T);
-    public Literal(T value) => Value = value;
-
-    public T? Value { get; set; }
-
-    [Ignore]public string TypeName => typeof(T).Name;
-}
-
-public record BoolLiteral : Literal<bool>
-{
-    public BoolLiteral(){}
-    public BoolLiteral(bool value) : base(value) { }
-}
-
-public record CharLiteral : Literal<char>
-{
-    public CharLiteral () { }
-    public CharLiteral(char value) : base(value) { }
-}
-
-public record StringLiteral : Literal<string>
-{
-    public StringLiteral () { }
-    public StringLiteral(string value) : base(value) { }
-}
-
-public record UriLiteral : Literal<Uri>
-{
-    public UriLiteral () { }
-    public UriLiteral(Uri value) : base(value) { }
-}
-
-public record DateTimeOffsetLiteral : Literal<DateTimeOffset>
-{
-    public DateTimeOffsetLiteral () { }
-    public DateTimeOffsetLiteral(DateTimeOffset value) : base(value) { }
-}
-
-public record DateOnlyLiteral : Literal<DateOnly>
-{
-    public DateOnlyLiteral () { }
-    public DateOnlyLiteral(DateOnly value) : base(value) { }
-}
-
-public record TimeOnlyLiteral : Literal<TimeOnly>
-{
-    public TimeOnlyLiteral () { }
-    public TimeOnlyLiteral(TimeOnly value) : base(value) { }
-}
-// public record UriLiteral:Literal<Uri>   { public UriLiteral(Uri value) : base(value) { } }
-// public record UriLiteral:Literal<Uri>   { public UriLiteral(Uri value) : base(value) { } }
-// public record UriLiteral : Literal<Uri>   { public UriLiteral(Uri value) : base(value) { } }
-
-/*
-integral data types
-sbyte	-128 to 127	Signed 8-bit integer	System.SByte
-byte	0 to 255	Unsigned 8-bit integer	System.Byte
-short	-32,768 to 32,767	Signed 16-bit integer	System.Int16
-ushort	0 to 65,535	Unsigned 16-bit integer	System.UInt16
-int	-2,147,483,648 to 2,147,483,647	Signed 32-bit integer	System.Int32
-uint	0 to 4,294,967,295	Unsigned 32-bit integer	System.UInt32
-long	-9,223,372,036,854,775,808 to 9,223,372,036,854,775,807	Signed 64-bit integer	System.Int64
-ulong	0 to 18,446,744,073,709,551,615	Unsigned 64-bit integer	System.UInt64
-nint	Depends on platform (computed at runtime)	Signed 32-bit or 64-bit integer	System.IntPtr
-nuint	Depends on platform (computed at runtime)	Unsigned 32-bit or 64-bit integer	System.UIntPtr
-*/
-public record SByteLiteral : Literal<sbyte>
-{
-    public SByteLiteral () { }
-    public SByteLiteral(sbyte value) : base(value) { }
-}
-
-public record ByteLiteral : Literal<byte>
-{
-    public ByteLiteral () { }
-    public ByteLiteral(byte value) : base(value) { }
-}
-
-public record ShortLiteral : Literal<short>
-{
-    public ShortLiteral () { }
-    public ShortLiteral(short value) : base(value) { }
-}
-
-public record UShortLiteral : Literal<ushort>
-{
-    public UShortLiteral () { }
-    public UShortLiteral(ushort value) : base(value) { }
-}
-
-public record IntLiteral : Literal<int>
-{
-    public IntLiteral () { }
-    public IntLiteral(int value) : base(value) { }
-}
-
-public record UIntLiteral : Literal<uint>
-{
-    public UIntLiteral () { }
-    public UIntLiteral(uint value) : base(value) { }
-}
-
-public record LongLiteral : Literal<long>
-{
-    public LongLiteral () { }
-    public LongLiteral(long value) : base(value) { }
-}
-
-public record ULongLiteral : Literal<ulong>
-{
-    public ULongLiteral () { }
-    public ULongLiteral(ulong value) : base(value) { }
-}
-
-/*
- * Floating point types
-    float	±1.5 x 10−45 to ±3.4 x 1038	~6-9 digits	4 bytes	System.Single
-    double	±5.0 × 10−324 to ±1.7 × 10308	~15-17 digits	8 bytes	System.Double
-    decimal	±1.0 x 10-28 to ±7.9228 x 1028	28-29 digits	16 bytes	System.Decimal
-
- */
-public record FloatLiteral : Literal<float>
-{
-    public FloatLiteral() { }
-    public FloatLiteral(float value) : base(value) { }
-}
-
-public record DoubleLiteral : Literal<double>
-{
-    public DoubleLiteral() { }
-    public DoubleLiteral(double value) : base(value) { }
-}
-
-public record DecimalLiteral : Literal<decimal>
-{
-    public DecimalLiteral() { }
-    public DecimalLiteral(decimal value) : base(value) { }
+    public List<ast.Statement> Statements { get; set; } = new();
 }
 
 #endregion
