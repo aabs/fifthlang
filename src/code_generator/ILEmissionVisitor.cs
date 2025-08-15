@@ -162,36 +162,85 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
         EmitLine("ret");
     }
 
-    private void EmitStatement(Statement statement)
+    private void EmitStatement(InstructionStatement statement)
     {
-        switch (statement)
+        // With the new approach, we only handle instruction-level constructs
+        EmitInstructionSequence(statement.Instructions);
+    }
+
+    /* Removed old high-level statement methods - now using instruction sequences only
+    private void EmitVariableDeclaration(VariableDeclarationStatement varDecl)
+    {
+        // IL uses locals for local variables
+        EmitLine($".locals init ({GetTypeNameForLocal(varDecl.TypeName)} {varDecl.Name})");
+        
+        if (varDecl.InitialisationExpression != null)
         {
-            case VariableDeclarationStatement varDecl:
-                EmitVariableDeclaration(varDecl);
-                break;
-            case VariableAssignmentStatement assignment:
-                EmitVariableAssignment(assignment);
-                break;
-            case ReturnStatement returnStmt:
-                EmitReturn(returnStmt);
-                break;
-            case IfStatement ifStmt:
-                EmitIf(ifStmt);
-                break;
-            case WhileStatement whileStmt:
-                EmitWhile(whileStmt);
-                break;
-            case ExpressionStatement exprStmt:
-                EmitExpression(exprStmt.Expression);
-                EmitLine("pop"); // Pop result if not used
-                break;
-            case InstructionStatement instrStmt:
-                EmitInstructionSequence(instrStmt.Instructions);
-                break;
+            EmitExpression(varDecl.InitialisationExpression);
+            EmitLine($"stloc {varDecl.Name}");
         }
     }
 
-    private void EmitVariableDeclaration(VariableDeclarationStatement varDecl)
+    private void EmitVariableAssignment(VariableAssignmentStatement assignment)
+    {
+        EmitExpression(assignment.RHS);
+        EmitLine($"stloc {assignment.LHS}");
+    }
+
+    private void EmitReturn(ReturnStatement returnStmt)
+    {
+        if (returnStmt.Exp != null)
+        {
+            EmitExpression(returnStmt.Exp);
+        }
+        EmitLine("ret");
+    }
+
+    private void EmitIf(IfStatement ifStmt)
+    {
+        var falseLabel = $"IL_false_{_labelCounter++}";
+        var endLabel = $"IL_end_{_labelCounter++}";
+        
+        EmitExpression(ifStmt.Conditional);
+        EmitLine($"brfalse {falseLabel}");
+        
+        foreach (var stmt in ifStmt.IfBlock.Statements)
+        {
+            EmitStatement(stmt);
+        }
+        
+        EmitLine($"br {endLabel}");
+        EmitLine($"{falseLabel}:");
+        
+        if (ifStmt.ElseBlock != null)
+        {
+            foreach (var stmt in ifStmt.ElseBlock.Statements)
+            {
+                EmitStatement(stmt);
+            }
+        }
+        
+        EmitLine($"{endLabel}:");
+    }
+
+    private void EmitWhile(WhileStatement whileStmt)
+    {
+        var startLabel = $"IL_loop_{_labelCounter++}";
+        var endLabel = $"IL_end_{_labelCounter++}";
+        
+        EmitLine($"{startLabel}:");
+        EmitExpression(whileStmt.Conditional);
+        EmitLine($"brfalse {endLabel}");
+        
+        foreach (var stmt in whileStmt.LoopBlock.Statements)
+        {
+            EmitStatement(stmt);
+        }
+        
+        EmitLine($"br {startLabel}");
+        EmitLine($"{endLabel}:");
+    }
+    */
     {
         // IL uses locals for local variables
         EmitLine($".locals init ({GetTypeNameForLocal(varDecl.TypeName)} {varDecl.Name})");
@@ -265,204 +314,13 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
         EmitLine($"{endLabel}:");
     }
 
-    private void EmitExpression(il_ast.Expression expression)
+    private void EmitExpression(ast.Expression expression)
     {
-        switch (expression)
-        {
-            case IntLiteral intLit:
-                EmitLine($"ldc.i4 {intLit.Value}");
-                break;
-            case FloatLiteral floatLit:
-                EmitLine($"ldc.r4 {floatLit.Value}");
-                break;
-            case DoubleLiteral doubleLit:
-                EmitLine($"ldc.r8 {doubleLit.Value}");
-                break;
-            case StringLiteral stringLit:
-                EmitLine($"ldstr \"{EscapeString(stringLit.Value)}\"");
-                break;
-            case BoolLiteral boolLit:
-                EmitLine(boolLit.Value ? "ldc.i4.1" : "ldc.i4.0");
-                break;
-            case VariableReferenceExpression varRef:
-                EmitLine($"ldloc {varRef.Name}");
-                break;
-            case BinaryExpression binaryExp:
-                EmitBinaryExpression(binaryExp);
-                break;
-            case UnaryExpression unaryExp:
-                EmitUnaryExpression(unaryExp);
-                break;
-            case FuncCallExp funcCall:
-                EmitFunctionCall(funcCall);
-                break;
-        }
+        // TODO: Update to handle ast.Expression types with instruction generation
+        throw new NotImplementedException("Expression emission needs to be updated for new instruction-level model");
     }
 
-    private void EmitBinaryExpression(BinaryExpression binaryExp)
-    {
-        EmitExpression(binaryExp.LHS);
-        EmitExpression(binaryExp.RHS);
-
-        switch (binaryExp.Op)
-        {
-            case "+":
-                EmitLine("add");
-                break;
-            case "-":
-                EmitLine("sub");
-                break;
-            case "*":
-                EmitLine("mul");
-                break;
-            case "/":
-                EmitLine("div");
-                break;
-            case "==":
-                EmitLine("ceq");
-                break;
-            case "!=":
-                EmitLine("ceq");
-                EmitLine("ldc.i4.0");
-                EmitLine("ceq");
-                break;
-            case "<":
-                EmitLine("clt");
-                break;
-            case ">":
-                EmitLine("cgt");
-                break;
-            case "<=":
-                EmitLine("cgt");
-                EmitLine("ldc.i4.0");
-                EmitLine("ceq");
-                break;
-            case ">=":
-                EmitLine("clt");
-                EmitLine("ldc.i4.0");
-                EmitLine("ceq");
-                break;
-            default:
-                EmitLine("add"); // Default fallback
-                break;
-        }
-    }
-
-    private void EmitUnaryExpression(UnaryExpression unaryExp)
-    {
-        EmitExpression(unaryExp.Exp);
-
-        switch (unaryExp.Op)
-        {
-            case "-":
-                EmitLine("neg");
-                break;
-            case "!":
-                EmitLine("ldc.i4.0");
-                EmitLine("ceq");
-                break;
-        }
-    }
-
-    private void EmitFunctionCall(FuncCallExp funcCall)
-    {
-        // Emit arguments
-        foreach (var arg in funcCall.Args)
-        {
-            EmitExpression(arg);
-        }
-
-        // Emit call - using a simple pattern for system calls
-        if (funcCall.Name == "print" || funcCall.Name == "myprint")
-        {
-            EmitLine("call void [System.Console]System.Console::WriteLine(object)");
-        }
-        else
-        {
-            // Generic method call
-            EmitLine($"call {funcCall.ReturnType} {funcCall.Name}({string.Join(", ", funcCall.ArgTypes)})");
-        }
-    }
-
-    private string GetVisibilityString(MemberAccessability visibility)
-    {
-        return visibility switch
-        {
-            MemberAccessability.Public => "public",
-            MemberAccessability.Private => "private",
-            MemberAccessability.Family => "family", 
-            MemberAccessability.Assem => "assembly",
-            _ => "public"
-        };
-    }
-
-    private string GetTypeString(TypeReference typeRef)
-    {
-        if (typeRef.Namespace == "System")
-        {
-            return typeRef.Name switch
-            {
-                "Int32" => "int32",
-                "String" => "string",
-                "Single" => "float32",
-                "Double" => "float64",
-                "Boolean" => "bool",
-                "Void" => "void",
-                _ => $"[System.Runtime]{typeRef.Namespace}.{typeRef.Name}"
-            };
-        }
-        
-        return $"{typeRef.Namespace}.{typeRef.Name}";
-    }
-
-    private string GetTypeNameForLocal(string typeName)
-    {
-        return typeName switch
-        {
-            "int" => "int32",
-            "string" => "string",
-            "float" => "float32",
-            "double" => "float64",
-            "bool" => "bool",
-            _ => typeName
-        };
-    }
-
-    private string EscapeString(string input)
-    {
-        return input?.Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r") ?? "";
-    }
-
-    private void EmitLine(string line = "")
-    {
-        if (string.IsNullOrEmpty(line))
-        {
-            _output.AppendLine();
-        }
-        else
-        {
-            _output.AppendLine(GetIndent() + line);
-        }
-    }
-
-    private string GetIndent()
-    {
-        return string.Concat(Enumerable.Repeat(IndentString, _indentLevel));
-    }
-
-    private void IncreaseIndent()
-    {
-        _indentLevel++;
-    }
-
-    private void DecreaseIndent()
-    {
-        _indentLevel = Math.Max(0, _indentLevel - 1);
-    }
-    
-    /// <summary>
-    /// Emits an instruction sequence directly to IL
-    /// </summary>
+    /* Removed old expression handling methods - now using instruction sequences only */
     private void EmitInstructionSequence(InstructionSequence sequence)
     {
         foreach (var instruction in sequence.Instructions)
