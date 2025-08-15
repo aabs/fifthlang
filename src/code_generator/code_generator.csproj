@@ -11,9 +11,4 @@
     <ProjectReference Include="..\ast-generated\ast_generated.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="ILEmissionVisitor.cs" />
-    <Compile Remove="ILCodeGenerator.cs" />
-  </ItemGroup>
-
 </Project>

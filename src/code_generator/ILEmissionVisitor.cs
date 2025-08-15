@@ -1,3 +1,4 @@
+using ast;
 using il_ast;
 using il_ast_generated;
 using System.Text;
@@ -483,6 +484,36 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
         {
             _indentLevel--;
         }
+    }
+
+    private string GetVisibilityString(MemberAccessability visibility)
+    {
+        return visibility switch
+        {
+            MemberAccessability.Public => "public",
+            MemberAccessability.Private => "private",
+            MemberAccessability.Family => "family",
+            MemberAccessability.Assem => "assembly",
+            MemberAccessability.FamANDAssem => "famandassem",
+            MemberAccessability.FamORAssem => "famorassem",
+            MemberAccessability.CompilerControlled => "privatescope",
+            _ => "private"
+        };
+    }
+
+    private string GetTypeString(TypeReference typeRef)
+    {
+        // Map common types to IL types
+        return typeRef.Name switch
+        {
+            "int" or "Int32" => "int32",
+            "float" or "Single" => "float32",
+            "double" or "Double" => "float64",
+            "bool" or "Boolean" => "bool",
+            "string" or "String" => "string",
+            "void" => "void",
+            _ => typeRef.Name.ToLowerInvariant()
+        };
     }
 
     #endregion

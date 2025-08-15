@@ -114,8 +114,8 @@ public class InstructionLevelILTests
         var ifStatement = new IfElseStatement
         {
             Condition = condition,
-            ThenBlock = new BlockStatement { Statements = { thenStatement } },
-            ElseBlock = new BlockStatement { Statements = { } }
+            ThenBlock = new BlockStatement { Statements = [thenStatement] },
+            ElseBlock = new BlockStatement { Statements = [] }
         };
 
         // Act

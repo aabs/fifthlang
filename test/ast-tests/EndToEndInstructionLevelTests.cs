@@ -84,8 +84,8 @@ public class EndToEndInstructionLevelTests
         var ifStatement = new IfElseStatement
         {
             Condition = condition,
-            ThenBlock = new BlockStatement { Statements = { thenStatement } },
-            ElseBlock = new BlockStatement { Statements = { elseStatement } }
+            ThenBlock = new BlockStatement { Statements = [thenStatement] },
+            ElseBlock = new BlockStatement { Statements = [elseStatement] }
         };
 
         // Act
