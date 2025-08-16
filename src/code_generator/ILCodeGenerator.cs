@@ -67,6 +67,31 @@ public class ILCodeGenerator
     }
 
     /// <summary>
+    /// Transforms AST to IL metamodel without emitting IL text
+    /// </summary>
+    /// <param name="ast">The AST structure to transform</param>
+    /// <returns>The IL metamodel assembly</returns>
+    public AssemblyDeclaration TransformToILMetamodel(ast.AstThing ast)
+    {
+        ArgumentNullException.ThrowIfNull(ast);
+
+        try
+        {
+            // Transform AST to IL metamodel
+            var ilAssembly = TransformAstToIl(ast);
+            
+            // Apply transformation pipeline
+            ilAssembly = ApplyTransformationPipeline(ilAssembly);
+            
+            return ilAssembly;
+        }
+        catch (System.Exception ex) when (!(ex is CodeGenerationException))
+        {
+            throw new CodeGenerationException($"AST to IL metamodel transformation failed: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
     /// Adds a transformation function to the pipeline that will be applied to the IL metamodel
     /// </summary>
     /// <param name="transformation">A function that transforms an AssemblyDeclaration</param>
