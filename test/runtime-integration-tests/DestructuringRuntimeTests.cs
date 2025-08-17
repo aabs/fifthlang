@@ -79,22 +79,14 @@ public class DestructuringRuntimeTests : RuntimeTestBase
             }
             """;
 
-        // Act
-        try
-        {
-            var executablePath = await CompileSourceAsync(sourceCode);
-            File.Exists(executablePath).Should().BeTrue("Conditional destructuring should compile");
-            
-            // Execute and validate result
-            var result = await ExecuteAsync(executablePath);
-            result.ExitCode.Should().Be(6000, "Should return 6000 (60000 / 10) for Engineering bonus");
-            result.StandardError.Should().BeEmpty("No errors should occur during execution");
-        }
-        catch
-        {
-            // Skip if conditional destructuring is not yet implemented
-            Assert.True(true, "Skipping conditional destructuring test - feature may not be implemented yet");
-        }
+        // Act & Assert
+        var executablePath = await CompileSourceAsync(sourceCode);
+        File.Exists(executablePath).Should().BeTrue("Conditional destructuring should compile");
+        
+        // Execute and validate result
+        var result = await ExecuteAsync(executablePath);
+        result.ExitCode.Should().Be(6000, "Should return 6000 (60000 / 10) for Engineering bonus");
+        result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
     [Fact]

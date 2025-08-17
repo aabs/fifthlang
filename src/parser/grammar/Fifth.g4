@@ -206,7 +206,7 @@ operand
 
 object_instantiation_expression
     : NEW type_name
-        L_PAREN (args+=paramdecl (COMMA args+=paramdecl)*)? R_PAREN
+        (L_PAREN (args+=paramdecl (COMMA args+=paramdecl)*)? R_PAREN)?
         (
         L_CURLY
         properties+=initialiser_property_assignment
