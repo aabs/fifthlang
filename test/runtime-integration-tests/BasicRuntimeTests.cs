@@ -5,8 +5,8 @@ namespace runtime_integration_tests;
 
 /// <summary>
 /// Tests for basic arithmetic, expressions, and simple programs
-/// NOTE: Current PE emission generates hardcoded "Hello from Fifth!" program.
-/// These tests are structured to be updated when PE emission is fully implemented.
+/// NOTE: Tests have been updated to validate actual execution results where possible.
+/// Complex features like variable declarations are noted as TODO items for future IL generation improvements.
 /// </summary>
 public class BasicRuntimeTests : RuntimeTestBase
 {
