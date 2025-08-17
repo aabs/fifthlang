@@ -1,0 +1,12 @@
+class Point {
+    X: int;
+    Y: int;
+}
+
+main(): int {
+    p: Point = new Point {
+        X = 10,
+        Y = 20
+    };
+    return p.X + p.Y;
+}
