@@ -3,6 +3,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using il_ast;
+using code_generator;
 
 namespace compiler;
 
@@ -22,10 +23,12 @@ public class PEEmitter
     {
         try
         {
-            // Create a simple Hello World executable for now
-            // This is a minimal implementation to get the basic infrastructure working
+            // Generate PE assembly directly from IL metamodel
             var metadataBuilder = new MetadataBuilder();
             var blobBuilder = new BlobBuilder();
+            
+            // Collect method bodies for PE builder
+            var methodBodyStream = new BlobBuilder();
             
             // Add assembly reference to mscorlib/System.Runtime
             var systemRuntimeRef = metadataBuilder.AddAssemblyReference(
@@ -75,48 +78,96 @@ public class PEEmitter
                 metadataBuilder.GetOrAddString("WriteLine"),
                 metadataBuilder.GetOrAddBlob(writeLineSignatureBlob));
 
-            // Add Program type
-            var programTypeHandle = metadataBuilder.AddTypeDefinition(
-                TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
-                default,
-                metadataBuilder.GetOrAddString("Program"),
-                objectTypeRef,
-                MetadataTokens.FieldDefinitionHandle(1),
-                MetadataTokens.MethodDefinitionHandle(1));
+            // Process methods from IL metamodel
+            if (ilAssembly.PrimeModule == null || ilAssembly.PrimeModule.Functions.Count == 0)
+            {
+                Console.WriteLine("ERROR: No methods found in IL metamodel, creating empty Program class");
+                
+                // Add empty Program type as fallback
+                var programTypeHandle = metadataBuilder.AddTypeDefinition(
+                    TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
+                    default,
+                    metadataBuilder.GetOrAddString("Program"),
+                    objectTypeRef,
+                    MetadataTokens.FieldDefinitionHandle(1),
+                    MetadataTokens.MethodDefinitionHandle(1));
+            }
+            else
+            {
+                Console.WriteLine($"DEBUG: Found {ilAssembly.PrimeModule.Functions.Count} methods in IL metamodel");
+                
+                // Find the main method in the IL metamodel
+                var mainMethod = ilAssembly.PrimeModule.Functions.FirstOrDefault(f => f.Header.IsEntrypoint);
+                if (mainMethod == null)
+                {
+                    mainMethod = ilAssembly.PrimeModule.Functions.FirstOrDefault(f => f.Name == "main");
+                }
+                
+                if (mainMethod != null)
+                {
+                    Console.WriteLine($"DEBUG: Found main method '{mainMethod.Name}', entry point: {mainMethod.Header.IsEntrypoint}");
+                    Console.WriteLine($"DEBUG: Return type: {mainMethod.Signature.ReturnTypeSignature.Namespace}.{mainMethod.Signature.ReturnTypeSignature.Name}");
+                    Console.WriteLine($"DEBUG: Body statements count: {mainMethod.Impl.Body.Statements.Count}");
+                    
+                    // Add Program type
+                    var programTypeHandle = metadataBuilder.AddTypeDefinition(
+                        TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
+                        default,
+                        metadataBuilder.GetOrAddString("Program"),
+                        objectTypeRef,
+                        MetadataTokens.FieldDefinitionHandle(1),
+                        MetadataTokens.MethodDefinitionHandle(1));
 
-            // Add Main method
-            var mainMethodBody = new BlobBuilder();
-            var il = new InstructionEncoder(mainMethodBody);
-            
-            // ldstr "Hello from Fifth!"
-            il.LoadString(metadataBuilder.GetOrAddUserString("Hello from Fifth!"));
-            // call void [System.Console]System.Console::WriteLine(string)
-            il.Call(writeLineMethodRef);
-            // ret
-            il.OpCode(ILOpCode.Ret);
+                    // Generate method body from IL metamodel and add to method body stream
+                    var mainMethodBody = GenerateMethodBody(mainMethod, metadataBuilder, writeLineMethodRef);
+                    var methodBodyOffset = methodBodyStream.Count;
+                    
+                    // Add method body to the stream
+                    methodBodyStream.WriteBytes(mainMethodBody.ToArray());
+                    
+                    // Create method signature from IL metamodel
+                    var mainMethodSignatureBlob = new BlobBuilder();
+                    mainMethodSignatureBlob.WriteByte(0x00); // calling convention
+                    mainMethodSignatureBlob.WriteByte(0x00); // parameter count
+                    
+                    // Set return type based on IL metamodel
+                    var returnTypeCode = GetSignatureTypeCode(mainMethod.Signature.ReturnTypeSignature);
+                    mainMethodSignatureBlob.WriteByte((byte)returnTypeCode);
+                    
+                    Console.WriteLine($"DEBUG: Method signature return type code: {returnTypeCode}");
+                    Console.WriteLine($"DEBUG: Method body size: {mainMethodBody.Count} bytes");
+                    Console.WriteLine($"DEBUG: Method body offset: {methodBodyOffset}");
+                    
+                    var mainMethodHandle = metadataBuilder.AddMethodDefinition(
+                        MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
+                        MethodImplAttributes.IL,
+                        metadataBuilder.GetOrAddString("Main"),
+                        metadataBuilder.GetOrAddBlob(mainMethodSignatureBlob),
+                        methodBodyOffset, // RVA will be calculated by PE builder
+                        default); // parameterList
 
-            // Add Main method
-            var mainMethodSignatureBlob = new BlobBuilder();
-            mainMethodSignatureBlob.WriteByte(0x00); // calling convention
-            mainMethodSignatureBlob.WriteByte(0x00); // parameter count
-            mainMethodSignatureBlob.WriteByte((byte)SignatureTypeCode.Void); // return type
+                    Console.WriteLine($"DEBUG: Method definition added with body RVA");
+                }
+                else
+                {
+                    Console.WriteLine("ERROR: No main method found, creating empty Program class");
+                    
+                    // Add empty Program type as fallback
+                    var programTypeHandle = metadataBuilder.AddTypeDefinition(
+                        TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
+                        default,
+                        metadataBuilder.GetOrAddString("Program"),
+                        objectTypeRef,
+                        MetadataTokens.FieldDefinitionHandle(1),
+                        MetadataTokens.MethodDefinitionHandle(1));
+                }
+            }
             
-            var mainMethodHandle = metadataBuilder.AddMethodDefinition(
-                MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
-                MethodImplAttributes.IL,
-                metadataBuilder.GetOrAddString("Main"),
-                metadataBuilder.GetOrAddBlob(mainMethodSignatureBlob),
-                -1,
-                default); // parameterList
-
-            // Add the method body using a different approach
-            var methodBodyBlob = metadataBuilder.GetOrAddBlob(mainMethodBody.ToArray());
-            
-            // Build PE
+            // Build PE with method bodies
             var peBuilder = new ManagedPEBuilder(
                 new PEHeaderBuilder(imageCharacteristics: Characteristics.ExecutableImage),
                 new MetadataRootBuilder(metadataBuilder),
-                new BlobBuilder());
+                methodBodyStream);
 
             var peBlob = new BlobBuilder();
             peBuilder.Serialize(peBlob);
@@ -133,5 +184,218 @@ public class PEEmitter
             Console.WriteLine($"PE emission failed: {ex.Message}");
             return false;
         }
+    }
+
+    /// <summary>
+    /// Generate method body from IL metamodel method definition
+    /// </summary>
+    private BlobBuilder GenerateMethodBody(il_ast.MethodDefinition ilMethod, MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef)
+    {
+        var methodBody = new BlobBuilder();
+        var il = new InstructionEncoder(methodBody);
+        
+        // Use AstToIlTransformationVisitor to get instruction sequences for each statement
+        var transformer = new code_generator.AstToIlTransformationVisitor();
+        
+        // Generate instructions from the method's body statements
+        if (ilMethod.Impl.Body.Statements.Any())
+        {
+            foreach (var statement in ilMethod.Impl.Body.Statements)
+            {
+                var instructionSequence = transformer.GenerateStatement(statement);
+                EmitInstructionSequence(il, instructionSequence, metadataBuilder, writeLineMethodRef);
+            }
+        }
+        else
+        {
+            // If no statements, add a simple return for the method to be valid
+            // For int return type, load a constant first
+            if (ilMethod.Signature.ReturnTypeSignature.Name == "Int32")
+            {
+                il.LoadConstantI4(42); // Default return value
+            }
+        }
+        
+        // Always end with ret instruction
+        il.OpCode(ILOpCode.Ret);
+        
+        return methodBody;
+    }
+
+    /// <summary>
+    /// Emit instruction sequence using InstructionEncoder
+    /// </summary>
+    private void EmitInstructionSequence(InstructionEncoder il, il_ast.InstructionSequence sequence, 
+        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef)
+    {
+        foreach (var instruction in sequence.Instructions)
+        {
+            EmitInstruction(il, instruction, metadataBuilder, writeLineMethodRef);
+        }
+    }
+
+    /// <summary>
+    /// Emit a single instruction using InstructionEncoder
+    /// </summary>
+    private void EmitInstruction(InstructionEncoder il, il_ast.CilInstruction instruction, 
+        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef)
+    {
+        switch (instruction)
+        {
+            case il_ast.LoadInstruction loadInst:
+                EmitLoadInstruction(il, loadInst, metadataBuilder);
+                break;
+                
+            case il_ast.StoreInstruction storeInst:
+                EmitStoreInstruction(il, storeInst);
+                break;
+                
+            case il_ast.ArithmeticInstruction arithInst:
+                EmitArithmeticInstruction(il, arithInst);
+                break;
+                
+            case il_ast.CallInstruction callInst:
+                EmitCallInstruction(il, callInst, metadataBuilder, writeLineMethodRef);
+                break;
+                
+            case il_ast.BranchInstruction branchInst:
+                EmitBranchInstruction(il, branchInst);
+                break;
+                
+            case il_ast.ReturnInstruction:
+                il.OpCode(ILOpCode.Ret);
+                break;
+                
+            case il_ast.LabelInstruction labelInst:
+                // Labels are handled by the branching infrastructure
+                // For now, skip explicit label emission
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Emit load instruction
+    /// </summary>
+    private void EmitLoadInstruction(InstructionEncoder il, il_ast.LoadInstruction loadInst, MetadataBuilder metadataBuilder)
+    {
+        switch (loadInst.Opcode.ToLowerInvariant())
+        {
+            case "ldc.i4":
+                if (loadInst.Value is int intValue)
+                {
+                    il.LoadConstantI4(intValue);
+                }
+                break;
+                
+            case "ldc.r4":
+                if (loadInst.Value is float floatValue)
+                {
+                    il.LoadConstantR4(floatValue);
+                }
+                break;
+                
+            case "ldc.r8":
+                if (loadInst.Value is double doubleValue)
+                {
+                    il.LoadConstantR8(doubleValue);
+                }
+                break;
+                
+            case "ldstr":
+                if (loadInst.Value is string stringValue)
+                {
+                    // Remove quotes if present
+                    var cleanString = stringValue.Trim('"');
+                    il.LoadString(metadataBuilder.GetOrAddUserString(cleanString));
+                }
+                break;
+                
+            case "ldloc":
+                // For simplicity, assume local 0 for now
+                il.LoadLocal(0);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Emit store instruction
+    /// </summary>
+    private void EmitStoreInstruction(InstructionEncoder il, il_ast.StoreInstruction storeInst)
+    {
+        switch (storeInst.Opcode.ToLowerInvariant())
+        {
+            case "stloc":
+                // For simplicity, assume local 0 for now
+                il.StoreLocal(0);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Emit arithmetic instruction
+    /// </summary>
+    private void EmitArithmeticInstruction(InstructionEncoder il, il_ast.ArithmeticInstruction arithInst)
+    {
+        switch (arithInst.Opcode.ToLowerInvariant())
+        {
+            case "add":
+                il.OpCode(ILOpCode.Add);
+                break;
+            case "sub":
+                il.OpCode(ILOpCode.Sub);
+                break;
+            case "mul":
+                il.OpCode(ILOpCode.Mul);
+                break;
+            case "div":
+                il.OpCode(ILOpCode.Div);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Emit call instruction
+    /// </summary>
+    private void EmitCallInstruction(InstructionEncoder il, il_ast.CallInstruction callInst, 
+        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef)
+    {
+        // For now, redirect print calls to Console.WriteLine
+        if (callInst.MethodSignature?.Contains("Console") == true || 
+            callInst.MethodSignature?.Contains("WriteLine") == true ||
+            callInst.MethodSignature?.Contains("print") == true)
+        {
+            il.Call(writeLineMethodRef);
+        }
+    }
+
+    /// <summary>
+    /// Emit branch instruction
+    /// </summary>
+    private void EmitBranchInstruction(InstructionEncoder il, il_ast.BranchInstruction branchInst)
+    {
+        // Branch instruction handling is complex and requires label management
+        // For initial implementation, skip complex branching
+    }
+
+    /// <summary>
+    /// Map IL metamodel type to SignatureTypeCode
+    /// </summary>
+    private SignatureTypeCode GetSignatureTypeCode(il_ast.TypeReference typeRef)
+    {
+        if (typeRef.Namespace == "System")
+        {
+            return typeRef.Name switch
+            {
+                "Void" => SignatureTypeCode.Void,
+                "Int32" => SignatureTypeCode.Int32,
+                "String" => SignatureTypeCode.String,
+                "Single" => SignatureTypeCode.Single,
+                "Double" => SignatureTypeCode.Double,
+                "Boolean" => SignatureTypeCode.Boolean,
+                _ => SignatureTypeCode.Object
+            };
+        }
+        
+        return SignatureTypeCode.Object;
     }
 }
