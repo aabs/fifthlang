@@ -661,7 +661,6 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
     private ast.MemberName _IntroducedVariable;
     private ast.MemberName _ReferencedPropertyName;
     private ast.ParamDestructureDef _DestructureDef;
-    private ast.Expression _Constraint;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
     
@@ -671,7 +670,6 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
              IntroducedVariable = this._IntroducedVariable // from PropertyBindingDef
            , ReferencedPropertyName = this._ReferencedPropertyName // from PropertyBindingDef
            , DestructureDef = this._DestructureDef // from PropertyBindingDef
-           , Constraint = this._Constraint // from PropertyBindingDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
         };
@@ -688,11 +686,6 @@ public class PropertyBindingDefBuilder : IBuilder<ast.PropertyBindingDef>
 
     public PropertyBindingDefBuilder WithDestructureDef(ast.ParamDestructureDef value){
         _DestructureDef = value;
-        return this;
-    }
-
-    public PropertyBindingDefBuilder WithConstraint(ast.Expression value){
-        _Constraint = value;
         return this;
     }
 
