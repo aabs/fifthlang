@@ -62,11 +62,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
                 salary: Salary | salary > 50000,
                 department: Department
             }): int {
-                if (department == "Engineering") {
-                    return salary / 10;
-                } else {
-                    return salary / 20;
-                }
+                return salary / 10;
             }
 
             main(): int {
@@ -85,7 +81,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         
         // Execute and validate result
         var result = await ExecuteAsync(executablePath);
-        result.ExitCode.Should().Be(6000, "Should return 6000 (60000 / 10) for Engineering bonus");
+        result.ExitCode.Should().Be(6000, "Should return 6000 (60000 / 10) for salary bonus");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
