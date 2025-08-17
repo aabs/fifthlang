@@ -29,22 +29,14 @@ public class DestructuringRuntimeTests : RuntimeTestBase
             }
             """;
 
-        // Act
-        try
-        {
-            var executablePath = await CompileSourceAsync(sourceCode);
-            File.Exists(executablePath).Should().BeTrue("Simple destructuring should compile");
+        // Act & Assert
+        var executablePath = await CompileSourceAsync(sourceCode);
+        File.Exists(executablePath).Should().BeTrue("Simple destructuring should compile");
 
-            // TODO: When PE emission is fixed, expect exit code 30 (10 + 20)
+        // Execute and validate result
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(30, "Should return 30 as specified in the process_point function");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
-        }
-        catch
-        {
-            // Skip if destructuring syntax is not yet fully implemented
-            Assert.True(true, "Skipping destructuring test - syntax may not be fully implemented yet");
-        }
     }
 
     [Fact]
@@ -68,21 +60,13 @@ public class DestructuringRuntimeTests : RuntimeTestBase
             """;
 
         // Act & Assert
-        try
-        {
-            var executablePath = await CompileSourceAsync(sourceCode);
-            File.Exists(executablePath).Should().BeTrue("Conditional destructuring should compile");
-            
-            // Execute and validate result
-            var result = await ExecuteAsync(executablePath);
-            result.ExitCode.Should().Be(30, "Should return 30 (10 + 20) from destructuring");
-            result.StandardError.Should().BeEmpty("No errors should occur during execution");
-        }
-        catch
-        {
-            // Skip if conditional destructuring is not yet fully implemented  
-            Assert.True(true, "Skipping conditional destructuring test - feature may not be fully implemented yet");
-        }
+        var executablePath = await CompileSourceAsync(sourceCode);
+        File.Exists(executablePath).Should().BeTrue("Conditional destructuring should compile");
+        
+        // Execute and validate result
+        var result = await ExecuteAsync(executablePath);
+        result.ExitCode.Should().Be(30, "Should return 30 (10 + 20) from destructuring");
+        result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
     [Fact]
