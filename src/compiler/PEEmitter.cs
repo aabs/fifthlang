@@ -82,8 +82,6 @@ public class PEEmitter
             // Process methods from IL metamodel
             if (ilAssembly.PrimeModule == null || ilAssembly.PrimeModule.Functions.Count == 0)
             {
-                Console.WriteLine("ERROR: No methods found in IL metamodel, creating empty Program class");
-                
                 // Add empty Program type as fallback
                 var programTypeHandle = metadataBuilder.AddTypeDefinition(
                     TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
@@ -95,8 +93,6 @@ public class PEEmitter
             }
             else
             {
-                Console.WriteLine($"DEBUG: Found {ilAssembly.PrimeModule.Functions.Count} methods in IL metamodel");
-                
                 // Find the main method in the IL metamodel
                 var mainMethod = ilAssembly.PrimeModule.Functions.FirstOrDefault(f => f.Header.IsEntrypoint);
                 if (mainMethod == null)
@@ -106,10 +102,6 @@ public class PEEmitter
                 
                 if (mainMethod != null)
                 {
-                    Console.WriteLine($"DEBUG: Found main method '{mainMethod.Name}', entry point: {mainMethod.Header.IsEntrypoint}");
-                    Console.WriteLine($"DEBUG: Return type: {mainMethod.Signature.ReturnTypeSignature.Namespace}.{mainMethod.Signature.ReturnTypeSignature.Name}");
-                    Console.WriteLine($"DEBUG: Body statements count: {mainMethod.Impl.Body.Statements.Count}");
-                    
                     // Add Program type
                     var programTypeHandle = metadataBuilder.AddTypeDefinition(
                         TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
@@ -135,10 +127,6 @@ public class PEEmitter
                     var returnTypeCode = GetSignatureTypeCode(mainMethod.Signature.ReturnTypeSignature);
                     mainMethodSignatureBlob.WriteByte((byte)returnTypeCode);
                     
-                    Console.WriteLine($"DEBUG: Method signature return type code: {returnTypeCode}");
-                    Console.WriteLine($"DEBUG: Method body size: {mainMethodBody.Count} bytes");
-                    Console.WriteLine($"DEBUG: Method body offset: {methodBodyOffset}");
-                    
                     var mainMethodHandle = metadataBuilder.AddMethodDefinition(
                         MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
                         MethodImplAttributes.IL,
@@ -148,12 +136,9 @@ public class PEEmitter
                         default); // parameterList
 
                     entryPointMethodHandle = mainMethodHandle;
-                    Console.WriteLine($"DEBUG: Method definition added with body RVA");
                 }
                 else
                 {
-                    Console.WriteLine("ERROR: No main method found, creating empty Program class");
-                    
                     // Add empty Program type as fallback
                     var programTypeHandle = metadataBuilder.AddTypeDefinition(
                         TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
