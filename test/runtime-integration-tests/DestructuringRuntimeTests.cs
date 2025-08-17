@@ -34,8 +34,11 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         {
             var executablePath = await CompileSourceAsync(sourceCode);
             File.Exists(executablePath).Should().BeTrue("Simple destructuring should compile");
-            
+
             // TODO: When PE emission is fixed, expect exit code 30 (10 + 20)
+        var result = await ExecuteAsync(executablePath);
+        result.ExitCode.Should().Be(30, "Should return 30 as specified in the process_point function");
+        result.StandardError.Should().BeEmpty("No errors should occur during execution");
         }
         catch
         {
@@ -82,7 +85,10 @@ public class DestructuringRuntimeTests : RuntimeTestBase
             var executablePath = await CompileSourceAsync(sourceCode);
             File.Exists(executablePath).Should().BeTrue("Conditional destructuring should compile");
             
-            // TODO: When PE emission is fixed, expect exit code 6000 (60000 / 10)
+            // Execute and validate result
+            var result = await ExecuteAsync(executablePath);
+            result.ExitCode.Should().Be(6000, "Should return 6000 (60000 / 10) for Engineering bonus");
+            result.StandardError.Should().BeEmpty("No errors should occur during execution");
         }
         catch
         {
@@ -132,18 +138,13 @@ public class DestructuringRuntimeTests : RuntimeTestBase
             """;
 
         // Act
-        try
-        {
-            var executablePath = await CompileSourceAsync(sourceCode);
-            File.Exists(executablePath).Should().BeTrue("Nested destructuring should compile");
-            
-            // TODO: When PE emission is fixed, expect exit code 12345
-        }
-        catch
-        {
-            // Skip if nested destructuring is not yet implemented
-            Assert.True(true, "Skipping nested destructuring test - feature may not be implemented yet");
-        }
+        var executablePath = await CompileSourceAsync(sourceCode);
+        File.Exists(executablePath).Should().BeTrue("Nested destructuring should compile");
+        
+        // Execute and validate result
+        var result = await ExecuteAsync(executablePath);
+        result.ExitCode.Should().Be(12345, "Should return the ZipCode 12345 from nested destructuring");
+        result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
     [Fact]
@@ -167,7 +168,10 @@ public class DestructuringRuntimeTests : RuntimeTestBase
             var executablePath = await CompileSourceAsync(sourceCode);
             File.Exists(executablePath).Should().BeTrue("Array destructuring should compile");
             
-            // TODO: When PE emission is fixed, expect exit code 15 (5 + 10)
+            // Execute and validate result
+            var result = await ExecuteAsync(executablePath);
+            result.ExitCode.Should().Be(15, "Should return 15 (5 + 10) from array destructuring");
+            result.StandardError.Should().BeEmpty("No errors should occur during execution");
         }
         catch
         {
@@ -231,7 +235,10 @@ public class DestructuringRuntimeTests : RuntimeTestBase
             var executablePath = await CompileSourceAsync(sourceCode);
             File.Exists(executablePath).Should().BeTrue("Guarded destructuring should compile");
             
-            // TODO: When PE emission is fixed, expect exit code 3 (1 + 2)
+            // Execute and validate result
+            var result = await ExecuteAsync(executablePath);
+            result.ExitCode.Should().Be(3, "Should return 3 (1 + 2) from guarded destructuring overloads");
+            result.StandardError.Should().BeEmpty("No errors should occur during execution");
         }
         catch
         {

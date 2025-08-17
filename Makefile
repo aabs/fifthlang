@@ -9,12 +9,6 @@ help:
 	@echo "  test              - Run all tests"
 	@echo "  run-generator     - Run AST code generator"
 	@echo "  clean             - Clean all build outputs"
-	@echo "  build-ast-model   - Build ast-model project"
-	@echo "  build-ast-generator - Build ast_generator project"
-	@echo "  build-ast-generated - Build ast-generated project"
-	@echo "  build-parser      - Build parser project"
-	@echo "  build-compiler    - Build compiler project"
-	@echo "  build-tests       - Build test projects"
 	@echo "  help              - Show this help message"
 
 build-all: restore run-generator
@@ -24,29 +18,10 @@ restore:
 	dotnet restore fifthlang.sln
 
 test:
-	dotnet test test/ast-tests/ast_tests.csproj
+	dotnet test
 
 run-generator:
 	dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
 
 clean:
 	dotnet clean fifthlang.sln
-
-build-ast-model:
-	dotnet build src/ast-model/ast_model.csproj
-
-build-ast-generator:
-	dotnet build src/ast_generator/ast_generator.csproj
-
-build-ast-generated:
-	dotnet build src/ast-generated/ast_generated.csproj
-
-build-parser:
-	dotnet build src/parser/parser.csproj
-
-build-compiler:
-	dotnet build src/compiler/compiler.csproj
-
-build-tests:
-	dotnet build test/ast-tests/ast_tests.csproj
-
