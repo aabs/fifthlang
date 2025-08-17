@@ -1,0 +1,4 @@
+main(): int {
+    items: list<int> = [10, 20, 30];
+    return items[1];
+}
