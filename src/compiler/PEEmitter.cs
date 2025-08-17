@@ -29,6 +29,7 @@ public class PEEmitter
             
             // Collect method bodies for PE builder
             var methodBodyStream = new BlobBuilder();
+            MethodDefinitionHandle? entryPointMethodHandle = null;
             
             // Add assembly reference to mscorlib/System.Runtime
             var systemRuntimeRef = metadataBuilder.AddAssemblyReference(
@@ -146,6 +147,7 @@ public class PEEmitter
                         methodBodyOffset, // RVA will be calculated by PE builder
                         default); // parameterList
 
+                    entryPointMethodHandle = mainMethodHandle;
                     Console.WriteLine($"DEBUG: Method definition added with body RVA");
                 }
                 else
@@ -164,10 +166,13 @@ public class PEEmitter
             }
             
             // Build PE with method bodies
+            var peHeaderBuilder = new PEHeaderBuilder(imageCharacteristics: Characteristics.ExecutableImage);
+            
             var peBuilder = new ManagedPEBuilder(
-                new PEHeaderBuilder(imageCharacteristics: Characteristics.ExecutableImage),
+                peHeaderBuilder,
                 new MetadataRootBuilder(metadataBuilder),
-                methodBodyStream);
+                methodBodyStream,
+                entryPoint: entryPointMethodHandle ?? default);
 
             var peBlob = new BlobBuilder();
             peBuilder.Serialize(peBlob);
