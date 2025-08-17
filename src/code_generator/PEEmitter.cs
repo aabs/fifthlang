@@ -3,9 +3,8 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using il_ast;
-using code_generator;
 
-namespace compiler;
+namespace code_generator;
 
 /// <summary>
 /// Emits Portable Executable files directly from IL metamodel, 
@@ -190,7 +189,7 @@ public class PEEmitter
         var il = new InstructionEncoder(ilInstructions);
         
         // Use AstToIlTransformationVisitor to get instruction sequences for each statement
-        var transformer = new code_generator.AstToIlTransformationVisitor();
+        var transformer = new AstToIlTransformationVisitor();
         
         // Generate instructions from the method's body statements
         if (ilMethod.Impl.Body.Statements.Any())
