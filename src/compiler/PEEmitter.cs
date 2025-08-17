@@ -31,6 +31,11 @@ public class PEEmitter
             var methodBodyStream = new BlobBuilder();
             MethodDefinitionHandle? entryPointMethodHandle = null;
             
+            // Ensure we have a valid assembly name - use output filename if IL assembly name is empty
+            var assemblyName = string.IsNullOrWhiteSpace(ilAssembly.Name) 
+                ? Path.GetFileNameWithoutExtension(outputPath) 
+                : ilAssembly.Name;
+            
             // Add assembly reference to mscorlib/System.Runtime
             var systemRuntimeRef = metadataBuilder.AddAssemblyReference(
                 metadataBuilder.GetOrAddString("System.Runtime"),
@@ -43,14 +48,14 @@ public class PEEmitter
             // Add module
             var moduleHandle = metadataBuilder.AddModule(
                 0,
-                metadataBuilder.GetOrAddString(ilAssembly.Name),
+                metadataBuilder.GetOrAddString(assemblyName),
                 metadataBuilder.GetOrAddGuid(Guid.NewGuid()),
                 default,
                 default);
 
             // Add assembly definition
             var assemblyHandle = metadataBuilder.AddAssembly(
-                metadataBuilder.GetOrAddString(ilAssembly.Name),
+                metadataBuilder.GetOrAddString(assemblyName),
                 new System.Version(1, 0, 0, 0),
                 default,
                 default,
@@ -181,8 +186,8 @@ public class PEEmitter
     /// </summary>
     private BlobBuilder GenerateMethodBody(il_ast.MethodDefinition ilMethod, MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef)
     {
-        var methodBody = new BlobBuilder();
-        var il = new InstructionEncoder(methodBody);
+        var ilInstructions = new BlobBuilder();
+        var il = new InstructionEncoder(ilInstructions);
         
         // Use AstToIlTransformationVisitor to get instruction sequences for each statement
         var transformer = new code_generator.AstToIlTransformationVisitor();
@@ -208,6 +213,30 @@ public class PEEmitter
         
         // Always end with ret instruction
         il.OpCode(ILOpCode.Ret);
+        
+        // Create the method body blob with proper header
+        var methodBody = new BlobBuilder();
+        
+        // Write simple method body header (no local variables, small method)
+        var codeSize = ilInstructions.Count;
+        
+        if (codeSize < 64)
+        {
+            // Tiny format: first byte contains 2-bit format + 6-bit size
+            methodBody.WriteByte((byte)(0x02 | (codeSize << 2))); // Format: CorILMethod_TinyFormat
+        }
+        else
+        {
+            // Fat format header (12 bytes)
+            methodBody.WriteByte(0x03); // Format: CorILMethod_FatFormat
+            methodBody.WriteByte(0x30); // Flags: no extra sections
+            methodBody.WriteUInt16((ushort)8);    // Max stack (16-bit)
+            methodBody.WriteUInt32((uint)codeSize); // Code size (32-bit)
+            methodBody.WriteUInt32(0);  // Local var sig token (0 = no locals)
+        }
+        
+        // Write the actual IL instructions
+        methodBody.WriteBytes(ilInstructions.ToArray());
         
         return methodBody;
     }
