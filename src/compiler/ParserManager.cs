@@ -18,7 +18,7 @@ public static class FifthParserManager
         ast = new PropertyToFieldExpander().Visit(ast);
         ast = new OverloadGatheringVisitor().Visit(ast);
         ast = new OverloadTransformingVisitor().Visit(ast);
-        ast = new DestructuringVisitor().Visit(ast);
+        // ast = new DestructuringVisitor().Visit(ast);  // Functionality moved to DestructuringPatternFlattenerVisitor
         ast = new DestructuringPatternFlattenerVisitor().Visit(ast);
         ast = new TreeLinkageVisitor().Visit(ast);
         ast = new SymbolTableBuilderVisitor().Visit(ast);
