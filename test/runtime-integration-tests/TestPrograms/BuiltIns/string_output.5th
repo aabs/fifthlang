@@ -1,0 +1,8 @@
+greet(name: string): void {
+    std.print("Hello, " + name);
+}
+
+main(): int {
+    greet("World");
+    return 0;
+}

@@ -1,0 +1,16 @@
+class Person {
+    Name: string;
+    Age: int;
+}
+
+get_age(p: Person): int {
+    return p.Age;
+}
+
+main(): int {
+    person: Person = new Person {
+        Name = "John",
+        Age = 25
+    };
+    return get_age(person);
+}

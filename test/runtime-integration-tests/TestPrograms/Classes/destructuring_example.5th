@@ -1,0 +1,24 @@
+class Employee {
+    Name: string;
+    Salary: int;
+    Department: string;
+}
+
+calculate_bonus(emp: Employee {
+    salary: Salary | salary > 50000,
+    department: Department
+}): int {
+    if (department == "Engineering") {
+        return salary / 10;
+    }
+    return salary / 20;
+}
+
+main(): int {
+    engineer: Employee = new Employee {
+        Name = "Alice",
+        Salary = 60000,
+        Department = "Engineering"
+    };
+    return calculate_bonus(engineer);
+}
