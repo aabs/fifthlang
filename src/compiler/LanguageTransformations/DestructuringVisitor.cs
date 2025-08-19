@@ -2,6 +2,15 @@
 
 namespace compiler.LanguageTransformations;
 
+/// <summary>
+/// Handles destructuring parameter processing by resolving type scopes and linking property bindings
+/// to their corresponding property definitions. This visitor focuses on establishing the structural
+/// relationships between destructured parameters and their underlying types.
+/// 
+/// Architectural responsibility: Converting nested destructuring declarations into local variable 
+/// declarations within function overloads. Does NOT handle constraint processing - that is handled 
+/// by DestructuringPatternFlattenerVisitor.
+/// </summary>
 public class DestructuringVisitor : DefaultRecursiveDescentVisitor
 {
     public Stack<(string, ISymbolTableEntry)> ResolutionScope { get; } = new();

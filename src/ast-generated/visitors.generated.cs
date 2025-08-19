@@ -550,6 +550,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
      return ctx with {
          ReferencedProperty = (ast.PropertyDef)Visit((AstThing)ctx.ReferencedProperty)
         ,DestructureDef = (ast.ParamDestructureDef)Visit((AstThing)ctx.DestructureDef)
+        ,Constraint = (ast.Expression)Visit((AstThing)ctx.Constraint)
         };
     }
     public virtual TypeDef VisitTypeDef(TypeDef ctx)

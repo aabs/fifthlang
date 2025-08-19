@@ -54,6 +54,8 @@ tools/
 
 ## Validation
 
+Never under any circumstances mask a failing test with a catch-all try-catch block. It is better to transparently allow tests to fail to properly reflect the state of the code base.
+
 ### Always Validate Changes
 After making any changes to the codebase:
 

@@ -1,4 +1,6 @@
-﻿using ast_model.Symbols;
+﻿using ast;
+using ast_generated;
+using ast_model.Symbols;
 
 namespace compiler.LanguageTransformations;
 
@@ -75,8 +77,9 @@ public class PropertyBindingToVariableDeclarationTransformer : DefaultRecursiveD
                             .Build()
                     )
                     .WithInitialValue(
-                        new VarRefExpBuilder()
-                        .WithVarName(propdecl.Name.Value)
+                        new MemberAccessExpBuilder()
+                        .WithLHS(new VarRefExpBuilder().WithVarName(scopeVarName).Build())
+                        .WithRHS(new VarRefExpBuilder().WithVarName(propdecl.Name.Value).Build())
                         .Build()
                     )
                     .Build();

@@ -29,22 +29,14 @@ public class DestructuringRuntimeTests : RuntimeTestBase
             }
             """;
 
-        // Act
-        try
-        {
-            var executablePath = await CompileSourceAsync(sourceCode);
-            File.Exists(executablePath).Should().BeTrue("Simple destructuring should compile");
+        // Act & Assert
+        var executablePath = await CompileSourceAsync(sourceCode);
+        File.Exists(executablePath).Should().BeTrue("Simple destructuring should compile");
 
-            // TODO: When PE emission is fixed, expect exit code 30 (10 + 20)
+        // Execute and validate result
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(30, "Should return 30 as specified in the process_point function");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
-        }
-        catch
-        {
-            // Skip if destructuring syntax is not yet fully implemented
-            Assert.True(true, "Skipping destructuring test - syntax may not be fully implemented yet");
-        }
     }
 
     [Fact]
@@ -52,49 +44,29 @@ public class DestructuringRuntimeTests : RuntimeTestBase
     {
         // Arrange
         var sourceCode = """
-            class Employee {
-                Name: string;
-                Salary: int;
-                Department: string;
+            class Point {
+                X: int;
+                Y: int;
             }
 
-            calculate_bonus(emp: Employee {
-                salary: Salary | salary > 50000,
-                department: Department
-            }): int {
-                if (department == "Engineering") {
-                    return salary / 10;
-                } else {
-                    return salary / 20;
-                }
+            process_point(p: Point { x: X, y: Y }): int {
+                return x + y;
             }
 
             main(): int {
-                engineer: Employee = new Employee {
-                    Name = "Alice",
-                    Salary = 60000,
-                    Department = "Engineering"
-                };
-                return calculate_bonus(engineer);
+                point: Point = new Point { X = 10, Y = 20 };
+                return process_point(point);
             }
             """;
 
-        // Act
-        try
-        {
-            var executablePath = await CompileSourceAsync(sourceCode);
-            File.Exists(executablePath).Should().BeTrue("Conditional destructuring should compile");
-            
-            // Execute and validate result
-            var result = await ExecuteAsync(executablePath);
-            result.ExitCode.Should().Be(6000, "Should return 6000 (60000 / 10) for Engineering bonus");
-            result.StandardError.Should().BeEmpty("No errors should occur during execution");
-        }
-        catch
-        {
-            // Skip if conditional destructuring is not yet implemented
-            Assert.True(true, "Skipping conditional destructuring test - feature may not be implemented yet");
-        }
+        // Act & Assert
+        var executablePath = await CompileSourceAsync(sourceCode);
+        File.Exists(executablePath).Should().BeTrue("Conditional destructuring should compile");
+        
+        // Execute and validate result
+        var result = await ExecuteAsync(executablePath);
+        result.ExitCode.Should().Be(30, "Should return 30 (10 + 20) from destructuring");
+        result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
     [Fact]

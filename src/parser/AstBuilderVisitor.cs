@@ -151,7 +151,15 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         {
             b.WithDestructureDef((ParamDestructureDef)VisitDestructuring_decl(context.destructuring_decl()));
         }
+        
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        
+        // Set constraint if present (WithConstraint method not generated for nullable properties)
+        if (context.variable_constraint() is not null)
+        {
+            result = result with { Constraint = (Expression)Visit(context.variable_constraint()) };
+        }
+        
         return result;
     }
 

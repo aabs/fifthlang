@@ -433,6 +433,7 @@ public record PropertyBindingDef : Definition
     public required MemberName ReferencedPropertyName { get; set; }
     public PropertyDef? ReferencedProperty { get; set; }
     public required ParamDestructureDef? DestructureDef { get; set; }
+    public Expression? Constraint { get; set; }
 }
 
 public record TypeDef : Definition
