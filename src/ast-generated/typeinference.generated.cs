@@ -13,6 +13,7 @@ public interface ITypeChecker
     public FifthType Infer(ScopeAstThing scope, PropertyDef node);
     public FifthType Infer(ScopeAstThing scope, MethodDef node);
     public FifthType Infer(ScopeAstThing scope, OverloadedFunctionDefinition node);
+    public FifthType Infer(ScopeAstThing scope, OverloadedFunctionDef node);
     public FifthType Infer(ScopeAstThing scope, InferenceRuleDef node);
     public FifthType Infer(ScopeAstThing scope, ParamDef node);
     public FifthType Infer(ScopeAstThing scope, ParamDestructureDef node);
@@ -96,6 +97,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             PropertyDef node => Infer(scope, node),
             MethodDef node => Infer(scope, node),
             OverloadedFunctionDefinition node => Infer(scope, node),
+            OverloadedFunctionDef node => Infer(scope, node),
             InferenceRuleDef node => Infer(scope, node),
             ParamDef node => Infer(scope, node),
             ParamDestructureDef node => Infer(scope, node),
@@ -173,6 +175,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, PropertyDef node);
     public abstract FifthType Infer(ScopeAstThing scope, MethodDef node);
     public abstract FifthType Infer(ScopeAstThing scope, OverloadedFunctionDefinition node);
+    public abstract FifthType Infer(ScopeAstThing scope, OverloadedFunctionDef node);
     public abstract FifthType Infer(ScopeAstThing scope, InferenceRuleDef node);
     public abstract FifthType Infer(ScopeAstThing scope, ParamDef node);
     public abstract FifthType Infer(ScopeAstThing scope, ParamDestructureDef node);

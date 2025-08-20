@@ -1,4 +1,6 @@
-﻿namespace compiler.LanguageTransformations;
+﻿using System.Linq;
+
+namespace compiler.LanguageTransformations;
 
 public class OverloadGatheringVisitor : DefaultRecursiveDescentVisitor
 {
@@ -71,7 +73,7 @@ public class OverloadGatheringVisitor : DefaultRecursiveDescentVisitor
             .WithVisibility(firstClause.Visibility)
             .WithVisibility(firstClause.Visibility)
             .WithIsReadOnly(firstClause.IsReadOnly)
-            .WithOverloadClauses(orderedFuns)
+            .WithOverloadClauses(orderedFuns.Cast<IOverloadableFunction>().ToList())
             .Build();
         result.Parent = firstClause.Parent;
         var ctx = mds.Last();

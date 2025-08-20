@@ -42,7 +42,7 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
                .WithName(ctx.Name)
                .WithReturnType(ctx.Type)
                .WithBody(null)
-               .WithParams(ctx.OverloadClauses.First().FunctionDef.Params)
+               .WithParams(ctx.OverloadClauses.First().Params)
                .Build()
                .WithSameParentAs(ctx);
         foreach (var clause in clauses)
@@ -103,10 +103,10 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
     /// </summary>
     /// <param name="clause">the original function with preconditions</param>
     /// <returns>an expression combining all preconditions</returns>
-    internal Expression GetPrecondition(MethodDef clause)
+    internal Expression GetPrecondition(IOverloadableFunction clause)
     {
         var conditions = new Queue<Expression>();
-        foreach (var pd in clause.FunctionDef.Params)
+        foreach (var pd in clause.Params)
         {
             if (pd.ParameterConstraint != null)
             {
@@ -140,29 +140,50 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
     /// </summary>
     /// <param name="clause">the original function to transform</param>
     /// <returns>a new function</returns>
-    internal MethodDef GetSubclauseFunction(MethodDef clause)
+    internal MethodDef GetSubclauseFunction(IOverloadableFunction clause)
     {
         var fd = new FunctionDefBuilder()
             .WithName(MemberName.From($"{clause.Name.Value}_subclause{clauseCounter}"))
-                 .WithBody(clause.FunctionDef.Body)
-                 .WithParams(clause.FunctionDef.Params)
-                 .WithReturnType(clause.Type)
+                 .WithBody(clause.Body)
+                 .WithParams(clause.Params)
+                 .WithReturnType(clause.ReturnType)
                  .Build();
-        fd.Parent = clause.Parent;
 
-        // get all the bindings create a new function with unique name normalise param list and
-        // insert into function add binding var decls to front of body insert body of old function
-        // into new function
-        return new MethodDef()
+        // Handle specific properties based on the concrete type
+        MethodDef result;
+        switch (clause)
         {
-            FunctionDef = fd,
-            Name = fd.Name,
-            Type = fd.ReturnType,
-            TypeName = fd.ReturnType.Name,
-            Visibility = clause.Visibility,
-            IsReadOnly = clause.IsReadOnly,
-            Parent = clause.Parent
-        };
+            case MethodDef methodDef:
+                fd.Parent = methodDef.Parent;
+                result = new MethodDef()
+                {
+                    FunctionDef = fd,
+                    Name = fd.Name,
+                    Type = fd.ReturnType,
+                    TypeName = fd.ReturnType.Name,
+                    Visibility = methodDef.Visibility,
+                    IsReadOnly = methodDef.IsReadOnly,
+                    Parent = methodDef.Parent
+                };
+                break;
+            case FunctionDef functionDef:
+                fd.Parent = functionDef.Parent;
+                result = new MethodDef()
+                {
+                    FunctionDef = fd,
+                    Name = fd.Name,
+                    Type = fd.ReturnType,
+                    TypeName = fd.ReturnType.Name,
+                    Visibility = functionDef.Visibility,
+                    IsReadOnly = false, // FunctionDef doesn't have IsReadOnly
+                    Parent = functionDef.Parent
+                };
+                break;
+            default:
+                throw new ArgumentException($"Unsupported overloadable function type: {clause.GetType()}");
+        }
+
+        return result;
     }
 
     internal void SubstituteFunctionDefinitions(ClassDef owner, IEnumerable<OverloadedFunctionDefinition> functionsToRemove, IEnumerable<MethodDef> functionsToAdd)

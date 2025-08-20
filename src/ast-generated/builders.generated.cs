@@ -98,7 +98,7 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
     private System.String _OriginalModuleName;
     private ast.NamespaceName _NamespaceDecl;
     private List<ast.ClassDef> _Classes = [];
-    private List<ast.FunctionDef> _Functions = [];
+    private List<ast.ScopedDefinition> _Functions = [];
     private ast.Visibility _Visibility;
     private ast_model.Symbols.IScope _EnclosingScope;
     private ast_model.Symbols.ISymbolTable _SymbolTable;
@@ -137,12 +137,12 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
         _Classes.Add(value);
         return this;
     }
-    public ModuleDefBuilder WithFunctions(List<ast.FunctionDef> value){
+    public ModuleDefBuilder WithFunctions(List<ast.ScopedDefinition> value){
         _Functions = value;
         return this;
     }
 
-    public ModuleDefBuilder AddingItemToFunctions(ast.FunctionDef value){
+    public ModuleDefBuilder AddingItemToFunctions(ast.ScopedDefinition value){
         _Functions  ??= [];
         _Functions.Add(value);
         return this;
@@ -472,7 +472,7 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
 }
 public class OverloadedFunctionDefinitionBuilder : IBuilder<ast.OverloadedFunctionDefinition>
 {
-    private List<ast.MethodDef> _OverloadClauses = [];
+    private List<ast.IOverloadableFunction> _OverloadClauses = [];
     private ast_model.TypeSystem.IFunctionSignature _Signature;
     private ast.MemberName _Name;
     private ast_model.TypeSystem.TypeName _TypeName;
@@ -492,12 +492,12 @@ public class OverloadedFunctionDefinitionBuilder : IBuilder<ast.OverloadedFuncti
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public OverloadedFunctionDefinitionBuilder WithOverloadClauses(List<ast.MethodDef> value){
+    public OverloadedFunctionDefinitionBuilder WithOverloadClauses(List<ast.IOverloadableFunction> value){
         _OverloadClauses = value;
         return this;
     }
 
-    public OverloadedFunctionDefinitionBuilder AddingItemToOverloadClauses(ast.MethodDef value){
+    public OverloadedFunctionDefinitionBuilder AddingItemToOverloadClauses(ast.IOverloadableFunction value){
         _OverloadClauses  ??= [];
         _OverloadClauses.Add(value);
         return this;
@@ -528,6 +528,109 @@ public class OverloadedFunctionDefinitionBuilder : IBuilder<ast.OverloadedFuncti
     }
 
     public OverloadedFunctionDefinitionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class OverloadedFunctionDefBuilder : IBuilder<ast.OverloadedFunctionDef>
+{
+    private List<ast.IOverloadableFunction> _OverloadClauses = [];
+    private ast_model.TypeSystem.IFunctionSignature _Signature;
+    private List<ast.ParamDef> _Params = [];
+    private ast.BlockStatement _Body;
+    private ast_model.TypeSystem.FifthType _ReturnType;
+    private ast.MemberName _Name;
+    private System.Boolean _IsStatic;
+    private System.Boolean _IsConstructor;
+    private ast.Visibility _Visibility;
+    private ast_model.Symbols.IScope _EnclosingScope;
+    private ast_model.Symbols.ISymbolTable _SymbolTable;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.OverloadedFunctionDef Build()
+    {
+        return new ast.OverloadedFunctionDef(){
+             OverloadClauses = this._OverloadClauses // from OverloadedFunctionDef
+           , Signature = this._Signature // from OverloadedFunctionDef
+           , Params = this._Params // from OverloadedFunctionDef
+           , Body = this._Body // from OverloadedFunctionDef
+           , ReturnType = this._ReturnType // from OverloadedFunctionDef
+           , Name = this._Name // from OverloadedFunctionDef
+           , IsStatic = this._IsStatic // from OverloadedFunctionDef
+           , IsConstructor = this._IsConstructor // from OverloadedFunctionDef
+           , Visibility = this._Visibility // from ScopedDefinition
+           , EnclosingScope = this._EnclosingScope // from ScopeAstThing
+           , SymbolTable = this._SymbolTable // from ScopeAstThing
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public OverloadedFunctionDefBuilder WithOverloadClauses(List<ast.IOverloadableFunction> value){
+        _OverloadClauses = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefBuilder AddingItemToOverloadClauses(ast.IOverloadableFunction value){
+        _OverloadClauses  ??= [];
+        _OverloadClauses.Add(value);
+        return this;
+    }
+    public OverloadedFunctionDefBuilder WithSignature(ast_model.TypeSystem.IFunctionSignature value){
+        _Signature = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefBuilder WithParams(List<ast.ParamDef> value){
+        _Params = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefBuilder AddingItemToParams(ast.ParamDef value){
+        _Params  ??= [];
+        _Params.Add(value);
+        return this;
+    }
+    public OverloadedFunctionDefBuilder WithBody(ast.BlockStatement value){
+        _Body = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefBuilder WithReturnType(ast_model.TypeSystem.FifthType value){
+        _ReturnType = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefBuilder WithName(ast.MemberName value){
+        _Name = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefBuilder WithIsStatic(System.Boolean value){
+        _IsStatic = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefBuilder WithIsConstructor(System.Boolean value){
+        _IsConstructor = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefBuilder WithEnclosingScope(ast_model.Symbols.IScope value){
+        _EnclosingScope = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefBuilder WithSymbolTable(ast_model.Symbols.ISymbolTable value){
+        _SymbolTable = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
