@@ -5,6 +5,7 @@ namespace Fifth.LangProcessingPhases;
 /// </summary>
 public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
 {
+    Stack<ModuleDef> moduleStack = [];
     public void ProcessOverloadedFunctionDefinition(OverloadedFunctionDefinition ctx)
     {
         clauseCounter = 1;
@@ -52,12 +53,21 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
 
     public override ModuleDef VisitModuleDef(ModuleDef ctx)
     {
-        var overloads = ctx.Functions.OfType<OverloadedFunctionDef>().ToArray();
-        foreach (var overloadedFuncDef in overloads)
+        try
         {
-            ProcessOverloadedModuleFunctionDef(overloadedFuncDef);
+            moduleStack.Push(ctx);
+            var overloads = ctx.Functions.OfType<OverloadedFunctionDef>().ToArray();
+            foreach (var overloadedFuncDef in overloads)
+            {
+                ProcessOverloadedModuleFunctionDef(overloadedFuncDef);
+            }
+            return base.VisitModuleDef(ctx);
+            
         }
-        return base.VisitModuleDef(ctx);
+        finally
+        {
+            moduleStack.Pop();
+        }
     }
 
     internal int clauseCounter;
@@ -275,18 +285,20 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
 
     internal void SubstituteModuleFunctionDefinitions(ModuleDef owner, IEnumerable<OverloadedFunctionDef> functionsToRemove, FunctionDef guardFunction, IEnumerable<MethodDef> subClauseFunctions)
     {
-        foreach (var fd in functionsToRemove)
+        if (!moduleStack.Any())
         {
-            owner.Functions.Remove(fd);
+            throw new ArgumentException("No module in scope.");
         }
+        var module = moduleStack.Peek();
+        module.Functions.Remove(functionsToRemove.First());
         
         // Add the guard function
-        owner.Functions.Add(guardFunction);
+        module.Functions.Add(guardFunction);
         
         // Add sub-clause functions as wrapper MethodDefs converted to FunctionDefs
         foreach (var methodDef in subClauseFunctions)
         {
-            owner.Functions.Add(methodDef.FunctionDef);
+            module.Functions.Add(methodDef.FunctionDef);
         }
     }
 }
