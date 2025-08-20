@@ -23,6 +23,23 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
         SubstituteFunctionDefinitions((ClassDef)ctx.Parent, [ctx], newFunctions);
     }
 
+    public void ProcessOverloadedModuleFunctionDef(OverloadedFunctionDef ctx)
+    {
+        clauseCounter = 1;
+        var clauses = new List<(Expression, MethodDef)>();
+        foreach (var clause in ctx.OverloadClauses)
+        {
+            var precondition = GetPrecondition(clause);
+            var subClauseFunction = GetSubclauseFunction(clause);
+            clauseCounter++;
+            clauses.Add((precondition, subClauseFunction));
+        }
+
+        var guardFunction = GenerateModuleGuardFunction(ctx, clauses);
+        var subClauseFunctions = clauses.Select(c => c.Item2);
+        SubstituteModuleFunctionDefinitions((ModuleDef)ctx.Parent, [ctx], guardFunction, subClauseFunctions);
+    }
+
     public override ClassDef VisitClassDef(ClassDef ctx)
     {
         var overloads = ctx.MemberDefs.OfType<OverloadedFunctionDefinition>().ToArray();
@@ -31,6 +48,16 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
             ProcessOverloadedFunctionDefinition(overloadedFuncDef);
         }
         return base.VisitClassDef(ctx);
+    }
+
+    public override ModuleDef VisitModuleDef(ModuleDef ctx)
+    {
+        var overloads = ctx.Functions.OfType<OverloadedFunctionDef>().ToArray();
+        foreach (var overloadedFuncDef in overloads)
+        {
+            ProcessOverloadedModuleFunctionDef(overloadedFuncDef);
+        }
+        return base.VisitModuleDef(ctx);
     }
 
     internal int clauseCounter;
@@ -195,6 +222,71 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
         foreach (var fd in functionsToAdd)
         {
             owner.MemberDefs.Add(fd);
+        }
+    }
+
+    internal FunctionDef GenerateModuleGuardFunction(OverloadedFunctionDef ctx, List<(Expression, MethodDef)> clauses)
+    {
+        var ifStatements = new List<Statement>();
+        FunctionDef fd = (FunctionDef)new FunctionDefBuilder()
+               .WithName(ctx.Name)
+               .WithReturnType(ctx.ReturnType)
+               .WithBody(null)
+               .WithParams(ctx.OverloadClauses.First().Params)
+               .WithIsStatic(ctx.IsStatic)
+               .WithIsConstructor(ctx.IsConstructor)
+               .Build()
+               .WithSameParentAs(ctx);
+
+        foreach (var clause in clauses)
+        {
+            var args = (from p in clause.Item2.FunctionDef.Params
+                        select (Expression)new VarRefExp() { VarName = p.Name, Parent = p as IAstThing }).ToList();
+
+            var funcCallExpression = new FuncCallExp()
+            {
+                Annotations = [],
+                InvocationArguments = args,
+                FunctionDef = clause.Item2.FunctionDef
+            };
+
+            if (clause.Item1 != null)
+            {
+                var ifBlock = new BlockStatementBuilder()
+                                          .AddingItemToStatements(new ReturnStatementBuilder().WithReturnValue(funcCallExpression).Build())
+                                          .Build();
+                var ieb = new IfElseStatementBuilder()
+                                       .WithCondition(clause.Item1)
+                                       .WithThenBlock(ifBlock)
+                                       .Build();
+                ifStatements.Add(ieb);
+            }
+            else
+            {
+                // if there is no clause condition, it must be the base case (which should be the
+                // last clause)
+                ifStatements.Add(new ExpStatementBuilder().WithRHS(funcCallExpression).Build());
+            }
+        }
+        fd.Body = new BlockStatement() { Statements = ifStatements };
+
+        return fd;
+    }
+
+    internal void SubstituteModuleFunctionDefinitions(ModuleDef owner, IEnumerable<OverloadedFunctionDef> functionsToRemove, FunctionDef guardFunction, IEnumerable<MethodDef> subClauseFunctions)
+    {
+        foreach (var fd in functionsToRemove)
+        {
+            owner.Functions.Remove(fd);
+        }
+        
+        // Add the guard function
+        owner.Functions.Add(guardFunction);
+        
+        // Add sub-clause functions as wrapper MethodDefs converted to FunctionDefs
+        foreach (var methodDef in subClauseFunctions)
+        {
+            owner.Functions.Add(methodDef.FunctionDef);
         }
     }
 }
