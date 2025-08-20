@@ -256,7 +256,7 @@ public class AstBuilderVisitorTests
         a.Should().NotBeNull();
         a.Modules.Should().HaveCount(1);
         var m = a.Modules[0];
-        var s1 = m.Functions[0].Body.Statements[1];
+        var s1 = ((FunctionDef)m.Functions[0]).Body.Statements[1];
         s1.Should().NotBeNull().And
             .Subject.Should().BeOfType<IfElseStatement>();
         var ifstmt = s1 as IfElseStatement;
@@ -275,7 +275,7 @@ public class AstBuilderVisitorTests
         a.Should().NotBeNull();
         a.Modules.Should().HaveCount(1);
         var m = a.Modules[0];
-        var s1 = m.Functions[0].Body.Statements[1];
+        var s1 = ((FunctionDef)m.Functions[0]).Body.Statements[1];
         s1.Should().NotBeNull().And
             .Subject.Should().BeOfType<IfElseStatement>();
         var ifstmt = s1 as IfElseStatement;
@@ -294,7 +294,7 @@ public class AstBuilderVisitorTests
         a.Should().NotBeNull();
         a.Modules.Should().HaveCount(1);
         var m = a.Modules[0];
-        var s0 = m.Functions[0].Body.Statements[0];
+        var s0 = ((FunctionDef)m.Functions[0]).Body.Statements[0];
         s0.Should().NotBeNull().And
             .Subject.Should().BeOfType<VarDeclStatement>();
         var s0vd = s0 as VarDeclStatement;
@@ -315,7 +315,7 @@ public class AstBuilderVisitorTests
         a.Should().NotBeNull();
         a.Modules.Should().HaveCount(1);
         var m = a.Modules[0];
-        var s0 = m.Functions[0].Body.Statements[0];
+        var s0 = ((FunctionDef)m.Functions[0]).Body.Statements[0];
         s0.Should().NotBeNull().And
             .Subject.Should().BeOfType<VarDeclStatement>();
         var s0vd = s0 as VarDeclStatement;
@@ -336,7 +336,7 @@ public class AstBuilderVisitorTests
         a.Should().NotBeNull();
         a.Modules.Should().HaveCount(1);
         var m = a.Modules[0];
-        var s1 = m.Functions[0].Body.Statements[1];
+        var s1 = ((FunctionDef)m.Functions[0]).Body.Statements[1];
         s1.Should().NotBeNull();
         s1.Should().BeOfType<AssignmentStatement>();
         var s1as = s1 as AssignmentStatement;
@@ -360,7 +360,7 @@ public class AstBuilderVisitorTests
         a.Should().NotBeNull();
         a.Modules.Should().HaveCount(1);
         var m = a.Modules[0];
-        var p0 = m.Functions[0].Params[0];
+        var p0 = ((FunctionDef)m.Functions[0]).Params[0];
         p0.DestructureDef.Should().NotBeNull();
         p0.DestructureDef.Should().BeOfType<ParamDestructureDef>();
         p0.DestructureDef.Bindings.Should().HaveCount(2);
@@ -410,7 +410,7 @@ public class AstBuilderVisitorTests
         a.Should().NotBeNull();
         a.Modules.Should().HaveCount(1);
         var m = a.Modules[0];
-        var s1 = m.Functions[0].Body.Statements[1];
+        var s1 = ((FunctionDef)m.Functions[0]).Body.Statements[1];
         s1.Should().NotBeNull().And
             .Subject.Should().BeOfType<WhileStatement>();
     }

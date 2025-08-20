@@ -4,6 +4,7 @@ using ast_model.Symbols;
 using ast_model.TypeSystem;
 using Fifth.LangProcessingPhases;
 using FluentAssertions;
+using System.Linq;
 
 namespace ast_tests;
 
@@ -418,7 +419,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         assembly.Should().NotBeNull();
 
         // Find a function with variable references - main function should have parameter 'x'
-        var mainFunction = assembly.Modules[0].Functions.FirstOrDefault(f => f.Name.Value == "main");
+        var mainFunction = assembly.Modules[0].Functions.OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
         mainFunction.Should().NotBeNull();
 
         // Check that we have VarRefExp nodes that could be resolved
@@ -430,7 +431,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
 
         // Assert - verify that the VarRefExp nodes are properly handled
         resolvedAssembly.Should().NotBeNull();
-        var resolvedMainFunction = resolvedAssembly.Modules[0].Functions.FirstOrDefault(f => f.Name.Value == "main");
+        var resolvedMainFunction = resolvedAssembly.Modules[0].Functions.OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
         resolvedMainFunction.Should().NotBeNull();
 
         // The visitor should not have broken the AST structure

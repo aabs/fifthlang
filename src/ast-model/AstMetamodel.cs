@@ -309,13 +309,24 @@ public record ModuleDef : ScopedDefinition
     public required string OriginalModuleName { get; init; }
     public required NamespaceName NamespaceDecl { get; init; }
     public required List<ClassDef> Classes { get; init; } = [];
-    public required List<FunctionDef> Functions { get; init; } = [];
+    public required List<ScopedDefinition> Functions { get; init; } = [];
+}
+
+/// <summary>
+/// Common interface for functions that can participate in overloading (both free functions and methods)
+/// </summary>
+public interface IOverloadableFunction
+{
+    MemberName Name { get; }
+    List<ParamDef> Params { get; }
+    BlockStatement Body { get; }
+    FifthType ReturnType { get; }
 }
 
 /// <summary>
 /// A bare function is a member of a singleton Global type.  A member, in other words.
 /// </summary>
-public record FunctionDef : ScopedDefinition
+public record FunctionDef : ScopedDefinition, IOverloadableFunction
 {
     // todo: need the possibility of type parameters here.
     public required List<ParamDef> Params { get; set; } = [];
@@ -380,16 +391,38 @@ public record PropertyDef : MemberDef
     public required MethodDef? Setter { get; set; }
     public required bool CtorOnlySetter { get; set; }
 }
-public record MethodDef : MemberDef
+public record MethodDef : MemberDef, IOverloadableFunction
 {
     // todo: need the possibility of type parameters here.
     public FunctionDef FunctionDef { get; set; }
+    
+    // IOverloadableFunction implementation - delegate to wrapped FunctionDef
+    List<ParamDef> IOverloadableFunction.Params => FunctionDef.Params;
+    BlockStatement IOverloadableFunction.Body => FunctionDef.Body;
+    FifthType IOverloadableFunction.ReturnType => FunctionDef.ReturnType;
 }
 
 public record OverloadedFunctionDefinition : MemberDef
 {
-    public List<MethodDef> OverloadClauses { get; init; } = [];
+    public List<IOverloadableFunction> OverloadClauses { get; init; } = [];
     public IFunctionSignature Signature { get; init; }
+}
+
+/// <summary>
+/// A module-level overloaded function that can contain multiple function clauses with guard conditions
+/// </summary>
+public record OverloadedFunctionDef : ScopedDefinition
+{
+    public List<IOverloadableFunction> OverloadClauses { get; init; } = [];
+    public IFunctionSignature Signature { get; init; }
+    
+    // Properties to make this compatible with FunctionDef for ModuleDef.Functions
+    public required List<ParamDef> Params { get; set; } = [];
+    public required BlockStatement Body { get; set; }
+    public required FifthType ReturnType { get; init; }
+    public required MemberName Name { get; init; }
+    public required bool IsStatic { get; init; }
+    public required bool IsConstructor { get; init; }
 }
 
 /// <summary>

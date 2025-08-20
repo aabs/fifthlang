@@ -2,6 +2,7 @@ using ast;
 using ast_generated;
 using ast_model.TypeSystem;
 using Fifth.LangProcessingPhases;
+using System.Linq;
 
 namespace ast_tests;
 
@@ -22,7 +23,7 @@ public class OverloadTransformingVisitorTests : VisitorTestsBase
         };
         var overloadedFunction = new OverloadedFunctionDefinitionBuilder()
             .WithName(MemberName.From("Test1"))
-            .WithOverloadClauses(new List<MethodDef> { methodDef1, methodDef2 })
+            .WithOverloadClauses(new List<MethodDef> { methodDef1, methodDef2 }.Cast<IOverloadableFunction>().ToList())
             .WithSignature(methodDef1.FunctionDef.ToFunctionSignature())
             .Build().WithParent(cd);
 
@@ -65,7 +66,7 @@ public class OverloadTransformingVisitorTests : VisitorTestsBase
         };
         var overloadedFunction = new OverloadedFunctionDefinitionBuilder()
             .WithName(MemberName.From("Test1"))
-            .WithOverloadClauses(new List<MethodDef> { methodDef1, methodDef2 })
+            .WithOverloadClauses(new List<MethodDef> { methodDef1, methodDef2 }.Cast<IOverloadableFunction>().ToList())
             .WithSignature(methodDef1.FunctionDef.ToFunctionSignature())
             .Build().WithParent(cd);
 

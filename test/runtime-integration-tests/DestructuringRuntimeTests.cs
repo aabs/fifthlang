@@ -202,20 +202,12 @@ public class DestructuringRuntimeTests : RuntimeTestBase
             """;
 
         // Act
-        try
-        {
-            var executablePath = await CompileSourceAsync(sourceCode);
-            File.Exists(executablePath).Should().BeTrue("Guarded destructuring should compile");
-            
-            // Execute and validate result
-            var result = await ExecuteAsync(executablePath);
-            result.ExitCode.Should().Be(3, "Should return 3 (1 + 2) from guarded destructuring overloads");
-            result.StandardError.Should().BeEmpty("No errors should occur during execution");
-        }
-        catch
-        {
-            // Skip if guarded destructuring is not yet implemented
-            Assert.True(true, "Skipping guarded destructuring test - feature may not be implemented yet");
-        }
+        var executablePath = await CompileSourceAsync(sourceCode);
+        File.Exists(executablePath).Should().BeTrue("Guarded destructuring should compile");
+        
+        // Execute and validate result
+        var result = await ExecuteAsync(executablePath);
+        result.ExitCode.Should().Be(3, "Should return 3 (1 + 2) from guarded destructuring overloads");
+        result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 }

@@ -115,11 +115,15 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         // Transform top-level functions
         foreach (var astFunction in astModule.Functions)
         {
-            var ilMethod = TransformFunction(astFunction);
-            if (ilMethod != null)
+            if (astFunction is FunctionDef functionDef)
             {
-                ilModule.Functions.Add(ilMethod);
+                var ilFunction = TransformFunction(functionDef);
+                if (ilFunction != null)
+                {
+                    ilModule.Functions.Add(ilFunction);
+                }
             }
+            // TODO: Handle OverloadedFunctionDef when overload transforming is implemented
         }
 
         return ilModule;

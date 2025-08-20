@@ -84,12 +84,12 @@ public class SymbolTableBuildingTests
         var asm = ParseProgram("statement-if.5th");
 
         asm.Modules[0].Resolve(new Symbol("main", SymbolKind.FunctionDef)).Should().NotBeNull();
-        asm.Modules[0].Functions[0].Body.Statements[0].Resolve(new Symbol("main", SymbolKind.FunctionDef)).Should().NotBeNull();
+        ((FunctionDef)asm.Modules[0].Functions[0]).Body.Statements[0].Resolve(new Symbol("main", SymbolKind.FunctionDef)).Should().NotBeNull();
         asm.Modules[0].SymbolTable.Should().NotBeNullOrEmpty();
         asm.Modules[0].SymbolTable.Resolve(new Symbol("main", SymbolKind.FunctionDef)).Should().NotBeNull();
-        asm.Modules[0].Functions[0].TryResolve(new Symbol("y", SymbolKind.VarDeclStatement), out var ste).Should().BeTrue();
+        ((FunctionDef)asm.Modules[0].Functions[0]).TryResolve(new Symbol("y", SymbolKind.VarDeclStatement), out var ste).Should().BeTrue();
 
-        asm.Modules[0].Functions[0].TryResolveByName("y", out var ste2).Should().BeTrue();
+        ((FunctionDef)asm.Modules[0].Functions[0]).TryResolveByName("y", out var ste2).Should().BeTrue();
         ste2.Symbol.Kind.Should().Be(SymbolKind.VarDeclStatement);
         asm.Modules[0].TryResolveByName("main", out var ste3).Should().BeTrue();
         ste3.Symbol.Kind.Should().Be(SymbolKind.FunctionDef);

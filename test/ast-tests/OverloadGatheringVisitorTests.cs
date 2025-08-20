@@ -3,6 +3,7 @@ using ast_generated;
 using ast_model.TypeSystem;
 using compiler.LanguageTransformations;
 using FluentAssertions;
+using System.Linq;
 
 namespace ast_tests;
 
@@ -57,7 +58,7 @@ public class OverloadGatheringVisitorTests : VisitorTestsBase
         methodDef1.Parent = methodDef1.FunctionDef.Parent = classDef;
         methodDef2.Parent = methodDef2.FunctionDef.Parent = classDef;
         var combinedFunction = new OverloadedFunctionDefinitionBuilder()
-        .WithOverloadClauses(new List<MethodDef> { methodDef1, methodDef2 })
+        .WithOverloadClauses(new List<MethodDef> { methodDef1, methodDef2 }.Cast<IOverloadableFunction>().ToList())
         .WithSignature(new FunctionSignature())
         .Build();
 
