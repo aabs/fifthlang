@@ -4,9 +4,31 @@ namespace compiler.LanguageTransformations;
 
 public class OverloadGatheringVisitor : DefaultRecursiveDescentVisitor
 {
+    /// <summary>
+    /// Generic method to gather overloads from a collection of overloadable functions
+    /// </summary>
+    private Dictionary<FunctionSignature, List<T>> GatherOverloads<T>(IEnumerable<T> functions) 
+        where T : IOverloadableFunction
+    {
+        var functionGroups = new Dictionary<FunctionSignature, List<T>>();
+
+        foreach (var function in functions)
+        {
+            var functionSignature = function.ToFunctionSignature();
+            
+            if (!functionGroups.ContainsKey(functionSignature))
+            {
+                functionGroups[functionSignature] = new List<T>();
+            }
+            functionGroups[functionSignature].Add(function);
+        }
+        return functionGroups;
+    }
+
     public void Gather(ClassDef ctx)
     {
-        var overloads = GatherOverloads(ctx);
+        var methodDefs = ctx.MemberDefs.OfType<MethodDef>();
+        var overloads = GatherOverloads(methodDefs);
         foreach (var fs in overloads)
         {
             if (fs.Value.Count > 1)
@@ -19,26 +41,8 @@ public class OverloadGatheringVisitor : DefaultRecursiveDescentVisitor
 
     public Dictionary<FunctionSignature, List<MethodDef>> GatherOverloads(ClassDef ctx)
     {
-        // Dictionary to hold groups of methods by their FunctionSignature
-        var methodGroups = new Dictionary<FunctionSignature, List<MethodDef>>();
-
-        // Iterate through the MemberDefs to find MethodDefs
-        foreach (var member in ctx.MemberDefs)
-        {
-            if (member is MethodDef methodDef)
-            {
-                // Get the FunctionSignature for the MethodDef using the extension method
-                var functionSignature = methodDef.ToFunctionSignature();
-
-                // Add the MethodDef to the appropriate group in the dictionary
-                if (!methodGroups.ContainsKey(functionSignature))
-                {
-                    methodGroups[functionSignature] = new List<MethodDef>();
-                }
-                methodGroups[functionSignature].Add(methodDef);
-            }
-        }
-        return methodGroups;
+        var methodDefs = ctx.MemberDefs.OfType<MethodDef>();
+        return GatherOverloads(methodDefs);
     }
 
     public void SubstituteFunctionDefinitions(ClassDef classDefinition, List<MethodDef> fdg, OverloadedFunctionDefinition combinedFunction)
@@ -64,7 +68,8 @@ public class OverloadGatheringVisitor : DefaultRecursiveDescentVisitor
 
     public void GatherModule(ModuleDef ctx)
     {
-        var overloads = GatherModuleOverloads(ctx);
+        var functionDefs = ctx.Functions.OfType<FunctionDef>();
+        var overloads = GatherOverloads(functionDefs);
         foreach (var fs in overloads)
         {
             if (fs.Value.Count > 1)
@@ -77,26 +82,8 @@ public class OverloadGatheringVisitor : DefaultRecursiveDescentVisitor
 
     public Dictionary<FunctionSignature, List<FunctionDef>> GatherModuleOverloads(ModuleDef ctx)
     {
-        // Dictionary to hold groups of functions by their FunctionSignature
-        var functionGroups = new Dictionary<FunctionSignature, List<FunctionDef>>();
-
-        // Iterate through the Functions to find FunctionDefs
-        foreach (var function in ctx.Functions)
-        {
-            if (function is FunctionDef functionDef)
-            {
-                // Get the FunctionSignature for the FunctionDef using the extension method
-                var functionSignature = functionDef.ToFunctionSignature();
-
-                // Add the FunctionDef to the appropriate group in the dictionary
-                if (!functionGroups.ContainsKey(functionSignature))
-                {
-                    functionGroups[functionSignature] = new List<FunctionDef>();
-                }
-                functionGroups[functionSignature].Add(functionDef);
-            }
-        }
-        return functionGroups;
+        var functionDefs = ctx.Functions.OfType<FunctionDef>();
+        return GatherOverloads(functionDefs);
     }
 
     public void SubstituteModuleFunctionDefinitions(ModuleDef moduleDef, List<FunctionDef> functionsToRemove, OverloadedFunctionDef combinedFunction)

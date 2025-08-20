@@ -64,6 +64,16 @@ public static class TypeHelpers
     public static FunctionSignature ToFunctionSignature(this MethodDef methodDef)
     => methodDef.FunctionDef.ToFunctionSignature();
 
+    public static FunctionSignature ToFunctionSignature(this IOverloadableFunction overloadableFunction)
+    {
+        return overloadableFunction switch
+        {
+            FunctionDef fd => fd.ToFunctionSignature(),
+            MethodDef md => md.ToFunctionSignature(),
+            _ => throw new ArgumentException($"Unsupported overloadable function type: {overloadableFunction.GetType()}")
+        };
+    }
+
     public static bool TryGetAttribute<T>(this Type t, out T attr)
     {
         attr = (T)t.GetCustomAttributes(true).FirstOrDefault(attr => attr is T);

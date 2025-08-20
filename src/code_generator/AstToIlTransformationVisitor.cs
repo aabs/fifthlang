@@ -117,10 +117,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         {
             if (astFunction is FunctionDef functionDef)
             {
-                var ilMethod = TransformFunction(functionDef);
-                if (ilMethod != null)
+                var ilFunction = TransformFunction(functionDef);
+                if (ilFunction != null)
                 {
-                    ilModule.Functions.Add(ilMethod);
+                    ilModule.Functions.Add(ilFunction);
                 }
             }
             // TODO: Handle OverloadedFunctionDef when overload transforming is implemented
