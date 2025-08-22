@@ -111,28 +111,17 @@ public class PEEmitter
                         MetadataTokens.FieldDefinitionHandle(1),
                         MetadataTokens.MethodDefinitionHandle(1));
                     
-                    // Build method map for internal method calls
+                    // Single-pass approach: Create methods in dependency order
                     var methodMap = new Dictionary<string, MethodDefinitionHandle>();
-                    var precomputedBodies = new List<BlobBuilder>();
-                    var rvaOffsets = new List<int>();
-                    
-                    // Pre-pass: Generate all method bodies to calculate RVAs
-                    // We need dummy method map for this pass
-                    var tempMethodMap = new Dictionary<string, MethodDefinitionHandle>();
-                    var currentRva = 0;
                     
                     foreach (var function in functions)
                     {
-                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef, tempMethodMap);
-                        precomputedBodies.Add(methodBody);
-                        rvaOffsets.Add(currentRva);
-                        currentRva += methodBody.Count;
-                    }
-                    
-                    // First pass: Create method definitions with correct RVAs and build method map
-                    for (int i = 0; i < functions.Count; i++)
-                    {
-                        var function = functions[i];
+                        // Generate method body from IL metamodel
+                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef, methodMap);
+                        var currentOffset = methodBodyStream.Count;
+                        
+                        // Add method body to the stream
+                        methodBodyStream.WriteBytes(methodBody.ToArray());
                         
                         // Create method signature from IL metamodel
                         var methodSignatureBlob = new BlobBuilder();
@@ -155,10 +144,10 @@ public class PEEmitter
                             MethodImplAttributes.IL,
                             metadataBuilder.GetOrAddString(function.Header.IsEntrypoint ? "Main" : function.Name),
                             metadataBuilder.GetOrAddBlob(methodSignatureBlob),
-                            rvaOffsets[i], // RVA calculated in pre-pass
+                            currentOffset, // RVA 
                             default); // parameterList
                         
-                        // Add to method map for internal method resolution
+                        // Add to method map for future method resolution
                         methodMap[function.Name] = methodHandle;
                         
                         // Set entrypoint to the main method
@@ -166,13 +155,6 @@ public class PEEmitter
                         {
                             entryPointMethodHandle = methodHandle;
                         }
-                    }
-                    
-                    // Second pass: Generate final method bodies with proper method references
-                    foreach (var function in functions)
-                    {
-                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef, methodMap);
-                        methodBodyStream.WriteBytes(methodBody.ToArray());
                     }
                 }
                 else
