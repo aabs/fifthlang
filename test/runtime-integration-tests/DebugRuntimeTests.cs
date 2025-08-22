@@ -99,7 +99,6 @@ public class DebugRuntimeTests : RuntimeTestBase
                 Command: CompilerCommand.Build,
                 Source: sourceFile,
                 Output: outputFile,
-                UseDirectPEEmission: true,
                 Diagnostics: true);
 
             var result = await compiler.CompileAsync(options);

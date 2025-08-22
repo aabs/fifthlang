@@ -30,7 +30,7 @@ public class ILEmissionValidationTests
                 Command: CompilerCommand.Build,
                 Source: sourceFile,
                 Output: outputFile,
-                UseDirectPEEmission: true,
+                
                 Diagnostics: false);
             
             var result = compiler.CompileAsync(options).GetAwaiter().GetResult();
@@ -102,7 +102,7 @@ public class ILEmissionValidationTests
                 Command: CompilerCommand.Build,
                 Source: sourceFile,
                 Output: outputFile,
-                UseDirectPEEmission: true,
+                
                 Diagnostics: false);
             
             var result = compiler.CompileAsync(options).GetAwaiter().GetResult();

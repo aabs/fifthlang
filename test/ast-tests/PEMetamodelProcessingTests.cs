@@ -33,14 +33,14 @@ public class PEMetamodelProcessingTests
                 Command: CompilerCommand.Build,
                 Source: sourceFile1,
                 Output: outputFile1,
-                UseDirectPEEmission: true,
+                
                 Diagnostics: false); // Disable diagnostics to avoid debug output
             
             var options2 = new CompilerOptions(
                 Command: CompilerCommand.Build,
                 Source: sourceFile2,
                 Output: outputFile2,
-                UseDirectPEEmission: true,
+                
                 Diagnostics: false);
             
             var result1 = await compiler.CompileAsync(options1);

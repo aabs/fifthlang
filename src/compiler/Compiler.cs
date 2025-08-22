@@ -100,46 +100,13 @@ public class Compiler
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting IL generation phase"));
             }
 
-            // Phase 4: Assembly
+            // Phase 4: Assembly - use Direct PE emission only
             if (options.Diagnostics)
             {
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting assembly phase"));
             }
 
-            bool assemblyResult;
-            string? assemblyPath;
-            
-            if (options.UseDirectPEEmission)
-            {
-                // Direct PE emission path
-                (assemblyResult, assemblyPath) = await DirectPEEmissionPhase(transformedAst, options, diagnostics);
-            }
-            else
-            {
-                // Traditional ilasm path
-                var ilPath = IlGenPhase(transformedAst, options, diagnostics);
-                if (ilPath == null)
-                {
-                    return CompilationResult.Failed(3, diagnostics);
-                }
-                
-                var result = await AssemblePhase(ilPath, options, diagnostics);
-                assemblyResult = result.success;
-                assemblyPath = result.outputPath;
-                
-                // Cleanup temporary files unless requested to keep them
-                if (!options.KeepTemp)
-                {
-                    try
-                    {
-                        File.Delete(ilPath);
-                    }
-                    catch
-                    {
-                        // Ignore cleanup errors
-                    }
-                }
-            }
+            var (assemblyResult, assemblyPath) = await DirectPEEmissionPhase(transformedAst, options, diagnostics);
             
             if (!assemblyResult)
             {
@@ -148,7 +115,7 @@ public class Compiler
 
             stopwatch.Stop();
             
-            // Determine ILPath for result - only available if using traditional path and keeping temp files
+            // Determine ILPath for result - not available with direct PE emission
             string? ilPathForResult = null;
             
             return CompilationResult.Successful(
@@ -316,127 +283,7 @@ Examples:
         }
     }
 
-    private string? IlGenPhase(AstThing ast, CompilerOptions options, List<Diagnostic> diagnostics)
-    {
-        try
-        {
-            var pid = Environment.ProcessId;
-            var outputName = Path.GetFileNameWithoutExtension(options.Output);
-            var tempIlPath = Path.Combine(Path.GetDirectoryName(options.Output) ?? ".", $"{outputName}.tmp.{pid}.il");
 
-            // Cast to AssemblyDef as expected by ILCodeGenerator
-            if (ast is not AssemblyDef assemblyDef)
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Expected AssemblyDef but got {ast.GetType().Name}"));
-                return null;
-            }
-
-            // Generate IL using existing ILCodeGenerator, but write to our temp file
-            var ilFilePath = _ilCodeGenerator.GenerateCode(assemblyDef);
-            
-            // The ILCodeGenerator.GenerateCode returns a path, read the content and write to our temp file
-            var generatedIlCode = File.ReadAllText(ilFilePath);
-            File.WriteAllText(tempIlPath, generatedIlCode);
-            
-            // Clean up the original file if it's different from our temp file
-            if (ilFilePath != tempIlPath)
-            {
-                try
-                {
-                    File.Delete(ilFilePath);
-                }
-                catch
-                {
-                    // Ignore cleanup errors
-                }
-            }
-
-            return tempIlPath;
-        }
-        catch (System.Exception ex)
-        {
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"IL generation error: {ex.Message}"));
-            return null;
-        }
-    }
-
-    private async Task<(bool success, string? outputPath)> AssemblePhase(string ilPath, CompilerOptions options, List<Diagnostic> diagnostics)
-    {
-        try
-        {
-            // Locate ilasm
-            var ilasmPath = ILAsmLocator.FindILAsm();
-            if (ilasmPath == null)
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, ILAsmLocator.GetILAsmNotFoundMessage()));
-                return (false, null);
-            }
-
-            // Ensure output directory exists
-            var outputDir = Path.GetDirectoryName(options.Output);
-            if (!string.IsNullOrWhiteSpace(outputDir) && !Directory.Exists(outputDir))
-            {
-                Directory.CreateDirectory(outputDir);
-            }
-
-            // Run ilasm - different syntax for different implementations
-            string arguments;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // Microsoft ilasm syntax
-                arguments = $"\"{ilPath}\" /output=\"{options.Output}\"";
-            }
-            else
-            {
-                // Mono ilasm syntax
-                arguments = $"\"{ilPath}\" /output:\"{options.Output}\" /exe";
-            }
-            
-            var result = await _processRunner.RunAsync(ilasmPath, arguments);
-
-            if (!result.Success)
-            {
-                // Show first 40 lines of stderr
-                var errorLines = result.StandardError.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                var errorToShow = string.Join('\n', errorLines.Take(40));
-                if (errorLines.Length > 40)
-                {
-                    errorToShow += $"\n... ({errorLines.Length - 40} more lines)";
-                }
-
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"IL assembly failed:\n{errorToShow}"));
-                return (false, null);
-            }
-
-            // Generate runtime configuration file for framework-dependent execution
-            await GenerateRuntimeConfigAsync(options.Output, diagnostics);
-
-            // Set execute permission on Unix-like systems
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                try
-                {
-                    // Use chmod to set execute permission
-                    var chmodResult = await _processRunner.RunAsync("chmod", $"+x \"{options.Output}\"");
-                    if (!chmodResult.Success && diagnostics.Any(d => d.Level == DiagnosticLevel.Info && d.Message.Contains("Diagnostics mode")))
-                    {
-                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission on {options.Output}"));
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission: {ex.Message}"));
-                }
-            }
-
-            return (true, options.Output);
-        }
-        catch (System.Exception ex)
-        {
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Assembly error: {ex.Message}"));
-            return (false, null);
-        }
-    }
 
     private async Task GenerateRuntimeConfigAsync(string executablePath, List<Diagnostic> diagnostics)
     {
@@ -502,44 +349,7 @@ Examples:
             return (1, "", ex.Message);
         }
     }
-    
-    private void GenerateRuntimeConfig(string executablePath, List<Diagnostic> diagnostics)
-    {
-        try
-        {
-            var executableName = Path.GetFileNameWithoutExtension(executablePath);
-            var runtimeConfigPath = Path.Combine(Path.GetDirectoryName(executablePath) ?? "", $"{executableName}.runtimeconfig.json");
 
-            var runtimeConfig = new
-            {
-                runtimeOptions = new
-                {
-                    tfm = "net8.0",
-                    framework = new
-                    {
-                        name = "Microsoft.NETCore.App",
-                        version = "8.0.0"
-                    }
-                }
-            };
-
-            var json = System.Text.Json.JsonSerializer.Serialize(runtimeConfig, new System.Text.Json.JsonSerializerOptions 
-            { 
-                WriteIndented = true 
-            });
-
-            File.WriteAllText(runtimeConfigPath, json);
-            
-            if (diagnostics.Any(d => d.Level == DiagnosticLevel.Info && d.Message.Contains("Diagnostics mode")))
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated runtime config: {runtimeConfigPath}"));
-            }
-        }
-        catch (System.Exception ex)
-        {
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to generate runtime config: {ex.Message}"));
-        }
-    }
 
     private async Task<(bool success, string? outputPath)> DirectPEEmissionPhase(AstThing transformedAst, CompilerOptions options, List<Diagnostic> diagnostics)
     {
@@ -555,44 +365,6 @@ Examples:
             // Transform AST to IL metamodel
             var ilAssembly = _ilCodeGenerator.TransformToILMetamodel(assemblyDef);
             
-            // Analyze complexity - if program has multiple methods with function calls, fall back to ilasm
-            bool isComplexProgram = IsComplexProgram(ilAssembly);
-            
-            if (isComplexProgram)
-            {
-                if (options.Diagnostics)
-                {
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Complex program detected - falling back to ilasm for better reliability"));
-                }
-                
-                // Fall back to traditional ilasm path for complex programs
-                var ilPath = IlGenPhase(transformedAst, options, diagnostics);
-                if (ilPath == null)
-                {
-                    return (false, null);
-                }
-                
-                var result = await AssemblePhase(ilPath, options, diagnostics);
-                
-                // Cleanup temporary files unless requested to keep them
-                if (!options.KeepTemp)
-                {
-                    try
-                    {
-                        File.Delete(ilPath);
-                    }
-                    catch (System.Exception ex)
-                    {
-                        if (options.Diagnostics)
-                        {
-                            diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to cleanup temporary file {ilPath}: {ex.Message}"));
-                        }
-                    }
-                }
-                
-                return (result.success, result.outputPath);
-            }
-            
             // Ensure output directory exists
             var outputDir = Path.GetDirectoryName(options.Output);
             if (!string.IsNullOrWhiteSpace(outputDir) && !Directory.Exists(outputDir))
@@ -602,10 +374,10 @@ Examples:
 
             if (options.Diagnostics)
             {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Using direct PE emission (cross-platform)"));
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Using direct PE emission"));
             }
 
-            // Emit PE assembly directly for simple programs
+            // Emit PE assembly directly
             var success = _peEmitter.EmitAssembly(ilAssembly, options.Output);
             
             if (!success)
@@ -615,18 +387,18 @@ Examples:
             }
 
             // Generate runtime configuration file for framework-dependent execution
-            GenerateRuntimeConfig(options.Output, diagnostics);
+            await GenerateRuntimeConfigAsync(options.Output, diagnostics);
 
             // Set execute permission on Unix-like systems
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 try
                 {
-                    // Use chmod to set execute permission - note: this requires async
-                    // For now, skip this in direct PE emission mode
-                    if (options.Diagnostics)
+                    // Use chmod to set execute permission
+                    var chmodResult = await _processRunner.RunAsync("chmod", $"+x \"{options.Output}\"");
+                    if (!chmodResult.Success && options.Diagnostics)
                     {
-                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Skipping chmod in direct PE emission mode"));
+                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission on {options.Output}"));
                     }
                 }
                 catch (System.Exception ex)
@@ -649,100 +421,5 @@ Examples:
         }
     }
 
-    /// <summary>
-    /// Analyze IL assembly to determine if it's complex enough to require ilasm fallback
-    /// </summary>
-    /// <param name="ilAssembly">IL assembly to analyze</param>
-    /// <returns>True if complex program that should use ilasm, false if simple enough for direct PE emission</returns>
-    private bool IsComplexProgram(il_ast.AssemblyDeclaration ilAssembly)
-    {
-        // If no functions, it's simple
-        if (ilAssembly.PrimeModule?.Functions == null || !ilAssembly.PrimeModule.Functions.Any())
-        {
-            return false;
-        }
 
-        var functions = ilAssembly.PrimeModule.Functions.ToList();
-        
-        // If only one function (main), it's simple
-        if (functions.Count <= 1)
-        {
-            return false;
-        }
-        
-        // If multiple functions exist, check for internal function calls
-        bool hasInternalFunctionCalls = false;
-        
-        foreach (var function in functions)
-        {
-            if (function.Impl?.Body?.Statements != null)
-            {
-                foreach (var statement in function.Impl.Body.Statements)
-                {
-                    if (HasInternalFunctionCalls(statement, functions))
-                    {
-                        hasInternalFunctionCalls = true;
-                        break;
-                    }
-                }
-            }
-            
-            if (hasInternalFunctionCalls)
-            {
-                break;
-            }
-        }
-        
-        // Complex if multiple functions with internal calls, or if any subclause methods exist
-        bool hasSubclauseMethods = functions.Any(f => f.Name.Contains("_subclause"));
-        
-        return hasInternalFunctionCalls || hasSubclauseMethods;
-    }
-    
-    /// <summary>
-    /// Check if a statement contains internal function calls
-    /// </summary>
-    private bool HasInternalFunctionCalls(ast.Statement statement, List<il_ast.MethodDefinition> functions)
-    {
-        // Check if this is an instruction statement that might contain call instructions
-        // For now, we'll use a simplified approach that looks for any potential call patterns
-        // A more sophisticated implementation would traverse the AST structure
-        
-        // Simple heuristic: if the program has multiple functions and any subclause methods,
-        // it's likely to have internal calls due to overload transformations
-        return functions.Any(f => f.Name.Contains("_subclause"));
-    }
-    
-    /// <summary>
-    /// Extract method name from IL method signature
-    /// </summary>
-    private string ExtractMethodNameFromSignature(string methodSignature)
-    {
-        // Simple extraction - assume method signature format like "methodName" or "Program::methodName"
-        if (methodSignature.Contains("::"))
-        {
-            return methodSignature.Split("::").Last();
-        }
-        
-        // If it looks like a simple method name, return as-is
-        if (!methodSignature.Contains(" ") && !methodSignature.Contains("("))
-        {
-            return methodSignature;
-        }
-        
-        // For more complex signatures, try to extract the method name before parentheses
-        var parenIndex = methodSignature.IndexOf('(');
-        if (parenIndex > 0)
-        {
-            var beforeParen = methodSignature.Substring(0, parenIndex).Trim();
-            var spaceIndex = beforeParen.LastIndexOf(' ');
-            if (spaceIndex >= 0)
-            {
-                return beforeParen.Substring(spaceIndex + 1);
-            }
-            return beforeParen;
-        }
-        
-        return methodSignature;
-    }
 }

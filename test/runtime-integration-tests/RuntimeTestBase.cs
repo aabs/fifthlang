@@ -44,7 +44,6 @@ public abstract class RuntimeTestBase : IDisposable
             Command: CompilerCommand.Build,
             Source: sourceFile,
             Output: outputFile,
-            UseDirectPEEmission: true,
             Diagnostics: true);
 
         var result = await compiler.CompileAsync(options);
@@ -82,7 +81,6 @@ public abstract class RuntimeTestBase : IDisposable
             Command: CompilerCommand.Build,
             Source: sourceFilePath,
             Output: outputFile,
-            UseDirectPEEmission: true,
             Diagnostics: false);
 
         var result = await compiler.CompileAsync(options);

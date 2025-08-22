@@ -25,7 +25,7 @@ public class PEEmissionTests
                 Command: CompilerCommand.Build,
                 Source: sourceFile,
                 Output: outputFile,
-                UseDirectPEEmission: true,
+                
                 Diagnostics: true);
             
             var result = await compiler.CompileAsync(options);
@@ -75,8 +75,7 @@ public class PEEmissionTests
             var options = new CompilerOptions(
                 Command: CompilerCommand.Build,
                 Source: sourceFile,
-                Output: outputFile,
-                UseDirectPEEmission: true); // Explicitly use direct emission
+                Output: outputFile); // Direct PE emission is now always used
             
             var result = await compiler.CompileAsync(options);
             
