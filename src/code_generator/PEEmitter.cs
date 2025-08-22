@@ -111,17 +111,35 @@ public class PEEmitter
                         MetadataTokens.FieldDefinitionHandle(1),
                         MetadataTokens.MethodDefinitionHandle(1));
                     
-                    // Create methods and generate bodies using original approach
+                    // Two-pass approach with pre-calculated RVAs
                     var methodMap = new Dictionary<string, MethodDefinitionHandle>();
+                    var functionList = functions.ToList();
+                    var methodBodies = new List<BlobBuilder>();
+                    var methodRVAs = new List<int>();
                     
-                    foreach (var function in functions)
+                    Console.WriteLine("DEBUG: Functions to process:");
+                    foreach (var function in functionList)
                     {
-                        // Generate method body from IL metamodel
-                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef, methodMap);
-                        var currentOffset = methodBodyStream.Count;
+                        Console.WriteLine($"  - {function.Name} (IsEntrypoint: {function.Header.IsEntrypoint})");
+                    }
+                    
+                    // Pre-pass: Generate all method bodies to calculate RVAs
+                    var currentOffset = 0;
+                    foreach (var function in functionList)
+                    {
+                        // Generate method body without method map for now (calls will be skipped)
+                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef, null);
+                        methodBodies.Add(methodBody);
+                        methodRVAs.Add(currentOffset);
+                        currentOffset += methodBody.Count;
                         
-                        // Add method body to the stream
-                        methodBodyStream.WriteBytes(methodBody.ToArray());
+                        Console.WriteLine($"DEBUG: Pre-calculated RVA for '{function.Name}': {methodRVAs.Last()}");
+                    }
+                    
+                    // Pass 1: Create all method definitions with correct RVAs and populate method map
+                    for (int i = 0; i < functionList.Count; i++)
+                    {
+                        var function = functionList[i];
                         
                         // Create method signature from IL metamodel
                         var methodSignatureBlob = new BlobBuilder();
@@ -144,17 +162,40 @@ public class PEEmitter
                             MethodImplAttributes.IL,
                             metadataBuilder.GetOrAddString(function.Header.IsEntrypoint ? "Main" : function.Name),
                             metadataBuilder.GetOrAddBlob(methodSignatureBlob),
-                            currentOffset, // RVA 
+                            methodRVAs[i], // Use pre-calculated RVA
                             default); // parameterList
                         
-                        // Add to method map for future method resolution
+                        // Add to method map for method resolution
                         methodMap[function.Name] = methodHandle;
+                        Console.WriteLine($"DEBUG: Added method '{function.Name}' to method map with RVA {methodRVAs[i]}");
                         
                         // Set entrypoint to the main method
                         if (function.Header.IsEntrypoint)
                         {
                             entryPointMethodHandle = methodHandle;
                         }
+                    }
+                    
+                    Console.WriteLine("DEBUG: Complete method map before regenerating bodies:");
+                    foreach (var kvp in methodMap)
+                    {
+                        Console.WriteLine($"  - {kvp.Key}");
+                    }
+                    
+                    // Pass 2: Regenerate method bodies with complete method map for proper call resolution
+                    for (int i = 0; i < functionList.Count; i++)
+                    {
+                        var function = functionList[i];
+                        
+                        Console.WriteLine($"DEBUG: Regenerating body for method '{function.Name}' with complete method map");
+                        
+                        // Generate method body with complete method map for proper call resolution
+                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef, methodMap);
+                        
+                        // Add method body to the stream at the expected offset
+                        methodBodyStream.WriteBytes(methodBody.ToArray());
+                        
+                        Console.WriteLine($"DEBUG: Added final method body for '{function.Name}' to stream");
                     }
                 }
                 else
@@ -514,9 +555,12 @@ public class PEEmitter
         // Extract method name from the signature
         var methodName = ExtractMethodName(callInst.MethodSignature ?? "");
         
+        Console.WriteLine($"DEBUG: Trying to resolve method call: '{callInst.MethodSignature}' -> '{methodName}'");
+        
         // Try to resolve internal method calls using the method map
         if (methodMap != null && methodMap.TryGetValue(methodName, out var methodHandle))
         {
+            Console.WriteLine($"DEBUG: Found method '{methodName}' in method map");
             il.Call(methodHandle);
             return;
         }
@@ -527,6 +571,7 @@ public class PEEmitter
         {
             if (methodMap.TryGetValue(methodName, out var subclaueueHandle))
             {
+                Console.WriteLine($"DEBUG: Found subclause method '{methodName}' in method map");
                 il.Call(subclaueueHandle);
                 return;
             }
@@ -535,10 +580,17 @@ public class PEEmitter
         // For unresolved method calls, try to find any method that starts with the same base name
         if (methodMap != null)
         {
+            Console.WriteLine($"DEBUG: Method map contents:");
+            foreach (var kvp in methodMap)
+            {
+                Console.WriteLine($"  - {kvp.Key}");
+            }
+            
             var baseName = methodName.Split('_')[0]; // Get base name before any suffix
             var matchingMethod = methodMap.FirstOrDefault(kvp => kvp.Key.StartsWith(baseName));
             if (!matchingMethod.Equals(default(KeyValuePair<string, MethodDefinitionHandle>)))
             {
+                Console.WriteLine($"DEBUG: Found matching method by base name '{baseName}': '{matchingMethod.Key}'");
                 il.Call(matchingMethod.Value);
                 return;
             }
