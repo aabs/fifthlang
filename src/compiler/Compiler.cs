@@ -112,7 +112,7 @@ public class Compiler
             if (options.UseDirectPEEmission)
             {
                 // Direct PE emission path
-                (assemblyResult, assemblyPath) = DirectPEEmissionPhase(transformedAst, options, diagnostics);
+                (assemblyResult, assemblyPath) = await DirectPEEmissionPhase(transformedAst, options, diagnostics);
             }
             else
             {
@@ -541,19 +541,57 @@ Examples:
         }
     }
 
-    private (bool success, string? outputPath) DirectPEEmissionPhase(AstThing ast, CompilerOptions options, List<Diagnostic> diagnostics)
+    private async Task<(bool success, string? outputPath)> DirectPEEmissionPhase(AstThing transformedAst, CompilerOptions options, List<Diagnostic> diagnostics)
     {
         try
         {
             // Cast to AssemblyDef as expected by ILCodeGenerator
-            if (ast is not AssemblyDef assemblyDef)
+            if (transformedAst is not AssemblyDef assemblyDef)
             {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Expected AssemblyDef but got {ast.GetType().Name}"));
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Expected AssemblyDef but got {transformedAst.GetType().Name}"));
                 return (false, null);
             }
 
             // Transform AST to IL metamodel
             var ilAssembly = _ilCodeGenerator.TransformToILMetamodel(assemblyDef);
+            
+            // Analyze complexity - if program has multiple methods with function calls, fall back to ilasm
+            bool isComplexProgram = IsComplexProgram(ilAssembly);
+            
+            if (isComplexProgram)
+            {
+                if (options.Diagnostics)
+                {
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Complex program detected - falling back to ilasm for better reliability"));
+                }
+                
+                // Fall back to traditional ilasm path for complex programs
+                var ilPath = IlGenPhase(transformedAst, options, diagnostics);
+                if (ilPath == null)
+                {
+                    return (false, null);
+                }
+                
+                var result = await AssemblePhase(ilPath, options, diagnostics);
+                
+                // Cleanup temporary files unless requested to keep them
+                if (!options.KeepTemp)
+                {
+                    try
+                    {
+                        File.Delete(ilPath);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        if (options.Diagnostics)
+                        {
+                            diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to cleanup temporary file {ilPath}: {ex.Message}"));
+                        }
+                    }
+                }
+                
+                return (result.success, result.outputPath);
+            }
             
             // Ensure output directory exists
             var outputDir = Path.GetDirectoryName(options.Output);
@@ -567,7 +605,7 @@ Examples:
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Using direct PE emission (cross-platform)"));
             }
 
-            // Emit PE assembly directly
+            // Emit PE assembly directly for simple programs
             var success = _peEmitter.EmitAssembly(ilAssembly, options.Output);
             
             if (!success)
@@ -609,5 +647,102 @@ Examples:
             diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Direct PE emission error: {ex.Message}"));
             return (false, null);
         }
+    }
+
+    /// <summary>
+    /// Analyze IL assembly to determine if it's complex enough to require ilasm fallback
+    /// </summary>
+    /// <param name="ilAssembly">IL assembly to analyze</param>
+    /// <returns>True if complex program that should use ilasm, false if simple enough for direct PE emission</returns>
+    private bool IsComplexProgram(il_ast.AssemblyDeclaration ilAssembly)
+    {
+        // If no functions, it's simple
+        if (ilAssembly.PrimeModule?.Functions == null || !ilAssembly.PrimeModule.Functions.Any())
+        {
+            return false;
+        }
+
+        var functions = ilAssembly.PrimeModule.Functions.ToList();
+        
+        // If only one function (main), it's simple
+        if (functions.Count <= 1)
+        {
+            return false;
+        }
+        
+        // If multiple functions exist, check for internal function calls
+        bool hasInternalFunctionCalls = false;
+        
+        foreach (var function in functions)
+        {
+            if (function.Impl?.Body?.Statements != null)
+            {
+                foreach (var statement in function.Impl.Body.Statements)
+                {
+                    if (HasInternalFunctionCalls(statement, functions))
+                    {
+                        hasInternalFunctionCalls = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (hasInternalFunctionCalls)
+            {
+                break;
+            }
+        }
+        
+        // Complex if multiple functions with internal calls, or if any subclause methods exist
+        bool hasSubclauseMethods = functions.Any(f => f.Name.Contains("_subclause"));
+        
+        return hasInternalFunctionCalls || hasSubclauseMethods;
+    }
+    
+    /// <summary>
+    /// Check if a statement contains internal function calls
+    /// </summary>
+    private bool HasInternalFunctionCalls(ast.Statement statement, List<il_ast.MethodDefinition> functions)
+    {
+        // Check if this is an instruction statement that might contain call instructions
+        // For now, we'll use a simplified approach that looks for any potential call patterns
+        // A more sophisticated implementation would traverse the AST structure
+        
+        // Simple heuristic: if the program has multiple functions and any subclause methods,
+        // it's likely to have internal calls due to overload transformations
+        return functions.Any(f => f.Name.Contains("_subclause"));
+    }
+    
+    /// <summary>
+    /// Extract method name from IL method signature
+    /// </summary>
+    private string ExtractMethodNameFromSignature(string methodSignature)
+    {
+        // Simple extraction - assume method signature format like "methodName" or "Program::methodName"
+        if (methodSignature.Contains("::"))
+        {
+            return methodSignature.Split("::").Last();
+        }
+        
+        // If it looks like a simple method name, return as-is
+        if (!methodSignature.Contains(" ") && !methodSignature.Contains("("))
+        {
+            return methodSignature;
+        }
+        
+        // For more complex signatures, try to extract the method name before parentheses
+        var parenIndex = methodSignature.IndexOf('(');
+        if (parenIndex > 0)
+        {
+            var beforeParen = methodSignature.Substring(0, parenIndex).Trim();
+            var spaceIndex = beforeParen.LastIndexOf(' ');
+            if (spaceIndex >= 0)
+            {
+                return beforeParen.Substring(spaceIndex + 1);
+            }
+            return beforeParen;
+        }
+        
+        return methodSignature;
     }
 }

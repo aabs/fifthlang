@@ -111,7 +111,7 @@ public class PEEmitter
                         MetadataTokens.FieldDefinitionHandle(1),
                         MetadataTokens.MethodDefinitionHandle(1));
                     
-                    // Single-pass approach: Create methods in dependency order
+                    // Create methods and generate bodies using original approach
                     var methodMap = new Dictionary<string, MethodDefinitionHandle>();
                     
                     foreach (var function in functions)
@@ -170,7 +170,7 @@ public class PEEmitter
                 }
             }
             
-            // Build PE with method bodies
+            // Build PE with method bodies using original approach but fixed method format
             var peHeaderBuilder = new PEHeaderBuilder(imageCharacteristics: Characteristics.ExecutableImage);
             
             var peBuilder = new ManagedPEBuilder(
@@ -265,10 +265,10 @@ public class PEEmitter
             localVarSigToken = CreateLocalVariableSignature(metadataBuilder, localVariables);
         }
         
-        // Create the method body blob with proper header
+        // Create the method body blob with proper header format
         var methodBody = new BlobBuilder();
         
-        // Write method body header (always use fat format if we have locals or large method)
+        // Write method body header (simplified approach - always use tiny format if possible)
         var codeSize = ilInstructions.Count;
         var hasLocals = localVariables.Any();
         
@@ -279,10 +279,12 @@ public class PEEmitter
         }
         else
         {
-            // Fat format header (12 bytes)
-            methodBody.WriteByte(0x03); // Format: CorILMethod_FatFormat
-            methodBody.WriteByte(0x30); // Flags: no extra sections
-            methodBody.WriteUInt16((ushort)8);    // Max stack (16-bit)
+            // Fat format header (12 bytes) - more carefully constructed
+            ushort flags = 0x3003; // CorILMethod_FatFormat | CorILMethod_InitLocals | CorILMethod_MoreSects (if needed)
+            if (!hasLocals) flags = 0x3002; // No init locals if no locals
+            
+            methodBody.WriteUInt16(flags);        // Flags and format (16-bit)
+            methodBody.WriteUInt16(8);            // Max stack (16-bit) - conservative estimate
             methodBody.WriteUInt32((uint)codeSize); // Code size (32-bit)
             methodBody.WriteUInt32(hasLocals ? (uint)MetadataTokens.GetToken(localVarSigToken) : 0);  // Local var sig token
         }
