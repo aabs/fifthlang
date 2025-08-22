@@ -111,18 +111,28 @@ public class PEEmitter
                         MetadataTokens.FieldDefinitionHandle(1),
                         MetadataTokens.MethodDefinitionHandle(1));
                     
-                    // For complex multi-function programs, use a simplified approach
-                    // This still allows basic multiple functions but doesn't handle complex internal calls yet
-                    var methodBodyOffset = 0;
+                    // Build method map for internal method calls
+                    var methodMap = new Dictionary<string, MethodDefinitionHandle>();
+                    var precomputedBodies = new List<BlobBuilder>();
+                    var rvaOffsets = new List<int>();
+                    
+                    // Pre-pass: Generate all method bodies to calculate RVAs
+                    // We need dummy method map for this pass
+                    var tempMethodMap = new Dictionary<string, MethodDefinitionHandle>();
+                    var currentRva = 0;
                     
                     foreach (var function in functions)
                     {
-                        // Generate method body from IL metamodel and add to method body stream
-                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef);
-                        var currentOffset = methodBodyStream.Count;
-                        
-                        // Add method body to the stream
-                        methodBodyStream.WriteBytes(methodBody.ToArray());
+                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef, tempMethodMap);
+                        precomputedBodies.Add(methodBody);
+                        rvaOffsets.Add(currentRva);
+                        currentRva += methodBody.Count;
+                    }
+                    
+                    // First pass: Create method definitions with correct RVAs and build method map
+                    for (int i = 0; i < functions.Count; i++)
+                    {
+                        var function = functions[i];
                         
                         // Create method signature from IL metamodel
                         var methodSignatureBlob = new BlobBuilder();
@@ -145,14 +155,24 @@ public class PEEmitter
                             MethodImplAttributes.IL,
                             metadataBuilder.GetOrAddString(function.Header.IsEntrypoint ? "Main" : function.Name),
                             metadataBuilder.GetOrAddBlob(methodSignatureBlob),
-                            currentOffset, // RVA 
+                            rvaOffsets[i], // RVA calculated in pre-pass
                             default); // parameterList
+                        
+                        // Add to method map for internal method resolution
+                        methodMap[function.Name] = methodHandle;
                         
                         // Set entrypoint to the main method
                         if (function.Header.IsEntrypoint)
                         {
                             entryPointMethodHandle = methodHandle;
                         }
+                    }
+                    
+                    // Second pass: Generate final method bodies with proper method references
+                    foreach (var function in functions)
+                    {
+                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef, methodMap);
+                        methodBodyStream.WriteBytes(methodBody.ToArray());
                     }
                 }
                 else
@@ -507,8 +527,40 @@ public class PEEmitter
             return;
         }
         
-        // For now, skip internal method calls since they're complex to implement correctly
-        // This is a temporary limitation - complex programs with method calls should use traditional IL assembly
+        // Extract method name from the signature
+        var methodName = ExtractMethodName(callInst.MethodSignature ?? "");
+        
+        // Try to resolve internal method calls using the method map
+        if (methodMap != null && methodMap.TryGetValue(methodName, out var methodHandle))
+        {
+            il.Call(methodHandle);
+            return;
+        }
+        
+        // Also try to handle subclause method calls by checking for the pattern
+        // This handles cases where the IL calls subclause methods directly
+        if (methodName.Contains("_subclause") && methodMap != null)
+        {
+            if (methodMap.TryGetValue(methodName, out var subclaueueHandle))
+            {
+                il.Call(subclaueueHandle);
+                return;
+            }
+        }
+        
+        // For unresolved method calls, try to find any method that starts with the same base name
+        if (methodMap != null)
+        {
+            var baseName = methodName.Split('_')[0]; // Get base name before any suffix
+            var matchingMethod = methodMap.FirstOrDefault(kvp => kvp.Key.StartsWith(baseName));
+            if (!matchingMethod.Equals(default(KeyValuePair<string, MethodDefinitionHandle>)))
+            {
+                il.Call(matchingMethod.Value);
+                return;
+            }
+        }
+        
+        // If still unresolved, emit a warning (this should be rare now)
         Console.WriteLine($"WARNING: Skipping unresolved method call: {callInst.MethodSignature}");
     }
     
