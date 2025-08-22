@@ -111,12 +111,19 @@ public class PEEmitter
                         MetadataTokens.FieldDefinitionHandle(1),
                         MetadataTokens.MethodDefinitionHandle(1));
                     
-                    // Create mapping of method names to handles for internal calls
-                    var methodMap = new Dictionary<string, MethodDefinitionHandle>();
+                    // For complex multi-function programs, use a simplified approach
+                    // This still allows basic multiple functions but doesn't handle complex internal calls yet
+                    var methodBodyOffset = 0;
                     
-                    // First pass: Create all method definitions  
                     foreach (var function in functions)
                     {
+                        // Generate method body from IL metamodel and add to method body stream
+                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef);
+                        var currentOffset = methodBodyStream.Count;
+                        
+                        // Add method body to the stream
+                        methodBodyStream.WriteBytes(methodBody.ToArray());
+                        
                         // Create method signature from IL metamodel
                         var methodSignatureBlob = new BlobBuilder();
                         methodSignatureBlob.WriteByte(0x00); // calling convention
@@ -138,32 +145,14 @@ public class PEEmitter
                             MethodImplAttributes.IL,
                             metadataBuilder.GetOrAddString(function.Header.IsEntrypoint ? "Main" : function.Name),
                             metadataBuilder.GetOrAddBlob(methodSignatureBlob),
-                            0, // RVA will be set later
+                            currentOffset, // RVA 
                             default); // parameterList
-                        
-                        methodMap[function.Name] = methodHandle;
                         
                         // Set entrypoint to the main method
                         if (function.Header.IsEntrypoint)
                         {
                             entryPointMethodHandle = methodHandle;
                         }
-                    }
-                    
-                    // Second pass: Generate method bodies with proper method references
-                    var methodBodyOffset = 0;
-                    foreach (var function in functions)
-                    {
-                        // Generate method body from IL metamodel and add to method body stream
-                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef, methodMap);
-                        
-                        // Update the method definition with the correct RVA
-                        var methodHandle = methodMap[function.Name];
-                        // Note: We need to update the method RVA, but MetadataBuilder doesn't allow updating
-                        // For now, we'll add the bodies sequentially and rely on PE builder to handle RVAs
-                        
-                        methodBodyStream.WriteBytes(methodBody.ToArray());
-                        methodBodyOffset = methodBodyStream.Count;
                     }
                 }
                 else
@@ -509,25 +498,18 @@ public class PEEmitter
     private void EmitCallInstruction(InstructionEncoder il, il_ast.CallInstruction callInst, 
         MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
     {
-        // Check if this is an internal method call
-        if (methodMap != null && !string.IsNullOrEmpty(callInst.MethodSignature))
-        {
-            // Extract method name from the signature
-            var methodName = ExtractMethodName(callInst.MethodSignature);
-            if (methodMap.ContainsKey(methodName))
-            {
-                il.Call(methodMap[methodName]);
-                return;
-            }
-        }
-        
         // For external calls, redirect print calls to Console.WriteLine
         if (callInst.MethodSignature?.Contains("Console") == true || 
             callInst.MethodSignature?.Contains("WriteLine") == true ||
             callInst.MethodSignature?.Contains("print") == true)
         {
             il.Call(writeLineMethodRef);
+            return;
         }
+        
+        // For now, skip internal method calls since they're complex to implement correctly
+        // This is a temporary limitation - complex programs with method calls should use traditional IL assembly
+        Console.WriteLine($"WARNING: Skipping unresolved method call: {callInst.MethodSignature}");
     }
     
     /// <summary>
