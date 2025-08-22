@@ -252,12 +252,20 @@ public class PEEmitter
         bool hasReturnInstruction = false;
         var localVariables = new HashSet<string>();
         
+        Console.WriteLine($"DEBUG: Generating method body for '{ilMethod.Name}' with {ilMethod.Impl.Body.Statements.Count} statements");
+        
         // Generate instructions from the method's body statements
         if (ilMethod.Impl.Body.Statements.Any())
         {
             foreach (var statement in ilMethod.Impl.Body.Statements)
             {
                 var instructionSequence = transformer.GenerateStatement(statement);
+                
+                Console.WriteLine($"DEBUG: Statement generated {instructionSequence.Instructions.Count} instructions");
+                foreach (var instr in instructionSequence.Instructions)
+                {
+                    Console.WriteLine($"  - {instr.GetType().Name}: {instr}");
+                }
                 
                 // Collect local variable information and check for return instructions
                 foreach (var instruction in instructionSequence.Instructions)
