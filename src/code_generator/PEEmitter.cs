@@ -191,12 +191,38 @@ public class PEEmitter
         // Use AstToIlTransformationVisitor to get instruction sequences for each statement
         var transformer = new AstToIlTransformationVisitor();
         
+        // Track if we've emitted a return instruction and collect local variables
+        bool hasReturnInstruction = false;
+        var localVariables = new HashSet<string>();
+        
         // Generate instructions from the method's body statements
         if (ilMethod.Impl.Body.Statements.Any())
         {
             foreach (var statement in ilMethod.Impl.Body.Statements)
             {
                 var instructionSequence = transformer.GenerateStatement(statement);
+                
+                // Collect local variable information and check for return instructions
+                foreach (var instruction in instructionSequence.Instructions)
+                {
+                    if (instruction is il_ast.ReturnInstruction)
+                    {
+                        hasReturnInstruction = true;
+                    }
+                    else if (instruction is il_ast.LoadInstruction loadInst && 
+                            loadInst.Opcode.ToLowerInvariant() == "ldloc" && 
+                            loadInst.Value is string loadVar)
+                    {
+                        localVariables.Add(loadVar);
+                    }
+                    else if (instruction is il_ast.StoreInstruction storeInst && 
+                            storeInst.Opcode.ToLowerInvariant() == "stloc" && 
+                            storeInst.Target is string storeVar)
+                    {
+                        localVariables.Add(storeVar);
+                    }
+                }
+                
                 EmitInstructionSequence(il, instructionSequence, metadataBuilder, writeLineMethodRef);
             }
         }
@@ -210,16 +236,27 @@ public class PEEmitter
             }
         }
         
-        // Always end with ret instruction
-        il.OpCode(ILOpCode.Ret);
+        // Only add ret instruction if one wasn't already emitted
+        if (!hasReturnInstruction)
+        {
+            il.OpCode(ILOpCode.Ret);
+        }
+        
+        // Create local variable signature if needed
+        EntityHandle localVarSigToken = default;
+        if (localVariables.Any())
+        {
+            localVarSigToken = CreateLocalVariableSignature(metadataBuilder, localVariables);
+        }
         
         // Create the method body blob with proper header
         var methodBody = new BlobBuilder();
         
-        // Write simple method body header (no local variables, small method)
+        // Write method body header (always use fat format if we have locals or large method)
         var codeSize = ilInstructions.Count;
+        var hasLocals = localVariables.Any();
         
-        if (codeSize < 64)
+        if (codeSize < 64 && !hasLocals)
         {
             // Tiny format: first byte contains 2-bit format + 6-bit size
             methodBody.WriteByte((byte)(0x02 | (codeSize << 2))); // Format: CorILMethod_TinyFormat
@@ -231,7 +268,7 @@ public class PEEmitter
             methodBody.WriteByte(0x30); // Flags: no extra sections
             methodBody.WriteUInt16((ushort)8);    // Max stack (16-bit)
             methodBody.WriteUInt32((uint)codeSize); // Code size (32-bit)
-            methodBody.WriteUInt32(0);  // Local var sig token (0 = no locals)
+            methodBody.WriteUInt32(hasLocals ? (uint)MetadataTokens.GetToken(localVarSigToken) : 0);  // Local var sig token
         }
         
         // Write the actual IL instructions
@@ -241,14 +278,52 @@ public class PEEmitter
     }
 
     /// <summary>
+    /// Create a local variable signature for the method
+    /// </summary>
+    private EntityHandle CreateLocalVariableSignature(MetadataBuilder metadataBuilder, HashSet<string> localVariables)
+    {
+        var localsSignature = new BlobBuilder();
+        localsSignature.WriteByte(0x07); // LOCAL_SIG
+        localsSignature.WriteCompressedInteger(localVariables.Count); // Number of locals
+        
+        // For simplicity, all locals are Int32 for now
+        foreach (var localVar in localVariables)
+        {
+            localsSignature.WriteByte((byte)SignatureTypeCode.Int32);
+        }
+        
+        return metadataBuilder.AddStandaloneSignature(metadataBuilder.GetOrAddBlob(localsSignature));
+    }
+
+    /// <summary>
     /// Emit instruction sequence using InstructionEncoder
     /// </summary>
     private void EmitInstructionSequence(InstructionEncoder il, il_ast.InstructionSequence sequence, 
         MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef)
     {
+        // Build a local variable name to index mapping
+        var localVarNames = new List<string>();
         foreach (var instruction in sequence.Instructions)
         {
-            EmitInstruction(il, instruction, metadataBuilder, writeLineMethodRef);
+            if (instruction is il_ast.LoadInstruction loadInst && 
+                loadInst.Opcode.ToLowerInvariant() == "ldloc" && 
+                loadInst.Value is string loadVar && 
+                !localVarNames.Contains(loadVar))
+            {
+                localVarNames.Add(loadVar);
+            }
+            else if (instruction is il_ast.StoreInstruction storeInst && 
+                    storeInst.Opcode.ToLowerInvariant() == "stloc" && 
+                    storeInst.Target is string storeVar && 
+                    !localVarNames.Contains(storeVar))
+            {
+                localVarNames.Add(storeVar);
+            }
+        }
+        
+        foreach (var instruction in sequence.Instructions)
+        {
+            EmitInstruction(il, instruction, metadataBuilder, writeLineMethodRef, localVarNames);
         }
     }
 
@@ -256,16 +331,16 @@ public class PEEmitter
     /// Emit a single instruction using InstructionEncoder
     /// </summary>
     private void EmitInstruction(InstructionEncoder il, il_ast.CilInstruction instruction, 
-        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef)
+        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, List<string> localVarNames = null)
     {
         switch (instruction)
         {
             case il_ast.LoadInstruction loadInst:
-                EmitLoadInstruction(il, loadInst, metadataBuilder);
+                EmitLoadInstruction(il, loadInst, metadataBuilder, localVarNames);
                 break;
                 
             case il_ast.StoreInstruction storeInst:
-                EmitStoreInstruction(il, storeInst);
+                EmitStoreInstruction(il, storeInst, localVarNames);
                 break;
                 
             case il_ast.ArithmeticInstruction arithInst:
@@ -294,7 +369,7 @@ public class PEEmitter
     /// <summary>
     /// Emit load instruction
     /// </summary>
-    private void EmitLoadInstruction(InstructionEncoder il, il_ast.LoadInstruction loadInst, MetadataBuilder metadataBuilder)
+    private void EmitLoadInstruction(InstructionEncoder il, il_ast.LoadInstruction loadInst, MetadataBuilder metadataBuilder, List<string> localVarNames = null)
     {
         switch (loadInst.Opcode.ToLowerInvariant())
         {
@@ -329,8 +404,24 @@ public class PEEmitter
                 break;
                 
             case "ldloc":
-                // For simplicity, assume local 0 for now
-                il.LoadLocal(0);
+                if (loadInst.Value is string varName && localVarNames != null)
+                {
+                    var index = localVarNames.IndexOf(varName);
+                    if (index >= 0)
+                    {
+                        il.LoadLocal(index);
+                    }
+                    else
+                    {
+                        // Fallback to index 0 if variable not found
+                        il.LoadLocal(0);
+                    }
+                }
+                else
+                {
+                    // Fallback for non-string value or no local var names
+                    il.LoadLocal(0);
+                }
                 break;
         }
     }
@@ -338,13 +429,29 @@ public class PEEmitter
     /// <summary>
     /// Emit store instruction
     /// </summary>
-    private void EmitStoreInstruction(InstructionEncoder il, il_ast.StoreInstruction storeInst)
+    private void EmitStoreInstruction(InstructionEncoder il, il_ast.StoreInstruction storeInst, List<string> localVarNames = null)
     {
         switch (storeInst.Opcode.ToLowerInvariant())
         {
             case "stloc":
-                // For simplicity, assume local 0 for now
-                il.StoreLocal(0);
+                if (storeInst.Target is string varName && localVarNames != null)
+                {
+                    var index = localVarNames.IndexOf(varName);
+                    if (index >= 0)
+                    {
+                        il.StoreLocal(index);
+                    }
+                    else
+                    {
+                        // Fallback to index 0 if variable not found
+                        il.StoreLocal(0);
+                    }
+                }
+                else
+                {
+                    // Fallback for non-string value or no local var names
+                    il.StoreLocal(0);
+                }
                 break;
         }
     }

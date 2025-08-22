@@ -1,0 +1,42 @@
+class Student {
+    Name: string;
+    Grade: int;
+    Subject: string;
+}
+
+categorize_student(student: Student {
+    grade: Grade | grade >= 90,
+    subject: Subject
+}): int {
+    return 1; // A grade
+}
+
+categorize_student(student: Student {
+    grade: Grade | grade >= 80 && grade < 90,
+    subject: Subject
+}): int {
+    return 2; // B grade
+}
+
+categorize_student(student: Student {
+    grade: Grade,
+    subject: Subject
+}): int {
+    return 3; // C or below
+}
+
+main(): int {
+    student1: Student = new Student {
+        Name = "Alice",
+        Grade = 95,
+        Subject = "Math"
+    };
+    
+    student2: Student = new Student {
+        Name = "Bob", 
+        Grade = 85,
+        Subject = "Science"
+    };
+    
+    return categorize_student(student1) + categorize_student(student2);
+}

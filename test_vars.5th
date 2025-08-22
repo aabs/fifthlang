@@ -1,0 +1,5 @@
+main(): int {
+    x: int = 5;
+    y: int = 10;
+    return x + y;
+}
