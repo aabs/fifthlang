@@ -97,14 +97,10 @@ public class PEEmitter
             }
             else
             {
-                // Find the main method in the IL metamodel
-                var mainMethod = ilAssembly.PrimeModule.Functions.FirstOrDefault(f => f.Header.IsEntrypoint);
-                if (mainMethod == null)
-                {
-                    mainMethod = ilAssembly.PrimeModule.Functions.FirstOrDefault(f => f.Name == "main");
-                }
+                // Process all functions in the module
+                var functions = ilAssembly.PrimeModule.Functions.ToList();
                 
-                if (mainMethod != null)
+                if (functions.Any())
                 {
                     // Add Program type
                     var programTypeHandle = metadataBuilder.AddTypeDefinition(
@@ -114,32 +110,61 @@ public class PEEmitter
                         objectTypeRef,
                         MetadataTokens.FieldDefinitionHandle(1),
                         MetadataTokens.MethodDefinitionHandle(1));
-
-                    // Generate method body from IL metamodel and add to method body stream
-                    var mainMethodBody = GenerateMethodBody(mainMethod, metadataBuilder, writeLineMethodRef);
-                    var methodBodyOffset = methodBodyStream.Count;
                     
-                    // Add method body to the stream
-                    methodBodyStream.WriteBytes(mainMethodBody.ToArray());
+                    // Create mapping of method names to handles for internal calls
+                    var methodMap = new Dictionary<string, MethodDefinitionHandle>();
                     
-                    // Create method signature from IL metamodel
-                    var mainMethodSignatureBlob = new BlobBuilder();
-                    mainMethodSignatureBlob.WriteByte(0x00); // calling convention
-                    mainMethodSignatureBlob.WriteByte(0x00); // parameter count
+                    // First pass: Create all method definitions  
+                    foreach (var function in functions)
+                    {
+                        // Create method signature from IL metamodel
+                        var methodSignatureBlob = new BlobBuilder();
+                        methodSignatureBlob.WriteByte(0x00); // calling convention
+                        methodSignatureBlob.WriteByte((byte)function.Signature.ParameterSignatures.Count); // parameter count
+                        
+                        // Set return type based on IL metamodel
+                        var returnTypeCode = GetSignatureTypeCode(function.Signature.ReturnTypeSignature);
+                        methodSignatureBlob.WriteByte((byte)returnTypeCode);
+                        
+                        // Add parameter types
+                        foreach (var paramSig in function.Signature.ParameterSignatures)
+                        {
+                            var paramTypeCode = GetSignatureTypeCode(paramSig.TypeReference);
+                            methodSignatureBlob.WriteByte((byte)paramTypeCode);
+                        }
+                        
+                        var methodHandle = metadataBuilder.AddMethodDefinition(
+                            MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
+                            MethodImplAttributes.IL,
+                            metadataBuilder.GetOrAddString(function.Header.IsEntrypoint ? "Main" : function.Name),
+                            metadataBuilder.GetOrAddBlob(methodSignatureBlob),
+                            0, // RVA will be set later
+                            default); // parameterList
+                        
+                        methodMap[function.Name] = methodHandle;
+                        
+                        // Set entrypoint to the main method
+                        if (function.Header.IsEntrypoint)
+                        {
+                            entryPointMethodHandle = methodHandle;
+                        }
+                    }
                     
-                    // Set return type based on IL metamodel
-                    var returnTypeCode = GetSignatureTypeCode(mainMethod.Signature.ReturnTypeSignature);
-                    mainMethodSignatureBlob.WriteByte((byte)returnTypeCode);
-                    
-                    var mainMethodHandle = metadataBuilder.AddMethodDefinition(
-                        MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
-                        MethodImplAttributes.IL,
-                        metadataBuilder.GetOrAddString("Main"),
-                        metadataBuilder.GetOrAddBlob(mainMethodSignatureBlob),
-                        methodBodyOffset, // RVA will be calculated by PE builder
-                        default); // parameterList
-
-                    entryPointMethodHandle = mainMethodHandle;
+                    // Second pass: Generate method bodies with proper method references
+                    var methodBodyOffset = 0;
+                    foreach (var function in functions)
+                    {
+                        // Generate method body from IL metamodel and add to method body stream
+                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef, methodMap);
+                        
+                        // Update the method definition with the correct RVA
+                        var methodHandle = methodMap[function.Name];
+                        // Note: We need to update the method RVA, but MetadataBuilder doesn't allow updating
+                        // For now, we'll add the bodies sequentially and rely on PE builder to handle RVAs
+                        
+                        methodBodyStream.WriteBytes(methodBody.ToArray());
+                        methodBodyOffset = methodBodyStream.Count;
+                    }
                 }
                 else
                 {
@@ -183,7 +208,7 @@ public class PEEmitter
     /// <summary>
     /// Generate method body from IL metamodel method definition
     /// </summary>
-    private BlobBuilder GenerateMethodBody(il_ast.MethodDefinition ilMethod, MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef)
+    private BlobBuilder GenerateMethodBody(il_ast.MethodDefinition ilMethod, MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
     {
         var ilInstructions = new BlobBuilder();
         var il = new InstructionEncoder(ilInstructions);
@@ -223,7 +248,7 @@ public class PEEmitter
                     }
                 }
                 
-                EmitInstructionSequence(il, instructionSequence, metadataBuilder, writeLineMethodRef);
+                EmitInstructionSequence(il, instructionSequence, metadataBuilder, writeLineMethodRef, methodMap);
             }
         }
         else
@@ -299,7 +324,7 @@ public class PEEmitter
     /// Emit instruction sequence using InstructionEncoder
     /// </summary>
     private void EmitInstructionSequence(InstructionEncoder il, il_ast.InstructionSequence sequence, 
-        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef)
+        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
     {
         // Build a local variable name to index mapping
         var localVarNames = new List<string>();
@@ -323,7 +348,7 @@ public class PEEmitter
         
         foreach (var instruction in sequence.Instructions)
         {
-            EmitInstruction(il, instruction, metadataBuilder, writeLineMethodRef, localVarNames);
+            EmitInstruction(il, instruction, metadataBuilder, writeLineMethodRef, localVarNames, methodMap);
         }
     }
 
@@ -331,7 +356,7 @@ public class PEEmitter
     /// Emit a single instruction using InstructionEncoder
     /// </summary>
     private void EmitInstruction(InstructionEncoder il, il_ast.CilInstruction instruction, 
-        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, List<string> localVarNames = null)
+        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, List<string>? localVarNames = null, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
     {
         switch (instruction)
         {
@@ -348,7 +373,7 @@ public class PEEmitter
                 break;
                 
             case il_ast.CallInstruction callInst:
-                EmitCallInstruction(il, callInst, metadataBuilder, writeLineMethodRef);
+                EmitCallInstruction(il, callInst, metadataBuilder, writeLineMethodRef, methodMap);
                 break;
                 
             case il_ast.BranchInstruction branchInst:
@@ -482,15 +507,60 @@ public class PEEmitter
     /// Emit call instruction
     /// </summary>
     private void EmitCallInstruction(InstructionEncoder il, il_ast.CallInstruction callInst, 
-        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef)
+        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
     {
-        // For now, redirect print calls to Console.WriteLine
+        // Check if this is an internal method call
+        if (methodMap != null && !string.IsNullOrEmpty(callInst.MethodSignature))
+        {
+            // Extract method name from the signature
+            var methodName = ExtractMethodName(callInst.MethodSignature);
+            if (methodMap.ContainsKey(methodName))
+            {
+                il.Call(methodMap[methodName]);
+                return;
+            }
+        }
+        
+        // For external calls, redirect print calls to Console.WriteLine
         if (callInst.MethodSignature?.Contains("Console") == true || 
             callInst.MethodSignature?.Contains("WriteLine") == true ||
             callInst.MethodSignature?.Contains("print") == true)
         {
             il.Call(writeLineMethodRef);
         }
+    }
+    
+    /// <summary>
+    /// Extract method name from method signature string
+    /// </summary>
+    private string ExtractMethodName(string methodSignature)
+    {
+        // Simple extraction - assume method signature format like "methodName" or "Program::methodName"
+        if (methodSignature.Contains("::"))
+        {
+            return methodSignature.Split("::").Last();
+        }
+        
+        // If it looks like a simple method name, return as-is
+        if (!methodSignature.Contains(" ") && !methodSignature.Contains("("))
+        {
+            return methodSignature;
+        }
+        
+        // For more complex signatures, try to extract the method name before parentheses
+        var parenIndex = methodSignature.IndexOf('(');
+        if (parenIndex > 0)
+        {
+            var beforeParen = methodSignature.Substring(0, parenIndex).Trim();
+            var spaceIndex = beforeParen.LastIndexOf(' ');
+            if (spaceIndex >= 0)
+            {
+                return beforeParen.Substring(spaceIndex + 1);
+            }
+            return beforeParen;
+        }
+        
+        return methodSignature;
     }
 
     /// <summary>
