@@ -401,6 +401,27 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     sequence.Add(new CallInstruction("call", $"{ilReturnType} {functionName}()"));
                 }
                 break;
+                
+            case MemberAccessExp memberAccess:
+                Console.WriteLine($"DEBUG: Processing MemberAccessExp with LHS: {memberAccess.LHS?.GetType().Name ?? "null"}, RHS: {memberAccess.RHS?.GetType().Name ?? "null"}");
+                
+                // Load the object (LHS)
+                if (memberAccess.LHS != null)
+                {
+                    sequence.AddRange(GenerateExpression(memberAccess.LHS).Instructions);
+                }
+                
+                // Load the field value (RHS should be the field/property name)
+                if (memberAccess.RHS is VarRefExp memberVarRef)
+                {
+                    // For now, assume simple field access - this may need enhancement for complex property access
+                    sequence.Add(new LoadInstruction("ldfld", memberVarRef.VarName));
+                }
+                else
+                {
+                    Console.WriteLine($"DEBUG: Unsupported member access RHS type: {memberAccess.RHS?.GetType().Name ?? "null"}");
+                }
+                break;
         }
         
         return sequence;
