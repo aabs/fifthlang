@@ -512,6 +512,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         switch (statement)
         {
             case VarDeclStatement varDecl:
+                Console.WriteLine($"DEBUG: VarDeclStatement with variable: {varDecl.VariableDecl?.Name ?? "null"}, InitialValue type: {varDecl.InitialValue?.GetType().Name ?? "null"}");
                 // IL locals are typically declared in method header, 
                 // so we just handle initialization if present
                 if (varDecl.InitialValue != null)
