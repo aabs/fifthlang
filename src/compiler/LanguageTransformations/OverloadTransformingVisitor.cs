@@ -117,7 +117,7 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
             {
                 // if there is no clause condition, it must be the base case (which should be the
                 // last clause)
-                ifStatements.Add(new ExpStatementBuilder().WithRHS(funcCallExpression).Build());
+                ifStatements.Add(new ReturnStatementBuilder().WithReturnValue(funcCallExpression).Build());
             }
         }
         fd.Body = new BlockStatement() { Statements = ifStatements };
@@ -278,7 +278,7 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
             {
                 // if there is no clause condition, it must be the base case (which should be the
                 // last clause)
-                ifStatements.Add(new ExpStatementBuilder().WithRHS(funcCallExpression).Build());
+                ifStatements.Add(new ReturnStatementBuilder().WithReturnValue(funcCallExpression).Build());
             }
         }
         fd.Body = new BlockStatement() { Statements = ifStatements };
