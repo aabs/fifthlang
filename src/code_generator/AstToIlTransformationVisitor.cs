@@ -319,6 +319,8 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
     {
         var sequence = new InstructionSequence();
         
+        Console.WriteLine($"DEBUG: GenerateExpression called with {expression.GetType().Name}");
+        
         switch (expression)
         {
             case Int32LiteralExp intLit:
@@ -346,6 +348,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
                 
             case BinaryExp binaryExp:
+                Console.WriteLine($"DEBUG: Processing BinaryExp with LHS={binaryExp.LHS?.GetType().Name ?? "null"}, RHS={binaryExp.RHS?.GetType().Name ?? "null"}");
                 // Emit left operand
                 sequence.AddRange(GenerateExpression(binaryExp.LHS).Instructions);
                 // Emit right operand
@@ -362,6 +365,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
                 
             case ast.FuncCallExp funcCall:
+                Console.WriteLine($"DEBUG: Processing FuncCallExp with FunctionDef={funcCall.FunctionDef?.Name.Value ?? "null"}");
                 // Emit arguments
                 if (funcCall.InvocationArguments != null)
                 {
@@ -372,6 +376,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 }
                 // Emit call
                 var functionName = funcCall.FunctionDef?.Name.Value ?? "unknown";
+                Console.WriteLine($"DEBUG: Generating call to function: {functionName}");
                 if (functionName == "print" || functionName == "myprint")
                 {
                     sequence.Add(new CallInstruction("call", "void [System.Console]System.Console::WriteLine(object)"));
