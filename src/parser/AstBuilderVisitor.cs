@@ -44,7 +44,9 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         else if (context is FifthParser.Exp_funccallContext funcContext)
         {
             Console.Error.WriteLine($"=== CACHE DEBUG: Direct call to VisitExp_funccall for Exp_funccallContext ===");
+            Console.Error.WriteLine($"=== CACHE DEBUG: About to call VisitExp_funccall directly ===");
             result = VisitExp_funccall(funcContext);
+            Console.Error.WriteLine($"=== CACHE DEBUG: VisitExp_funccall returned: {result?.GetType().Name} ===");
         }
         else if (context is FifthParser.Exp_operandContext operandContext)
         {
@@ -842,10 +844,9 @@ public override IAstThing VisitExp_funccall([NotNull] FifthParser.Exp_funccallCo
     Console.Error.WriteLine($"=== PARSER DEBUG: VisitExp_funccall called with text: '{context.GetText()}' ===");
 
     // Check if this is actually a binary expression that was misparsed as a function call
-    // This happens when the grammar precedence causes expressions like "func1() + func2()" 
-    // to be parsed as "(func1() + func2)(args)" instead of "func1() + func2(args)"
     var expressionText = context.expression()?.GetText();
     Console.Error.WriteLine($"=== PARSER DEBUG: Expression part: '{expressionText}' ===");
+    Console.Error.WriteLine($"=== PARSER DEBUG: Contains +: {expressionText?.Contains("+") ?? false} ===");
     
     // If the expression contains operators like +, -, *, etc., it's likely a binary expression
     if (expressionText != null && (expressionText.Contains("+") || expressionText.Contains("-") || 
@@ -858,6 +859,8 @@ public override IAstThing VisitExp_funccall([NotNull] FifthParser.Exp_funccallCo
         return result;
     }
 
+    Console.Error.WriteLine($"=== PARSER DEBUG: Not detected as binary expression, proceeding with normal function call processing ===");
+    
     // Normal function call processing
     var functionExpr = (Expression)Visit(context.expression());
     Console.Error.WriteLine($"=== PARSER DEBUG: Function expression type: {functionExpr?.GetType().Name} ===");
