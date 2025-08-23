@@ -252,13 +252,8 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             Console.Error.WriteLine($"=== BINARY EXP DEBUG: Detected function call, creating FuncCallExp manually ===");
             
             // Extract function name from the function call context
-            var functionExpr = (Expression)Visit(funcCallCtx.expression());
-            string functionName = "unknown";
-            if (functionExpr is VarRefExp varRef)
-            {
-                functionName = varRef.VarName;
-            }
-            
+            var functionName = funcCallCtx.funcname.Text;
+
             // For now, just handle the simple case of no parameters
             List<Expression> parameterExpressions = new List<Expression>();
             
@@ -299,12 +294,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             Console.Error.WriteLine($"=== BINARY EXP DEBUG: RHS is also a function call, creating FuncCallExp manually ===");
             
             // Extract function name from the function call context
-            var rhsFunctionExpr = (Expression)Visit(rhsFuncCallCtx.expression());
-            string rhsFunctionName = "unknown";
-            if (rhsFunctionExpr is VarRefExp rhsVarRef)
-            {
-                rhsFunctionName = rhsVarRef.VarName;
-            }
+            var rhsFunctionName = rhsFuncCallCtx.funcname.Text;
             
             // For now, just handle the simple case of no parameters
             List<Expression> rhsParameterExpressions = new List<Expression>();
