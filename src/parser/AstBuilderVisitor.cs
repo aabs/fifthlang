@@ -13,57 +13,8 @@ namespace compiler.LangProcessingPhases;
 public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 {
     public static readonly FifthType Void = new FifthType.TVoidType() { Name = TypeName.From("void") };
-    
-    // Cache to prevent double-visit issues with expression contexts
-    private readonly Dictionary<ParserRuleContext, IAstThing> _expressionCache = new();
 
     #region Helper Functions
-    
-    /// <summary>
-    /// Cached visit for expression contexts to prevent double-visit issues
-    /// </summary>
-    private IAstThing CachedVisitExpression(ParserRuleContext context)
-    {
-        if (context == null) return null;
-        
-        // Check cache first
-        if (_expressionCache.TryGetValue(context, out var cached))
-        {
-            Console.Error.WriteLine($"=== CACHE DEBUG: Returning cached result for {context.GetType().Name} ===");
-            return cached;
-        }
-        
-        // Visit directly using specific visitor method to bypass ANTLR dispatch issues
-        IAstThing result = null;
-        
-        if (context is FifthParser.Exp_addContext addContext)
-        {
-            Console.Error.WriteLine($"=== CACHE DEBUG: Direct call to VisitExp_add for Exp_addContext ===");
-            result = VisitExp_add(addContext);
-        }
-        else if (context is FifthParser.Exp_funccallContext funcContext)
-        {
-            Console.Error.WriteLine($"=== CACHE DEBUG: Direct call to VisitExp_funccall for Exp_funccallContext ===");
-            Console.Error.WriteLine($"=== CACHE DEBUG: About to call VisitExp_funccall directly ===");
-            result = VisitExp_funccall(funcContext);
-            Console.Error.WriteLine($"=== CACHE DEBUG: VisitExp_funccall returned: {result?.GetType().Name} ===");
-        }
-        else if (context is FifthParser.Exp_operandContext operandContext)
-        {
-            Console.Error.WriteLine($"=== CACHE DEBUG: Direct call to VisitExp_operand for Exp_operandContext ===");
-            result = VisitExp_operand(operandContext);
-        }
-        else
-        {
-            // Fall back to regular Visit for other context types
-            Console.Error.WriteLine($"=== CACHE DEBUG: Fallback to Visit for {context.GetType().Name} ===");
-            result = Visit(context);
-        }
-        
-        _expressionCache[context] = result;
-        Console.Error.WriteLine($"=== CACHE DEBUG: Cached new result for {context.GetType().Name}: {result?.GetType().Name} ===");
-        return result;
-    }
 
     private TAstType CreateLiteral<TAstType, TBaseType>(ParserRuleContext ctx, Func<string, TBaseType> x)
         where TAstType : LiteralExpression<TBaseType>, new()
@@ -228,7 +179,11 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 
     public override IAstThing VisitExp_add(FifthParser.Exp_addContext context)
     {
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: VisitExp_add called for: '{context.GetText()}' ===");
+        Console.Error.WriteLine($"=== BINARY DEBUG: VisitExp_add called for: '{context.GetText()}' ===");
+        Console.Error.WriteLine($"=== BINARY DEBUG: LHS context type: {context.lhs.GetType().Name} ===");
+        Console.Error.WriteLine($"=== BINARY DEBUG: LHS text: '{context.lhs.GetText()}' ===");
+        Console.Error.WriteLine($"=== BINARY DEBUG: RHS context type: {context.rhs.GetType().Name} ===");
+        Console.Error.WriteLine($"=== BINARY DEBUG: RHS text: '{context.rhs.GetText()}' ===");
         
         var b = new BinaryExpBuilder()
             .WithAnnotations([]);
@@ -240,132 +195,42 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             FifthParser.LOGICAL_XOR => Operator.LogicalXor
         };
         
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: LHS context type: {context.lhs.GetType().Name} ===");
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: LHS text: '{context.lhs.GetText()}' ===");
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: About to call Visit(context.lhs) ===");
+        Console.Error.WriteLine($"=== BINARY DEBUG: About to visit LHS ===");
+        Console.Error.WriteLine($"=== BINARY DEBUG: Calling Visit on context type: {context.lhs.GetType().Name} ===");
         
-        Expression lhsResult;
-        
-        // Special handling for function calls since VisitExp_funccall isn't being called
-        if (context.lhs is FifthParser.Exp_funccallContext funcCallCtx)
+        // Try calling VisitExp_funccall directly if it's the right context type
+        if (context.lhs is FifthParser.Exp_funccallContext funcContext)
         {
-            Console.Error.WriteLine($"=== BINARY EXP DEBUG: Detected function call, creating FuncCallExp manually ===");
-            
-            // Extract function name from the function call context
-            var functionName = funcCallCtx.funcname.Text;
-
-            // For now, just handle the simple case of no parameters
-            List<Expression> parameterExpressions = new List<Expression>();
-            
-            lhsResult = new FuncCallExp()
+            Console.Error.WriteLine($"=== BINARY DEBUG: Detected Exp_funccallContext, calling VisitExp_funccall directly ===");
+            try
             {
-                FunctionDef = null, // Will be resolved during linking phase
-                InvocationArguments = parameterExpressions,
-                // Store the function name in annotations temporarily
-                Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
-                Location = GetLocationDetails(funcCallCtx),
-                Parent = null,
-                Type = null // Will be inferred later
-            };
-            
-            Console.Error.WriteLine($"=== BINARY EXP DEBUG: Created FuncCallExp for function '{functionName}' ===");
-        }
-        else
-        {
-            lhsResult = (Expression)Visit(context.lhs);
-        }
-        
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: Visit returned, LHS result type: {lhsResult?.GetType().Name} ===");
-        
-        if (lhsResult == null)
-        {
-            Console.Error.WriteLine($"=== BINARY EXP DEBUG: LHS result is NULL! This is still a problem! ===");
-            return null; // Don't proceed if we can't parse the LHS
-        }
-
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: RHS context type: {context.rhs.GetType().Name} ===");
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: RHS text: '{context.rhs.GetText()}' ===");
-        
-        Expression rhsResult;
-        
-        // Special handling for function calls on RHS too
-        if (context.rhs is FifthParser.Exp_funccallContext rhsFuncCallCtx)
-        {
-            Console.Error.WriteLine($"=== BINARY EXP DEBUG: RHS is also a function call, creating FuncCallExp manually ===");
-            
-            // Extract function name from the function call context
-            var rhsFunctionName = rhsFuncCallCtx.funcname.Text;
-            
-            // For now, just handle the simple case of no parameters
-            List<Expression> rhsParameterExpressions = new List<Expression>();
-            
-            rhsResult = new FuncCallExp()
+                var directResult = VisitExp_funccall(funcContext);
+                Console.Error.WriteLine($"=== BINARY DEBUG: Direct call result: {directResult?.GetType().Name} ===");
+            }
+            catch (Exception ex)
             {
-                FunctionDef = null, // Will be resolved during linking phase
-                InvocationArguments = rhsParameterExpressions,
-                // Store the function name in annotations temporarily
-                Annotations = new Dictionary<string, object> { ["FunctionName"] = rhsFunctionName },
-                Location = GetLocationDetails(rhsFuncCallCtx),
-                Parent = null,
-                Type = null // Will be inferred later
-            };
-            
-            Console.Error.WriteLine($"=== BINARY EXP DEBUG: Created RHS FuncCallExp for function '{rhsFunctionName}' ===");
-        }
-        else
-        {
-            rhsResult = (Expression)Visit(context.rhs);
-            
-            // Post-process: if RHS is a VarRefExp, check if it should be a function call
-            // This is a workaround for ANTLR parsing issues where func2() gets parsed as func2
-            if (rhsResult is VarRefExp rhsVarRef)
-            {
-                // Check if this variable name looks like it could be a function call
-                // For now, we'll be aggressive and assume any VarRefExp in the RHS of a binary 
-                // expression where LHS is already a function call should also be a function call
-                if (lhsResult is FuncCallExp)
-                {
-                    Console.Error.WriteLine($"=== BINARY EXP DEBUG: Converting RHS VarRefExp '{rhsVarRef.VarName}' to FuncCallExp ===");
-                    
-                    rhsResult = new FuncCallExp()
-                    {
-                        FunctionDef = null, // Will be resolved during linking phase
-                        InvocationArguments = new List<Expression>(),
-                        // Store the function name in annotations temporarily
-                        Annotations = new Dictionary<string, object> { ["FunctionName"] = rhsVarRef.VarName },
-                        Location = rhsVarRef.Location,
-                        Parent = null,
-                        Type = null // Will be inferred later
-                    };
-                    
-                    Console.Error.WriteLine($"=== BINARY EXP DEBUG: Converted RHS to FuncCallExp for function '{rhsVarRef.VarName}' ===");
-                }
+                Console.Error.WriteLine($"=== BINARY DEBUG: Exception in VisitExp_funccall: {ex.Message} ===");
+                Console.Error.WriteLine($"=== BINARY DEBUG: Exception stack trace: {ex.StackTrace} ===");
             }
         }
         
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: RHS result type: {rhsResult?.GetType().Name} ===");
+        var lhs = (Expression)Visit(context.lhs);
+        Console.Error.WriteLine($"=== BINARY DEBUG: Visit returned: {lhs} ===");
+        Console.Error.WriteLine($"=== BINARY DEBUG: LHS result: {lhs?.GetType().Name} ===");
+        
+        Console.Error.WriteLine($"=== BINARY DEBUG: About to visit RHS ===");
+        var rhs = (Expression)Visit(context.rhs);
+        Console.Error.WriteLine($"=== BINARY DEBUG: RHS result: {rhs?.GetType().Name} ===");
         
         b.WithOperator(op)
-            .WithLHS(lhsResult)
-            .WithRHS(rhsResult)
+            .WithLHS(lhs)
+            .WithRHS(rhs)
             ;
 
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: About to build binary expression ===");
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: LHS for build: {lhsResult?.GetType().Name} ===");
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: RHS for build: {rhsResult?.GetType().Name} ===");
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: Operator: {op} ===");
-        
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: Built result: {result?.GetType().Name} ===");
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: Result LHS: {result?.LHS?.GetType().Name} ===");
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: Result RHS: {result?.RHS?.GetType().Name} ===");
-        
-        if (result == null)
-        {
-            Console.Error.WriteLine($"=== BINARY EXP DEBUG: ERROR - Binary expression result is NULL! ===");
-        }
-        
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: RETURNING result: {result?.GetType().Name} ===");
+        Console.Error.WriteLine($"=== BINARY DEBUG: Final result: {result?.GetType().Name} ===");
+        Console.Error.WriteLine($"=== BINARY DEBUG: Final LHS: {result?.LHS?.GetType().Name} ===");
+        Console.Error.WriteLine($"=== BINARY DEBUG: Final RHS: {result?.RHS?.GetType().Name} ===");
         return result;
     }
 
@@ -675,32 +540,13 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 
     public override IAstThing VisitReturn_statement([NotNull] FifthParser.Return_statementContext context)
     {
-        Console.Error.WriteLine($"=== RETURN DEBUG: VisitReturn_statement called with: '{context.GetText()}' ===");
-        
-        Console.Error.WriteLine($"=== RETURN DEBUG: About to call CachedVisitExpression(context.expression()) ===");
-        Console.Error.WriteLine($"=== RETURN DEBUG: context.expression() type: {context.expression()?.GetType().Name} ===");
-        
-        var visitResult = CachedVisitExpression(context.expression());
-        Console.Error.WriteLine($"=== RETURN DEBUG: CachedVisitExpression returned (before cast): {visitResult?.GetType().Name} ===");
-        
-        // Debug: try calling the specific visitor directly if Visit returns null
-        if (visitResult == null && context.expression() is FifthParser.Exp_addContext addContext)
-        {
-            Console.Error.WriteLine($"=== RETURN DEBUG: Visit returned null for Exp_addContext, trying direct call ===");
-            visitResult = VisitExp_add(addContext);
-            Console.Error.WriteLine($"=== RETURN DEBUG: Direct VisitExp_add returned: {visitResult?.GetType().Name} ===");
-        }
-        
-        var returnExpr = (Expression)visitResult;
-        Console.Error.WriteLine($"=== RETURN DEBUG: After cast to Expression: {returnExpr?.GetType().Name} ===");
-        Console.Error.WriteLine($"=== RETURN DEBUG: Return expression type: {returnExpr?.GetType().Name} ===");
+        var returnExpr = (Expression)Visit(context.expression());
         
         var b = new ReturnStatementBuilder()
             .WithAnnotations([])
             .WithReturnValue(returnExpr);
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         
-        Console.Error.WriteLine($"=== RETURN DEBUG: Created return statement with expression: {returnExpr?.GetType().Name} ===");
         return result;
     }
 
@@ -831,37 +677,31 @@ return new IntValueExpression(int.Parse(context.value.Text)).CaptureLocation(con
 
 public override IAstThing VisitExp_funccall([NotNull] FifthParser.Exp_funccallContext context)
 {
-    Console.Error.WriteLine($"=== PARSER DEBUG: VisitExp_funccall called with text: '{context.GetText()}' ===");
-
-    // Check if this is actually a binary expression that was misparsed as a function call
-    var expressionText = context.expression()?.GetText();
-    Console.Error.WriteLine($"=== PARSER DEBUG: Expression part: '{expressionText}' ===");
-    Console.Error.WriteLine($"=== PARSER DEBUG: Contains +: {expressionText?.Contains("+") ?? false} ===");
+    Console.Error.WriteLine($"=== FUNCCALL DEBUG: VisitExp_funccall called with: '{context.GetText()}' ===");
+    Console.Error.WriteLine($"=== FUNCCALL DEBUG: Context is null: {context == null} ===");
     
-    // If the expression contains operators like +, -, *, etc., it's likely a binary expression
-    if (expressionText != null && (expressionText.Contains("+") || expressionText.Contains("-") || 
-                                  expressionText.Contains("*") || expressionText.Contains("/")))
+    if (context == null)
     {
-        Console.Error.WriteLine($"=== PARSER DEBUG: Detected binary expression in function call context, delegating to expression visitor ===");
-        // This is actually a binary expression, visit it directly
-        var result = Visit(context.expression());
-        Console.Error.WriteLine($"=== PARSER DEBUG: Binary expression result: {result?.GetType().Name} ===");
-        return result;
+        Console.Error.WriteLine($"=== FUNCCALL DEBUG: Context is null, returning null ===");
+        return null;
     }
-
-    Console.Error.WriteLine($"=== PARSER DEBUG: Not detected as binary expression, proceeding with normal function call processing ===");
     
-    // Normal function call processing
-    var functionExpr = (Expression)Visit(context.expression());
-    Console.Error.WriteLine($"=== PARSER DEBUG: Function expression type: {functionExpr?.GetType().Name} ===");
-
-    var functionName = ExtractFunctionName(functionExpr);
-    Console.Error.WriteLine($"=== PARSER DEBUG: Extracted function name: '{functionName}' ===");
-
+    Console.Error.WriteLine($"=== FUNCCALL DEBUG: funcname is null: {context.funcname == null} ===");
+    
+    if (context.funcname == null)
+    {
+        Console.Error.WriteLine($"=== FUNCCALL DEBUG: funcname is null, returning null ===");
+        return null;
+    }
+    
+    Console.Error.WriteLine($"=== FUNCCALL DEBUG: funcname.Text: '{context.funcname.Text}' ===");
+    
+    // With the updated grammar, funcname is directly an IDENTIFIER
+    var functionName = context.funcname.Text;
+    
     var actualParams = context.expressionList() != null ? (ExpressionList)Visit(context.expressionList()) : null;
-    Console.Error.WriteLine($"=== PARSER DEBUG: Parameters count: {actualParams?.Expressions?.Count ?? 0} ===");
 
-    Console.Error.WriteLine($"=== PARSER DEBUG: Creating FuncCallExp for function '{functionName}' ===");
+    Console.Error.WriteLine($"=== FUNCCALL DEBUG: Creating FuncCallExp for function '{functionName}' ===");
     var funcCall = new FuncCallExp()
     {
         FunctionDef = null, // Will be resolved during linking phase
@@ -872,21 +712,9 @@ public override IAstThing VisitExp_funccall([NotNull] FifthParser.Exp_funccallCo
         Parent = null,
         Type = null // Will be inferred later
     };
-    Console.Error.WriteLine($"=== PARSER DEBUG: Created FuncCallExp with {funcCall.InvocationArguments?.Count ?? 0} arguments ===");
-    Console.Error.WriteLine($"=== PARSER DEBUG: Returning FuncCallExp from VisitExp_funccall ===");
-    return funcCall;
-}
-
-private string ExtractFunctionName(Expression expr)
-{
-    // Handle the case where the function name is a simple variable reference
-    if (expr is VarRefExp varRef)
-    {
-        return varRef.VarName;
-    }
     
-    // Handle other cases (member access, etc.) - for now just return a placeholder
-    return expr?.GetType().Name ?? "unknown";
+    Console.Error.WriteLine($"=== FUNCCALL DEBUG: Returning FuncCallExp for function '{functionName}' ===");
+    return funcCall;
 }
 
 public override IAstThing VisitExp_logicnegation(FifthParser.Exp_logicnegationContext context)
