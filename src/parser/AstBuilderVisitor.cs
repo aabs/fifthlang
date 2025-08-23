@@ -189,49 +189,14 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             FifthParser.LOGICAL_XOR => Operator.LogicalXor
         };
         
-        Expression lhs;
-        
-        // Create FuncCallExp manually when ANTLR identifies function call context
-        if (context.lhs is FifthParser.Exp_funccallContext funcContext)
-        {
-            var functionName = funcContext.funcname.Text;
-            lhs = new FuncCallExp()
-            {
-                FunctionDef = null, // Will be resolved during linking phase
-                InvocationArguments = new List<Expression>(),
-                // Store the function name in annotations temporarily
-                Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
-                Location = GetLocationDetails(funcContext),
-                Parent = null,
-                Type = null // Will be inferred later
-            };
-        }
-        else
-        {
-            lhs = (Expression)Visit(context.lhs);
-        }
-        
-        Expression rhs;
-        
-        // Handle function calls on RHS too
-        if (context.rhs is FifthParser.Exp_funccallContext rhsFuncContext)
-        {
-            var rhsFunctionName = rhsFuncContext.funcname.Text;
-            rhs = new FuncCallExp()
-            {
-                FunctionDef = null, // Will be resolved during linking phase
-                InvocationArguments = new List<Expression>(),
-                // Store the function name in annotations temporarily
-                Annotations = new Dictionary<string, object> { ["FunctionName"] = rhsFunctionName },
-                Location = GetLocationDetails(rhsFuncContext),
-                Parent = null,
-                Type = null // Will be inferred later
-            };
-        }
-        else
-        {
-            rhs = (Expression)Visit(context.rhs);
-        }
+        // ANTLR visitor dispatch issue workaround: manually create FuncCallExp when needed
+        var lhs = context.lhs is FifthParser.Exp_funccallContext lhsFunc 
+            ? CreateFuncCallExp(lhsFunc) 
+            : (Expression)Visit(context.lhs);
+            
+        var rhs = context.rhs is FifthParser.Exp_funccallContext rhsFunc 
+            ? CreateFuncCallExp(rhsFunc) 
+            : (Expression)Visit(context.rhs);
         
         b.WithOperator(op)
             .WithLHS(lhs)
@@ -240,6 +205,32 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
+    }
+
+    private FuncCallExp CreateFuncCallExp(FifthParser.Exp_funccallContext context)
+    {
+        var functionName = context.funcname.Text;
+        var arguments = new List<Expression>();
+        
+        // Handle expression list manually to avoid type issues
+        if (context.expressionList() != null)
+        {
+            foreach (var exp in context.expressionList()._expressions)
+            {
+                arguments.Add((Expression)Visit(exp));
+            }
+        }
+
+        return new FuncCallExp()
+        {
+            FunctionDef = null, // Will be resolved during linking phase
+            InvocationArguments = arguments,
+            // Store the function name in annotations temporarily
+            Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = null // Will be inferred later
+        };
     }
 
     public override IAstThing VisitExp_and(FifthParser.Exp_andContext context)
@@ -707,15 +698,22 @@ public IAstThing TestFuncCallMethod(FifthParser.Exp_funccallContext context)
 
 public override IAstThing VisitExp_funccall([NotNull] FifthParser.Exp_funccallContext context)
 {
-    // Note: This method is not being called due to ANTLR visitor dispatch issues.
-    // Function calls are handled manually in VisitExp_add when detected as Exp_funccallContext.
     var functionName = context.funcname.Text;
-    var actualParams = context.expressionList() != null ? (ExpressionList)Visit(context.expressionList()) : null;
+    var arguments = new List<Expression>();
+    
+    // Handle expression list manually to avoid type issues
+    if (context.expressionList() != null)
+    {
+        foreach (var exp in context.expressionList()._expressions)
+        {
+            arguments.Add((Expression)Visit(exp));
+        }
+    }
 
     var funcCall = new FuncCallExp()
     {
         FunctionDef = null, // Will be resolved during linking phase
-        InvocationArguments = actualParams?.Expressions ?? new List<Expression>(),
+        InvocationArguments = arguments,
         // Store the function name in annotations temporarily
         Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
         Location = GetLocationDetails(context),
