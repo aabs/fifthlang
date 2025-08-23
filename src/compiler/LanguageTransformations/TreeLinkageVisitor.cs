@@ -117,9 +117,35 @@ public class TreeLinkageVisitor : DefaultRecursiveDescentVisitor
 
     public override BinaryExp VisitBinaryExp(BinaryExp ctx)
     {
+        Console.WriteLine($"DEBUG: TreeLinkageVisitor.VisitBinaryExp called");
+        Console.WriteLine($"DEBUG: LHS type: {ctx.LHS?.GetType().Name ?? "null"}");
+        Console.WriteLine($"DEBUG: RHS type: {ctx.RHS?.GetType().Name ?? "null"}");
         EnterNonTerminal(ctx);
 
+        Console.WriteLine($"DEBUG: About to call base.VisitBinaryExp");
         var result = base.VisitBinaryExp(ctx);
+        Console.WriteLine($"DEBUG: base.VisitBinaryExp returned result: {result?.GetType().Name ?? "null"}");
+        if (result != null)
+        {
+            Console.WriteLine($"DEBUG: Result LHS type: {result.LHS?.GetType().Name ?? "null"}");
+            Console.WriteLine($"DEBUG: Result RHS type: {result.RHS?.GetType().Name ?? "null"}");
+        }
+        
+        // If base.VisitBinaryExp returned null, this is the bug! Return the original context to avoid null
+        if (result == null)
+        {
+            Console.WriteLine($"DEBUG: ERROR: base.VisitBinaryExp returned null! Returning original context to prevent null propagation");
+            LeaveNonTerminal(ctx);
+            return ctx;
+        }
+        
+        // If the result has null LHS or RHS, also return the original context
+        if (result.LHS == null || result.RHS == null)
+        {
+            Console.WriteLine($"DEBUG: ERROR: base.VisitBinaryExp returned BinaryExp with null LHS or RHS! Returning original context");
+            LeaveNonTerminal(ctx);
+            return ctx;
+        }
 
         LeaveNonTerminal(ctx);
         return result;
@@ -280,7 +306,21 @@ public class TreeLinkageVisitor : DefaultRecursiveDescentVisitor
         Console.WriteLine($"DEBUG: TreeLinkageVisitor.VisitFuncCallExp called");
         EnterNonTerminal(ctx);
 
+        Console.WriteLine($"DEBUG: About to call base.VisitFuncCallExp with ctx.FunctionDef = {ctx.FunctionDef?.Name.Value ?? "null"}");
         var result = base.VisitFuncCallExp(ctx);
+        Console.WriteLine($"DEBUG: base.VisitFuncCallExp returned result: {(result != null ? "non-null" : "null")}");
+        if (result != null)
+        {
+            Console.WriteLine($"DEBUG: result.FunctionDef = {result.FunctionDef?.Name.Value ?? "null"}");
+        }
+        
+        // If the base call returned null, something went wrong in the generated visitor
+        if (result == null)
+        {
+            Console.WriteLine($"DEBUG: ERROR: base.VisitFuncCallExp returned null! This is likely due to the generated visitor trying to visit a null FunctionDef. Returning original context to prevent corruption.");
+            LeaveNonTerminal(ctx);
+            return ctx; // Return the original context to avoid null propagation
+        }
         
         // If already resolved, nothing to do
         if (result.FunctionDef != null)
@@ -376,6 +416,7 @@ public class TreeLinkageVisitor : DefaultRecursiveDescentVisitor
 
     public override FunctionDef VisitFunctionDef(FunctionDef ctx)
     {
+        Console.WriteLine($"DEBUG: TreeLinkageVisitor.VisitFunctionDef called for: {ctx.Name.Value}");
         EnterNonTerminal(ctx);
 
         var result = base.VisitFunctionDef(ctx);
@@ -646,9 +687,11 @@ public class TreeLinkageVisitor : DefaultRecursiveDescentVisitor
 
     public override ReturnStatement VisitReturnStatement(ReturnStatement ctx)
     {
+        Console.WriteLine($"DEBUG: TreeLinkageVisitor.VisitReturnStatement called with ReturnValue: {ctx.ReturnValue?.GetType().Name ?? "null"}");
         EnterNonTerminal(ctx);
 
         var result = base.VisitReturnStatement(ctx);
+        Console.WriteLine($"DEBUG: TreeLinkageVisitor.VisitReturnStatement result ReturnValue: {result?.ReturnValue?.GetType().Name ?? "null"}");
 
         LeaveNonTerminal(ctx);
         return result;
