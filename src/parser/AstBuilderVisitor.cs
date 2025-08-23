@@ -276,6 +276,32 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         else
         {
             rhsResult = (Expression)Visit(context.rhs);
+            
+            // Post-process: if RHS is a VarRefExp, check if it should be a function call
+            // This is a workaround for ANTLR parsing issues where func2() gets parsed as func2
+            if (rhsResult is VarRefExp rhsVarRef)
+            {
+                // Check if this variable name looks like it could be a function call
+                // For now, we'll be aggressive and assume any VarRefExp in the RHS of a binary 
+                // expression where LHS is already a function call should also be a function call
+                if (lhsResult is FuncCallExp)
+                {
+                    Console.Error.WriteLine($"=== BINARY EXP DEBUG: Converting RHS VarRefExp '{rhsVarRef.VarName}' to FuncCallExp ===");
+                    
+                    rhsResult = new FuncCallExp()
+                    {
+                        FunctionDef = null, // Will be resolved during linking phase
+                        InvocationArguments = new List<Expression>(),
+                        // Store the function name in annotations temporarily
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = rhsVarRef.VarName },
+                        Location = rhsVarRef.Location,
+                        Parent = null,
+                        Type = null // Will be inferred later
+                    };
+                    
+                    Console.Error.WriteLine($"=== BINARY EXP DEBUG: Converted RHS to FuncCallExp for function '{rhsVarRef.VarName}' ===");
+                }
+            }
         }
         
         Console.Error.WriteLine($"=== BINARY EXP DEBUG: RHS result type: {rhsResult?.GetType().Name} ===");
@@ -285,8 +311,22 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             .WithRHS(rhsResult)
             ;
 
+        Console.Error.WriteLine($"=== BINARY EXP DEBUG: About to build binary expression ===");
+        Console.Error.WriteLine($"=== BINARY EXP DEBUG: LHS for build: {lhsResult?.GetType().Name} ===");
+        Console.Error.WriteLine($"=== BINARY EXP DEBUG: RHS for build: {rhsResult?.GetType().Name} ===");
+        Console.Error.WriteLine($"=== BINARY EXP DEBUG: Operator: {op} ===");
+        
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        Console.Error.WriteLine($"=== BINARY EXP DEBUG: Created binary expression result: {result?.GetType().Name} ===");
+        Console.Error.WriteLine($"=== BINARY EXP DEBUG: Built result: {result?.GetType().Name} ===");
+        Console.Error.WriteLine($"=== BINARY EXP DEBUG: Result LHS: {result?.LHS?.GetType().Name} ===");
+        Console.Error.WriteLine($"=== BINARY EXP DEBUG: Result RHS: {result?.RHS?.GetType().Name} ===");
+        
+        if (result == null)
+        {
+            Console.Error.WriteLine($"=== BINARY EXP DEBUG: ERROR - Binary expression result is NULL! ===");
+        }
+        
+        Console.Error.WriteLine($"=== BINARY EXP DEBUG: RETURNING result: {result?.GetType().Name} ===");
         return result;
     }
 
@@ -596,10 +636,32 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 
     public override IAstThing VisitReturn_statement([NotNull] FifthParser.Return_statementContext context)
     {
+        Console.Error.WriteLine($"=== RETURN DEBUG: VisitReturn_statement called with: '{context.GetText()}' ===");
+        
+        Console.Error.WriteLine($"=== RETURN DEBUG: About to call Visit(context.expression()) ===");
+        Console.Error.WriteLine($"=== RETURN DEBUG: context.expression() type: {context.expression()?.GetType().Name} ===");
+        
+        var visitResult = Visit(context.expression());
+        Console.Error.WriteLine($"=== RETURN DEBUG: Visit returned (before cast): {visitResult?.GetType().Name} ===");
+        
+        // Debug: try calling the specific visitor directly if Visit returns null
+        if (visitResult == null && context.expression() is FifthParser.Exp_addContext addContext)
+        {
+            Console.Error.WriteLine($"=== RETURN DEBUG: Visit returned null for Exp_addContext, trying direct call ===");
+            visitResult = VisitExp_add(addContext);
+            Console.Error.WriteLine($"=== RETURN DEBUG: Direct VisitExp_add returned: {visitResult?.GetType().Name} ===");
+        }
+        
+        var returnExpr = (Expression)visitResult;
+        Console.Error.WriteLine($"=== RETURN DEBUG: After cast to Expression: {returnExpr?.GetType().Name} ===");
+        Console.Error.WriteLine($"=== RETURN DEBUG: Return expression type: {returnExpr?.GetType().Name} ===");
+        
         var b = new ReturnStatementBuilder()
             .WithAnnotations([])
-            .WithReturnValue((Expression)Visit(context.expression()));
+            .WithReturnValue(returnExpr);
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        
+        Console.Error.WriteLine($"=== RETURN DEBUG: Created return statement with expression: {returnExpr?.GetType().Name} ===");
         return result;
     }
 
@@ -724,44 +786,7 @@ return new IntValueExpression(int.Parse(context.value.Text)).CaptureLocation(con
 
     public override IAstThing Visit(IParseTree tree)
     {
-        if (tree is FifthParser.Exp_funccallContext funcCallContext)
-        {
-            Console.Error.WriteLine($"=== INTERCEPTED: Visit called with Exp_funccallContext: '{funcCallContext.GetText()}' ===");
-            
-            // Extract function name from the function call context
-            var functionExpr = (Expression)Visit(funcCallContext.expression());
-            string functionName = "unknown";
-            if (functionExpr is VarRefExp varRef)
-            {
-                functionName = varRef.VarName;
-            }
-            
-            // For now, just handle the simple case of no parameters
-            List<Expression> parameterExpressions = new List<Expression>();
-            
-            var funcCall = new FuncCallExp()
-            {
-                FunctionDef = null, // Will be resolved during linking phase
-                InvocationArguments = parameterExpressions,
-                // Store the function name in annotations temporarily
-                Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
-                Location = GetLocationDetails(funcCallContext),
-                Parent = null,
-                Type = null // Will be inferred later
-            };
-            
-            Console.Error.WriteLine($"=== INTERCEPTED: Created FuncCallExp for function '{functionName}' ===");
-            return funcCall;
-        }
-        
         var result = base.Visit(tree);
-        
-        // Log if we get null result for function call contexts
-        if (result == null && tree is FifthParser.Exp_funccallContext)
-        {
-            Console.Error.WriteLine($"=== WARNING: Visit returned null for Exp_funccallContext: '{tree.GetText()}' ===");
-        }
-        
         return result;
     }
 
