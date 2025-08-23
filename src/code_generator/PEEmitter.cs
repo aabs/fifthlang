@@ -647,7 +647,32 @@ public class PEEmitter
     private void EmitBranchInstruction(InstructionEncoder il, il_ast.BranchInstruction branchInst)
     {
         // Branch instruction handling is complex and requires label management
-        // For initial implementation, skip complex branching
+        // For now, implement basic branching without full label resolution
+        
+        Console.WriteLine($"DEBUG: EmitBranchInstruction called with opcode: {branchInst.Opcode}, label: {branchInst.TargetLabel ?? "null"}");
+        
+        switch (branchInst.Opcode?.ToLowerInvariant())
+        {
+            case "br":
+                // Unconditional branch - for now, emit a simple branch
+                // Note: This is incomplete as we don't have proper label management
+                il.Branch(ILOpCode.Br, default);
+                break;
+                
+            case "brfalse":
+                // Branch if false - used for if statements
+                il.Branch(ILOpCode.Brfalse, default);
+                break;
+                
+            case "brtrue":
+                // Branch if true 
+                il.Branch(ILOpCode.Brtrue, default);
+                break;
+                
+            default:
+                Console.WriteLine($"DEBUG: Unsupported branch instruction: {branchInst.Opcode}");
+                break;
+        }
     }
 
     /// <summary>
