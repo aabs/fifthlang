@@ -1,5 +1,8 @@
 ﻿// ReSharper disable InconsistentNaming
 
+using ast;
+using ast_model.Symbols;
+
 namespace compiler.LanguageTransformations;
 
 public class TreeLinkageVisitor : DefaultRecursiveDescentVisitor
@@ -274,12 +277,101 @@ public class TreeLinkageVisitor : DefaultRecursiveDescentVisitor
 
     public override FuncCallExp VisitFuncCallExp(FuncCallExp ctx)
     {
+        Console.WriteLine($"DEBUG: TreeLinkageVisitor.VisitFuncCallExp called");
         EnterNonTerminal(ctx);
 
         var result = base.VisitFuncCallExp(ctx);
+        
+        // If already resolved, nothing to do
+        if (result.FunctionDef != null)
+        {
+            Console.WriteLine($"DEBUG: FuncCallExp already resolved to {result.FunctionDef.Name.Value}");
+            LeaveNonTerminal(ctx);
+            return result;
+        }
+        
+        // Get the function name from annotations (stored by parser)
+        var functionNameAnnotation = result.Annotations?.FirstOrDefault(a => a.Key == "FunctionName");
+        if (functionNameAnnotation?.Value is not string functionName)
+        {
+            Console.WriteLine($"DEBUG: No FunctionName annotation found in FuncCallExp");
+            LeaveNonTerminal(ctx);
+            return result;
+        }
+        
+        Console.WriteLine($"DEBUG: Trying to resolve function call: {functionName}");
+        
+        // Find the nearest scope
+        var nearestScope = ctx.NearestScope();
+        if (nearestScope == null)
+        {
+            Console.WriteLine($"DEBUG: No nearest scope found for function call: {functionName}");
+            LeaveNonTerminal(ctx);
+            return result;
+        }
+        
+        Console.WriteLine($"DEBUG: Found nearest scope: {nearestScope.GetType().Name}");
+        
+        // Look for function definition in the scope
+        var functionDef = FindFunctionInScope(functionName, nearestScope);
+        if (functionDef != null)
+        {
+            Console.WriteLine($"DEBUG: Successfully resolved {functionName} to FunctionDef");
+            // Create new FuncCallExp with resolved FunctionDef
+            result = result with { FunctionDef = functionDef };
+        }
+        else
+        {
+            Console.WriteLine($"DEBUG: Failed to resolve function: {functionName}");
+        }
 
         LeaveNonTerminal(ctx);
         return result;
+    }
+    
+    private FunctionDef? FindFunctionInScope(string functionName, ScopeAstThing scope)
+    {
+        // Search in the current scope and parent scopes
+        var currentScope = scope;
+        while (currentScope != null)
+        {
+            // Check if this scope has functions
+            if (currentScope is ModuleDef module)
+            {
+                // Look for FunctionDef in the Functions list
+                var functionDef = module.Functions
+                    .OfType<FunctionDef>()
+                    .FirstOrDefault(f => f.Name.Value == functionName);
+                if (functionDef != null)
+                    return functionDef;
+            }
+            else if (currentScope is ClassDef classDef)
+            {
+                // Look for methods (which are MethodDef containing FunctionDef) in the MemberDefs
+                var methodDef = classDef.MemberDefs
+                    .OfType<MethodDef>()
+                    .FirstOrDefault(m => m.FunctionDef.Name.Value == functionName);
+                if (methodDef?.FunctionDef != null)
+                    return methodDef.FunctionDef;
+            }
+            else if (currentScope is AssemblyDef assembly)
+            {
+                // Look in all modules of the assembly
+                foreach (var mod in assembly.Modules)
+                {
+                    var functionDef = mod.Functions
+                        .OfType<FunctionDef>()
+                        .FirstOrDefault(f => f.Name.Value == functionName);
+                    if (functionDef != null)
+                        return functionDef;
+                }
+            }
+            
+            // Move to parent scope
+            currentScope = currentScope.Parent as ScopeAstThing;
+        }
+        
+        return null;
     }
 
     public override FunctionDef VisitFunctionDef(FunctionDef ctx)

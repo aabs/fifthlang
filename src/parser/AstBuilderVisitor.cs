@@ -632,8 +632,16 @@ public override IAstThing VisitExp_funccall(FifthParser.Exp_funccallContext cont
 {
 var name = context.funcname.GetText();
 var actualParams = (ExpressionList)VisitExplist(context.args);
-return new FuncCallExpression(actualParams, name)
-  .CaptureLocation(context.Start);
+return new FuncCallExp()
+{
+    FunctionDef = null, // Will be resolved during linking phase
+    InvocationArguments = actualParams?.Expressions ?? new List<Expression>(),
+    // Store the function name in annotations temporarily
+    Annotations = new List<Annotation> { new Annotation { Key = "FunctionName", Value = name } },
+    Location = GetLocationDetails(context),
+    Parent = null,
+    Type = null // Will be inferred later
+};
 }
 
 public override IAstThing VisitExp_logicnegation(FifthParser.Exp_logicnegationContext context)
