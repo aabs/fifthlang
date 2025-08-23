@@ -32,8 +32,28 @@ public static class FifthParserManager
         ast = new OverloadGatheringVisitor().Visit(ast);
         Console.Error.WriteLine("=== DEBUG: Completed OverloadGatheringVisitor ===");
         
+        // Debug: Check main method before OverloadTransformingVisitor
+        if (ast is AssemblyDef asm)
+        {
+            var mainMethod = asm.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
+            if (mainMethod != null && mainMethod.Body?.Statements.LastOrDefault() is ReturnStatement rs)
+            {
+                Console.Error.WriteLine($"=== DEBUG: Before OverloadTransformingVisitor - main return value: {rs.ReturnValue?.GetType().Name ?? "null"} ===");
+            }
+        }
+        
         ast = new OverloadTransformingVisitor().Visit(ast);
         Console.Error.WriteLine("=== DEBUG: Completed OverloadTransformingVisitor ===");
+        
+        // Debug: Check main method after OverloadTransformingVisitor
+        if (ast is AssemblyDef asm2)
+        {
+            var mainMethod2 = asm2.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
+            if (mainMethod2 != null && mainMethod2.Body?.Statements.LastOrDefault() is ReturnStatement rs2)
+            {
+                Console.Error.WriteLine($"=== DEBUG: After OverloadTransformingVisitor - main return value: {rs2.ReturnValue?.GetType().Name ?? "null"} ===");
+            }
+        }
         
         ast = new DestructuringPatternFlattenerVisitor().Visit(ast);  // Handle constraint collection and lowering
         Console.Error.WriteLine("=== DEBUG: Completed DestructuringPatternFlattenerVisitor ===");

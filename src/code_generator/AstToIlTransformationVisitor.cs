@@ -346,10 +346,17 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
                 
             case BinaryExp binaryExp:
+                Console.WriteLine($"DEBUG: Processing BinaryExp with LHS: {binaryExp.LHS?.GetType().Name ?? "null"}, RHS: {binaryExp.RHS?.GetType().Name ?? "null"}, Operator: {binaryExp.Operator.ToString()}");
                 // Emit left operand
-                sequence.AddRange(GenerateExpression(binaryExp.LHS).Instructions);
+                if (binaryExp.LHS != null)
+                {
+                    sequence.AddRange(GenerateExpression(binaryExp.LHS).Instructions);
+                }
                 // Emit right operand
-                sequence.AddRange(GenerateExpression(binaryExp.RHS).Instructions);
+                if (binaryExp.RHS != null)
+                {
+                    sequence.AddRange(GenerateExpression(binaryExp.RHS).Instructions);
+                }
                 // Emit operation
                 sequence.Add(new ArithmeticInstruction(GetBinaryOpCode(GetOperatorString(binaryExp.Operator))));
                 break;
@@ -362,6 +369,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
                 
             case ast.FuncCallExp funcCall:
+                Console.WriteLine($"DEBUG: Processing FuncCallExp with function: {funcCall.FunctionDef?.Name.Value ?? "null"}, arguments: {funcCall.InvocationArguments?.Count ?? 0}");
                 // Emit arguments
                 if (funcCall.InvocationArguments != null)
                 {
@@ -378,7 +386,19 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 }
                 else
                 {
-                    sequence.Add(new CallInstruction("call", $"void {functionName}()"));
+                    // Generate proper method signature based on return type
+                    var returnType = funcCall.FunctionDef?.ReturnType?.Name.Value ?? "int";
+                    var ilReturnType = returnType switch
+                    {
+                        "int" => "int32",
+                        "string" => "string",
+                        "float" => "float32",
+                        "double" => "float64",
+                        "bool" => "bool",
+                        "void" => "void",
+                        _ => "int32"
+                    };
+                    sequence.Add(new CallInstruction("call", $"{ilReturnType} {functionName}()"));
                 }
                 break;
         }
@@ -465,6 +485,9 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
     {
         var sequence = new InstructionSequence();
         
+        // Debug: Log statement type and content
+        Console.WriteLine($"DEBUG: GenerateStatement called with {statement?.GetType().Name ?? "null"}");
+        
         switch (statement)
         {
             case VarDeclStatement varDecl:
@@ -489,7 +512,11 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
                 
             case ast.ReturnStatement returnStmt:
-                sequence.AddRange(GenerateExpression(returnStmt.ReturnValue).Instructions);
+                Console.WriteLine($"DEBUG: Processing ReturnStatement with ReturnValue: {returnStmt.ReturnValue?.GetType().Name ?? "null"}");
+                if (returnStmt.ReturnValue != null)
+                {
+                    sequence.AddRange(GenerateExpression(returnStmt.ReturnValue).Instructions);
+                }
                 sequence.Add(new ReturnInstruction());
                 break;
                 
