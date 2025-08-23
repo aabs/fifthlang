@@ -13,8 +13,55 @@ namespace compiler.LangProcessingPhases;
 public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 {
     public static readonly FifthType Void = new FifthType.TVoidType() { Name = TypeName.From("void") };
+    
+    // Cache to prevent double-visit issues with expression contexts
+    private readonly Dictionary<ParserRuleContext, IAstThing> _expressionCache = new();
 
     #region Helper Functions
+    
+    /// <summary>
+    /// Cached visit for expression contexts to prevent double-visit issues
+    /// </summary>
+    private IAstThing CachedVisitExpression(ParserRuleContext context)
+    {
+        if (context == null) return null;
+        
+        // Check cache first
+        if (_expressionCache.TryGetValue(context, out var cached))
+        {
+            Console.Error.WriteLine($"=== CACHE DEBUG: Returning cached result for {context.GetType().Name} ===");
+            return cached;
+        }
+        
+        // Visit directly using specific visitor method to bypass ANTLR dispatch issues
+        IAstThing result = null;
+        
+        if (context is FifthParser.Exp_addContext addContext)
+        {
+            Console.Error.WriteLine($"=== CACHE DEBUG: Direct call to VisitExp_add for Exp_addContext ===");
+            result = VisitExp_add(addContext);
+        }
+        else if (context is FifthParser.Exp_funccallContext funcContext)
+        {
+            Console.Error.WriteLine($"=== CACHE DEBUG: Direct call to VisitExp_funccall for Exp_funccallContext ===");
+            result = VisitExp_funccall(funcContext);
+        }
+        else if (context is FifthParser.Exp_operandContext operandContext)
+        {
+            Console.Error.WriteLine($"=== CACHE DEBUG: Direct call to VisitExp_operand for Exp_operandContext ===");
+            result = VisitExp_operand(operandContext);
+        }
+        else
+        {
+            // Fall back to regular Visit for other context types
+            Console.Error.WriteLine($"=== CACHE DEBUG: Fallback to Visit for {context.GetType().Name} ===");
+            result = Visit(context);
+        }
+        
+        _expressionCache[context] = result;
+        Console.Error.WriteLine($"=== CACHE DEBUG: Cached new result for {context.GetType().Name}: {result?.GetType().Name} ===");
+        return result;
+    }
 
     private TAstType CreateLiteral<TAstType, TBaseType>(ParserRuleContext ctx, Func<string, TBaseType> x)
         where TAstType : LiteralExpression<TBaseType>, new()
@@ -638,11 +685,11 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
     {
         Console.Error.WriteLine($"=== RETURN DEBUG: VisitReturn_statement called with: '{context.GetText()}' ===");
         
-        Console.Error.WriteLine($"=== RETURN DEBUG: About to call Visit(context.expression()) ===");
+        Console.Error.WriteLine($"=== RETURN DEBUG: About to call CachedVisitExpression(context.expression()) ===");
         Console.Error.WriteLine($"=== RETURN DEBUG: context.expression() type: {context.expression()?.GetType().Name} ===");
         
-        var visitResult = Visit(context.expression());
-        Console.Error.WriteLine($"=== RETURN DEBUG: Visit returned (before cast): {visitResult?.GetType().Name} ===");
+        var visitResult = CachedVisitExpression(context.expression());
+        Console.Error.WriteLine($"=== RETURN DEBUG: CachedVisitExpression returned (before cast): {visitResult?.GetType().Name} ===");
         
         // Debug: try calling the specific visitor directly if Visit returns null
         if (visitResult == null && context.expression() is FifthParser.Exp_addContext addContext)
@@ -792,32 +839,49 @@ return new IntValueExpression(int.Parse(context.value.Text)).CaptureLocation(con
 
 public override IAstThing VisitExp_funccall([NotNull] FifthParser.Exp_funccallContext context)
 {
-Console.Error.WriteLine($"=== PARSER DEBUG: VisitExp_funccall called with text: '{context.GetText()}' ===");
+    Console.Error.WriteLine($"=== PARSER DEBUG: VisitExp_funccall called with text: '{context.GetText()}' ===");
 
-// The function name is the left expression, which should be a variable reference
-var functionExpr = (Expression)Visit(context.expression());
-Console.Error.WriteLine($"=== PARSER DEBUG: Function expression type: {functionExpr?.GetType().Name} ===");
+    // Check if this is actually a binary expression that was misparsed as a function call
+    // This happens when the grammar precedence causes expressions like "func1() + func2()" 
+    // to be parsed as "(func1() + func2)(args)" instead of "func1() + func2(args)"
+    var expressionText = context.expression()?.GetText();
+    Console.Error.WriteLine($"=== PARSER DEBUG: Expression part: '{expressionText}' ===");
+    
+    // If the expression contains operators like +, -, *, etc., it's likely a binary expression
+    if (expressionText != null && (expressionText.Contains("+") || expressionText.Contains("-") || 
+                                  expressionText.Contains("*") || expressionText.Contains("/")))
+    {
+        Console.Error.WriteLine($"=== PARSER DEBUG: Detected binary expression in function call context, delegating to expression visitor ===");
+        // This is actually a binary expression, visit it directly
+        var result = Visit(context.expression());
+        Console.Error.WriteLine($"=== PARSER DEBUG: Binary expression result: {result?.GetType().Name} ===");
+        return result;
+    }
 
-var functionName = ExtractFunctionName(functionExpr);
-Console.Error.WriteLine($"=== PARSER DEBUG: Extracted function name: '{functionName}' ===");
+    // Normal function call processing
+    var functionExpr = (Expression)Visit(context.expression());
+    Console.Error.WriteLine($"=== PARSER DEBUG: Function expression type: {functionExpr?.GetType().Name} ===");
 
-var actualParams = context.expressionList() != null ? (ExpressionList)Visit(context.expressionList()) : null;
-Console.Error.WriteLine($"=== PARSER DEBUG: Parameters count: {actualParams?.Expressions?.Count ?? 0} ===");
+    var functionName = ExtractFunctionName(functionExpr);
+    Console.Error.WriteLine($"=== PARSER DEBUG: Extracted function name: '{functionName}' ===");
 
-Console.Error.WriteLine($"=== PARSER DEBUG: Creating FuncCallExp for function '{functionName}' ===");
-var funcCall = new FuncCallExp()
-{
-    FunctionDef = null, // Will be resolved during linking phase
-    InvocationArguments = actualParams?.Expressions ?? new List<Expression>(),
-    // Store the function name in annotations temporarily
-    Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
-    Location = GetLocationDetails(context),
-    Parent = null,
-    Type = null // Will be inferred later
-};
-Console.Error.WriteLine($"=== PARSER DEBUG: Created FuncCallExp with {funcCall.InvocationArguments?.Count ?? 0} arguments ===");
-Console.Error.WriteLine($"=== PARSER DEBUG: Returning FuncCallExp from VisitExp_funccall ===");
-return funcCall;
+    var actualParams = context.expressionList() != null ? (ExpressionList)Visit(context.expressionList()) : null;
+    Console.Error.WriteLine($"=== PARSER DEBUG: Parameters count: {actualParams?.Expressions?.Count ?? 0} ===");
+
+    Console.Error.WriteLine($"=== PARSER DEBUG: Creating FuncCallExp for function '{functionName}' ===");
+    var funcCall = new FuncCallExp()
+    {
+        FunctionDef = null, // Will be resolved during linking phase
+        InvocationArguments = actualParams?.Expressions ?? new List<Expression>(),
+        // Store the function name in annotations temporarily
+        Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
+        Location = GetLocationDetails(context),
+        Parent = null,
+        Type = null // Will be inferred later
+    };
+    Console.Error.WriteLine($"=== PARSER DEBUG: Created FuncCallExp with {funcCall.InvocationArguments?.Count ?? 0} arguments ===");
+    Console.Error.WriteLine($"=== PARSER DEBUG: Returning FuncCallExp from VisitExp_funccall ===");
+    return funcCall;
 }
 
 private string ExtractFunctionName(Expression expr)

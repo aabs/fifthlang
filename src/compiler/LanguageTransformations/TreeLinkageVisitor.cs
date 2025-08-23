@@ -5,7 +5,7 @@ using ast_model.Symbols;
 
 namespace compiler.LanguageTransformations;
 
-public class TreeLinkageVisitor : DefaultRecursiveDescentVisitor
+public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
 {
     private readonly Stack<AstThing> parents = new();
     #region Helpers
