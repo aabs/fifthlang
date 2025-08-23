@@ -179,6 +179,8 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 
     public override IAstThing VisitExp_add(FifthParser.Exp_addContext context)
     {
+        Console.Error.WriteLine($"=== BINARY EXP DEBUG: VisitExp_add called for: '{context.GetText()}' ===");
+        
         var b = new BinaryExpBuilder()
             .WithAnnotations([]);
         var op = context.add_op.Type switch
@@ -236,10 +238,46 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             Console.Error.WriteLine($"=== BINARY EXP DEBUG: LHS result is NULL! This is still a problem! ===");
             return null; // Don't proceed if we can't parse the LHS
         }
-        
+
         Console.Error.WriteLine($"=== BINARY EXP DEBUG: RHS context type: {context.rhs.GetType().Name} ===");
         Console.Error.WriteLine($"=== BINARY EXP DEBUG: RHS text: '{context.rhs.GetText()}' ===");
-        var rhsResult = (Expression)Visit(context.rhs);
+        
+        Expression rhsResult;
+        
+        // Special handling for function calls on RHS too
+        if (context.rhs is FifthParser.Exp_funccallContext rhsFuncCallCtx)
+        {
+            Console.Error.WriteLine($"=== BINARY EXP DEBUG: RHS is also a function call, creating FuncCallExp manually ===");
+            
+            // Extract function name from the function call context
+            var rhsFunctionExpr = (Expression)Visit(rhsFuncCallCtx.expression());
+            string rhsFunctionName = "unknown";
+            if (rhsFunctionExpr is VarRefExp rhsVarRef)
+            {
+                rhsFunctionName = rhsVarRef.VarName;
+            }
+            
+            // For now, just handle the simple case of no parameters
+            List<Expression> rhsParameterExpressions = new List<Expression>();
+            
+            rhsResult = new FuncCallExp()
+            {
+                FunctionDef = null, // Will be resolved during linking phase
+                InvocationArguments = rhsParameterExpressions,
+                // Store the function name in annotations temporarily
+                Annotations = new Dictionary<string, object> { ["FunctionName"] = rhsFunctionName },
+                Location = GetLocationDetails(rhsFuncCallCtx),
+                Parent = null,
+                Type = null // Will be inferred later
+            };
+            
+            Console.Error.WriteLine($"=== BINARY EXP DEBUG: Created RHS FuncCallExp for function '{rhsFunctionName}' ===");
+        }
+        else
+        {
+            rhsResult = (Expression)Visit(context.rhs);
+        }
+        
         Console.Error.WriteLine($"=== BINARY EXP DEBUG: RHS result type: {rhsResult?.GetType().Name} ===");
         
         b.WithOperator(op)
@@ -248,6 +286,7 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             ;
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        Console.Error.WriteLine($"=== BINARY EXP DEBUG: Created binary expression result: {result?.GetType().Name} ===");
         return result;
     }
 
@@ -688,7 +727,31 @@ return new IntValueExpression(int.Parse(context.value.Text)).CaptureLocation(con
         if (tree is FifthParser.Exp_funccallContext funcCallContext)
         {
             Console.Error.WriteLine($"=== INTERCEPTED: Visit called with Exp_funccallContext: '{funcCallContext.GetText()}' ===");
-            return VisitExp_funccall(funcCallContext);
+            
+            // Extract function name from the function call context
+            var functionExpr = (Expression)Visit(funcCallContext.expression());
+            string functionName = "unknown";
+            if (functionExpr is VarRefExp varRef)
+            {
+                functionName = varRef.VarName;
+            }
+            
+            // For now, just handle the simple case of no parameters
+            List<Expression> parameterExpressions = new List<Expression>();
+            
+            var funcCall = new FuncCallExp()
+            {
+                FunctionDef = null, // Will be resolved during linking phase
+                InvocationArguments = parameterExpressions,
+                // Store the function name in annotations temporarily
+                Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
+                Location = GetLocationDetails(funcCallContext),
+                Parent = null,
+                Type = null // Will be inferred later
+            };
+            
+            Console.Error.WriteLine($"=== INTERCEPTED: Created FuncCallExp for function '{functionName}' ===");
+            return funcCall;
         }
         
         var result = base.Visit(tree);
