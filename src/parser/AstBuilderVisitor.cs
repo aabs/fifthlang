@@ -996,6 +996,69 @@ var exp = Visit(context.exp()) as Expression;
 return new TypePropertyInit(context.var_name().GetText(), exp);
 }
 
+public override IAstThing VisitObject_instantiation_expression([NotNull] FifthParser.Object_instantiation_expressionContext context)
+{
+var typeName = context.type_name().GetText();
+var resolvedType = ResolveTypeFromName(typeName);
+
+var builder = new ObjectInitializerExpBuilder()
+    .WithAnnotations([])
+    .WithTypeToInitialize(resolvedType);
+
+// Add property initializers if present
+if (context._properties != null)
+{
+    foreach (var propInit in context._properties)
+    {
+        var propertyInitializer = Visit(propInit) as PropertyInitializerExp;
+        if (propertyInitializer != null)
+        {
+            builder.AddingItemToPropertyInitialisers(propertyInitializer);
+        }
+    }
+}
+
+var result = builder.Build() with 
+{ 
+    Location = GetLocationDetails(context),
+    Type = resolvedType
+};
+return result;
+}
+
+public override IAstThing VisitInitialiser_property_assignment([NotNull] FifthParser.Initialiser_property_assignmentContext context)
+{
+var propertyName = context.var_name().GetText();
+var expression = Visit(context.expression()) as Expression;
+
+// Create PropertyRef manually since the builder seems incomplete
+var propertyRef = new PropertyRef 
+{ 
+    Property = new PropertyDef 
+    { 
+        Name = MemberName.From(propertyName),
+        AccessConstraints = [],
+        IsWriteOnly = false,
+        BackingField = null,
+        Getter = null,
+        Setter = null,
+        CtorOnlySetter = false,
+        Visibility = Visibility.Public,
+        TypeName = TypeName.From("object") // We'll resolve this later
+    }
+};
+
+var result = new PropertyInitializerExp
+{
+    Annotations = new Dictionary<string, object>(),
+    PropertyToInitialize = propertyRef,
+    RHS = expression ?? new StringLiteralExp { Value = "" },
+    Location = GetLocationDetails(context),
+    Type = expression?.Type ?? new FifthType.UnknownType() { Name = TypeName.From("unknown") }
+};
+return result;
+}
+
 public override IAstThing VisitVar_decl([NotNull] FifthParser.Var_declContext context)
 {
 var builder = VariableDeclarationStatementBuilder.CreateVariableDeclarationStatement()

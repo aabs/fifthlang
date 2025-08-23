@@ -490,6 +490,11 @@ public class PEEmitter
                     il.LoadLocal(0);
                 }
                 break;
+                
+            case "dup":
+                // Duplicate the top value on the stack
+                il.OpCode(ILOpCode.Dup);
+                break;
         }
     }
 
@@ -518,6 +523,17 @@ public class PEEmitter
                 {
                     // Fallback for non-string value or no local var names
                     il.StoreLocal(0);
+                }
+                break;
+                
+            case "stfld":
+                // Store field instruction - for now, emit as a simple stfld
+                // This should be enhanced to properly resolve field references
+                if (storeInst.Target is string fieldName)
+                {
+                    Console.WriteLine($"DEBUG: Emitting stfld for field: {fieldName}");
+                    // For now, we'll skip actual field resolution as it needs more metadata work
+                    // il.OpCode(ILOpCode.Stfld);
                 }
                 break;
         }
@@ -551,6 +567,15 @@ public class PEEmitter
     private void EmitCallInstruction(InstructionEncoder il, il_ast.CallInstruction callInst, 
         MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
     {
+        // Handle constructor calls (newobj)
+        if (callInst.Opcode?.ToLowerInvariant() == "newobj")
+        {
+            Console.WriteLine($"DEBUG: Emitting newobj for: {callInst.MethodSignature}");
+            // For now, skip actual constructor resolution as it needs proper type metadata
+            // This will be enhanced later with proper constructor resolution
+            return;
+        }
+        
         // For external calls, redirect print calls to Console.WriteLine
         if (callInst.MethodSignature?.Contains("Console") == true || 
             callInst.MethodSignature?.Contains("WriteLine") == true ||

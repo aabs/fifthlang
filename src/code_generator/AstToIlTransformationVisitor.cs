@@ -422,6 +422,35 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     Console.WriteLine($"DEBUG: Unsupported member access RHS type: {memberAccess.RHS?.GetType().Name ?? "null"}");
                 }
                 break;
+                
+            case ObjectInitializerExp objectInit:
+                Console.WriteLine($"DEBUG: Processing ObjectInitializerExp for type: {objectInit.TypeToInitialize?.Name.Value ?? "unknown"}");
+                
+                // For object initialization, we need to:
+                // 1. Create new instance (constructor call)
+                // 2. Initialize each property
+                
+                // Create new instance - for now, assume default constructor
+                var typeName = objectInit.TypeToInitialize?.Name.Value ?? "object";
+                sequence.Add(new CallInstruction("newobj", $"instance void {typeName}::.ctor()"));
+                
+                // Initialize properties
+                if (objectInit.PropertyInitialisers != null)
+                {
+                    foreach (var propInit in objectInit.PropertyInitialisers)
+                    {
+                        // Duplicate the object reference for each property assignment
+                        sequence.Add(new LoadInstruction("dup", null));
+                        
+                        // Load the value to assign
+                        sequence.AddRange(GenerateExpression(propInit.RHS).Instructions);
+                        
+                        // Store the field/property
+                        var propertyName = propInit.PropertyToInitialize.Property.Name.Value ?? "unknown";
+                        sequence.Add(new StoreInstruction("stfld", propertyName));
+                    }
+                }
+                break;
         }
         
         return sequence;
