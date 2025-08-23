@@ -16,26 +16,38 @@ public static class FifthParserManager
         
         ast = new TreeLinkageVisitor().Visit(ast);
         Console.Error.WriteLine("=== DEBUG: Completed TreeLinkageVisitor ===");
+        // Debug: Check main method after TreeLinkageVisitor
+        if (ast is AssemblyDef asmTL) CheckMainMethodReturnValue(asmTL, "TreeLinkageVisitor");
         
         ast = new BuiltinInjectorVisitor().Visit(ast);
         Console.Error.WriteLine("=== DEBUG: Completed BuiltinInjectorVisitor ===");
+        // Debug: Check main method after BuiltinInjectorVisitor
+        if (ast is AssemblyDef asmBI) CheckMainMethodReturnValue(asmBI, "BuiltinInjectorVisitor");
         
         ast = new ClassCtorInserter().Visit(ast);
         Console.Error.WriteLine("=== DEBUG: Completed ClassCtorInserter ===");
+        // Debug: Check main method after ClassCtorInserter
+        if (ast is AssemblyDef asmCC) CheckMainMethodReturnValue(asmCC, "ClassCtorInserter");
         
         ast = new SymbolTableBuilderVisitor().Visit(ast);
         Console.Error.WriteLine("=== DEBUG: Completed SymbolTableBuilderVisitor ===");
+        // Debug: Check main method after SymbolTableBuilderVisitor
+        if (ast is AssemblyDef asmST) CheckMainMethodReturnValue(asmST, "SymbolTableBuilderVisitor");
         
         ast = new PropertyToFieldExpander().Visit(ast);
         Console.Error.WriteLine("=== DEBUG: Completed PropertyToFieldExpander ===");
+        // Debug: Check main method after PropertyToFieldExpander
+        if (ast is AssemblyDef asmPF) CheckMainMethodReturnValue(asmPF, "PropertyToFieldExpander");
         
         ast = new OverloadGatheringVisitor().Visit(ast);
         Console.Error.WriteLine("=== DEBUG: Completed OverloadGatheringVisitor ===");
+        // Debug: Check main method after OverloadGatheringVisitor
+        if (ast is AssemblyDef asmOG) CheckMainMethodReturnValue(asmOG, "OverloadGatheringVisitor");
         
         // Debug: Check main method before OverloadTransformingVisitor
-        if (ast is AssemblyDef asm)
+        if (ast is AssemblyDef asmBefore)
         {
-            var mainMethod = asm.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
+            var mainMethod = asmBefore.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
             if (mainMethod != null && mainMethod.Body?.Statements.LastOrDefault() is ReturnStatement rs)
             {
                 Console.Error.WriteLine($"=== DEBUG: Before OverloadTransformingVisitor - main return value: {rs.ReturnValue?.GetType().Name ?? "null"} ===");
@@ -46,9 +58,9 @@ public static class FifthParserManager
         Console.Error.WriteLine("=== DEBUG: Completed OverloadTransformingVisitor ===");
         
         // Debug: Check main method after OverloadTransformingVisitor
-        if (ast is AssemblyDef asm2)
+        if (ast is AssemblyDef asmAfter)
         {
-            var mainMethod2 = asm2.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
+            var mainMethod2 = asmAfter.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
             if (mainMethod2 != null && mainMethod2.Body?.Statements.LastOrDefault() is ReturnStatement rs2)
             {
                 Console.Error.WriteLine($"=== DEBUG: After OverloadTransformingVisitor - main return value: {rs2.ReturnValue?.GetType().Name ?? "null"} ===");
@@ -73,6 +85,15 @@ public static class FifthParserManager
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);
         Console.Error.WriteLine("=== DEBUG: Transformation pipeline complete ===");
         return ast;
+    }
+    
+    private static void CheckMainMethodReturnValue(AssemblyDef asm, string phase)
+    {
+        var mainMethod = asm.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
+        if (mainMethod != null && mainMethod.Body?.Statements.LastOrDefault() is ReturnStatement rs)
+        {
+            Console.Error.WriteLine($"=== DEBUG: After {phase} - main return value: {rs.ReturnValue?.GetType().Name ?? "null"} ===");
+        }
     }
 
     private static FifthParser GetParserForStream(ICharStream source)
