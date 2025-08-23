@@ -541,20 +541,6 @@ public partial class FifthBaseListener : IFifthListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitExp_exp([NotNull] FifthParser.Exp_expContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by the <c>exp_member_access</c>
-	/// labeled alternative in <see cref="FifthParser.expression"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterExp_member_access([NotNull] FifthParser.Exp_member_accessContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by the <c>exp_member_access</c>
-	/// labeled alternative in <see cref="FifthParser.expression"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitExp_member_access([NotNull] FifthParser.Exp_member_accessContext context) { }
-	/// <summary>
 	/// Enter a parse tree produced by the <c>exp_funccall</c>
 	/// labeled alternative in <see cref="FifthParser.expression"/>.
 	/// <para>The default implementation does nothing.</para>
@@ -568,6 +554,20 @@ public partial class FifthBaseListener : IFifthListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitExp_funccall([NotNull] FifthParser.Exp_funccallContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by the <c>exp_member_access</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterExp_member_access([NotNull] FifthParser.Exp_member_accessContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>exp_member_access</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitExp_member_access([NotNull] FifthParser.Exp_member_accessContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by the <c>exp_or</c>
 	/// labeled alternative in <see cref="FifthParser.expression"/>.

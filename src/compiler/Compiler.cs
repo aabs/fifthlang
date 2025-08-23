@@ -100,46 +100,13 @@ public class Compiler
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting IL generation phase"));
             }
 
-            // Phase 4: Assembly
+            // Phase 4: Assembly - use Direct PE emission only
             if (options.Diagnostics)
             {
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting assembly phase"));
             }
 
-            bool assemblyResult;
-            string? assemblyPath;
-            
-            if (options.UseDirectPEEmission)
-            {
-                // Direct PE emission path
-                (assemblyResult, assemblyPath) = DirectPEEmissionPhase(transformedAst, options, diagnostics);
-            }
-            else
-            {
-                // Traditional ilasm path
-                var ilPath = IlGenPhase(transformedAst, options, diagnostics);
-                if (ilPath == null)
-                {
-                    return CompilationResult.Failed(3, diagnostics);
-                }
-                
-                var result = await AssemblePhase(ilPath, options, diagnostics);
-                assemblyResult = result.success;
-                assemblyPath = result.outputPath;
-                
-                // Cleanup temporary files unless requested to keep them
-                if (!options.KeepTemp)
-                {
-                    try
-                    {
-                        File.Delete(ilPath);
-                    }
-                    catch
-                    {
-                        // Ignore cleanup errors
-                    }
-                }
-            }
+            var (assemblyResult, assemblyPath) = await DirectPEEmissionPhase(transformedAst, options, diagnostics);
             
             if (!assemblyResult)
             {
@@ -148,7 +115,7 @@ public class Compiler
 
             stopwatch.Stop();
             
-            // Determine ILPath for result - only available if using traditional path and keeping temp files
+            // Determine ILPath for result - not available with direct PE emission
             string? ilPathForResult = null;
             
             return CompilationResult.Successful(
@@ -316,127 +283,7 @@ Examples:
         }
     }
 
-    private string? IlGenPhase(AstThing ast, CompilerOptions options, List<Diagnostic> diagnostics)
-    {
-        try
-        {
-            var pid = Environment.ProcessId;
-            var outputName = Path.GetFileNameWithoutExtension(options.Output);
-            var tempIlPath = Path.Combine(Path.GetDirectoryName(options.Output) ?? ".", $"{outputName}.tmp.{pid}.il");
 
-            // Cast to AssemblyDef as expected by ILCodeGenerator
-            if (ast is not AssemblyDef assemblyDef)
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Expected AssemblyDef but got {ast.GetType().Name}"));
-                return null;
-            }
-
-            // Generate IL using existing ILCodeGenerator, but write to our temp file
-            var ilFilePath = _ilCodeGenerator.GenerateCode(assemblyDef);
-            
-            // The ILCodeGenerator.GenerateCode returns a path, read the content and write to our temp file
-            var generatedIlCode = File.ReadAllText(ilFilePath);
-            File.WriteAllText(tempIlPath, generatedIlCode);
-            
-            // Clean up the original file if it's different from our temp file
-            if (ilFilePath != tempIlPath)
-            {
-                try
-                {
-                    File.Delete(ilFilePath);
-                }
-                catch
-                {
-                    // Ignore cleanup errors
-                }
-            }
-
-            return tempIlPath;
-        }
-        catch (System.Exception ex)
-        {
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"IL generation error: {ex.Message}"));
-            return null;
-        }
-    }
-
-    private async Task<(bool success, string? outputPath)> AssemblePhase(string ilPath, CompilerOptions options, List<Diagnostic> diagnostics)
-    {
-        try
-        {
-            // Locate ilasm
-            var ilasmPath = ILAsmLocator.FindILAsm();
-            if (ilasmPath == null)
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, ILAsmLocator.GetILAsmNotFoundMessage()));
-                return (false, null);
-            }
-
-            // Ensure output directory exists
-            var outputDir = Path.GetDirectoryName(options.Output);
-            if (!string.IsNullOrWhiteSpace(outputDir) && !Directory.Exists(outputDir))
-            {
-                Directory.CreateDirectory(outputDir);
-            }
-
-            // Run ilasm - different syntax for different implementations
-            string arguments;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // Microsoft ilasm syntax
-                arguments = $"\"{ilPath}\" /output=\"{options.Output}\"";
-            }
-            else
-            {
-                // Mono ilasm syntax
-                arguments = $"\"{ilPath}\" /output:\"{options.Output}\" /exe";
-            }
-            
-            var result = await _processRunner.RunAsync(ilasmPath, arguments);
-
-            if (!result.Success)
-            {
-                // Show first 40 lines of stderr
-                var errorLines = result.StandardError.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                var errorToShow = string.Join('\n', errorLines.Take(40));
-                if (errorLines.Length > 40)
-                {
-                    errorToShow += $"\n... ({errorLines.Length - 40} more lines)";
-                }
-
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"IL assembly failed:\n{errorToShow}"));
-                return (false, null);
-            }
-
-            // Generate runtime configuration file for framework-dependent execution
-            await GenerateRuntimeConfigAsync(options.Output, diagnostics);
-
-            // Set execute permission on Unix-like systems
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                try
-                {
-                    // Use chmod to set execute permission
-                    var chmodResult = await _processRunner.RunAsync("chmod", $"+x \"{options.Output}\"");
-                    if (!chmodResult.Success && diagnostics.Any(d => d.Level == DiagnosticLevel.Info && d.Message.Contains("Diagnostics mode")))
-                    {
-                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission on {options.Output}"));
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission: {ex.Message}"));
-                }
-            }
-
-            return (true, options.Output);
-        }
-        catch (System.Exception ex)
-        {
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Assembly error: {ex.Message}"));
-            return (false, null);
-        }
-    }
 
     private async Task GenerateRuntimeConfigAsync(string executablePath, List<Diagnostic> diagnostics)
     {
@@ -502,53 +349,16 @@ Examples:
             return (1, "", ex.Message);
         }
     }
-    
-    private void GenerateRuntimeConfig(string executablePath, List<Diagnostic> diagnostics)
-    {
-        try
-        {
-            var executableName = Path.GetFileNameWithoutExtension(executablePath);
-            var runtimeConfigPath = Path.Combine(Path.GetDirectoryName(executablePath) ?? "", $"{executableName}.runtimeconfig.json");
 
-            var runtimeConfig = new
-            {
-                runtimeOptions = new
-                {
-                    tfm = "net8.0",
-                    framework = new
-                    {
-                        name = "Microsoft.NETCore.App",
-                        version = "8.0.0"
-                    }
-                }
-            };
 
-            var json = System.Text.Json.JsonSerializer.Serialize(runtimeConfig, new System.Text.Json.JsonSerializerOptions 
-            { 
-                WriteIndented = true 
-            });
-
-            File.WriteAllText(runtimeConfigPath, json);
-            
-            if (diagnostics.Any(d => d.Level == DiagnosticLevel.Info && d.Message.Contains("Diagnostics mode")))
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated runtime config: {runtimeConfigPath}"));
-            }
-        }
-        catch (System.Exception ex)
-        {
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to generate runtime config: {ex.Message}"));
-        }
-    }
-
-    private (bool success, string? outputPath) DirectPEEmissionPhase(AstThing ast, CompilerOptions options, List<Diagnostic> diagnostics)
+    private async Task<(bool success, string? outputPath)> DirectPEEmissionPhase(AstThing transformedAst, CompilerOptions options, List<Diagnostic> diagnostics)
     {
         try
         {
             // Cast to AssemblyDef as expected by ILCodeGenerator
-            if (ast is not AssemblyDef assemblyDef)
+            if (transformedAst is not AssemblyDef assemblyDef)
             {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Expected AssemblyDef but got {ast.GetType().Name}"));
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Expected AssemblyDef but got {transformedAst.GetType().Name}"));
                 return (false, null);
             }
 
@@ -564,7 +374,7 @@ Examples:
 
             if (options.Diagnostics)
             {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Using direct PE emission (cross-platform)"));
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Using direct PE emission"));
             }
 
             // Emit PE assembly directly
@@ -577,18 +387,18 @@ Examples:
             }
 
             // Generate runtime configuration file for framework-dependent execution
-            GenerateRuntimeConfig(options.Output, diagnostics);
+            await GenerateRuntimeConfigAsync(options.Output, diagnostics);
 
             // Set execute permission on Unix-like systems
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 try
                 {
-                    // Use chmod to set execute permission - note: this requires async
-                    // For now, skip this in direct PE emission mode
-                    if (options.Diagnostics)
+                    // Use chmod to set execute permission
+                    var chmodResult = await _processRunner.RunAsync("chmod", $"+x \"{options.Output}\"");
+                    if (!chmodResult.Success && options.Diagnostics)
                     {
-                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Skipping chmod in direct PE emission mode"));
+                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission on {options.Output}"));
                     }
                 }
                 catch (System.Exception ex)
@@ -610,4 +420,6 @@ Examples:
             return (false, null);
         }
     }
+
+
 }

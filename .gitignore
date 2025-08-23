@@ -366,3 +366,8 @@ FodyWeavers.xsd
 /src/parser/grammar/.antlr
 *.interp
 *.tokens
+
+# Temp test files
+test_*.5th
+test_*.exe
+test_*.runtimeconfig.json

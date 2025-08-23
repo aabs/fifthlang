@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
+using Antlr4.Runtime.Tree;
 using ast;
 using ast_generated;
 using ast_model.TypeSystem;
@@ -187,13 +188,49 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             FifthParser.OR => Operator.BitwiseOr,
             FifthParser.LOGICAL_XOR => Operator.LogicalXor
         };
+        
+        // ANTLR visitor dispatch issue workaround: manually create FuncCallExp when needed
+        var lhs = context.lhs is FifthParser.Exp_funccallContext lhsFunc 
+            ? CreateFuncCallExp(lhsFunc) 
+            : (Expression)Visit(context.lhs);
+            
+        var rhs = context.rhs is FifthParser.Exp_funccallContext rhsFunc 
+            ? CreateFuncCallExp(rhsFunc) 
+            : (Expression)Visit(context.rhs);
+        
         b.WithOperator(op)
-            .WithLHS((Expression)Visit(context.lhs))
-            .WithRHS((Expression)Visit(context.rhs))
+            .WithLHS(lhs)
+            .WithRHS(rhs)
             ;
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
+    }
+
+    private FuncCallExp CreateFuncCallExp(FifthParser.Exp_funccallContext context)
+    {
+        var functionName = context.funcname.Text;
+        var arguments = new List<Expression>();
+        
+        // Handle expression list manually to avoid type issues
+        if (context.expressionList() != null)
+        {
+            foreach (var exp in context.expressionList()._expressions)
+            {
+                arguments.Add((Expression)Visit(exp));
+            }
+        }
+
+        return new FuncCallExp()
+        {
+            FunctionDef = null, // Will be resolved during linking phase
+            InvocationArguments = arguments,
+            // Store the function name in annotations temporarily
+            Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = null // Will be inferred later
+        };
     }
 
     public override IAstThing VisitExp_and(FifthParser.Exp_andContext context)
@@ -502,10 +539,13 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 
     public override IAstThing VisitReturn_statement([NotNull] FifthParser.Return_statementContext context)
     {
+        var returnExpr = (Expression)Visit(context.expression());
+        
         var b = new ReturnStatementBuilder()
             .WithAnnotations([])
-            .WithReturnValue((Expression)Visit(context.expression()));
+            .WithReturnValue(returnExpr);
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        
         return result;
     }
 
@@ -628,12 +668,60 @@ public override IAstThing VisitExp_int(FifthParser.Exp_intContext context)
 return new IntValueExpression(int.Parse(context.value.Text)).CaptureLocation(context.Start);
 }
 
-public override IAstThing VisitExp_funccall(FifthParser.Exp_funccallContext context)
+    public override IAstThing Visit(IParseTree tree)
+    {
+        var result = base.Visit(tree);
+        return result;
+    }
+
+public IAstThing TestFuncCallMethod(FifthParser.Exp_funccallContext context)
 {
-var name = context.funcname.GetText();
-var actualParams = (ExpressionList)VisitExplist(context.args);
-return new FuncCallExpression(actualParams, name)
-  .CaptureLocation(context.Start);
+    System.Console.Error.WriteLine("=== TEST: TestFuncCallMethod called ===");
+    System.Console.Error.Flush();
+    
+    var functionName = context.funcname.Text;
+    System.Console.Error.WriteLine($"=== TEST: Function name: {functionName} ===");
+    
+    var funcCall = new FuncCallExp()
+    {
+        FunctionDef = null,
+        InvocationArguments = new List<Expression>(),
+        Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
+        Location = GetLocationDetails(context),
+        Parent = null,
+        Type = null
+    };
+    
+    System.Console.Error.WriteLine($"=== TEST: Returning FuncCallExp ===");
+    return funcCall;
+}
+
+public override IAstThing VisitExp_funccall([NotNull] FifthParser.Exp_funccallContext context)
+{
+    var functionName = context.funcname.Text;
+    var arguments = new List<Expression>();
+    
+    // Handle expression list manually to avoid type issues
+    if (context.expressionList() != null)
+    {
+        foreach (var exp in context.expressionList()._expressions)
+        {
+            arguments.Add((Expression)Visit(exp));
+        }
+    }
+
+    var funcCall = new FuncCallExp()
+    {
+        FunctionDef = null, // Will be resolved during linking phase
+        InvocationArguments = arguments,
+        // Store the function name in annotations temporarily
+        Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
+        Location = GetLocationDetails(context),
+        Parent = null,
+        Type = null // Will be inferred later
+    };
+    
+    return funcCall;
 }
 
 public override IAstThing VisitExp_logicnegation(FifthParser.Exp_logicnegationContext context)

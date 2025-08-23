@@ -1,8 +1,11 @@
 ﻿// ReSharper disable InconsistentNaming
 
+using ast;
+using ast_model.Symbols;
+
 namespace compiler.LanguageTransformations;
 
-public class TreeLinkageVisitor : DefaultRecursiveDescentVisitor
+public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
 {
     private readonly Stack<AstThing> parents = new();
     #region Helpers
@@ -114,9 +117,35 @@ public class TreeLinkageVisitor : DefaultRecursiveDescentVisitor
 
     public override BinaryExp VisitBinaryExp(BinaryExp ctx)
     {
+        Console.WriteLine($"DEBUG: TreeLinkageVisitor.VisitBinaryExp called");
+        Console.WriteLine($"DEBUG: LHS type: {ctx.LHS?.GetType().Name ?? "null"}");
+        Console.WriteLine($"DEBUG: RHS type: {ctx.RHS?.GetType().Name ?? "null"}");
         EnterNonTerminal(ctx);
 
+        Console.WriteLine($"DEBUG: About to call base.VisitBinaryExp");
         var result = base.VisitBinaryExp(ctx);
+        Console.WriteLine($"DEBUG: base.VisitBinaryExp returned result: {result?.GetType().Name ?? "null"}");
+        if (result != null)
+        {
+            Console.WriteLine($"DEBUG: Result LHS type: {result.LHS?.GetType().Name ?? "null"}");
+            Console.WriteLine($"DEBUG: Result RHS type: {result.RHS?.GetType().Name ?? "null"}");
+        }
+        
+        // If base.VisitBinaryExp returned null, this is the bug! Return the original context to avoid null
+        if (result == null)
+        {
+            Console.WriteLine($"DEBUG: ERROR: base.VisitBinaryExp returned null! Returning original context to prevent null propagation");
+            LeaveNonTerminal(ctx);
+            return ctx;
+        }
+        
+        // If the result has null LHS or RHS, also return the original context
+        if (result.LHS == null || result.RHS == null)
+        {
+            Console.WriteLine($"DEBUG: ERROR: base.VisitBinaryExp returned BinaryExp with null LHS or RHS! Returning original context");
+            LeaveNonTerminal(ctx);
+            return ctx;
+        }
 
         LeaveNonTerminal(ctx);
         return result;
@@ -274,16 +303,120 @@ public class TreeLinkageVisitor : DefaultRecursiveDescentVisitor
 
     public override FuncCallExp VisitFuncCallExp(FuncCallExp ctx)
     {
+        Console.WriteLine($"DEBUG: TreeLinkageVisitor.VisitFuncCallExp called");
         EnterNonTerminal(ctx);
 
+        Console.WriteLine($"DEBUG: About to call base.VisitFuncCallExp with ctx.FunctionDef = {ctx.FunctionDef?.Name.Value ?? "null"}");
         var result = base.VisitFuncCallExp(ctx);
+        Console.WriteLine($"DEBUG: base.VisitFuncCallExp returned result: {(result != null ? "non-null" : "null")}");
+        if (result != null)
+        {
+            Console.WriteLine($"DEBUG: result.FunctionDef = {result.FunctionDef?.Name.Value ?? "null"}");
+        }
+        
+        // If the base call returned null, something went wrong in the generated visitor
+        if (result == null)
+        {
+            Console.WriteLine($"DEBUG: ERROR: base.VisitFuncCallExp returned null! This is likely due to the generated visitor trying to visit a null FunctionDef. Returning original context to prevent corruption.");
+            LeaveNonTerminal(ctx);
+            return ctx; // Return the original context to avoid null propagation
+        }
+        
+        // If already resolved, nothing to do
+        if (result.FunctionDef != null)
+        {
+            Console.WriteLine($"DEBUG: FuncCallExp already resolved to {result.FunctionDef.Name.Value}");
+            LeaveNonTerminal(ctx);
+            return result;
+        }
+        
+        // Get the function name from annotations (stored by parser)
+        var functionNameAnnotation = result.Annotations?.FirstOrDefault(a => a.Key == "FunctionName");
+        if (functionNameAnnotation?.Value is not string functionName)
+        {
+            Console.WriteLine($"DEBUG: No FunctionName annotation found in FuncCallExp");
+            LeaveNonTerminal(ctx);
+            return result;
+        }
+        
+        Console.WriteLine($"DEBUG: Trying to resolve function call: {functionName}");
+        
+        // Find the nearest scope
+        var nearestScope = ctx.NearestScope();
+        if (nearestScope == null)
+        {
+            Console.WriteLine($"DEBUG: No nearest scope found for function call: {functionName}");
+            LeaveNonTerminal(ctx);
+            return result;
+        }
+        
+        Console.WriteLine($"DEBUG: Found nearest scope: {nearestScope.GetType().Name}");
+        
+        // Look for function definition in the scope
+        var functionDef = FindFunctionInScope(functionName, nearestScope);
+        if (functionDef != null)
+        {
+            Console.WriteLine($"DEBUG: Successfully resolved {functionName} to FunctionDef");
+            // Create new FuncCallExp with resolved FunctionDef
+            result = result with { FunctionDef = functionDef };
+        }
+        else
+        {
+            Console.WriteLine($"DEBUG: Failed to resolve function: {functionName}");
+        }
 
         LeaveNonTerminal(ctx);
         return result;
     }
+    
+    private FunctionDef? FindFunctionInScope(string functionName, ScopeAstThing scope)
+    {
+        // Search in the current scope and parent scopes
+        var currentScope = scope;
+        while (currentScope != null)
+        {
+            // Check if this scope has functions
+            if (currentScope is ModuleDef module)
+            {
+                // Look for FunctionDef in the Functions list
+                var functionDef = module.Functions
+                    .OfType<FunctionDef>()
+                    .FirstOrDefault(f => f.Name.Value == functionName);
+                if (functionDef != null)
+                    return functionDef;
+            }
+            else if (currentScope is ClassDef classDef)
+            {
+                // Look for methods (which are MethodDef containing FunctionDef) in the MemberDefs
+                var methodDef = classDef.MemberDefs
+                    .OfType<MethodDef>()
+                    .FirstOrDefault(m => m.FunctionDef.Name.Value == functionName);
+                if (methodDef?.FunctionDef != null)
+                    return methodDef.FunctionDef;
+            }
+            else if (currentScope is AssemblyDef assembly)
+            {
+                // Look in all modules of the assembly
+                foreach (var mod in assembly.Modules)
+                {
+                    var functionDef = mod.Functions
+                        .OfType<FunctionDef>()
+                        .FirstOrDefault(f => f.Name.Value == functionName);
+                    if (functionDef != null)
+                        return functionDef;
+                }
+            }
+            
+            // Move to parent scope
+            currentScope = currentScope.Parent as ScopeAstThing;
+        }
+        
+        return null;
+    }
 
     public override FunctionDef VisitFunctionDef(FunctionDef ctx)
     {
+        Console.WriteLine($"DEBUG: TreeLinkageVisitor.VisitFunctionDef called for: {ctx.Name.Value}");
         EnterNonTerminal(ctx);
 
         var result = base.VisitFunctionDef(ctx);
@@ -554,9 +687,11 @@ public class TreeLinkageVisitor : DefaultRecursiveDescentVisitor
 
     public override ReturnStatement VisitReturnStatement(ReturnStatement ctx)
     {
+        Console.WriteLine($"DEBUG: TreeLinkageVisitor.VisitReturnStatement called with ReturnValue: {ctx.ReturnValue?.GetType().Name ?? "null"}");
         EnterNonTerminal(ctx);
 
         var result = base.VisitReturnStatement(ctx);
+        Console.WriteLine($"DEBUG: TreeLinkageVisitor.VisitReturnStatement result ReturnValue: {result?.ReturnValue?.GetType().Name ?? "null"}");
 
         LeaveNonTerminal(ctx);
         return result;

@@ -48,7 +48,9 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
         {
             ProcessOverloadedFunctionDefinition(overloadedFuncDef);
         }
-        return base.VisitClassDef(ctx);
+        // Don't call base.VisitClassDef(ctx) as it would visit all member definitions including non-overloaded ones
+        // which can corrupt them. We only need to process the overloaded function definitions.
+        return ctx;
     }
 
     public override ModuleDef VisitModuleDef(ModuleDef ctx)
@@ -61,8 +63,9 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
             {
                 ProcessOverloadedModuleFunctionDef(overloadedFuncDef);
             }
-            return base.VisitModuleDef(ctx);
-            
+            // Don't call base.VisitModuleDef(ctx) as it would visit all functions including non-overloaded ones
+            // which can corrupt them. We only need to process the overloaded functions.
+            return ctx;
         }
         finally
         {
@@ -114,7 +117,7 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
             {
                 // if there is no clause condition, it must be the base case (which should be the
                 // last clause)
-                ifStatements.Add(new ExpStatementBuilder().WithRHS(funcCallExpression).Build());
+                ifStatements.Add(new ReturnStatementBuilder().WithReturnValue(funcCallExpression).Build());
             }
         }
         fd.Body = new BlockStatement() { Statements = ifStatements };
@@ -275,7 +278,7 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
             {
                 // if there is no clause condition, it must be the base case (which should be the
                 // last clause)
-                ifStatements.Add(new ExpStatementBuilder().WithRHS(funcCallExpression).Build());
+                ifStatements.Add(new ReturnStatementBuilder().WithReturnValue(funcCallExpression).Build());
             }
         }
         fd.Body = new BlockStatement() { Statements = ifStatements };

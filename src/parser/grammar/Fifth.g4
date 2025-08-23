@@ -186,7 +186,7 @@ expression
     | lhs=expression rel_op=( EQUALS | NOT_EQUALS | LESS | LESS_OR_EQUALS | GREATER | GREATER_OR_EQUALS) rhs=expression   #exp_rel
     | lhs=expression LOGICAL_AND rhs=expression                                                                           #exp_and
     | lhs=expression LOGICAL_OR rhs=expression                                                                            #exp_or
-    | expression L_PAREN expressionList? R_PAREN                                                                                  #exp_funccall
+    | funcname=IDENTIFIER L_PAREN expressionList? R_PAREN                                                                 #exp_funccall
     | unary_op=(PLUS | MINUS | LOGICAL_NOT | PLUS_PLUS | MINUS_MINUS ) expression                                         #exp_unary
     | expression unary_op=(PLUS_PLUS | MINUS_MINUS )                                                                      #exp_unary_postfix
     | operand                                                                                                             #exp_operand
