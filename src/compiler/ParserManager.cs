@@ -11,19 +11,47 @@ public static class FifthParserManager
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast)
     {
         ArgumentNullException.ThrowIfNull(ast);
+        
+        Console.Error.WriteLine("=== DEBUG: Starting transformation pipeline ===");
+        
         ast = new TreeLinkageVisitor().Visit(ast);
+        Console.Error.WriteLine("=== DEBUG: Completed TreeLinkageVisitor ===");
+        
         ast = new BuiltinInjectorVisitor().Visit(ast);
+        Console.Error.WriteLine("=== DEBUG: Completed BuiltinInjectorVisitor ===");
+        
         ast = new ClassCtorInserter().Visit(ast);
+        Console.Error.WriteLine("=== DEBUG: Completed ClassCtorInserter ===");
+        
         ast = new SymbolTableBuilderVisitor().Visit(ast);
+        Console.Error.WriteLine("=== DEBUG: Completed SymbolTableBuilderVisitor ===");
+        
         ast = new PropertyToFieldExpander().Visit(ast);
+        Console.Error.WriteLine("=== DEBUG: Completed PropertyToFieldExpander ===");
+        
         ast = new OverloadGatheringVisitor().Visit(ast);
+        Console.Error.WriteLine("=== DEBUG: Completed OverloadGatheringVisitor ===");
+        
         ast = new OverloadTransformingVisitor().Visit(ast);
+        Console.Error.WriteLine("=== DEBUG: Completed OverloadTransformingVisitor ===");
+        
         ast = new DestructuringPatternFlattenerVisitor().Visit(ast);  // Handle constraint collection and lowering
+        Console.Error.WriteLine("=== DEBUG: Completed DestructuringPatternFlattenerVisitor ===");
+        
         ast = new DestructuringVisitor().Visit(ast);  // Handle destructuring transformation
+        Console.Error.WriteLine("=== DEBUG: Completed DestructuringVisitor ===");
+        
         ast = new TreeLinkageVisitor().Visit(ast);
+        Console.Error.WriteLine("=== DEBUG: Completed second TreeLinkageVisitor ===");
+        
         ast = new SymbolTableBuilderVisitor().Visit(ast);
+        Console.Error.WriteLine("=== DEBUG: Completed second SymbolTableBuilderVisitor ===");
+        
         ast = new TypeAnnotationVisitor().Visit(ast);
+        Console.Error.WriteLine("=== DEBUG: Completed TypeAnnotationVisitor ===");
+        
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);
+        Console.Error.WriteLine("=== DEBUG: Transformation pipeline complete ===");
         return ast;
     }
 

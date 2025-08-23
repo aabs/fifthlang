@@ -630,18 +630,36 @@ return new IntValueExpression(int.Parse(context.value.Text)).CaptureLocation(con
 
 public override IAstThing VisitExp_funccall(FifthParser.Exp_funccallContext context)
 {
-var name = context.funcname.GetText();
-var actualParams = (ExpressionList)VisitExplist(context.args);
-return new FuncCallExp()
+// The function name is the left expression, which should be a variable reference
+var functionExpr = (Expression)Visit(context.expression());
+var functionName = ExtractFunctionName(functionExpr);
+var actualParams = context.expressionList() != null ? (ExpressionList)Visit(context.expressionList()) : null;
+
+Console.Error.WriteLine($"=== PARSER DEBUG: Creating FuncCallExp for function '{functionName}' ===");
+var funcCall = new FuncCallExp()
 {
     FunctionDef = null, // Will be resolved during linking phase
     InvocationArguments = actualParams?.Expressions ?? new List<Expression>(),
     // Store the function name in annotations temporarily
-    Annotations = new List<Annotation> { new Annotation { Key = "FunctionName", Value = name } },
+    Annotations = new List<Annotation> { new Annotation { Key = "FunctionName", Value = functionName } },
     Location = GetLocationDetails(context),
     Parent = null,
     Type = null // Will be inferred later
 };
+Console.Error.WriteLine($"=== PARSER DEBUG: Created FuncCallExp with {funcCall.InvocationArguments?.Count ?? 0} arguments ===");
+return funcCall;
+}
+
+private string ExtractFunctionName(Expression expr)
+{
+    // Handle the case where the function name is a simple variable reference
+    if (expr is VarRefExp varRef)
+    {
+        return varRef.VarName;
+    }
+    
+    // Handle other cases (member access, etc.) - for now just return a placeholder
+    return expr?.GetType().Name ?? "unknown";
 }
 
 public override IAstThing VisitExp_logicnegation(FifthParser.Exp_logicnegationContext context)
