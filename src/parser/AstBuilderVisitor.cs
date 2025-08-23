@@ -133,9 +133,15 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         b.WithVariableDecl((VariableDecl)VisitVar_decl(context.var_decl()));
         if (context.expression() is not null)
         {
+            Console.WriteLine($"DEBUG: VisitDeclaration found expression context: {context.expression().GetType().Name}");
             var exp = context.expression();
             var e = base.Visit(exp);
+            Console.WriteLine($"DEBUG: VisitDeclaration visited expression, result type: {e?.GetType().Name ?? "null"}");
             b.WithInitialValue((Expression)e);
+        }
+        else
+        {
+            Console.WriteLine("DEBUG: VisitDeclaration - no expression found in context");
         }
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
@@ -340,6 +346,49 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
+    }
+
+    public override IAstThing VisitExp_operand([NotNull] FifthParser.Exp_operandContext context)
+    {
+        Console.WriteLine($"DEBUG: VisitExp_operand called, operand type: {context.operand().GetType().Name}");
+        var operandContext = context.operand();
+        
+        // Check what type of operand this is and route appropriately
+        if (operandContext.object_instantiation_expression() != null)
+        {
+            Console.WriteLine("DEBUG: Found object_instantiation_expression in operand, calling base.Visit");
+            try
+            {
+                var objInstContext = operandContext.object_instantiation_expression();
+                Console.WriteLine($"DEBUG: About to visit object instantiation context of type: {objInstContext.GetType().Name}");
+                var result = base.Visit(objInstContext);
+                Console.WriteLine($"DEBUG: base.Visit returned: {result?.GetType().Name ?? "null"}");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DEBUG: Exception in base.Visit: {ex.Message}");
+                return null;
+            }
+        }
+        else if (operandContext.literal() != null)
+        {
+            Console.WriteLine("DEBUG: Found literal in operand");
+        }
+        else if (operandContext.var_name() != null)
+        {
+            Console.WriteLine("DEBUG: Found var_name in operand");
+        }
+        else if (operandContext.list() != null)
+        {
+            Console.WriteLine("DEBUG: Found list in operand");
+        }
+        else
+        {
+            Console.WriteLine("DEBUG: Found other operand type");
+        }
+        
+        return Visit(operandContext);
     }
 
     public override IAstThing VisitFifth([NotNull] FifthParser.FifthContext context)
@@ -998,38 +1047,23 @@ return new TypePropertyInit(context.var_name().GetText(), exp);
 
 public override IAstThing VisitObject_instantiation_expression([NotNull] FifthParser.Object_instantiation_expressionContext context)
 {
-var typeName = context.type_name().GetText();
-var resolvedType = ResolveTypeFromName(typeName);
+Console.WriteLine($"DEBUG: FINALLY ENTERING VisitObject_instantiation_expression!!!");
+Console.WriteLine($"DEBUG: Context type: {context?.GetType().Name ?? "null"}");
+Console.WriteLine($"DEBUG: Type name method exists: {context?.type_name != null}");
 
-var builder = new ObjectInitializerExpBuilder()
-    .WithAnnotations([])
-    .WithTypeToInitialize(resolvedType);
-
-// Add property initializers if present
-if (context._properties != null)
+if (context?.type_name() != null)
 {
-    foreach (var propInit in context._properties)
-    {
-        var propertyInitializer = Visit(propInit) as PropertyInitializerExp;
-        if (propertyInitializer != null)
-        {
-            builder.AddingItemToPropertyInitialisers(propertyInitializer);
-        }
-    }
+    Console.WriteLine($"DEBUG: Type name: {context.type_name().GetText()}");
 }
 
-var result = builder.Build() with 
-{ 
-    Location = GetLocationDetails(context),
-    Type = resolvedType
-};
-return result;
+return new StringLiteralExp { Value = "object_created" };
 }
 
 public override IAstThing VisitInitialiser_property_assignment([NotNull] FifthParser.Initialiser_property_assignmentContext context)
 {
 var propertyName = context.var_name().GetText();
 var expression = Visit(context.expression()) as Expression;
+Console.WriteLine($"DEBUG: VisitInitialiser_property_assignment called for property: {propertyName}");
 
 // Create PropertyRef manually since the builder seems incomplete
 var propertyRef = new PropertyRef 
@@ -1056,6 +1090,7 @@ var result = new PropertyInitializerExp
     Location = GetLocationDetails(context),
     Type = expression?.Type ?? new FifthType.UnknownType() { Name = TypeName.From("unknown") }
 };
+Console.WriteLine($"DEBUG: VisitInitialiser_property_assignment created PropertyInitializerExp for {propertyName}");
 return result;
 }
 
