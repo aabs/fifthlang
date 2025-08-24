@@ -5,17 +5,40 @@ namespace compiler.LanguageTransformations;
 /// </summary>
 public class PropertyToFieldExpander : DefaultRecursiveDescentVisitor
 {
+    private bool _isVisitingPropertyInitializer = false;
+    
+    public override PropertyInitializerExp VisitPropertyInitializerExp(PropertyInitializerExp ctx)
+    {
+        // Set flag to indicate we're visiting a PropertyInitializerExp
+        var wasVisitingPropertyInitializer = _isVisitingPropertyInitializer;
+        _isVisitingPropertyInitializer = true;
+        
+        try
+        {
+            return base.VisitPropertyInitializerExp(ctx);
+        }
+        finally
+        {
+            _isVisitingPropertyInitializer = wasVisitingPropertyInitializer;
+        }
+    }
+    
     public override PropertyDef VisitPropertyDef(PropertyDef ctx)
     {
         ArgumentNullException.ThrowIfNull(ctx);
         
-        // Skip PropertyDef objects that are part of PropertyInitializerExp (placeholder definitions)
-        // These don't have a ClassDef parent and shouldn't be expanded
-        if (ctx.Parent == null || ctx.Parent is not ClassDef)
+        // If we're visiting a PropertyInitializerExp, skip expansion of placeholder PropertyDefs
+        if (_isVisitingPropertyInitializer && (ctx.Parent == null || ctx.Parent is not ClassDef))
         {
-            // This is likely a placeholder PropertyDef from PropertyInitializerExp
+            // This is a placeholder PropertyDef from PropertyInitializerExp
             // Return it unchanged without expansion
             return ctx;
+        }
+        
+        // For regular PropertyDef objects that don't have a parent class, throw exception
+        if (ctx.Parent == null || ctx.Parent is not ClassDef)
+        {
+            throw new InvalidOperationException("PropertyDef must have a ClassDef parent to be expanded into backing fields and accessors.");
         }
         
         // Create a backing field using FieldDefBuilder
