@@ -673,13 +673,52 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             Console.WriteLine($"DEBUG: Found {propertyAssignments.Length} property initializers");
             foreach (var propContext in propertyAssignments)
             {
-                var propInit = Visit(propContext) as PropertyInitializerExp;
-                if (propInit != null)
+                Console.WriteLine($"DEBUG: Processing property assignment context: {propContext?.GetType().Name ?? "null"}");
+                
+                // Try to explicitly cast to the specific context type and call the right visitor method
+                if (propContext is FifthParser.Initialiser_property_assignmentContext propAssignmentContext)
                 {
-                    propertyInitializers.Add(propInit);
-                    Console.WriteLine($"DEBUG: Added property initializer for: {propInit.PropertyToInitialize?.Property?.Name.Value ?? "unknown"}");
+                    Console.WriteLine($"DEBUG: Calling VisitInitialiser_property_assignment directly");
+                    try
+                    {
+                        var propInit = VisitInitialiser_property_assignment(propAssignmentContext) as PropertyInitializerExp;
+                        if (propInit != null)
+                        {
+                            propertyInitializers.Add(propInit);
+                            Console.WriteLine($"DEBUG: Added property initializer for: {propInit.PropertyToInitialize?.Property?.Name.Value ?? "unknown"}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"DEBUG: VisitInitialiser_property_assignment returned null or wrong type");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"DEBUG: Exception in VisitInitialiser_property_assignment: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"DEBUG: Cast to Initialiser_property_assignmentContext failed");
+                    Console.WriteLine($"DEBUG: Using base Visit method");
+                    var visitResult = Visit(propContext);
+                    Console.WriteLine($"DEBUG: Visit result type: {visitResult?.GetType().Name ?? "null"}");
+                    var propInit = visitResult as PropertyInitializerExp;
+                    if (propInit != null)
+                    {
+                        propertyInitializers.Add(propInit);
+                        Console.WriteLine($"DEBUG: Added property initializer for: {propInit.PropertyToInitialize?.Property?.Name.Value ?? "unknown"}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"DEBUG: Failed to cast visit result to PropertyInitializerExp");
+                    }
                 }
             }
+        }
+        else
+        {
+            Console.WriteLine($"DEBUG: No property initializers found or array is empty");
         }
 
         // Create the ObjectInitializerExp
@@ -1098,7 +1137,11 @@ return new TypePropertyInit(context.var_name().GetText(), exp);
 
 public override IAstThing VisitInitialiser_property_assignment([NotNull] FifthParser.Initialiser_property_assignmentContext context)
 {
+Console.WriteLine($"DEBUG: VisitInitialiser_property_assignment START");
+
 var propertyName = context.var_name().GetText();
+Console.WriteLine($"DEBUG: Got property name: {propertyName}");
+
 var expression = Visit(context.expression()) as Expression;
 Console.WriteLine($"DEBUG: VisitInitialiser_property_assignment called for property: {propertyName}");
 

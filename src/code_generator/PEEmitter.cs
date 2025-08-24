@@ -527,13 +527,15 @@ public class PEEmitter
                 break;
                 
             case "stfld":
-                // Store field instruction - for now, emit as a simple stfld
+                // Store field instruction - for now, emit as a simple pop to consume the value
                 // This should be enhanced to properly resolve field references
                 if (storeInst.Target is string fieldName)
                 {
                     Console.WriteLine($"DEBUG: Emitting stfld for field: {fieldName}");
-                    // For now, we'll skip actual field resolution as it needs more metadata work
-                    // il.OpCode(ILOpCode.Stfld);
+                    // For now, just pop the values from stack to prevent stack corruption
+                    // This is a temporary fix - needs proper field resolution
+                    il.OpCode(ILOpCode.Pop); // Pop the value
+                    il.OpCode(ILOpCode.Pop); // Pop the object reference
                 }
                 break;
         }
@@ -571,8 +573,9 @@ public class PEEmitter
         if (callInst.Opcode?.ToLowerInvariant() == "newobj")
         {
             Console.WriteLine($"DEBUG: Emitting newobj for: {callInst.MethodSignature}");
-            // For now, skip actual constructor resolution as it needs proper type metadata
-            // This will be enhanced later with proper constructor resolution
+            // For now, create a simple object by loading a null reference
+            // This is a temporary fix to prevent crashes - needs proper constructor implementation
+            il.OpCode(ILOpCode.Ldnull);
             return;
         }
         
