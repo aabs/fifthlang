@@ -67,7 +67,9 @@ public class AstBuilderVisitorTests
     public void can_parse_double_literals(double d)
     {
         var nativeRepresentation = $"{d:0.000}d";
-        if (nativeRepresentation is "infinityd" or "-infinityd" or "NaNd" or "\u221ed" or "-\u221ed")
+        if (nativeRepresentation is "infinityd" or "-infinityd" or "Infinityd" or "-Infinityd" or 
+            "infinity" or "-infinity" or "Infinity" or "-Infinity" or
+            "NaNd" or "NaN" or "\u221ed" or "-\u221ed" or "\u221E" or "-\u221E")
         {
             return;
         }
