@@ -647,6 +647,55 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         return result;
     }
 
+    public override IAstThing VisitObject_instantiation_expression([NotNull] FifthParser.Object_instantiation_expressionContext context)
+    {
+        Console.WriteLine($"DEBUG: FINALLY ENTERING VisitObject_instantiation_expression!!!");
+        Console.WriteLine($"DEBUG: Context type: {context?.GetType().Name ?? "null"}");
+        Console.WriteLine($"DEBUG: Type name method exists: {context?.type_name() != null}");
+
+        if (context?.type_name() != null)
+        {
+            Console.WriteLine($"DEBUG: Type name: {context.type_name().GetText()}");
+        }
+
+        // Extract the type name
+        var typeName = context.type_name()?.GetText() ?? "object";
+        Console.WriteLine($"DEBUG: Creating ObjectInitializerExp for type: {typeName}");
+
+        // Create the type reference
+        var typeToInitialize = new FifthType.TType() { Name = TypeName.From(typeName) };
+
+        // Extract property initializers
+        var propertyInitializers = new List<PropertyInitializerExp>();
+        var propertyAssignments = context.initialiser_property_assignment();
+        if (propertyAssignments != null && propertyAssignments.Length > 0)
+        {
+            Console.WriteLine($"DEBUG: Found {propertyAssignments.Length} property initializers");
+            foreach (var propContext in propertyAssignments)
+            {
+                var propInit = Visit(propContext) as PropertyInitializerExp;
+                if (propInit != null)
+                {
+                    propertyInitializers.Add(propInit);
+                    Console.WriteLine($"DEBUG: Added property initializer for: {propInit.PropertyToInitialize?.Property?.Name.Value ?? "unknown"}");
+                }
+            }
+        }
+
+        // Create the ObjectInitializerExp
+        var result = new ObjectInitializerExp
+        {
+            TypeToInitialize = typeToInitialize,
+            PropertyInitialisers = propertyInitializers,
+            Annotations = new Dictionary<string, object>(),
+            Location = GetLocationDetails(context),
+            Type = typeToInitialize // The result type is the same as the type being initialized
+        };
+
+        Console.WriteLine($"DEBUG: Created ObjectInitializerExp with {propertyInitializers.Count} property initializers");
+        return result;
+    }
+
     protected override IAstThing DefaultResult { get; }
     /*
 
@@ -1045,19 +1094,7 @@ var exp = Visit(context.exp()) as Expression;
 return new TypePropertyInit(context.var_name().GetText(), exp);
 }
 
-public override IAstThing VisitObject_instantiation_expression([NotNull] FifthParser.Object_instantiation_expressionContext context)
-{
-Console.WriteLine($"DEBUG: FINALLY ENTERING VisitObject_instantiation_expression!!!");
-Console.WriteLine($"DEBUG: Context type: {context?.GetType().Name ?? "null"}");
-Console.WriteLine($"DEBUG: Type name method exists: {context?.type_name != null}");
 
-if (context?.type_name() != null)
-{
-    Console.WriteLine($"DEBUG: Type name: {context.type_name().GetText()}");
-}
-
-return new StringLiteralExp { Value = "object_created" };
-}
 
 public override IAstThing VisitInitialiser_property_assignment([NotNull] FifthParser.Initialiser_property_assignmentContext context)
 {
