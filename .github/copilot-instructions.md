@@ -33,7 +33,6 @@ dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-
 - **NEVER CANCEL** any build operations - they can take up to 2 minutes
 - ANTLR grammar compilation happens automatically during parser project build
 - AST code generation runs automatically before compilation via MSBuild targets
-- One test may fail (`can_parse_double_literals`) - this is a pre-existing issue, ignore it
 
 ### Project Structure
 ```
