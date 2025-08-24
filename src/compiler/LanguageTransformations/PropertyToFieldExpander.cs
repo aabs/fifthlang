@@ -8,7 +8,16 @@ public class PropertyToFieldExpander : DefaultRecursiveDescentVisitor
     public override PropertyDef VisitPropertyDef(PropertyDef ctx)
     {
         ArgumentNullException.ThrowIfNull(ctx);
-        _ = ctx.Parent ?? throw new InvalidOperationException("Cannot expand an orphaned property definition.");
+        
+        // Skip PropertyDef objects that are part of PropertyInitializerExp (placeholder definitions)
+        // These don't have a ClassDef parent and shouldn't be expanded
+        if (ctx.Parent == null || ctx.Parent is not ClassDef)
+        {
+            // This is likely a placeholder PropertyDef from PropertyInitializerExp
+            // Return it unchanged without expansion
+            return ctx;
+        }
+        
         // Create a backing field using FieldDefBuilder
         var field = new FieldDefBuilder()
             .WithName(MemberName.From($"{ctx.Name}__BackingField"))
