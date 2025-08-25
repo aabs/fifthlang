@@ -7,6 +7,7 @@ namespace runtime_integration_tests;
 /// Parses all sample Syntax .5th files under TestPrograms/Syntax.
 /// Files under Syntax/Invalid are expected to fail parsing.
 /// </summary>
+[Skip("tests have been moved")]
 public class SyntaxParserTests
 {
     private static IEnumerable<string> GetSyntaxSampleFiles(bool invalid)
