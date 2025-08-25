@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '0 3 * * *' # Nightly at 03:00 UTC
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+          cache: true
+
+      - name: Setup Java 17 (for ANTLR)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Restore
+        run: dotnet restore fifthlang.sln
+
+      - name: Build
+        run: dotnet build fifthlang.sln --configuration Release --no-restore
+
+      - name: Test
+        run: >-
+          dotnet test fifthlang.sln --configuration Release --no-build
+          --verbosity normal --logger "trx;LogFileName=test_results.trx"
+          --results-directory "TestResults" --collect:"XPlat Code Coverage"
+          --settings fifth.runsettings
+
+      - name: Upload TRX Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}
+          path: TestResults/**/*.trx
+          if-no-files-found: warn
+
+      - name: Install ReportGenerator
+        shell: bash
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Generate Coverage Report
+        shell: bash
+        run: |
+          reportgenerator \
+            -reports:**/coverage.cobertura.xml \
+            -targetdir:CoverageReport \
+            -reporttypes:Html;Cobertura;TextSummary
+          echo "\nCoverage summary (partial):\n" >> $GITHUB_STEP_SUMMARY
+          if [ -f CoverageReport/Summary.txt ]; then head -n 50 CoverageReport/Summary.txt >> $GITHUB_STEP_SUMMARY; fi
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-${{ matrix.os }}
+          path: |
+            CoverageReport/**
+            **/coverage.cobertura.xml
+          if-no-files-found: warn
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: '**/coverage.cobertura.xml'
+          flags: ${{ matrix.os }}
+          fail_ci_if_error: false
+          verbose: true

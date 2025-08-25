@@ -45,8 +45,6 @@ fifthc --command help
 ## Architecture
 
 The compiler orchestrates several phases:
-
-1. **Parse Phase**: Uses ANTLR-based parser to build AST from Fifth source
 2. **Transform Phase**: Applies language analysis passes (symbol table building, type inference, etc.)
 3. **IL Generation Phase**: Converts AST to Common Language Infrastructure IL code
 4. **Assembly Phase**: Uses `ilasm` to compile IL to executable
@@ -55,15 +53,13 @@ The compiler orchestrates several phases:
 ## Requirements
 
 - .NET 8.0 or later
-- IL Assembler (`ilasm`) for executable generation:
-  - Set `ILASM_PATH` environment variable, or
-  - Set `DOTNET_ROOT` environment variable, or  
-  - Ensure `dotnet` is in PATH with SDK that includes `ilasm`
-
 ## Testing
 
 The compiler includes comprehensive unit and integration tests covering:
 
+
+### VS Code Dev Kit Tests
+- See `docs/vscode-devkit-tests.md` for enabling test discovery/runs in the Dev Kit Testing UI.
 - Options parsing and validation
 - All compilation phases
 - Error handling and exit codes

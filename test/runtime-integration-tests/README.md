@@ -147,3 +147,6 @@ When adding new tests:
 3. Use try/catch for features that may not be implemented yet
 4. Ensure proper cleanup of generated files
 5. Add both inline source code tests and external `.5th` file tests
+
+### VS Code Dev Kit Tests
+- See `docs/vscode-devkit-tests.md` for enabling test discovery/runs in the Dev Kit Testing UI.

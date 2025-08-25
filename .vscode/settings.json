@@ -1,3 +1,17 @@
 {
-    "makefile.configureOnOpen": false
+  // Ensure Dotnet Test Explorer uses `dotnet test` for discovery (works with TUnit)
+  "dotnet-test-explorer.useDotnetTestDiscover": true,
+  // Use VS Code Testing API so results flow into Dev Kit Test UI
+  "dotnet-test-explorer.useVsCodeTestApi": true,
+  // Point the explorer at the test project locations
+  "dotnet-test-explorer.testProjectPath": "test/**/*.csproj",
+  // Pass stable args so discovery reads TRX instead of console text and writes coverage via runsettings
+  "dotnet-test-explorer.testArguments": "--no-build --nologo --logger trx --collect 'XPlat Code Coverage' --settings fifth.runsettings",
+  // Optional quality-of-life settings
+  "dotnet-test-explorer.buildBeforeTest": true,
+  "dotnet-test-explorer.autoWatch": false,
+  // Existing setting preserved
+  "makefile.configureOnOpen": false,
+  // Help C# Dev Kit target the correct solution for discovery
+  "dotnet.defaultSolution": "fifthlang.sln"
 }
