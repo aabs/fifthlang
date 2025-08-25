@@ -1,4 +1,3 @@
-using Xunit;
 using FluentAssertions;
 using code_generator;
 using compiler;
@@ -8,7 +7,7 @@ namespace code_generator.Tests;
 
 public class EndToEndILGenerationTests
 {
-    [Fact]
+    [Test]
     public void GenerateIL_FromSimpleFifthProgram_ShouldProduceValidIL()
     {
         // Arrange - use unique temp directory to avoid file conflicts
@@ -58,7 +57,7 @@ public class EndToEndILGenerationTests
         }
     }
 
-    [Fact]
+    [Test]
     public void GenerateIL_WithConfiguration_ShouldUseCustomSettings()
     {
         // Arrange - use unique temp directory to avoid file conflicts
@@ -101,7 +100,7 @@ main():int { return 0; }
         }
     }
 
-    [Fact]
+    [Test]
     public void GenerateIL_WithIntReturnType_ShouldShowCorrectReturnTypeInIL()
     {
         // Arrange - use unique temp directory to avoid file conflicts
@@ -163,11 +162,11 @@ main():int { return 0; }
         }
     }
 
-    [Theory]
-    [InlineData("string", "main():string{return \"hello\";}", "string")]
-    [InlineData("bool", "main():bool{return true;}", "bool")]
-    [InlineData("float", "main():float{return 3.14;}", "float32")]
-    [InlineData("double", "main():double{return 3.14;}", "float64")]
+    [Test]
+    [Arguments("string", "main():string{return \"hello\";}", "string")]
+    [Arguments("bool", "main():bool{return true;}", "bool")]
+    [Arguments("float", "main():float{return 3.14;}", "float32")]
+    [Arguments("double", "main():double{return 3.14;}", "float64")]
     public void GenerateIL_WithPrimitiveReturnTypes_ShouldUseDotNetTypes(string fifthType, string code, string expectedILType)
     {
         // Arrange - use unique temp directory to avoid file conflicts
@@ -220,7 +219,7 @@ main():int { return 0; }
         }
     }
 
-    [Fact]
+    [Test]
     public void ValidateILFile_WithMalformedContent_ShouldReturnFalse()
     {
         // Arrange
@@ -238,7 +237,7 @@ main():int { return 0; }
         File.Delete(tempFile);
     }
 
-    [Fact]
+    [Test]
     public void ValidateILFile_WithValidBasicStructure_ShouldReturnTrue()
     {
         // Arrange

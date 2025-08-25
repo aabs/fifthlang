@@ -1,4 +1,3 @@
-using Xunit;
 using FluentAssertions;
 using compiler;
 
@@ -6,7 +5,7 @@ namespace ast_tests;
 
 public class CompilerOptionsTests
 {
-    [Fact]
+    [Test]
     public void DefaultOptions_ShouldHaveBuildCommand()
     {
         var options = new CompilerOptions();
@@ -19,7 +18,7 @@ public class CompilerOptionsTests
         options.Diagnostics.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void Validate_WhenSourceEmpty_ShouldReturnError()
     {
         var options = new CompilerOptions(CompilerCommand.Build, "", "test.exe");
@@ -30,7 +29,7 @@ public class CompilerOptionsTests
         error.Should().Contain("Source file or directory must be specified");
     }
 
-    [Fact]
+    [Test]
     public void Validate_WhenOutputEmptyForBuild_ShouldReturnError()
     {
         var options = new CompilerOptions(CompilerCommand.Build, "test.5th", "");
@@ -41,7 +40,7 @@ public class CompilerOptionsTests
         error.Should().Contain("Output path must be specified");
     }
 
-    [Fact]
+    [Test]
     public void Validate_WhenOutputEmptyForRun_ShouldReturnError()
     {
         var options = new CompilerOptions(CompilerCommand.Run, "test.5th", "");
@@ -52,7 +51,7 @@ public class CompilerOptionsTests
         error.Should().Contain("Output path must be specified");
     }
 
-    [Fact]
+    [Test]
     public void Validate_WhenOutputEmptyForLint_ShouldBeValid()
     {
         // Create a temporary file for testing
@@ -72,7 +71,7 @@ public class CompilerOptionsTests
         }
     }
 
-    [Fact]
+    [Test]
     public void Validate_WhenHelpCommand_ShouldIgnoreOtherValidation()
     {
         var options = new CompilerOptions(CompilerCommand.Help, "", "");
@@ -82,7 +81,7 @@ public class CompilerOptionsTests
         error.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void Validate_WhenSourceDoesNotExist_ShouldReturnError()
     {
         var options = new CompilerOptions(CompilerCommand.Build, "nonexistent.5th", "test.exe");
@@ -93,10 +92,10 @@ public class CompilerOptionsTests
         error.Should().Contain("Source path does not exist");
     }
 
-    [Theory]
-    [InlineData("arg1", "arg2", "arg3")]
-    [InlineData("one two", "three")]
-    [InlineData("")]
+    [Test]
+    [Arguments("arg1", "arg2", "arg3")]
+    [Arguments("one two", "three")]
+    [Arguments("")]
     public void Args_ShouldPreserveValues(params string[] args)
     {
         var options = new CompilerOptions(Args: args);

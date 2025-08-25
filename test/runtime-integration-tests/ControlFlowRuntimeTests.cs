@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Xunit;
 
 namespace runtime_integration_tests;
 
@@ -10,7 +9,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class ControlFlowRuntimeTests : RuntimeTestBase
 {
-    [Fact]
+    [Test]
     public async Task IfStatement_WhenConditionTrue_ShouldExecuteTrueBranch()
     {
         // Arrange - Simplified test since variable declarations and if statements aren't working yet in IL generation
@@ -32,7 +31,7 @@ public class ControlFlowRuntimeTests : RuntimeTestBase
         // Expected: should evaluate condition (x > 10) and execute true branch
     }
 
-    [Fact]
+    [Test]
     public async Task IfStatement_WhenConditionFalse_ShouldSkipTrueBranch()
     {
         // Arrange - Simplified test for current IL generation capabilities
@@ -54,7 +53,7 @@ public class ControlFlowRuntimeTests : RuntimeTestBase
         // Expected: should evaluate condition (x <= 10) and skip true branch, return 0
     }
 
-    [Fact]
+    [Test]
     public async Task IfElseStatement_WhenConditionTrue_ShouldExecuteTrueBranch()
     {
         // Arrange
@@ -78,7 +77,7 @@ public class ControlFlowRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task IfElseStatement_WhenConditionFalse_ShouldExecuteElseBranch()
     {
         // Arrange
@@ -102,7 +101,7 @@ public class ControlFlowRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task WhileLoop_ShouldExecuteCorrectNumberOfTimes()
     {
         // Arrange
@@ -127,7 +126,7 @@ public class ControlFlowRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task WhileLoop_WithFalseCondition_ShouldNotExecute()
     {
         // Arrange
@@ -152,7 +151,7 @@ public class ControlFlowRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task NestedIfStatements_ShouldEvaluateCorrectly()
     {
         // Arrange
@@ -181,7 +180,7 @@ public class ControlFlowRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task ComplexBooleanConditions_ShouldEvaluateCorrectly()
     {
         // Arrange
@@ -206,7 +205,7 @@ public class ControlFlowRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task WhileLoopWithComplexCondition_ShouldWorkCorrectly()
     {
         // Arrange

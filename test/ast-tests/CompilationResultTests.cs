@@ -1,4 +1,3 @@
-using Xunit;
 using FluentAssertions;
 using compiler;
 
@@ -6,7 +5,7 @@ namespace ast_tests;
 
 public class CompilationResultTests
 {
-    [Fact]
+    [Test]
     public void Successful_ShouldCreateSuccessfulResult()
     {
         var result = CompilationResult.Successful("test.exe", "test.il", TimeSpan.FromSeconds(1));
@@ -19,7 +18,7 @@ public class CompilationResultTests
         result.ElapsedTime.Should().Be(TimeSpan.FromSeconds(1));
     }
 
-    [Fact]
+    [Test]
     public void Failed_WithMessage_ShouldCreateFailedResult()
     {
         var result = CompilationResult.Failed(2, "Parse error", "test.5th");
@@ -32,7 +31,7 @@ public class CompilationResultTests
         result.Diagnostics[0].Source.Should().Be("test.5th");
     }
 
-    [Fact]
+    [Test]
     public void Failed_WithDiagnostics_ShouldCreateFailedResult()
     {
         var diagnostics = new[]
@@ -52,7 +51,7 @@ public class CompilationResultTests
 
 public class DiagnosticTests
 {
-    [Fact]
+    [Test]
     public void Constructor_ShouldSetProperties()
     {
         var diagnostic = new Diagnostic(DiagnosticLevel.Warning, "Test message", "test.5th");
@@ -62,7 +61,7 @@ public class DiagnosticTests
         diagnostic.Source.Should().Be("test.5th");
     }
 
-    [Fact]
+    [Test]
     public void Constructor_WithoutSource_ShouldAllowNullSource()
     {
         var diagnostic = new Diagnostic(DiagnosticLevel.Info, "Info message");

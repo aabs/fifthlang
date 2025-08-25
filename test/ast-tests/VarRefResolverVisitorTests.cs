@@ -12,7 +12,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
 {
     private readonly VarRefResolverVisitor _visitor = new();
 
-    [Fact]
+    [Test]
     public void TryResolve_WithValidVariableInScope_ReturnsTrue()
     {
         // Arrange
@@ -49,21 +49,21 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         resolvedDecl.Should().Be(variableDecl);
     }
 
-    [Fact]
+    [Test]
     public void TryResolve_WithNullVarName_ReturnsFalse()
     {
         // Arrange
         var functionDef = CreateFunctionDef("testFunc", "void");
 
         // Act
-        var result = _visitor.TryResolve(null, functionDef, out var resolvedDecl);
+    var result = _visitor.TryResolve((string)null!, functionDef, out var resolvedDecl);
 
         // Assert
         result.Should().BeFalse();
         resolvedDecl.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void TryResolve_WithEmptyVarName_ReturnsFalse()
     {
         // Arrange
@@ -77,18 +77,18 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         resolvedDecl.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void TryResolve_WithNullScope_ReturnsFalse()
     {
         // Act
-        var result = _visitor.TryResolve("testVar", null, out var resolvedDecl);
+    var result = _visitor.TryResolve("testVar", (ScopeAstThing)null!, out var resolvedDecl);
 
         // Assert
         result.Should().BeFalse();
         resolvedDecl.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void TryResolve_WithVariableNotInScope_ReturnsFalse()
     {
         // Arrange
@@ -102,7 +102,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         resolvedDecl.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void TryResolve_WithNonVariableDeclInSymbolTable_ReturnsFalse()
     {
         // Arrange
@@ -128,7 +128,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         resolvedDecl.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void VisitVarRefExp_WithAlreadyResolvedVariableDecl_ReturnsUnchanged()
     {
         // Arrange
@@ -161,14 +161,14 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         result.VariableDecl.Should().Be(existingVariableDecl);
     }
 
-    [Fact]
+    [Test]
     public void VisitVarRefExp_WithNoNearestScope_ReturnsUnchanged()
     {
         // Arrange
         var varRefExp = new VarRefExp
         {
             VarName = "testVar",
-            VariableDecl = null,
+            VariableDecl = null!,
             Annotations = [],
             Location = CreateLocation(),
             Parent = null
@@ -183,7 +183,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         result.VariableDecl.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void VisitVarRefExp_WithValidScope_ResolvesVariableDecl()
     {
         // Arrange
@@ -203,7 +203,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         var varRefExp = new VarRefExp
         {
             VarName = "testVar",
-            VariableDecl = null,
+            VariableDecl = null!,
             Annotations = [],
             Location = CreateLocation(),
             Parent = functionDef
@@ -230,7 +230,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         result.VariableDecl.Should().Be(variableDecl);
     }
 
-    [Fact]
+    [Test]
     public void VisitVarRefExp_WithVariableNotInScope_ReturnsUnresolved()
     {
         // Arrange
@@ -239,7 +239,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         var varRefExp = new VarRefExp
         {
             VarName = "nonExistentVar",
-            VariableDecl = null,
+            VariableDecl = null!,
             Annotations = [],
             Location = CreateLocation(),
             Parent = functionDef
@@ -254,7 +254,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         result.VariableDecl.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void VisitVarRefExp_WithHierarchicalScopes_ResolvesFromNearestScope()
     {
         // Arrange
@@ -288,7 +288,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         var varRefExp = new VarRefExp
         {
             VarName = "testVar",
-            VariableDecl = null,
+            VariableDecl = null!,
             Annotations = [],
             Location = CreateLocation(),
             Parent = functionDef
@@ -324,7 +324,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         result.VariableDecl.TypeName.Value.Should().Be("string");
     }
 
-    [Fact]
+    [Test]
     public void VisitVarRefExp_ProcessesCompleteAstTree()
     {
         // Arrange - create a simple function with a variable declaration and reference
@@ -351,7 +351,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         var varRefExp = new VarRefExp
         {
             VarName = "localVar",
-            VariableDecl = null,
+            VariableDecl = null!,
             Annotations = [],
             Location = CreateLocation(),
             Parent = null
@@ -411,7 +411,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         resolvedVarRefExp.VariableDecl.Name.Should().Be("localVar");
     }
 
-    [Fact]
+    [Test]
     public void VarRefResolverVisitor_WorksWithParsedCode()
     {
         // Arrange - parse actual Fifth language code that contains variable references

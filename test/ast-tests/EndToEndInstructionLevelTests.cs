@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Xunit;
 using il_ast;
 using ast;
 using code_generator;
@@ -15,7 +14,7 @@ public class EndToEndInstructionLevelTests
 {
     private readonly AstToIlTransformationVisitor _generator = new();
 
-    [Fact]
+    [Test]
     public void EndToEnd_SimpleArithmetic_ShouldGenerateCorrectInstructionSequence()
     {
         // Arrange - Create a simple arithmetic expression: 5 + 3
@@ -52,7 +51,7 @@ public class EndToEndInstructionLevelTests
         instr3!.Opcode.Should().Be("add");
     }
 
-    [Fact]
+    [Test]
     public void EndToEnd_IfElseStatement_ShouldGenerateBranchInstructions()
     {
         // Arrange - Create if (x > 0) { y = 1; } else { y = 2; }
@@ -119,7 +118,7 @@ public class EndToEndInstructionLevelTests
         });
     }
 
-    [Fact]
+    [Test]
     public void EndToEnd_ComplexExpression_ShouldGenerateStackBasedInstructions()
     {
         // Arrange - Create: (a + b) * (c - d)
@@ -168,7 +167,7 @@ public class EndToEndInstructionLevelTests
         arithInstructions[2].Opcode.Should().Be("mul"); // (a + b) * (c - d)
     }
 
-    [Fact]
+    [Test]
     public void EndToEnd_MethodWithInstructions_ShouldAllowInstructionSequences()
     {
         // Arrange - Create instruction sequences directly (low-level IL approach)
@@ -204,7 +203,7 @@ public class EndToEndInstructionLevelTests
         retInstr!.Opcode.Should().Be("ret");
     }
 
-    [Fact]
+    [Test]
     public void EndToEnd_NestedExpressions_ShouldMaintainEvaluationOrder()
     {
         // Arrange - Create: x + (y * z)

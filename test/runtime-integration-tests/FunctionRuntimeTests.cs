@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Xunit;
 
 namespace runtime_integration_tests;
 
@@ -8,7 +7,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class FunctionRuntimeTests : RuntimeTestBase
 {
-    [Fact]
+    [Test]
     public async Task SimpleFunctionCall_ShouldReturnCorrectValue()
     {
         // Arrange
@@ -31,7 +30,7 @@ public class FunctionRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task MultipleParameterFunction_ShouldHandleAllParameters()
     {
         // Arrange
@@ -54,7 +53,7 @@ public class FunctionRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task RecursiveFunction_ShouldComputeFactorial()
     {
         // Arrange
@@ -80,7 +79,7 @@ public class FunctionRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task RecursiveFunction_ShouldComputeFibonacci()
     {
         // Arrange
@@ -106,7 +105,7 @@ public class FunctionRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task FunctionWithLocalVariables_ShouldManageScope()
     {
         // Arrange
@@ -132,7 +131,7 @@ public class FunctionRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task NestedFunctionCalls_ShouldEvaluateCorrectly()
     {
         // Arrange
@@ -159,7 +158,7 @@ public class FunctionRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task OverloadedFunction_ShouldSelectCorrectOverload()
     {
         // Arrange
@@ -186,7 +185,7 @@ public class FunctionRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task OverloadedFunctionWithComplexConstraints_ShouldWork()
     {
         // Arrange
@@ -217,7 +216,7 @@ public class FunctionRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task FunctionWithComplexControlFlow_ShouldExecuteCorrectly()
     {
         // Arrange

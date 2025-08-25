@@ -4,13 +4,12 @@ using ast_model.TypeSystem;
 using compiler.LangProcessingPhases;
 using Fifth;
 using FluentAssertions;
-using FsCheck.Xunit;
 
 namespace ast_tests;
 
 public class AstBuilderVisitorTests
 {
-    [Fact]
+    [Test]
     public void can_build_from_function_def()
     {
         var funcdefsrc = $$"""
@@ -28,7 +27,7 @@ public class AstBuilderVisitorTests
         }
     }
 
-    [Fact]
+    [Test]
     public void can_build_from_function_def_with_if_statement()
     {
         var funcdefsrc = $$"""
@@ -59,11 +58,12 @@ public class AstBuilderVisitorTests
         }
         else
         {
-            Assert.Fail();
+            throw new InvalidOperationException("Unexpected parse context type");
         }
     }
 
-    [Property]
+    [Test]
+    [MethodDataSource(nameof(DoubleSamples))]
     public void can_parse_double_literals(double d)
     {
         var nativeRepresentation = $"{d:0.000}d";
@@ -86,7 +86,7 @@ public class AstBuilderVisitorTests
             a.Should().BeOfType<Float8LiteralExp>();
     }
 
-    [Fact]
+    [Test]
     public void can_parse_floats_case1()
     {
         var s = CharStreams.fromString("4.940656458e-324");
@@ -98,7 +98,7 @@ public class AstBuilderVisitorTests
         a.Should().BeOfType<Float4LiteralExp>();
     }
 
-    [Fact]
+    [Test]
     public void can_parse_floats_case2()
     {
         var s = CharStreams.fromString("0.0");
@@ -110,7 +110,8 @@ public class AstBuilderVisitorTests
         a.Should().BeOfType<Float4LiteralExp>();
     }
 
-    [Property]
+    [Test]
+    [MethodDataSource(nameof(IntSamples))]
     public void can_parse_int_literals(int d)
     {
         var nativeRepresentation = $"{d}";
@@ -131,7 +132,7 @@ public class AstBuilderVisitorTests
             a.Should().BeOfType<Int32LiteralExp>();
     }
 
-    [Fact]
+    [Test]
     public void can_parse_int_literals_case1()
     {
         int d = -1;
@@ -153,9 +154,9 @@ public class AstBuilderVisitorTests
             a.Should().BeOfType<Int32LiteralExp>();
     }
 
-    [Theory]
-    [InlineData("a = 5;")]
-    [InlineData("a = 5 * 6;")]
+    [Test]
+    [Arguments("a = 5;")]
+    [Arguments("a = 5 * 6;")]
     public void handles_assignment_statements(string exp)
     {
         var s = CharStreams.fromString(exp);
@@ -167,21 +168,21 @@ public class AstBuilderVisitorTests
         a.Should().BeOfType<AssignmentStatement>();
     }
 
-    [Theory]
-    [InlineData(0, "Name", "string")]
-    [InlineData(1, "Height", "float")]
-    [InlineData(2, "Age", "float")]
-    [InlineData(3, "Weight", "float")]
+    [Test]
+    [Arguments(0, "Name", "string")]
+    [Arguments(1, "Height", "float")]
+    [Arguments(2, "Age", "float")]
+    [Arguments(3, "Weight", "float")]
     public void handles_class_definition(int ord, string name, string typename)
     {
         var p = GetParserFor("class-definition.5th");
         var x = p.fifth();
         var v = new AstBuilderVisitor();
-        var a = v.Visit(x);
-        a.Should().NotBeNull();
-        a.Should().BeOfType<AssemblyDef>();
-        var ad = a as AssemblyDef;
-        var cd = ad.Modules[0].Classes[0];
+    var a = v.Visit(x);
+    a.Should().NotBeNull();
+    a.Should().BeOfType<AssemblyDef>();
+    var ad = a as AssemblyDef ?? throw new InvalidOperationException("Expected AssemblyDef");
+    var cd = ad.Modules[0].Classes[0];
         cd.MemberDefs.Should().NotBeEmpty();
         cd.MemberDefs.All(o => o is not null).Should().BeTrue();
         cd.Type.Should().BeOfType<FifthType.TType>();
@@ -192,7 +193,7 @@ public class AstBuilderVisitorTests
         prop1.TypeName.Value.Should().Be(typename);
     }
 
-    [Fact]
+    [Test]
     public void handles_function_overloading()
     {
         var p = GetParserFor("overloading.5th");
@@ -221,8 +222,8 @@ public class AstBuilderVisitorTests
         mainFunc.Name.Value.Should().Be("main");
 
         // examine the function params
-        var f = m.Functions[0] as FunctionDef;
-        f.Params.Should().HaveCount(1);
+    var f = m.Functions[0] as FunctionDef ?? throw new InvalidOperationException("Expected FunctionDef");
+    f.Params.Should().HaveCount(1);
         var pa = f.Params[0];
         pa.Name.Should().Be("i");
         pa.TypeName.Value.Should().Be("int");
@@ -242,13 +243,13 @@ public class AstBuilderVisitorTests
         f.Body.Statements.Should().HaveCount(1);
         var stmt = f.Body.Statements[0];
         stmt.Should().BeOfType<ReturnStatement>();
-        var ret = stmt as ReturnStatement;
-        ret.ReturnValue.Should().BeOfType<StringLiteralExp>();
-        var retv = ret.ReturnValue as StringLiteralExp;
+    var ret = stmt as ReturnStatement ?? throw new InvalidOperationException("Expected ReturnStatement");
+    ret.ReturnValue.Should().BeOfType<StringLiteralExp>();
+    var retv = ret.ReturnValue as StringLiteralExp ?? throw new InvalidOperationException("Expected StringLiteralExp");
         retv.Value.Should().Be("\"child\"");
     }
 
-    [Fact]
+    [Test]
     public void handles_if_statements()
     {
         var p = GetParserFor("statement-if.5th");
@@ -261,13 +262,13 @@ public class AstBuilderVisitorTests
         var s1 = ((FunctionDef)m.Functions[0]).Body.Statements[1];
         s1.Should().NotBeNull().And
             .Subject.Should().BeOfType<IfElseStatement>();
-        var ifstmt = s1 as IfElseStatement;
-        ifstmt.Condition.Should().NotBeNull();
+    var ifstmt = s1 as IfElseStatement ?? throw new InvalidOperationException("Expected IfElseStatement");
+    ifstmt.Condition.Should().NotBeNull();
         ifstmt.ThenBlock.Should().NotBeNull();
         ifstmt.ElseBlock.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void handles_ifelse_statements()
     {
         var p = GetParserFor("statement-ifelse.5th");
@@ -280,13 +281,13 @@ public class AstBuilderVisitorTests
         var s1 = ((FunctionDef)m.Functions[0]).Body.Statements[1];
         s1.Should().NotBeNull().And
             .Subject.Should().BeOfType<IfElseStatement>();
-        var ifstmt = s1 as IfElseStatement;
-        ifstmt.Condition.Should().NotBeNull();
+    var ifstmt = s1 as IfElseStatement ?? throw new InvalidOperationException("Expected IfElseStatement");
+    ifstmt.Condition.Should().NotBeNull();
         ifstmt.ThenBlock.Should().NotBeNull();
         ifstmt.ElseBlock.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void handles_list_comprehensions()
     {
         var p = GetParserFor("statement-list-decl.5th");
@@ -299,15 +300,15 @@ public class AstBuilderVisitorTests
         var s0 = ((FunctionDef)m.Functions[0]).Body.Statements[0];
         s0.Should().NotBeNull().And
             .Subject.Should().BeOfType<VarDeclStatement>();
-        var s0vd = s0 as VarDeclStatement;
-        s0vd.VariableDecl.Should().NotBeNull();
+    var s0vd = s0 as VarDeclStatement ?? throw new InvalidOperationException("Expected VarDeclStatement");
+    s0vd.VariableDecl.Should().NotBeNull();
         s0vd.VariableDecl.TypeName.Value.Should().Be("int");
         s0vd.VariableDecl.CollectionType.Should().Be(CollectionType.List);
         s0vd.InitialValue.Should().NotBeNull();
         s0vd.InitialValue.Should().BeOfType<ListComprehension>();
     }
 
-    [Fact]
+    [Test]
     public void handles_list_literals()
     {
         var p = GetParserFor("statement-list-literal.5th");
@@ -320,15 +321,15 @@ public class AstBuilderVisitorTests
         var s0 = ((FunctionDef)m.Functions[0]).Body.Statements[0];
         s0.Should().NotBeNull().And
             .Subject.Should().BeOfType<VarDeclStatement>();
-        var s0vd = s0 as VarDeclStatement;
-        s0vd.VariableDecl.Should().NotBeNull();
+    var s0vd = s0 as VarDeclStatement ?? throw new InvalidOperationException("Expected VarDeclStatement");
+    s0vd.VariableDecl.Should().NotBeNull();
         s0vd.VariableDecl.TypeName.Value.Should().Be("int");
         s0vd.VariableDecl.CollectionType.Should().Be(CollectionType.List);
         s0vd.InitialValue.Should().NotBeNull();
         s0vd.InitialValue.Should().BeOfType<ListLiteral>();
     }
 
-    [Fact]
+    [Test]
     public void handles_property_access()
     {
         var p = GetParserFor("property-access.5th");
@@ -341,18 +342,18 @@ public class AstBuilderVisitorTests
         var s1 = ((FunctionDef)m.Functions[0]).Body.Statements[1];
         s1.Should().NotBeNull();
         s1.Should().BeOfType<AssignmentStatement>();
-        var s1as = s1 as AssignmentStatement;
-        s1as.LValue.Should().BeOfType<MemberAccessExp>();
-        var s1aslv = s1as.LValue as MemberAccessExp;
-        s1aslv.LHS.Should().NotBeNull();
+    var s1as = s1 as AssignmentStatement ?? throw new InvalidOperationException("Expected AssignmentStatement");
+    s1as.LValue.Should().BeOfType<MemberAccessExp>();
+    var s1aslv = s1as.LValue as MemberAccessExp ?? throw new InvalidOperationException("Expected MemberAccessExp");
+    s1aslv.LHS.Should().NotBeNull();
         s1aslv.LHS.Should().BeOfType<VarRefExp>();
-        var s1aslvl = s1aslv.LHS as VarRefExp;
+    var s1aslvl = s1aslv.LHS as VarRefExp ?? throw new InvalidOperationException("Expected VarRefExp");
         s1aslvl.VarName.Should().Be("p");
-        var s1aslvr = s1aslv.RHS as VarRefExp;
+    var s1aslvr = s1aslv.RHS as VarRefExp ?? throw new InvalidOperationException("Expected VarRefExp");
         s1aslvr.VarName.Should().Be("Weight");
     }
 
-    [Fact]
+    [Test]
     public void handles_recursive_destructure_definitions()
     {
         var p = GetParserFor("recursive-destructuring.5th");
@@ -378,9 +379,9 @@ public class AstBuilderVisitorTests
         p0b1b2.ReferencedPropertyName.Value.Should().Be("Weight");
     }
 
-    [Theory]
-    [InlineData("a: int;", false)]
-    [InlineData("a: int = 5;", true)]
+    [Test]
+    [Arguments("a: int;", false)]
+    [Arguments("a: int = 5;", true)]
     public void handles_vardecl_statements(string exp, bool shouldHaveInitialiserExpression)
     {
         var s = CharStreams.fromString(exp);
@@ -390,7 +391,7 @@ public class AstBuilderVisitorTests
         var a = v.VisitStatement(x);
         a.Should().NotBeNull();
         a.Should().BeOfType<VarDeclStatement>();
-        var vds = a as VarDeclStatement;
+    var vds = a as VarDeclStatement ?? throw new InvalidOperationException("Expected VarDeclStatement");
         vds.VariableDecl.Should().NotBeNull();
         vds.VariableDecl.TypeName.Should().NotBeNull();
         vds.VariableDecl.TypeName.Value.Should().Be("int");
@@ -402,7 +403,7 @@ public class AstBuilderVisitorTests
         }
     }
 
-    [Fact]
+    [Test]
     public void handles_while_statements()
     {
         var p = GetParserFor("statement-while.5th");
@@ -417,27 +418,27 @@ public class AstBuilderVisitorTests
             .Subject.Should().BeOfType<WhileStatement>();
     }
 
-    [Theory]
-    [InlineData("3 + 7", Operator.ArithmeticAdd)]
-    [InlineData("3 - 7", Operator.ArithmeticSubtract)]
-    [InlineData("3 * 7", Operator.ArithmeticMultiply)]
-    [InlineData("3 / 7", Operator.ArithmeticDivide)]
-    [InlineData("3 ** 7", Operator.ArithmeticPow)]
-    [InlineData("3 % 7", Operator.ArithmeticMod)]
-    [InlineData("3 == 7", Operator.Equal)]
-    [InlineData("3 != 7", Operator.NotEqual)]
-    [InlineData("3 > 7", Operator.GreaterThan)]
-    [InlineData("3 < 7", Operator.LessThan)]
-    [InlineData("3 <= 7", Operator.LessThanOrEqual)]
-    [InlineData("3 >= 7", Operator.GreaterThanOrEqual)]
-    [InlineData("3 & 7", Operator.BitwiseAnd)]
-    [InlineData("3 | 7", Operator.BitwiseOr)]
-    [InlineData("3 << 7", Operator.BitwiseLeftShift)]
-    [InlineData("3 >> 7", Operator.BitwiseRightShift)]
-    [InlineData("3 && 7", Operator.LogicalAnd)]
-    [InlineData("3 || 7", Operator.LogicalOr)]
-    [InlineData("3 ^ 7", Operator.ArithmeticPow)]
-    [InlineData("3 ~ 7", Operator.LogicalXor)]
+    [Test]
+    [Arguments("3 + 7", Operator.ArithmeticAdd)]
+    [Arguments("3 - 7", Operator.ArithmeticSubtract)]
+    [Arguments("3 * 7", Operator.ArithmeticMultiply)]
+    [Arguments("3 / 7", Operator.ArithmeticDivide)]
+    [Arguments("3 ** 7", Operator.ArithmeticPow)]
+    [Arguments("3 % 7", Operator.ArithmeticMod)]
+    [Arguments("3 == 7", Operator.Equal)]
+    [Arguments("3 != 7", Operator.NotEqual)]
+    [Arguments("3 > 7", Operator.GreaterThan)]
+    [Arguments("3 < 7", Operator.LessThan)]
+    [Arguments("3 <= 7", Operator.LessThanOrEqual)]
+    [Arguments("3 >= 7", Operator.GreaterThanOrEqual)]
+    [Arguments("3 & 7", Operator.BitwiseAnd)]
+    [Arguments("3 | 7", Operator.BitwiseOr)]
+    [Arguments("3 << 7", Operator.BitwiseLeftShift)]
+    [Arguments("3 >> 7", Operator.BitwiseRightShift)]
+    [Arguments("3 && 7", Operator.LogicalAnd)]
+    [Arguments("3 || 7", Operator.LogicalOr)]
+    [Arguments("3 ^ 7", Operator.ArithmeticPow)]
+    [Arguments("3 ~ 7", Operator.LogicalXor)]
     public void should_handle_all_kinds_of_binary_expressions(string exp, Operator op)
     {
         var s = CharStreams.fromString(exp);
@@ -449,13 +450,13 @@ public class AstBuilderVisitorTests
         a.Should().BeOfType<BinaryExp>();
     }
 
-    [Theory]
-    [InlineData("+ 7", Operator.ArithmeticAdd)]
-    [InlineData("+7", Operator.ArithmeticAdd)]
-    [InlineData("- 7", Operator.ArithmeticSubtract)]
-    [InlineData("-7", Operator.ArithmeticSubtract)]
-    [InlineData("! 7", Operator.LogicalNot)]
-    [InlineData("!7", Operator.LogicalNot)]
+    [Test]
+    [Arguments("+ 7", Operator.ArithmeticAdd)]
+    [Arguments("+7", Operator.ArithmeticAdd)]
+    [Arguments("- 7", Operator.ArithmeticSubtract)]
+    [Arguments("-7", Operator.ArithmeticSubtract)]
+    [Arguments("! 7", Operator.LogicalNot)]
+    [Arguments("!7", Operator.LogicalNot)]
     public void should_handle_all_kinds_of_unary_expressions(string exp, Operator op)
     {
         var s = CharStreams.fromString(exp);
@@ -486,11 +487,11 @@ public class AstBuilderVisitorTests
         return parser;
     }
 
-    [Fact]
+    [Test]
     public void function_with_int_return_type_should_have_correct_type_annotation()
     {
-        // Initialize TypeRegistry with primitive types
-        TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
+    // Initialize TypeRegistry with primitive types
+    ast_model.TypeSystem.TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
         
         var funcdefsrc = "main():int{return 42;}";
         var s = CharStreams.fromString(funcdefsrc);
@@ -518,16 +519,16 @@ public class AstBuilderVisitorTests
         }
     }
 
-    [Theory]
-    [InlineData("int", typeof(int), "Int32")]
-    [InlineData("string", typeof(string), "String")]
-    [InlineData("bool", typeof(bool), "Boolean")]
-    [InlineData("float", typeof(float), "Single")]
-    [InlineData("double", typeof(double), "Double")]
+    [Test]
+    [Arguments("int", typeof(int), "Int32")]
+    [Arguments("string", typeof(string), "String")]
+    [Arguments("bool", typeof(bool), "Boolean")]
+    [Arguments("float", typeof(float), "Single")]
+    [Arguments("double", typeof(double), "Double")]
     public void function_return_type_mappings_should_work_correctly(string languageTypeName, Type expectedDotnetType, string expectedTypeName)
     {
-        // Initialize TypeRegistry with primitive types
-        TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
+    // Initialize TypeRegistry with primitive types
+    ast_model.TypeSystem.TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
         
         var funcdefsrc = $"test():{languageTypeName}{{return null;}}";
         var s = CharStreams.fromString(funcdefsrc);
@@ -556,7 +557,7 @@ public class AstBuilderVisitorTests
     {
         Type t = typeof(AstBuilderVisitorTests);
         Console.WriteLine(string.Join('\n', t.Assembly.GetManifestResourceNames()));
-        using (Stream stream = t.Assembly.GetManifestResourceStream(t.Namespace + ".CodeSamples." + resourceName))
+    using (Stream? stream = t.Assembly.GetManifestResourceStream(t.Namespace + ".CodeSamples." + resourceName))
         {
             if (stream == null)
             {
@@ -568,5 +569,14 @@ public class AstBuilderVisitorTests
                 return reader.ReadToEnd();
             }
         }
+    }
+    public static IEnumerable<double> DoubleSamples()
+    {
+        return new[] { -100.5, -1.0, 0.0, 1.5, 3.14, 42.0, 999.999 };
+    }
+
+    public static IEnumerable<int> IntSamples()
+    {
+        return new[] { -100, -1, 0, 1, 42, 123456 };
     }
 }

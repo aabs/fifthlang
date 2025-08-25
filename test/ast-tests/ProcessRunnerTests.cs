@@ -1,4 +1,3 @@
-using Xunit;
 using FluentAssertions;
 using compiler;
 using System.Runtime.InteropServices;
@@ -7,7 +6,7 @@ namespace ast_tests;
 
 public class ProcessRunnerTests
 {
-    [Fact]
+    [Test]
     public async Task RunAsync_WithSuccessfulCommand_ShouldReturnSuccess()
     {
         var runner = new ProcessRunner();
@@ -30,7 +29,7 @@ public class ProcessRunnerTests
         result.ElapsedTime.Should().BeGreaterThan(TimeSpan.Zero);
     }
 
-    [Fact]
+    [Test]
     public async Task RunAsync_WithFailingCommand_ShouldReturnFailure()
     {
         var runner = new ProcessRunner();
@@ -59,7 +58,7 @@ public class ProcessRunnerTests
         }
     }
 
-    [Fact]
+    [Test]
     public async Task RunAsync_WithWorkingDirectory_ShouldUseSpecifiedDirectory()
     {
         var runner = new ProcessRunner();
@@ -116,7 +115,7 @@ public class MockProcessRunner : IProcessRunner
 
 public class MockProcessRunnerTests
 {
-    [Fact]
+    [Test]
     public async Task MockProcessRunner_ShouldReturnConfiguredResults()
     {
         var mock = new MockProcessRunner();
@@ -128,7 +127,7 @@ public class MockProcessRunnerTests
         result.Should().Be(expectedResult);
     }
 
-    [Fact]
+    [Test]
     public async Task MockProcessRunner_WithNoResults_ShouldThrow()
     {
         var mock = new MockProcessRunner();

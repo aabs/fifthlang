@@ -1,4 +1,3 @@
-using Xunit;
 using FluentAssertions;
 using compiler;
 
@@ -6,7 +5,7 @@ namespace ast_tests;
 
 public class PEEmissionTests
 {
-    [Fact]
+    [Test]
     public async Task DirectPEEmission_WithSimpleProgram_ShouldGenerateValidPE()
     {
         // Arrange
@@ -57,7 +56,7 @@ public class PEEmissionTests
         }
     }
     
-    [Fact]
+    [Test]
     public async Task DirectPEEmission_DoesNotRequireIlasm()
     {
         // Arrange - This test validates that we can compile without any external ilasm dependency

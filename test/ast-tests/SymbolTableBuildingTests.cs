@@ -12,7 +12,7 @@ public class SymbolTableBuildingTests
 {
     #region Helpers
 
-    public AssemblyDef ParseProgram(string programFileName)
+    private static AssemblyDef ParseProgram(string programFileName)
     {
         var parser = GetParserFor(programFileName);
         // Act
@@ -24,7 +24,7 @@ public class SymbolTableBuildingTests
         var visitor = new SymbolTableBuilderVisitor();
         visitor.Visit((AstThing)ast);
         // Assert
-        return ast as AssemblyDef;
+        return (ast as AssemblyDef)!;
     }
 
     private static FifthParser GetParserFor(string sourceFile)
@@ -50,23 +50,19 @@ public class SymbolTableBuildingTests
     {
         Type t = typeof(AstBuilderVisitorTests);
         Console.WriteLine(string.Join('\n', t.Assembly.GetManifestResourceNames()));
-        using (Stream stream = t.Assembly.GetManifestResourceStream(t.Namespace + ".CodeSamples." + resourceName))
+        Stream? streamObj = t.Assembly.GetManifestResourceStream(t.Namespace + ".CodeSamples." + resourceName);
+        if (streamObj == null)
         {
-            if (stream == null)
-            {
-                throw new FileNotFoundException("Resource not found", resourceName);
-            }
-
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                return reader.ReadToEnd();
-            }
+            throw new FileNotFoundException("Resource not found", resourceName);
         }
+        using Stream stream = streamObj;
+        using StreamReader reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 
     #endregion Helpers
 
-    [Fact]
+    [Test]
     public void SymbolTableBuilding_RecursiveDestructuring1()
     {
         var asm = ParseProgram("recursive-destructuring.5th");
@@ -78,7 +74,7 @@ public class SymbolTableBuildingTests
         steP.OriginatingAstThing.TryResolve(new Symbol("Vitals", SymbolKind.PropertyDef), out var stevprop).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void SymbolTableBuilding_SimpleProgram()
     {
         var asm = ParseProgram("statement-if.5th");

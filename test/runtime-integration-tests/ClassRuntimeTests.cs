@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Xunit;
 
 namespace runtime_integration_tests;
 
@@ -8,7 +7,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class ClassRuntimeTests : RuntimeTestBase
 {
-    [Fact]
+    [Test]
     public async Task SimpleClassWithProperties_ShouldCreateAndAccessCorrectly()
     {
         // Arrange
@@ -36,7 +35,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task ClassWithStringProperty_ShouldHandleStringCorrectly()
     {
         // Arrange
@@ -68,7 +67,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task ClassWithMultipleInstances_ShouldMaintainSeparateState()
     {
         // Arrange
@@ -93,7 +92,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task ClassWithComplexProperties_ShouldWorkCorrectly()
     {
         // Arrange
@@ -125,7 +124,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task ClassUsedInControlFlow_ShouldWorkCorrectly()
     {
         // Arrange
@@ -156,7 +155,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact]
+    [Test]
     public async Task ClassWithFloatProperties_ShouldHandleFloatCalculations()
     {
         // Arrange - Note: This test assumes float support in the language
@@ -189,11 +188,11 @@ public class ClassRuntimeTests : RuntimeTestBase
         catch
         {
             // Skip this test if float support isn't fully implemented
-            Assert.True(true, "Skipping float test - may not be fully implemented yet");
+            Console.WriteLine("Skipping float test - may not be fully implemented yet");
         }
     }
 
-    [Fact]
+    [Test]
     public async Task ClassWithPropertyModification_ShouldUpdateCorrectly()
     {
         // Arrange

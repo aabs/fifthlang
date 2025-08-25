@@ -1,4 +1,3 @@
-using Xunit;
 using FluentAssertions;
 using compiler;
 using System.IO;
@@ -8,7 +7,7 @@ namespace ast_tests;
 
 public class PEMetamodelProcessingTests
 {
-    [Fact]
+    [Test]
     public async Task PEEmitter_ProcessesILMetamodel_InsteadOfHardcodedContent()
     {
         // Arrange

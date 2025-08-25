@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Xunit;
 
 namespace runtime_integration_tests;
 
@@ -9,7 +8,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class CollectionRuntimeTests : RuntimeTestBase
 {
-    [Fact]
+    [Test]
     public async Task ArrayDeclaration_ShouldCompile()
     {
         // Arrange
@@ -29,7 +28,7 @@ public class CollectionRuntimeTests : RuntimeTestBase
         // TODO: When PE emission is fixed, expect exit code 1 (arr[0])
     }
 
-    [Fact]
+    [Test]
     public async Task ArrayWithLoop_ShouldCompile()
     {
         // Arrange
@@ -55,7 +54,7 @@ public class CollectionRuntimeTests : RuntimeTestBase
         // TODO: When PE emission is fixed, expect exit code 15 (1+2+3+4+5)
     }
 
-    [Fact]
+    [Test]
     public async Task ListDeclaration_ShouldCompile()
     {
         // Arrange
@@ -77,11 +76,11 @@ public class CollectionRuntimeTests : RuntimeTestBase
         catch
         {
             // Skip if list syntax is not yet implemented
-            Assert.True(true, "Skipping list test - syntax may not be implemented yet");
+            Console.WriteLine("Skipping list test - syntax may not be implemented yet");
         }
     }
 
-    [Fact]
+    [Test]
     public async Task EmptyArray_ShouldCompile()
     {
         // Arrange
@@ -103,11 +102,11 @@ public class CollectionRuntimeTests : RuntimeTestBase
         catch
         {
             // Skip if empty array syntax is not yet supported
-            Assert.True(true, "Skipping empty array test - syntax may not be implemented yet");
+            Console.WriteLine("Skipping empty array test - syntax may not be implemented yet");
         }
     }
 
-    [Fact]
+    [Test]
     public async Task ArrayIndexing_ShouldCompile()
     {
         // Arrange
@@ -129,7 +128,7 @@ public class CollectionRuntimeTests : RuntimeTestBase
         // TODO: When PE emission is fixed, expect exit code 400 (100 + 300)
     }
 
-    [Fact]
+    [Test]
     public async Task NestedArrayAccess_ShouldCompile()
     {
         // Arrange
@@ -151,11 +150,11 @@ public class CollectionRuntimeTests : RuntimeTestBase
         catch
         {
             // Skip if nested array syntax is not yet implemented
-            Assert.True(true, "Skipping nested array test - syntax may not be implemented yet");
+            Console.WriteLine("Skipping nested array test - syntax may not be implemented yet");
         }
     }
 
-    [Fact]
+    [Test]
     public async Task ArrayWithMixedTypes_ShouldCompile()
     {
         // Arrange - Test if the language supports heterogeneous collections

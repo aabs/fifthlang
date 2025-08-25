@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Xunit;
 
 namespace runtime_integration_tests;
 
@@ -10,7 +9,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class BasicRuntimeTests : RuntimeTestBase
 {
-    [Fact]
+    [Test]
     public async Task SimpleReturnInt_ShouldGenerateExecutable()
     {
         // Arrange
@@ -34,7 +33,7 @@ public class BasicRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Fact]
+    [Test]
     public async Task ArithmeticOperations_ShouldCompileSuccessfully()
     {
         // Arrange - Test simple arithmetic without variables (which currently works)
@@ -56,7 +55,7 @@ public class BasicRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Fact]
+    [Test]
     public async Task ComplexArithmeticExpressions_ShouldCompile()
     {
         // Test simple arithmetic operations (without variables which have IL generation issues)
@@ -92,12 +91,12 @@ main(): int {{
             catch (System.Exception ex)
             {
                 // Some operations may not be fully implemented yet in the IL generation
-                Assert.True(true, $"Skipping {operation} execution test - IL generation may not be complete: {ex.Message}");
+                Console.WriteLine($"Skipping {operation} execution test - IL generation may not be complete: {ex.Message}");
             }
         }
     }
 
-    [Fact]
+    [Test]
     public async Task NestedExpressions_ShouldCompile()
     {
         // Arrange - Test simpler nested expressions first
@@ -123,11 +122,11 @@ main(): int {{
         catch (System.Exception ex)
         {
             // Complex expressions may not be fully implemented yet in IL generation
-            Assert.True(true, $"Skipping nested expression execution test - IL generation may not be complete: {ex.Message}");
+            Console.WriteLine($"Skipping nested expression execution test - IL generation may not be complete: {ex.Message}");
         }
     }
 
-    [Fact]
+    [Test]
     public async Task BooleanExpressions_ShouldCompile()
     {
         // Arrange - Simplified boolean expression test (complex control flow not yet working)
@@ -151,7 +150,7 @@ main(): int {{
         // TODO: Update when control flow (if statements) and variable declarations are working in IL generation
     }
 
-    [Fact]
+    [Test]
     public async Task VariableDeclarationAndAssignment_ShouldCompile()
     {
         // Arrange - Test compilation success (execution may fail due to IL generation limitations)
@@ -175,7 +174,7 @@ main(): int {{
         // Expected result would be 15 (5 * 2 + 5) when IL generation is complete
     }
 
-    [Fact]
+    [Test]
     public async Task MultipleVariableTypes_ShouldCompile()
     {
         // Arrange - Test different variable types if supported

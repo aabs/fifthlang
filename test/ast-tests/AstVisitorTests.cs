@@ -7,7 +7,7 @@ namespace ast_tests;
 
 public class AstVisitorTests
 {
-    [Fact]
+    [Test]
     public void can_visit_and_recreate_an_AST_while_preserving_its_other_data()
     {
         var def = CreateAssemblyDef();

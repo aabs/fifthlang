@@ -1,4 +1,3 @@
-using Xunit;
 using FluentAssertions;
 using code_generator;
 
@@ -6,7 +5,7 @@ namespace code_generator.Tests;
 
 public class ILCodeGeneratorIntegrationTests
 {
-    [Fact]
+    [Test]
     public void ILCodeGeneratorConfiguration_DefaultSettings_ShouldHaveValidDefaults()
     {
         // Arrange & Act
@@ -19,7 +18,7 @@ public class ILCodeGeneratorIntegrationTests
         config.ValidateOutput.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ILCodeGeneratorConfiguration_CustomSettings_ShouldRetainValues()
     {
         // Arrange
@@ -41,7 +40,7 @@ public class ILCodeGeneratorIntegrationTests
         config.ValidateOutput.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AstToIlTransformationVisitor_CanBeInstantiated()
     {
         // Act
@@ -51,7 +50,7 @@ public class ILCodeGeneratorIntegrationTests
         visitor.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ILEmissionVisitor_CanBeInstantiated()
     {
         // Act
@@ -61,7 +60,7 @@ public class ILCodeGeneratorIntegrationTests
         visitor.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ILCodeGenerator_CanBeInstantiatedWithDefaultConfig()
     {
         // Act
@@ -71,7 +70,7 @@ public class ILCodeGeneratorIntegrationTests
         generator.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ILCodeGenerator_CanBeInstantiatedWithCustomConfig()
     {
         // Arrange

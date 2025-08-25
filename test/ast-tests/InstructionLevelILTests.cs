@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Xunit;
 using il_ast;
 using ast;
 using code_generator;
@@ -14,7 +13,7 @@ public class InstructionLevelILTests
 {
     private readonly AstToIlTransformationVisitor _generator = new();
 
-    [Fact]
+    [Test]
     public void GenerateExpression_ForIntLiteral_ShouldProduceLdcI4Instruction()
     {
         // Arrange
@@ -31,7 +30,7 @@ public class InstructionLevelILTests
         instruction.Value.Should().Be(42);
     }
 
-    [Fact]
+    [Test]
     public void GenerateExpression_ForBinaryAddition_ShouldProduceCorrectInstructionSequence()
     {
         // Arrange
@@ -68,7 +67,7 @@ public class InstructionLevelILTests
         thirdInstr!.Opcode.Should().Be("add");
     }
 
-    [Fact]
+    [Test]
     public void GenerateStatement_ForVariableAssignment_ShouldProduceLoadAndStoreInstructions()
     {
         // Arrange
@@ -99,7 +98,7 @@ public class InstructionLevelILTests
         storeInstr.Target.Should().Be("myVar");
     }
 
-    [Fact]
+    [Test]
     public void GenerateIfStatement_ShouldProduceBranchInstructions()
     {
         // Arrange
@@ -140,7 +139,7 @@ public class InstructionLevelILTests
         labelInstructions.Should().HaveCount(2); // false label and end label
     }
 
-    [Fact]
+    [Test]
     public void InstructionSequence_CanBeConvertedToStatements()
     {
         // Arrange
@@ -173,7 +172,7 @@ public class InstructionLevelILTests
         retInstr!.Opcode.Should().Be("ret");
     }
 
-    [Fact]
+    [Test]
     public void InstructionSequence_ShouldAllowChaining()
     {
         // Arrange

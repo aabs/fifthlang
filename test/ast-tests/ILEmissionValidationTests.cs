@@ -1,4 +1,3 @@
-using Xunit;
 using FluentAssertions;
 using compiler;
 using System.IO;
@@ -11,7 +10,7 @@ namespace ast_tests;
 /// </summary>
 public class ILEmissionValidationTests
 {
-    [Fact]
+    [Test]
     public void SimpleReturnProgram_ShouldNotCrashWithInvalidProgramException()
     {
         // Arrange
@@ -83,7 +82,7 @@ public class ILEmissionValidationTests
         }
     }
     
-    [Fact]
+    [Test]
     public void VariableDeclarationProgram_ShouldNotCrashWithInvalidProgramException()
     {
         // Arrange

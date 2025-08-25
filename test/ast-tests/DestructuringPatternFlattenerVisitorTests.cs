@@ -6,7 +6,7 @@ namespace ast_tests;
 
 public class DestructuringPatternFlattenerVisitorTests : VisitorTestsBase
 {
-    [Fact]
+    [Test]
     public void ParsedMethodWithDestructionDecl_WhenVisitedWithDestructuringPatternFlattenerVisitor_ThenReturnsMethodWithFlattenedDestructure()
     {
         // Arrange

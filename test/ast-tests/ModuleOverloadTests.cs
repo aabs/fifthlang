@@ -9,7 +9,7 @@ namespace ast_tests;
 
 public class ModuleOverloadTests : VisitorTestsBase
 {
-    [Fact]
+    [Test]
     public void GatherModule_ShouldGroupOverloadedFunctionsAndSubstituteThem()
     {
         // Arrange
@@ -29,11 +29,11 @@ public class ModuleOverloadTests : VisitorTestsBase
         visitor.GatherModule(moduleDef);
 
         // Assert
-        Assert.Single(moduleDef.Functions);
-        Assert.IsType<OverloadedFunctionDef>(moduleDef.Functions.First());
+        moduleDef.Functions.Should().ContainSingle();
+        moduleDef.Functions.First().Should().BeOfType<OverloadedFunctionDef>();
     }
 
-    [Fact]
+    [Test]
     public void GatherModuleOverloads_ShouldReturnGroupedFunctionsByFunctionSignature()
     {
         // Arrange
@@ -52,11 +52,11 @@ public class ModuleOverloadTests : VisitorTestsBase
         var result = visitor.GatherModuleOverloads(moduleDef);
 
         // Assert
-        Assert.Single(result);
-        Assert.Equal(2, result.First().Value.Count);
+        result.Should().ContainSingle();
+        result.First().Value.Count.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void SubstituteModuleFunctionDefinitions_ShouldReplaceOldFunctionsWithCombinedFunction()
     {
         // Arrange
@@ -86,11 +86,11 @@ public class ModuleOverloadTests : VisitorTestsBase
         visitor.SubstituteModuleFunctionDefinitions(moduleDef, new List<FunctionDef> { functionDef1, functionDef2 }, combinedFunction);
 
         // Assert
-        Assert.Single(moduleDef.Functions);
-        Assert.Equal(combinedFunction, moduleDef.Functions.First());
+        moduleDef.Functions.Should().ContainSingle();
+        moduleDef.Functions.First().Should().BeSameAs(combinedFunction);
     }
 
-    [Fact]
+    [Test]
     public void VisitModuleDef_ShouldCallGatherModuleAndReturnBaseVisitModuleDef()
     {
         // Arrange

@@ -3,12 +3,13 @@ using ast_generated;
 using ast_model.TypeSystem;
 using Fifth.LangProcessingPhases;
 using System.Linq;
+using FluentAssertions;
 
 namespace ast_tests;
 
 public class OverloadTransformingVisitorTests : VisitorTestsBase
 {
-    [Fact]
+    [Test]
     public void GenerateGuardFunction_ShouldCreateGuardFunction()
     {
         // Arrange
@@ -16,7 +17,7 @@ public class OverloadTransformingVisitorTests : VisitorTestsBase
         var cd = CreateClassDef("class1");
         var methodDef1 = (MethodDef)CreateMethodDef("Test1", "int").WithParent(cd);
         var methodDef2 = (MethodDef)CreateMethodDef("Test1", "int").WithParent(cd);
-        var clauses = new List<(Expression, MethodDef)>
+        var clauses = new List<(Expression?, MethodDef)>
         {
             (True, methodDef1),
             (False, methodDef2)
@@ -31,11 +32,11 @@ public class OverloadTransformingVisitorTests : VisitorTestsBase
         var guardFunction = visitor.GenerateGuardFunction((OverloadedFunctionDefinition)overloadedFunction, clauses);
 
         // Assert
-        Assert.NotNull(guardFunction);
-        Assert.Equal("Test1", guardFunction.Name.Value);
+    guardFunction.Should().NotBeNull();
+    guardFunction!.Name.Value.Should().Be("Test1");
     }
 
-    [Fact]
+    [Test]
     public void GetPrecondition_ShouldReturnCombinedPreconditions()
     {
         // Arrange
@@ -47,11 +48,11 @@ public class OverloadTransformingVisitorTests : VisitorTestsBase
         var precondition = visitor.GetPrecondition(methodDef);
 
         // Assert
-        Assert.NotNull(precondition);
-        Assert.IsType<BinaryExp>(precondition);
+    precondition.Should().NotBeNull();
+    precondition!.Should().BeOfType<BinaryExp>();
     }
 
-    [Fact]
+    [Test]
     public void ProcessOverloadedFunctionDefinition_ShouldTransformFunction()
     {
         // Arrange
@@ -74,7 +75,7 @@ public class OverloadTransformingVisitorTests : VisitorTestsBase
         visitor.ProcessOverloadedFunctionDefinition((OverloadedFunctionDefinition)overloadedFunction);
 
         // Assert
-        Assert.Contains(cd.MemberDefs, m => m.Name == "Test1_subclause1");
-        Assert.Contains(cd.MemberDefs, m => m.Name == "Test1_subclause2");
+    cd.MemberDefs.Should().Contain(m => m.Name == "Test1_subclause1");
+    cd.MemberDefs.Should().Contain(m => m.Name == "Test1_subclause2");
     }
 }

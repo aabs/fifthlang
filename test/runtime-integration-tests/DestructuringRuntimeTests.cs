@@ -1,6 +1,5 @@
 using FluentAssertions;
 using System.Runtime.InteropServices;
-using Xunit;
 
 namespace runtime_integration_tests;
 
@@ -10,7 +9,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class DestructuringRuntimeTests : RuntimeTestBase
 {
-    [Fact]
+    [Test]
     public async Task SimpleDestructuring_ShouldCompile()
     {
         // Arrange
@@ -40,7 +39,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Fact]
+    [Test]
     public async Task ConditionalDestructuring_ShouldCompile()
     {
         // Arrange
@@ -70,7 +69,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Fact]
+    [Test]
     public async Task NestedDestructuring_ShouldCompile()
     {
         // Arrange
@@ -125,7 +124,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Fact]
+    [Test]
     public async Task ArrayDestructuring_ShouldCompile()
     {
         // Arrange
@@ -154,11 +153,11 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         catch
         {
             // Skip if array destructuring is not yet implemented
-            Assert.True(true, "Skipping array destructuring test - feature may not be implemented yet");
+            Console.WriteLine("Skipping array destructuring test - feature may not be implemented yet");
         }
     }
 
-    [Fact]
+    [Test]
     public async Task GuardedDestructuring_ShouldCompile()
     {
         // Arrange

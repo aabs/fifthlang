@@ -1,4 +1,3 @@
-using Xunit;
 using FluentAssertions;
 using compiler;
 
@@ -6,7 +5,7 @@ namespace ast_tests;
 
 public class CompilerTests
 {
-    [Fact]
+    [Test]
     public async Task CompileAsync_WithHelpCommand_ShouldReturnSuccess()
     {
         var compiler = new Compiler();
@@ -18,7 +17,7 @@ public class CompilerTests
         result.ExitCode.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public async Task CompileAsync_WithInvalidOptions_ShouldReturnError()
     {
         var compiler = new Compiler();
@@ -33,7 +32,7 @@ public class CompilerTests
         result.Diagnostics[0].Message.Should().Contain("Source file or directory must be specified");
     }
 
-    [Fact]
+    [Test]
     public async Task CompileAsync_WithNonExistentSource_ShouldReturnParseError()
     {
         var compiler = new Compiler();
@@ -47,7 +46,7 @@ public class CompilerTests
         result.Diagnostics[0].Message.Should().Contain("Source path does not exist");
     }
 
-    [Fact]
+    [Test]
     public async Task CompileAsync_WithLintCommand_ShouldNotRequireOutput()
     {
         // Create a simple temporary Fifth file
@@ -76,7 +75,7 @@ public class CompilerTests
         }
     }
 
-    [Fact]
+    [Test]
     public async Task CompileAsync_WithMockProcessRunner_ShouldUseProvidedRunner()
     {
         var mockRunner = new MockProcessRunner();
@@ -90,10 +89,9 @@ public class CompilerTests
     }
 }
 
-[Trait("Category", "Integration")]
 public class CompilerIntegrationTests
 {
-    [Fact]
+    [Test]
     public async Task CompileAsync_WithSimpleFifthFile_ShouldBuild()
     {
         // Create a temporary directory for our test
@@ -139,7 +137,7 @@ public class CompilerIntegrationTests
         }
     }
 
-    [Fact]
+    [Test]
     public async Task CompileAsync_WithLintCommand_ShouldValidateWithoutGeneratingFiles()
     {
         // Create a temporary directory for our test
@@ -181,7 +179,7 @@ public class CompilerIntegrationTests
         }
     }
 
-    [Fact]
+    [Test]
     public async Task CompileAsync_WithEmptyDirectory_ShouldReturnError()
     {
         // Create an empty temporary directory

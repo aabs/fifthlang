@@ -2,12 +2,13 @@ using ast;
 using ast_generated; // Added namespace for Builder classes
 using ast_model.TypeSystem;
 using compiler.LanguageTransformations;
+using FluentAssertions;
 
-namespace ast_tests
+namespace ast_tests;
+
+public class PropertyToFieldExpanderTests
 {
-    public class PropertyToFieldExpanderTests
-    {
-        [Fact]
+    [Test]
         public void VisitPropertyDef_ShouldAddBackingField()
         {
             // Arrange
@@ -26,11 +27,11 @@ namespace ast_tests
 
             // Assert
             var classDef = propertyDef.Parent as ClassDef;
-            Assert.NotNull(classDef);
-            Assert.Contains(classDef.MemberDefs, m => m is FieldDef && ((FieldDef)m).Name == "TestProperty__BackingField");
+            classDef.Should().NotBeNull();
+            classDef!.MemberDefs.Should().Contain(m => m is FieldDef && ((FieldDef)m).Name == "TestProperty__BackingField");
         }
 
-        [Fact]
+        [Test]
         public void VisitPropertyDef_ShouldAddGetterMethod()
         {
             // Arrange
@@ -49,11 +50,11 @@ namespace ast_tests
 
             // Assert
             var classDef = propertyDef.Parent as ClassDef;
-            Assert.NotNull(classDef);
-            Assert.Contains(classDef.MemberDefs, m => m is MethodDef && ((MethodDef)m).Name == "get_TestProperty");
+            classDef.Should().NotBeNull();
+            classDef!.MemberDefs.Should().Contain(m => m is MethodDef && ((MethodDef)m).Name == "get_TestProperty");
         }
 
-        [Fact]
+        [Test]
         public void VisitPropertyDef_ShouldAddSetterMethod()
         {
             // Arrange
@@ -72,21 +73,21 @@ namespace ast_tests
 
             // Assert
             var classDef = propertyDef.Parent as ClassDef;
-            Assert.NotNull(classDef);
-            Assert.Contains(classDef.MemberDefs, m => m is MethodDef && ((MethodDef)m).Name == "set_TestProperty");
+            classDef.Should().NotBeNull();
+            classDef!.MemberDefs.Should().Contain(m => m is MethodDef && ((MethodDef)m).Name == "set_TestProperty");
         }
 
-        [Fact]
+        [Test]
         public void VisitPropertyDef_ShouldHandleNullPropertyDef()
         {
             // Arrange
             var expander = new PropertyToFieldExpander();
 
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => expander.VisitPropertyDef(null));
+            FluentActions.Invoking(() => expander.VisitPropertyDef(null!)).Should().Throw<ArgumentNullException>();
         }
 
-        [Fact]
+        [Test]
         public void VisitPropertyDef_ShouldHandlePrivateProperty()
         {
             // Arrange
@@ -105,13 +106,13 @@ namespace ast_tests
 
             // Assert
             var classDef = propertyDef.Parent as ClassDef;
-            Assert.NotNull(classDef);
-            Assert.Contains(classDef.MemberDefs, m => m is FieldDef && ((FieldDef)m).Name == "PrivateProperty__BackingField");
-            Assert.Contains(classDef.MemberDefs, m => m is MethodDef && ((MethodDef)m).Name == "get_PrivateProperty");
-            Assert.Contains(classDef.MemberDefs, m => m is MethodDef && ((MethodDef)m).Name == "set_PrivateProperty");
+            classDef.Should().NotBeNull();
+            classDef!.MemberDefs.Should().Contain(m => m is FieldDef && ((FieldDef)m).Name == "PrivateProperty__BackingField");
+            classDef.MemberDefs.Should().Contain(m => m is MethodDef && ((MethodDef)m).Name == "get_PrivateProperty");
+            classDef.MemberDefs.Should().Contain(m => m is MethodDef && ((MethodDef)m).Name == "set_PrivateProperty");
         }
 
-        [Fact]
+        [Test]
         public void VisitPropertyDef_ShouldHandlePropertyWithoutParentClass()
         {
             // Arrange
@@ -124,10 +125,10 @@ namespace ast_tests
             var expander = new PropertyToFieldExpander();
 
             // Act & Assert
-            Assert.Throws<InvalidOperationException>(() => expander.VisitPropertyDef(propertyDef));
+            FluentActions.Invoking(() => expander.VisitPropertyDef(propertyDef)).Should().Throw<InvalidOperationException>();
         }
 
-        [Fact]
+        [Test]
         public void VisitPropertyDef_ShouldHandleReadOnlyProperty()
         {
             // Arrange
@@ -147,10 +148,9 @@ namespace ast_tests
 
             // Assert
             var classDef = propertyDef.Parent as ClassDef;
-            Assert.NotNull(classDef);
-            Assert.Contains(classDef.MemberDefs, m => m is FieldDef && ((FieldDef)m).Name == "ReadOnlyProperty__BackingField");
-            Assert.Contains(classDef.MemberDefs, m => m is MethodDef && ((MethodDef)m).Name == "get_ReadOnlyProperty");
-            Assert.DoesNotContain(classDef.MemberDefs, m => m is MethodDef && ((MethodDef)m).Name == "set_ReadOnlyProperty");
+            classDef.Should().NotBeNull();
+            classDef!.MemberDefs.Should().Contain(m => m is FieldDef && ((FieldDef)m).Name == "ReadOnlyProperty__BackingField");
+            classDef.MemberDefs.Should().Contain(m => m is MethodDef && ((MethodDef)m).Name == "get_ReadOnlyProperty");
+            classDef.MemberDefs.Should().NotContain(m => m is MethodDef && ((MethodDef)m).Name == "set_ReadOnlyProperty");
         }
-    }
 }

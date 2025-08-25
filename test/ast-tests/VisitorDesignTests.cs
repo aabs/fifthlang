@@ -2,7 +2,7 @@
 
 public class VisitorDesignTests
 {
-  [Fact]
+  [Test]
   public void test1()
   {
     var o = new SomeClass();

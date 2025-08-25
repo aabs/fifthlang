@@ -1,4 +1,3 @@
-using Xunit;
 using FluentAssertions;
 using compiler;
 using System.Runtime.InteropServices;
@@ -7,7 +6,7 @@ namespace ast_tests;
 
 public class ILAsmLocatorTests
 {
-    [Fact]
+    [Test]
     public void FindILAsm_ShouldReturnStringOrNull()
     {
         // This test just ensures the method doesn't throw
@@ -20,7 +19,7 @@ public class ILAsmLocatorTests
         }
     }
 
-    [Fact]
+    [Test]
     public void GetILAsmNotFoundMessage_ShouldReturnHelpfulMessage()
     {
         var message = ILAsmLocator.GetILAsmNotFoundMessage();
@@ -31,7 +30,7 @@ public class ILAsmLocatorTests
         message.Should().Contain("PATH");
     }
 
-    [Fact]
+    [Test]
     public void FindILAsm_WithILASM_PATH_Set_ShouldReturnPath()
     {
         // Create a temporary file to simulate ilasm
@@ -53,7 +52,7 @@ public class ILAsmLocatorTests
         }
     }
 
-    [Fact]
+    [Test]
     public void FindILAsm_WithInvalidILASM_PATH_ShouldFallback()
     {
         // Use platform-appropriate invalid path
