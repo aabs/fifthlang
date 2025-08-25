@@ -12,6 +12,21 @@ namespace code_generator;
 /// </summary>
 public class PEEmitter
 {
+    // Maps for types, fields, and constructors defined in this assembly
+    private readonly Dictionary<string, TypeDefinitionHandle> _typeHandles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, FieldDefinitionHandle> _fieldHandles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, FieldDefinitionHandle> _fieldHandlesByTypeAndName = new(StringComparer.Ordinal);
+    // Note: We avoid MemberReferences for fields within the same module; use FieldDefinitionHandles instead
+    private readonly Dictionary<TypeDefinitionHandle, string> _typeNamesByHandle = new();
+    private readonly Dictionary<string, MethodDefinitionHandle> _ctorHandles = new(StringComparer.Ordinal);
+
+    // Per-method emission state for simple local type inference
+    private string? _lastLoadedLocal;
+    private bool _lastWasNewobj;
+    private Dictionary<string, SignatureTypeCode> _localVarTypeMap = new(StringComparer.Ordinal);
+    private string? _pendingNewobjTypeName;
+    private readonly Dictionary<string, TypeDefinitionHandle> _localVarClassTypeHandles = new(StringComparer.Ordinal);
+
     /// <summary>
     /// Generate a PE assembly directly from IL metamodel
     /// </summary>
@@ -26,8 +41,9 @@ public class PEEmitter
             var metadataBuilder = new MetadataBuilder();
             var blobBuilder = new BlobBuilder();
             
-            // Collect method bodies for PE builder
+            // Collect method bodies for PE builder using MethodBodyStreamEncoder
             var methodBodyStream = new BlobBuilder();
+            var methodBodyEncoder = new MethodBodyStreamEncoder(methodBodyStream);
             MethodDefinitionHandle? entryPointMethodHandle = null;
             
             // Ensure we have a valid assembly name - use output filename if IL assembly name is empty
@@ -51,6 +67,15 @@ public class PEEmitter
                 metadataBuilder.GetOrAddGuid(Guid.NewGuid()),
                 default,
                 default);
+
+            // Add the special <Module> type definition as the first TypeDef
+            var moduleTypeHandle = metadataBuilder.AddTypeDefinition(
+                TypeAttributes.Class | TypeAttributes.SpecialName | TypeAttributes.RTSpecialName | TypeAttributes.NotPublic,
+                default,
+                metadataBuilder.GetOrAddString("<Module>"),
+                default,
+                MetadataTokens.FieldDefinitionHandle(1),
+                MetadataTokens.MethodDefinitionHandle(1));
 
             // Add assembly definition
             var assemblyHandle = metadataBuilder.AddAssembly(
@@ -83,6 +108,88 @@ public class PEEmitter
                 metadataBuilder.GetOrAddString("WriteLine"),
                 metadataBuilder.GetOrAddBlob(writeLineSignatureBlob));
 
+            // Add a reference to System.Object::.ctor for calling base constructor from our ctors
+            var objectCtorSig = new BlobBuilder();
+            objectCtorSig.WriteByte(0x20); // HASTHIS calling convention for instance methods
+            objectCtorSig.WriteByte(0x00); // parameter count = 0
+            objectCtorSig.WriteByte((byte)SignatureTypeCode.Void); // return type
+            var objectCtorMemberRef = metadataBuilder.AddMemberReference(
+                objectTypeRef,
+                metadataBuilder.GetOrAddString(".ctor"),
+                metadataBuilder.GetOrAddBlob(objectCtorSig));
+
+            // If there are classes, emit them with fields and a default .ctor
+            if (ilAssembly.PrimeModule != null && ilAssembly.PrimeModule.Classes.Count > 0)
+            {
+                foreach (var cls in ilAssembly.PrimeModule.Classes)
+                {
+                    var ns = cls.Namespace ?? "Fifth.Generated";
+                    var name = cls.Name ?? "Unnamed";
+
+                    // Determine starting Field and Method row ids for this type
+                    var firstFieldRowId = metadataBuilder.GetRowCount(TableIndex.Field) + 1;
+                    var firstFieldHandle = MetadataTokens.FieldDefinitionHandle(firstFieldRowId);
+                    var firstMethodRowId = metadataBuilder.GetRowCount(TableIndex.MethodDef) + 1;
+                    var firstMethodHandleForType = MetadataTokens.MethodDefinitionHandle(firstMethodRowId);
+
+                    // Define the type
+                    var typeHandle = metadataBuilder.AddTypeDefinition(
+                        TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.BeforeFieldInit,
+                        metadataBuilder.GetOrAddString(ns),
+                        metadataBuilder.GetOrAddString(name),
+                        objectTypeRef,
+                        firstFieldHandle,
+                        firstMethodHandleForType);
+                    _typeHandles[name] = typeHandle;
+                    _typeNamesByHandle[typeHandle] = name;
+
+                    // Add fields
+                    foreach (var field in cls.Fields)
+                    {
+                        var fieldSig = new BlobBuilder();
+                        fieldSig.WriteByte(0x06); // FIELD signature
+                        fieldSig.WriteByte((byte)GetSignatureTypeCode(field.TheType));
+                        var fh = metadataBuilder.AddFieldDefinition(
+                            FieldAttributes.Public,
+                            metadataBuilder.GetOrAddString(field.Name ?? "field"),
+                            metadataBuilder.GetOrAddBlob(fieldSig));
+                        // Store by simple field name (assume unique across types for now)
+                        _fieldHandles[field.Name ?? "field"] = fh;
+                        _fieldHandlesByTypeAndName[$"{name}::{field.Name}"] = fh;
+                    }
+
+                    // Emit a default parameterless instance constructor
+                    var ctorSig = new BlobBuilder();
+                    ctorSig.WriteByte(0x20); // HASTHIS
+                    ctorSig.WriteByte(0x00); // param count 0
+                    ctorSig.WriteByte((byte)SignatureTypeCode.Void);
+
+                    // Body: ldarg.0; call instance void [System.Runtime]System.Object::.ctor(); ret
+                    var ilInstructions = new BlobBuilder();
+                    var cf = new ControlFlowBuilder();
+                    var ctorIl = new InstructionEncoder(ilInstructions, cf);
+                    ctorIl.LoadArgument(0);
+                    ctorIl.Call(objectCtorMemberRef);
+                    ctorIl.OpCode(ILOpCode.Ret);
+                    var bodyOffset = new MethodBodyStreamEncoder(methodBodyStream).AddMethodBody(
+                        ctorIl,
+                        maxStack: 8,
+                        localVariablesSignature: default,
+                        attributes: MethodBodyAttributes.None);
+
+                    var ctorHandle = metadataBuilder.AddMethodDefinition(
+                        MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
+                        MethodImplAttributes.IL,
+                        metadataBuilder.GetOrAddString(".ctor"),
+                        metadataBuilder.GetOrAddBlob(ctorSig),
+                        bodyOffset,
+                        // No parameters; ParamList should point at next Param row
+                        MetadataTokens.ParameterHandle(metadataBuilder.GetRowCount(TableIndex.Param) + 1));
+
+                    _ctorHandles[name] = ctorHandle;
+                }
+            }
+
             // Process methods from IL metamodel
             if (ilAssembly.PrimeModule == null || ilAssembly.PrimeModule.Functions.Count == 0)
             {
@@ -92,7 +199,8 @@ public class PEEmitter
                     default,
                     metadataBuilder.GetOrAddString("Program"),
                     objectTypeRef,
-                    MetadataTokens.FieldDefinitionHandle(1),
+                    // Program has no fields; FieldList should point past the last existing field
+                    MetadataTokens.FieldDefinitionHandle(metadataBuilder.GetRowCount(TableIndex.Field) + 1),
                     MetadataTokens.MethodDefinitionHandle(1));
             }
             else
@@ -102,100 +210,99 @@ public class PEEmitter
                 
                 if (functions.Any())
                 {
-                    // Add Program type
+                    // Reserve the method row id that will be the first method of Program
+                    var firstMethodRowId = metadataBuilder.GetRowCount(TableIndex.MethodDef) + 1;
+                    var firstMethodHandle = MetadataTokens.MethodDefinitionHandle(firstMethodRowId);
+
+                    // Add Program type with correct MethodList pointing at first future method
                     var programTypeHandle = metadataBuilder.AddTypeDefinition(
                         TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
                         default,
                         metadataBuilder.GetOrAddString("Program"),
                         objectTypeRef,
-                        MetadataTokens.FieldDefinitionHandle(1),
-                        MetadataTokens.MethodDefinitionHandle(1));
+                        // Program has no fields; FieldList should point past the last existing field
+                        MetadataTokens.FieldDefinitionHandle(metadataBuilder.GetRowCount(TableIndex.Field) + 1),
+                        firstMethodHandle);
                     
-                    // Two-pass approach with pre-calculated RVAs
-                    var methodMap = new Dictionary<string, MethodDefinitionHandle>();
+                    // Pre-compute MethodDefinitionHandles so calls can reference them before they're defined
                     var functionList = functions.ToList();
-                    var methodBodies = new List<BlobBuilder>();
-                    var methodRVAs = new List<int>();
-                    
-                    Console.WriteLine("DEBUG: Functions to process:");
-                    foreach (var function in functionList)
-                    {
-                        Console.WriteLine($"  - {function.Name} (IsEntrypoint: {function.Header.IsEntrypoint})");
-                    }
-                    
-                    // Pre-pass: Generate all method bodies to calculate RVAs
-                    var currentOffset = 0;
-                    foreach (var function in functionList)
-                    {
-                        // Generate method body without method map for now (calls will be skipped)
-                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef, null);
-                        methodBodies.Add(methodBody);
-                        methodRVAs.Add(currentOffset);
-                        currentOffset += methodBody.Count;
-                        
-                        Console.WriteLine($"DEBUG: Pre-calculated RVA for '{function.Name}': {methodRVAs.Last()}");
-                    }
-                    
-                    // Pass 1: Create all method definitions with correct RVAs and populate method map
+                    var methodMap = new Dictionary<string, MethodDefinitionHandle>(StringComparer.Ordinal);
                     for (int i = 0; i < functionList.Count; i++)
                     {
-                        var function = functionList[i];
-                        
-                        // Create method signature from IL metamodel
+                        var fn = functionList[i];
+                        var methodDefHandle = MetadataTokens.MethodDefinitionHandle(firstMethodRowId + i);
+                        methodMap[fn.Name] = methodDefHandle;
+                    }
+
+                    // Generate method bodies and capture their offsets (RVAs within method body stream)
+                    var bodyOffsets = new Dictionary<string, int>(StringComparer.Ordinal);
+                    foreach (var function in functionList)
+                    {
+                        var (il, localVariables, localTypes) = GenerateMethodIL(function, metadataBuilder, writeLineMethodRef, methodMap);
+
+                        StandaloneSignatureHandle localVarSigToken = default;
+                        if (localVariables.Any())
+                        {
+                            localVarSigToken = (StandaloneSignatureHandle)CreateLocalVariableSignature(metadataBuilder, localVariables, localTypes);
+                        }
+
+                        var bodyOffset = methodBodyEncoder.AddMethodBody(
+                            il,
+                            maxStack: 8,
+                            localVariablesSignature: localVarSigToken,
+                            attributes: localVariables.Any() ? MethodBodyAttributes.InitLocals : MethodBodyAttributes.None);
+
+                        bodyOffsets[function.Name] = bodyOffset;
+                        Console.WriteLine($"DEBUG: Added body for '{function.Name}' at offset {bodyOffset}");
+                    }
+
+                    // Create Parameter rows and remember ParamList start for each method
+                    var paramListStartMap = new Dictionary<string, ParameterHandle>(StringComparer.Ordinal);
+                    foreach (var function in functionList)
+                    {
+                        var currentParamRowCount = metadataBuilder.GetRowCount(TableIndex.Param);
+                        var startRowId = currentParamRowCount + 1;
+
+                        for (ushort seq = 1; seq <= function.Signature.ParameterSignatures.Count; seq++)
+                        {
+                            var paramSig = function.Signature.ParameterSignatures[seq - 1];
+                            var paramName = paramSig.Name ?? string.Empty;
+                            metadataBuilder.AddParameter(
+                                ParameterAttributes.None,
+                                metadataBuilder.GetOrAddString(paramName),
+                                seq);
+                        }
+
+                        paramListStartMap[function.Name] = MetadataTokens.ParameterHandle(startRowId);
+                    }
+
+                    // Now add MethodDefinitions pointing at the generated bodies with ParamList
+                    foreach (var function in functionList)
+                    {
                         var methodSignatureBlob = new BlobBuilder();
-                        methodSignatureBlob.WriteByte(0x00); // calling convention
+                        methodSignatureBlob.WriteByte(0x00); // DEFAULT calling convention
                         methodSignatureBlob.WriteByte((byte)function.Signature.ParameterSignatures.Count); // parameter count
-                        
-                        // Set return type based on IL metamodel
-                        var returnTypeCode = GetSignatureTypeCode(function.Signature.ReturnTypeSignature);
-                        methodSignatureBlob.WriteByte((byte)returnTypeCode);
-                        
-                        // Add parameter types
+
+                        // Return type
+                        WriteTypeInSignature(methodSignatureBlob, function.Signature.ReturnTypeSignature);
+                        // Parameter types
                         foreach (var paramSig in function.Signature.ParameterSignatures)
                         {
-                            var paramTypeCode = GetSignatureTypeCode(paramSig.TypeReference);
-                            methodSignatureBlob.WriteByte((byte)paramTypeCode);
+                            WriteTypeInSignature(methodSignatureBlob, paramSig.TypeReference);
                         }
-                        
+
                         var methodHandle = metadataBuilder.AddMethodDefinition(
                             MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
                             MethodImplAttributes.IL,
                             metadataBuilder.GetOrAddString(function.Header.IsEntrypoint ? "Main" : function.Name),
                             metadataBuilder.GetOrAddBlob(methodSignatureBlob),
-                            methodRVAs[i], // Use pre-calculated RVA
-                            default); // parameterList
-                        
-                        // Add to method map for method resolution
-                        methodMap[function.Name] = methodHandle;
-                        Console.WriteLine($"DEBUG: Added method '{function.Name}' to method map with RVA {methodRVAs[i]}");
-                        
-                        // Set entrypoint to the main method
+                            bodyOffsets[function.Name],
+                            paramListStartMap[function.Name]);
+
                         if (function.Header.IsEntrypoint)
                         {
                             entryPointMethodHandle = methodHandle;
                         }
-                    }
-                    
-                    Console.WriteLine("DEBUG: Complete method map before regenerating bodies:");
-                    foreach (var kvp in methodMap)
-                    {
-                        Console.WriteLine($"  - {kvp.Key}");
-                    }
-                    
-                    // Pass 2: Regenerate method bodies with complete method map for proper call resolution
-                    for (int i = 0; i < functionList.Count; i++)
-                    {
-                        var function = functionList[i];
-                        
-                        Console.WriteLine($"DEBUG: Regenerating body for method '{function.Name}' with complete method map");
-                        
-                        // Generate method body with complete method map for proper call resolution
-                        var methodBody = GenerateMethodBody(function, metadataBuilder, writeLineMethodRef, methodMap);
-                        
-                        // Add method body to the stream at the expected offset
-                        methodBodyStream.WriteBytes(methodBody.ToArray());
-                        
-                        Console.WriteLine($"DEBUG: Added final method body for '{function.Name}' to stream");
                     }
                 }
                 else
@@ -206,7 +313,8 @@ public class PEEmitter
                         default,
                         metadataBuilder.GetOrAddString("Program"),
                         objectTypeRef,
-                        MetadataTokens.FieldDefinitionHandle(1),
+                        // Program has no fields; FieldList should point past the last existing field
+                        MetadataTokens.FieldDefinitionHandle(metadataBuilder.GetRowCount(TableIndex.Field) + 1),
                         MetadataTokens.MethodDefinitionHandle(1));
                 }
             }
@@ -240,24 +348,48 @@ public class PEEmitter
     /// <summary>
     /// Generate method body from IL metamodel method definition
     /// </summary>
-    private BlobBuilder GenerateMethodBody(il_ast.MethodDefinition ilMethod, MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
+    private (InstructionEncoder il, List<string> localVariables, Dictionary<string, SignatureTypeCode> localTypes) GenerateMethodIL(il_ast.MethodDefinition ilMethod, MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle> methodMap)
     {
         var ilInstructions = new BlobBuilder();
-        var il = new InstructionEncoder(ilInstructions);
+        var controlFlow = new ControlFlowBuilder();
+        var il = new InstructionEncoder(ilInstructions, controlFlow);
         
+        // Reset per-method inference state
+        _lastLoadedLocal = null;
+        _lastWasNewobj = false;
+        _localVarTypeMap = new Dictionary<string, SignatureTypeCode>(StringComparer.Ordinal);
+    _pendingNewobjTypeName = null;
+    _localVarClassTypeHandles.Clear();
+
         // Use AstToIlTransformationVisitor to get instruction sequences for each statement
         var transformer = new AstToIlTransformationVisitor();
+        // Provide current parameter names to the transformer so it can emit ldarg for them
+        var paramNames = ilMethod?.Signature?.ParameterSignatures?.Select(p => p.Name ?? "param").ToList() ?? new List<string>();
+        transformer.SetCurrentParameters(paramNames);
+        // Build a map from parameter name to argument index
+        var paramIndexMap = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (int i = 0; i < paramNames.Count; i++) paramIndexMap[paramNames[i]] = i;
         
-        // Track if we've emitted a return instruction and collect local variables
-        bool hasReturnInstruction = false;
-        var localVariables = new HashSet<string>();
+    // Track local variables
+        var localVariables = new List<string>();
+        void AddLocal(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return;
+            if (paramIndexMap.ContainsKey(name)) return; // don't treat params as locals
+            if (!localVariables.Contains(name))
+            {
+                localVariables.Add(name);
+                if (!_localVarTypeMap.ContainsKey(name)) _localVarTypeMap[name] = SignatureTypeCode.Int32;
+            }
+        }
         
-        Console.WriteLine($"DEBUG: Generating method body for '{ilMethod.Name}' with {ilMethod.Impl.Body.Statements.Count} statements");
+        var bodyStatements = ilMethod?.Impl?.Body?.Statements ?? new List<ast.Statement>();
+        Console.WriteLine($"DEBUG: Generating method body for '{ilMethod?.Name ?? "Unnamed"}' with {bodyStatements.Count} statements");
         
         // Generate instructions from the method's body statements
-        if (ilMethod.Impl.Body.Statements.Any())
+        if (bodyStatements.Any())
         {
-            foreach (var statement in ilMethod.Impl.Body.Statements)
+            foreach (var statement in bodyStatements)
             {
                 var instructionSequence = transformer.GenerateStatement(statement);
                 
@@ -267,96 +399,95 @@ public class PEEmitter
                     Console.WriteLine($"  - {instr.GetType().Name}: {instr}");
                 }
                 
-                // Collect local variable information and check for return instructions
+                // Collect local variable information
                 foreach (var instruction in instructionSequence.Instructions)
                 {
-                    if (instruction is il_ast.ReturnInstruction)
-                    {
-                        hasReturnInstruction = true;
-                    }
-                    else if (instruction is il_ast.LoadInstruction loadInst && 
+                    if (instruction is il_ast.LoadInstruction loadInst && 
                             loadInst.Opcode.ToLowerInvariant() == "ldloc" && 
                             loadInst.Value is string loadVar)
                     {
-                        localVariables.Add(loadVar);
+                        AddLocal(loadVar);
                     }
                     else if (instruction is il_ast.StoreInstruction storeInst && 
                             storeInst.Opcode.ToLowerInvariant() == "stloc" && 
                             storeInst.Target is string storeVar)
                     {
-                        localVariables.Add(storeVar);
+                        AddLocal(storeVar);
                     }
                 }
                 
-                EmitInstructionSequence(il, instructionSequence, metadataBuilder, writeLineMethodRef, methodMap);
+                EmitInstructionSequence(il, instructionSequence, metadataBuilder, writeLineMethodRef, methodMap, localVariables, paramIndexMap);
             }
         }
         else
         {
             // If no statements, add a simple return for the method to be valid
             // For int return type, load a constant first
-            if (ilMethod.Signature.ReturnTypeSignature.Name == "Int32")
+            var returnType = ilMethod?.Signature?.ReturnTypeSignature?.Name ?? string.Empty;
+            if (returnType == "Int32")
             {
                 il.LoadConstantI4(42); // Default return value
             }
         }
         
-        // Only add ret instruction if one wasn't already emitted
-        if (!hasReturnInstruction)
+        // Always ensure a final return exists with a sensible default value
+        var retTypeName = ilMethod?.Signature?.ReturnTypeSignature?.Name ?? "Void";
+        switch (retTypeName)
         {
-            il.OpCode(ILOpCode.Ret);
+            case "Void":
+                il.OpCode(ILOpCode.Ret);
+                break;
+            case "Int32":
+            case "Boolean":
+                il.LoadConstantI4(0);
+                il.OpCode(ILOpCode.Ret);
+                break;
+            case "Single":
+                il.LoadConstantR4(0);
+                il.OpCode(ILOpCode.Ret);
+                break;
+            case "Double":
+                il.LoadConstantR8(0);
+                il.OpCode(ILOpCode.Ret);
+                break;
+            case "String":
+            default:
+                il.OpCode(ILOpCode.Ldnull);
+                il.OpCode(ILOpCode.Ret);
+                break;
         }
-        
-        // Create local variable signature if needed
-        EntityHandle localVarSigToken = default;
-        if (localVariables.Any())
-        {
-            localVarSigToken = CreateLocalVariableSignature(metadataBuilder, localVariables);
-        }
-        
-        // Create the method body blob with proper header format
-        var methodBody = new BlobBuilder();
-        
-        // Write method body header (simplified approach - always use tiny format if possible)
-        var codeSize = ilInstructions.Count;
-        var hasLocals = localVariables.Any();
-        
-        if (codeSize < 64 && !hasLocals)
-        {
-            // Tiny format: first byte contains 2-bit format + 6-bit size
-            methodBody.WriteByte((byte)(0x02 | (codeSize << 2))); // Format: CorILMethod_TinyFormat
-        }
-        else
-        {
-            // Fat format header (12 bytes) - more carefully constructed
-            ushort flags = 0x3003; // CorILMethod_FatFormat | CorILMethod_InitLocals | CorILMethod_MoreSects (if needed)
-            if (!hasLocals) flags = 0x3002; // No init locals if no locals
-            
-            methodBody.WriteUInt16(flags);        // Flags and format (16-bit)
-            methodBody.WriteUInt16(8);            // Max stack (16-bit) - conservative estimate
-            methodBody.WriteUInt32((uint)codeSize); // Code size (32-bit)
-            methodBody.WriteUInt32(hasLocals ? (uint)MetadataTokens.GetToken(localVarSigToken) : 0);  // Local var sig token
-        }
-        
-        // Write the actual IL instructions
-        methodBody.WriteBytes(ilInstructions.ToArray());
-        
-        return methodBody;
+    return (il, localVariables, _localVarTypeMap);
     }
 
     /// <summary>
     /// Create a local variable signature for the method
     /// </summary>
-    private EntityHandle CreateLocalVariableSignature(MetadataBuilder metadataBuilder, HashSet<string> localVariables)
+    private EntityHandle CreateLocalVariableSignature(MetadataBuilder metadataBuilder, List<string> localVariables, Dictionary<string, SignatureTypeCode> localTypes)
     {
         var localsSignature = new BlobBuilder();
         localsSignature.WriteByte(0x07); // LOCAL_SIG
         localsSignature.WriteCompressedInteger(localVariables.Count); // Number of locals
         
-        // For simplicity, all locals are Int32 for now
+        // Use inferred types where available (default Int32)
         foreach (var localVar in localVariables)
         {
-            localsSignature.WriteByte((byte)SignatureTypeCode.Int32);
+            // Prefer explicit class type if known (from newobj)
+            if (_localVarClassTypeHandles.TryGetValue(localVar, out var typeDefHandle))
+            {
+                // ELEMENT_TYPE_CLASS (0x12) then TypeDefOrRef coded index for the type
+                localsSignature.WriteByte(0x12);
+                var rowId = MetadataTokens.GetRowNumber(typeDefHandle);
+                var codedIndex = (rowId << 2) | 0; // TypeDefOrRef tag 0 = TypeDef
+                localsSignature.WriteCompressedInteger(codedIndex);
+            }
+            else
+            {
+                if (!localTypes.TryGetValue(localVar, out var sigType))
+                {
+                    sigType = SignatureTypeCode.Int32;
+                }
+                localsSignature.WriteByte((byte)sigType);
+            }
         }
         
         return metadataBuilder.AddStandaloneSignature(metadataBuilder.GetOrAddBlob(localsSignature));
@@ -366,31 +497,52 @@ public class PEEmitter
     /// Emit instruction sequence using InstructionEncoder
     /// </summary>
     private void EmitInstructionSequence(InstructionEncoder il, il_ast.InstructionSequence sequence, 
-        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
+        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null, List<string>? orderedLocals = null, Dictionary<string, int>? paramIndexMap = null, Dictionary<string, EntityHandle>? methodMemberRefMap = null)
     {
-        // Build a local variable name to index mapping
-        var localVarNames = new List<string>();
-        foreach (var instruction in sequence.Instructions)
+        // Predefine labels present in this sequence so branches can target them
+        var labelMap = new Dictionary<string, LabelHandle>(StringComparer.Ordinal);
+        foreach (var ins in sequence.Instructions)
         {
-            if (instruction is il_ast.LoadInstruction loadInst && 
-                loadInst.Opcode.ToLowerInvariant() == "ldloc" && 
-                loadInst.Value is string loadVar && 
-                !localVarNames.Contains(loadVar))
+            if (ins is il_ast.LabelInstruction li && !string.IsNullOrEmpty(li.Label) && !labelMap.ContainsKey(li.Label))
             {
-                localVarNames.Add(loadVar);
+                labelMap[li.Label] = il.DefineLabel();
             }
-            else if (instruction is il_ast.StoreInstruction storeInst && 
-                    storeInst.Opcode.ToLowerInvariant() == "stloc" && 
-                    storeInst.Target is string storeVar && 
-                    !localVarNames.Contains(storeVar))
+        }
+        
+        // Use provided locals ordering if available; otherwise derive per-sequence
+        var localVarNames = orderedLocals != null ? new List<string>(orderedLocals) : new List<string>();
+        if (orderedLocals == null)
+        {
+            foreach (var instruction in sequence.Instructions)
             {
-                localVarNames.Add(storeVar);
+                if (instruction is il_ast.LoadInstruction loadInst && 
+                    loadInst.Opcode.ToLowerInvariant() == "ldloc" && 
+                    loadInst.Value is string loadVar && 
+                    !localVarNames.Contains(loadVar))
+                {
+                    localVarNames.Add(loadVar);
+                }
+                else if (instruction is il_ast.StoreInstruction storeInst && 
+                        storeInst.Opcode.ToLowerInvariant() == "stloc" && 
+                        storeInst.Target is string storeVar && 
+                        !localVarNames.Contains(storeVar))
+                {
+                    localVarNames.Add(storeVar);
+                }
             }
         }
         
         foreach (var instruction in sequence.Instructions)
         {
-            EmitInstruction(il, instruction, metadataBuilder, writeLineMethodRef, localVarNames, methodMap);
+            try
+            {
+                EmitInstruction(il, instruction, metadataBuilder, writeLineMethodRef, localVarNames, methodMap, labelMap, paramIndexMap, methodMemberRefMap);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: Failed emitting instruction {instruction.GetType().Name} (Opcode='{instruction.Opcode}') : {ex.Message}");
+                throw;
+            }
         }
     }
 
@@ -398,16 +550,16 @@ public class PEEmitter
     /// Emit a single instruction using InstructionEncoder
     /// </summary>
     private void EmitInstruction(InstructionEncoder il, il_ast.CilInstruction instruction, 
-        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, List<string>? localVarNames = null, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
+        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, List<string>? localVarNames = null, Dictionary<string, MethodDefinitionHandle>? methodMap = null, Dictionary<string, LabelHandle>? labelMap = null, Dictionary<string, int>? paramIndexMap = null, Dictionary<string, EntityHandle>? methodMemberRefMap = null)
     {
         switch (instruction)
         {
             case il_ast.LoadInstruction loadInst:
-                EmitLoadInstruction(il, loadInst, metadataBuilder, localVarNames);
+                EmitLoadInstruction(il, loadInst, metadataBuilder, localVarNames ?? new List<string>(), paramIndexMap ?? new Dictionary<string, int>(StringComparer.Ordinal));
                 break;
                 
             case il_ast.StoreInstruction storeInst:
-                EmitStoreInstruction(il, storeInst, localVarNames);
+                EmitStoreInstruction(il, storeInst, localVarNames ?? new List<string>());
                 break;
                 
             case il_ast.ArithmeticInstruction arithInst:
@@ -419,7 +571,7 @@ public class PEEmitter
                 break;
                 
             case il_ast.BranchInstruction branchInst:
-                EmitBranchInstruction(il, branchInst);
+                EmitBranchInstruction(il, branchInst, labelMap);
                 break;
                 
             case il_ast.ReturnInstruction:
@@ -427,8 +579,17 @@ public class PEEmitter
                 break;
                 
             case il_ast.LabelInstruction labelInst:
-                // Labels are handled by the branching infrastructure
-                // For now, skip explicit label emission
+                if (labelMap != null && !string.IsNullOrEmpty(labelInst.Label) && labelMap.TryGetValue(labelInst.Label, out var lh))
+                {
+                    il.MarkLabel(lh);
+                }
+                break;
+
+            case il_ast.StackInstruction stackInst:
+                if (string.Equals(stackInst.Opcode, "pop", StringComparison.OrdinalIgnoreCase))
+                {
+                    il.OpCode(ILOpCode.Pop);
+                }
                 break;
         }
     }
@@ -436,7 +597,7 @@ public class PEEmitter
     /// <summary>
     /// Emit load instruction
     /// </summary>
-    private void EmitLoadInstruction(InstructionEncoder il, il_ast.LoadInstruction loadInst, MetadataBuilder metadataBuilder, List<string> localVarNames = null)
+    private void EmitLoadInstruction(InstructionEncoder il, il_ast.LoadInstruction loadInst, MetadataBuilder metadataBuilder, List<string>? localVarNames = null, Dictionary<string, int>? paramIndexMap = null)
     {
         switch (loadInst.Opcode.ToLowerInvariant())
         {
@@ -477,17 +638,73 @@ public class PEEmitter
                     if (index >= 0)
                     {
                         il.LoadLocal(index);
+                        _lastLoadedLocal = varName;
                     }
                     else
                     {
-                        // Fallback to index 0 if variable not found
-                        il.LoadLocal(0);
+                        // Unknown local; push default int to keep stack balanced
+                        il.LoadConstantI4(0);
+                        _lastLoadedLocal = null;
                     }
                 }
                 else
                 {
                     // Fallback for non-string value or no local var names
-                    il.LoadLocal(0);
+                    il.LoadConstantI4(0);
+                    _lastLoadedLocal = null;
+                }
+                break;
+            case "ldarg":
+                if (loadInst.Value is string argName && paramIndexMap != null && paramIndexMap.TryGetValue(argName, out var argIndex))
+                {
+                    il.LoadArgument(argIndex);
+                    _lastLoadedLocal = null;
+                }
+                else
+                {
+                    // Unknown arg; push default int
+                    il.LoadConstantI4(0);
+                    _lastLoadedLocal = null;
+                }
+                break;
+            
+            case "ldfld":
+                if (loadInst.Value is string fldName)
+                {
+                    // Resolve FieldDefinitionHandle for the field. Prefer exact owner type if known.
+                    EntityHandle? fieldToken = null;
+                    if (!string.IsNullOrEmpty(_lastLoadedLocal) && _localVarClassTypeHandles.TryGetValue(_lastLoadedLocal, out var typeHandle) && _typeNamesByHandle.TryGetValue(typeHandle, out var typeName))
+                    {
+                        var keyDef = $"{typeName}::{fldName}";
+                        if (_fieldHandlesByTypeAndName.TryGetValue(keyDef, out var fdef))
+                        {
+                            fieldToken = fdef;
+                        }
+                    }
+
+                    // Fallback by simple name
+                    if (fieldToken == null && _fieldHandles.TryGetValue(fldName, out var fldHandle))
+                    {
+                        fieldToken = fldHandle;
+                    }
+
+                    if (fieldToken != null)
+                    {
+                        il.OpCode(ILOpCode.Ldfld);
+                        il.Token(fieldToken.Value);
+                        if (!string.IsNullOrEmpty(_lastLoadedLocal))
+                        {
+                            _localVarTypeMap[_lastLoadedLocal] = SignatureTypeCode.Object;
+                            _lastLoadedLocal = null;
+                        }
+                    }
+                    else
+                    {
+                        // Unknown field: keep stack balanced but degrade gracefully
+                        il.OpCode(ILOpCode.Pop);
+                        il.LoadConstantI4(0);
+                        _lastLoadedLocal = null;
+                    }
                 }
                 break;
                 
@@ -501,7 +718,7 @@ public class PEEmitter
     /// <summary>
     /// Emit store instruction
     /// </summary>
-    private void EmitStoreInstruction(InstructionEncoder il, il_ast.StoreInstruction storeInst, List<string> localVarNames = null)
+    private void EmitStoreInstruction(InstructionEncoder il, il_ast.StoreInstruction storeInst, List<string>? localVarNames = null)
     {
         switch (storeInst.Opcode.ToLowerInvariant())
         {
@@ -512,30 +729,74 @@ public class PEEmitter
                     if (index >= 0)
                     {
                         il.StoreLocal(index);
+                        if (_lastWasNewobj)
+                        {
+                            _localVarTypeMap[varName] = SignatureTypeCode.Object;
+                            if (!string.IsNullOrEmpty(_pendingNewobjTypeName) && _typeHandles.TryGetValue(_pendingNewobjTypeName, out var tdh))
+                            {
+                                _localVarClassTypeHandles[varName] = tdh;
+                            }
+                        }
                     }
                     else
                     {
                         // Fallback to index 0 if variable not found
                         il.StoreLocal(0);
                     }
+                    _lastWasNewobj = false;
+                    _pendingNewobjTypeName = null;
                 }
                 else
                 {
                     // Fallback for non-string value or no local var names
                     il.StoreLocal(0);
+                    _lastWasNewobj = false;
+                    _pendingNewobjTypeName = null;
                 }
+                break;
+            case "starg":
+                // Not supported yet; pop to keep stack balanced
+                il.OpCode(ILOpCode.Pop);
                 break;
                 
             case "stfld":
-                // Store field instruction - for now, emit as a simple pop to consume the value
-                // This should be enhanced to properly resolve field references
                 if (storeInst.Target is string fieldName)
                 {
-                    Console.WriteLine($"DEBUG: Emitting stfld for field: {fieldName}");
-                    // For now, just pop the values from stack to prevent stack corruption
-                    // This is a temporary fix - needs proper field resolution
-                    il.OpCode(ILOpCode.Pop); // Pop the value
-                    il.OpCode(ILOpCode.Pop); // Pop the object reference
+                    // Use FieldDefinitionHandle directly; prefer exact owner type if known
+                    EntityHandle? fieldToken = null;
+                    if (!string.IsNullOrEmpty(_lastLoadedLocal) && _localVarClassTypeHandles.TryGetValue(_lastLoadedLocal, out var typeHandle) && _typeNamesByHandle.TryGetValue(typeHandle, out var typeName))
+                    {
+                        var keyDef = $"{typeName}::{fieldName}";
+                        if (_fieldHandlesByTypeAndName.TryGetValue(keyDef, out var fdef))
+                        {
+                            fieldToken = fdef;
+                        }
+                    }
+
+                    // Fallback by simple name
+                    if (fieldToken == null && _fieldHandles.TryGetValue(fieldName, out var fldHandle2))
+                    {
+                        fieldToken = fldHandle2;
+                    }
+
+                    if (fieldToken != null)
+                    {
+                        // Stack: ..., obj, value -> store into obj.field
+                        il.OpCode(ILOpCode.Stfld);
+                        il.Token(fieldToken.Value);
+                        if (!string.IsNullOrEmpty(_lastLoadedLocal))
+                        {
+                            _localVarTypeMap[_lastLoadedLocal] = SignatureTypeCode.Object;
+                            _lastLoadedLocal = null;
+                        }
+                    }
+                    else
+                    {
+                        // Unknown field: consume value and obj to avoid corrupting the stack
+                        il.OpCode(ILOpCode.Pop); // value
+                        il.OpCode(ILOpCode.Pop); // obj
+                        _lastLoadedLocal = null;
+                    }
                 }
                 break;
         }
@@ -560,6 +821,44 @@ public class PEEmitter
             case "div":
                 il.OpCode(ILOpCode.Div);
                 break;
+            case "ceq":
+                il.OpCode(ILOpCode.Ceq);
+                break;
+            case "ceq_neg":
+                // Invert equality: ceq -> ldc.i4.0 -> ceq
+                il.OpCode(ILOpCode.Ceq);
+                il.LoadConstantI4(0);
+                il.OpCode(ILOpCode.Ceq);
+                break;
+            case "clt":
+                il.OpCode(ILOpCode.Clt);
+                break;
+            case "cgt":
+                il.OpCode(ILOpCode.Cgt);
+                break;
+            case "cle":
+                // a <= b  ==>  cgt -> not
+                il.OpCode(ILOpCode.Cgt);
+                il.LoadConstantI4(0);
+                il.OpCode(ILOpCode.Ceq);
+                break;
+            case "cge":
+                // a >= b  ==>  clt -> not
+                il.OpCode(ILOpCode.Clt);
+                il.LoadConstantI4(0);
+                il.OpCode(ILOpCode.Ceq);
+                break;
+            case "and":
+                il.OpCode(ILOpCode.And);
+                break;
+            case "not":
+                // Logical not for booleans: compare with 0
+                il.LoadConstantI4(0);
+                il.OpCode(ILOpCode.Ceq);
+                break;
+            case "neg":
+                il.OpCode(ILOpCode.Neg);
+                break;
         }
     }
 
@@ -569,13 +868,25 @@ public class PEEmitter
     private void EmitCallInstruction(InstructionEncoder il, il_ast.CallInstruction callInst, 
         MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
     {
+        Console.WriteLine($"DEBUG: EmitCallInstruction opcode='{callInst.Opcode}', sig='{callInst.MethodSignature}'");
         // Handle constructor calls (newobj)
         if (callInst.Opcode?.ToLowerInvariant() == "newobj")
         {
             Console.WriteLine($"DEBUG: Emitting newobj for: {callInst.MethodSignature}");
-            // For now, create a simple object by loading a null reference
-            // This is a temporary fix to prevent crashes - needs proper constructor implementation
+            // Try to extract type name and resolve our emitted constructor
+            var typeName = ExtractCtorTypeName(callInst.MethodSignature ?? string.Empty);
+            if (!string.IsNullOrEmpty(typeName) && _ctorHandles.TryGetValue(typeName, out var ctorHandle))
+            {
+                il.OpCode(ILOpCode.Newobj);
+                il.Token(ctorHandle);
+                _lastWasNewobj = true;
+                _pendingNewobjTypeName = typeName;
+                return;
+            }
+            // Fallback: push null
             il.OpCode(ILOpCode.Ldnull);
+            _lastWasNewobj = true;
+            _pendingNewobjTypeName = null;
             return;
         }
         
@@ -592,6 +903,14 @@ public class PEEmitter
         var methodName = ExtractMethodName(callInst.MethodSignature ?? "");
         
         Console.WriteLine($"DEBUG: Trying to resolve method call: '{callInst.MethodSignature}' -> '{methodName}'");
+        if (methodMap != null)
+        {
+            Console.WriteLine("DEBUG: Available methods:");
+            foreach (var k in methodMap.Keys)
+            {
+                Console.WriteLine($"  - {k}");
+            }
+        }
         
         // Try to resolve internal method calls using the method map
         if (methodMap != null && methodMap.TryGetValue(methodName, out var methodHandle))
@@ -616,12 +935,6 @@ public class PEEmitter
         // For unresolved method calls, try to find any method that starts with the same base name
         if (methodMap != null)
         {
-            Console.WriteLine($"DEBUG: Method map contents:");
-            foreach (var kvp in methodMap)
-            {
-                Console.WriteLine($"  - {kvp.Key}");
-            }
-            
             var baseName = methodName.Split('_')[0]; // Get base name before any suffix
             var matchingMethod = methodMap.FirstOrDefault(kvp => kvp.Key.StartsWith(baseName));
             if (!matchingMethod.Equals(default(KeyValuePair<string, MethodDefinitionHandle>)))
@@ -632,8 +945,37 @@ public class PEEmitter
             }
         }
         
-        // If still unresolved, emit a warning (this should be rare now)
+        // If still unresolved, emit a warning and push a default value based on the signature to keep stack balanced
         Console.WriteLine($"WARNING: Skipping unresolved method call: {callInst.MethodSignature}");
+        var sig = callInst.MethodSignature ?? string.Empty;
+        var retType = sig.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.ToLowerInvariant() ?? string.Empty;
+        switch (retType)
+        {
+            case "void":
+                // nothing to push
+                break;
+            case "int32":
+            case "int":
+            case "bool":
+                il.LoadConstantI4(0);
+                break;
+            case "float32":
+                il.LoadConstantR4(0);
+                break;
+            case "float64":
+                il.LoadConstantR8(0);
+                break;
+            case "string":
+            case "object":
+            default:
+                il.OpCode(ILOpCode.Ldnull);
+                break;
+        }
+        // Pad with NOPs to approximate size of a call instruction (5 bytes)
+        il.OpCode(ILOpCode.Nop);
+        il.OpCode(ILOpCode.Nop);
+        il.OpCode(ILOpCode.Nop);
+        il.OpCode(ILOpCode.Nop);
     }
     
     /// <summary>
@@ -670,35 +1012,56 @@ public class PEEmitter
     }
 
     /// <summary>
+    /// Extract type name from a constructor signature like "instance void TypeName::.ctor()"
+    /// </summary>
+    private string ExtractCtorTypeName(string ctorSignature)
+    {
+        try
+        {
+            // Expect format: "instance void TypeName::.ctor()" or "void Namespace.TypeName::.ctor()"
+            var sep = ctorSignature.IndexOf("::", StringComparison.Ordinal);
+            if (sep > 0)
+            {
+                // Find the last space before '::' to skip return type
+                var lastSpaceBeforeSep = ctorSignature.LastIndexOf(' ', sep);
+                var start = lastSpaceBeforeSep >= 0 ? lastSpaceBeforeSep + 1 : 0;
+                var typePart = ctorSignature.Substring(start, sep - start).Trim();
+                // Remove any namespace qualification if present; our keys are simple names
+                var simple = typePart.Contains('.') ? typePart.Split('.').Last() : typePart;
+                return simple;
+            }
+        }
+        catch { }
+        return string.Empty;
+    }
+
+    /// <summary>
     /// Emit branch instruction
     /// </summary>
-    private void EmitBranchInstruction(InstructionEncoder il, il_ast.BranchInstruction branchInst)
+    private void EmitBranchInstruction(InstructionEncoder il, il_ast.BranchInstruction branchInst, Dictionary<string, LabelHandle>? labelMap)
     {
-        // Branch instruction handling is complex and requires label management
-        // For now, implement basic branching without full label resolution
-        
         Console.WriteLine($"DEBUG: EmitBranchInstruction called with opcode: {branchInst.Opcode}, label: {branchInst.TargetLabel ?? "null"}");
-        
-        switch (branchInst.Opcode?.ToLowerInvariant())
+
+        if (labelMap == null || string.IsNullOrEmpty(branchInst.TargetLabel) || !labelMap.TryGetValue(branchInst.TargetLabel, out var target))
+        {
+            Console.WriteLine("WARNING: Branch target label not found; skipping branch emission.");
+            return;
+        }
+
+        switch (branchInst.Opcode.ToLowerInvariant())
         {
             case "br":
-                // Unconditional branch - for now, emit a simple branch
-                // Note: This is incomplete as we don't have proper label management
-                il.Branch(ILOpCode.Br, default);
+                il.Branch(ILOpCode.Br, target);
                 break;
-                
-            case "brfalse":
-                // Branch if false - used for if statements
-                il.Branch(ILOpCode.Brfalse, default);
-                break;
-                
             case "brtrue":
-                // Branch if true 
-                il.Branch(ILOpCode.Brtrue, default);
+                il.Branch(ILOpCode.Brtrue, target);
                 break;
-                
+            case "brfalse":
+                il.Branch(ILOpCode.Brfalse, target);
+                break;
             default:
-                Console.WriteLine($"DEBUG: Unsupported branch instruction: {branchInst.Opcode}");
+                Console.WriteLine($"WARNING: Unsupported branch opcode '{branchInst.Opcode}', emitting unconditional br");
+                il.Branch(ILOpCode.Br, target);
                 break;
         }
     }
@@ -723,5 +1086,27 @@ public class PEEmitter
         }
         
         return SignatureTypeCode.Object;
+    }
+
+    private void WriteTypeInSignature(BlobBuilder builder, il_ast.TypeReference typeRef)
+    {
+        if (typeRef.Namespace == "System")
+        {
+            builder.WriteByte((byte)GetSignatureTypeCode(typeRef));
+            return;
+        }
+
+        // User-defined types: encode as CLASS with TypeDefOrRef coded index
+        if (!string.IsNullOrEmpty(typeRef.Name) && _typeHandles.TryGetValue(typeRef.Name, out var typeHandle))
+        {
+            builder.WriteByte(0x12); // ELEMENT_TYPE_CLASS
+            var rowId = MetadataTokens.GetRowNumber(typeHandle);
+            var codedIndex = (rowId << 2) | 0; // TypeDefOrRef tag 0 = TypeDef
+            builder.WriteCompressedInteger(codedIndex);
+            return;
+        }
+
+        // Fallback to object if type not found
+        builder.WriteByte((byte)SignatureTypeCode.Object);
     }
 }

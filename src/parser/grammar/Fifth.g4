@@ -168,7 +168,7 @@ list_type_signature
     ;
 
 array_type_signature
-    :type_name  L_BRACKET size=operand R_BRACKET
+    : type_name L_BRACKET (size=operand)? R_BRACKET
     ;
 
 
@@ -180,6 +180,7 @@ expressionList
 
 expression
     : lhs=expression DOT rhs=expression                                                                                   #exp_member_access
+    | lhs=expression index                                                                                                #exp_index
     | lhs=expression POW<assoc=right> rhs=expression                                                                      #exp_exp
     | lhs=expression mul_op=(STAR | DIV | MOD | LSHIFT | RSHIFT | AMPERSAND | STAR_STAR) rhs=expression                   #exp_mul
     | lhs=expression add_op=(PLUS | MINUS | OR | LOGICAL_XOR) rhs=expression                                              #exp_add

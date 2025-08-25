@@ -40,24 +40,28 @@ public static class FifthParserManager
             throw;
         }
         
-        ast = new OverloadGatheringVisitor().Visit(ast);
-        
+    // Collect parameter constraints from destructured bindings BEFORE grouping overloads
+    ast = new DestructuringPatternFlattenerVisitor().Visit(ast);
+
+    // Gather overloads into grouped nodes now that constraints are present
+    ast = new OverloadGatheringVisitor().Visit(ast);
+
+    // Generate guard and subclause functions using collected constraints on grouped overloads
         // Debug: Check main method before OverloadTransformingVisitor
         if (ast is AssemblyDef asmBefore)
         {
             var mainMethod = asmBefore.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
         }
-        
+
         ast = new OverloadTransformingVisitor().Visit(ast);
-        
+
         // Debug: Check main method after OverloadTransformingVisitor
         if (ast is AssemblyDef asmAfter)
         {
             var mainMethod2 = asmAfter.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
         }
-        
-        ast = new DestructuringPatternFlattenerVisitor().Visit(ast);  // Handle constraint collection and lowering
-        
+
+        // Now lower destructuring assignments
         ast = new DestructuringVisitor().Visit(ast);  // Handle destructuring transformation
         
         ast = new TreeLinkageVisitor().Visit(ast);
