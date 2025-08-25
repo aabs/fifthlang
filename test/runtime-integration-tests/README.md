@@ -67,7 +67,7 @@ These tests validate the end-to-end compilation and execution pipeline:
 Each test follows this pattern:
 
 ```csharp
-[Fact]
+[Test]
 public async Task FeatureName_ShouldExpectedBehavior()
 {
     // Arrange
