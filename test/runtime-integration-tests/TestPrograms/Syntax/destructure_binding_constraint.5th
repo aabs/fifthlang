@@ -1,0 +1,3 @@
+class P { A: int; }
+f(p: P { a: A | A > 0 }): int { return 0; }
+main(): int { return f(new P()); }

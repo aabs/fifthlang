@@ -1,0 +1,8 @@
+class Person { Name: string; Age: int; }
+
+make(): int {
+    p: Person = new Person(Name: string, Age: int) { Name = "A", Age = 1 };
+    return 0;
+}
+
+main(): int { return make(); }

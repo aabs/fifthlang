@@ -1,0 +1,1 @@
+main(): int { "hello"; $"hi {name}"; `raw`; return 0; }

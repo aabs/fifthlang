@@ -1,0 +1,7 @@
+use Math, IO;
+// Note: spaces around '/' and '.' avoid '//' being lexed as a line comment
+alias Api as http: / / example . com / v1 / ;
+
+main(): int {
+    return 0;
+}

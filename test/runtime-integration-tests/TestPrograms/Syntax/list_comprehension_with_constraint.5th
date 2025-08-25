@@ -1,0 +1,1 @@
+main(): int { xs: [int]; ys: [int]; ys = [x in xs # x > 0]; return 0; }

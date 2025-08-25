@@ -1,0 +1,50 @@
+# Fifth Syntax Unit Tests (Bulleted)
+
+- Program Structure
+  - Empty Program
+  - Imports + Aliases + Decls mixed
+  - Multiple decls interleaved
+- Module Imports
+  - Single import; Multiple imports; Underscore module
+  - Invalid: missing semicolon; non-identifier
+- Aliases
+  - Basic; dotted domain; path segments; trailing slash
+  - Fragments empty/named
+  - Invalid: no scheme; bad domain
+- Types
+  - Type names; List type; Array types sized/unsized
+- Classes
+  - Empty class; Props only; Methods only; Mixed; Repeated method name
+- Functions
+  - No params; Single; Multiple; Constraint; Destructuring (flat/nested); Binding constraint; Missing return (invalid)
+- Blocks
+  - Empty; Multiple statements; Nested
+- Statements
+  - Var decl; Var init; List/Array typed; Assignment; Expr stmt; Empty `;`
+  - If/else; Else-if chain; While; With (block/single); Return
+  - Invalid missing semicolons
+- Lists & Comprehensions
+  - Literals (single/multi/nested/exprs); Comprehension simple/with constraint
+  - Invalid empty list
+- Object Instantiation
+  - new T; new T(); ctor paramdecls; property init; both; invalid trailing comma; invalid expression args
+- Expressions: Operands
+  - Identifier; Parenthesized; Literals; List; Object instantiation
+- Expressions: Member/Index
+  - Member; Chained; Index; Chained; Mixed; Call then access/index; Slice invalid
+- Expressions: Calls
+  - 0/1/n args; Nested
+- Expressions: Unary
+  - +x, -x, !x; ++x/--x; x++/x--; combos
+- Expressions: Binary/Precedence
+  - ^ right-assoc; */% << >> & **; + - | ~; == != < <= > >=; && ||; long chain; parentheses
+- Literals
+  - null; true/false; ints (dec/bin/oct/hex + suffix); imaginary; runes; reals; strings (interpreted/interpolated/raw)
+- Constraints & Destructuring
+  - Param constraints; Complex constraints; Binding constraints; Nested destructuring with constraints
+- Trivia
+  - Single-line comments; Multi-line; Whitespace; explicit semicolons
+- Invalid/Unused Tokens
+  - !&, !|; <>; :=, ..., <-; _; unused keywords in expr/stmt positions
+- Error Cases
+  - Missing semicolons; Mismatched delimiters; `a.`; `a[]`; `[]`; slices; return outside function; `1 = x;`

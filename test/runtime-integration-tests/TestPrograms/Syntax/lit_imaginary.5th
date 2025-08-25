@@ -1,0 +1,1 @@
+main(): int { 1i; 0xFFi; return 0; }

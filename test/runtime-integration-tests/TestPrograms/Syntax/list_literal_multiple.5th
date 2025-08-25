@@ -1,0 +1,1 @@
+main(): int { xs: [int]; xs = [1,2,3]; return 0; }

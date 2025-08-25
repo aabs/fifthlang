@@ -1,0 +1,2 @@
+// Use an unambiguously invalid statement to force a parse error
+main(): int { for; }

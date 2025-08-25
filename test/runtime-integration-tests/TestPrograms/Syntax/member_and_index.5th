@@ -1,0 +1,7 @@
+main(): int {
+    arr: int[];
+    i: int;
+    i = 0;
+    // Note: array literal not supported; exercise parsing of index/member
+    return i;
+}

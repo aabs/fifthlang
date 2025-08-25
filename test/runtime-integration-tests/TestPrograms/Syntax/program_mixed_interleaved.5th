@@ -1,0 +1,4 @@
+use A; alias P as http: / / example . org ;
+class C { }
+f(): int { return 0; }
+main(): int { return 0; }

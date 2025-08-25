@@ -1,0 +1,2 @@
+f(x: int | (x & 1) == 0): int { return x; }
+main(): int { return f(2); }

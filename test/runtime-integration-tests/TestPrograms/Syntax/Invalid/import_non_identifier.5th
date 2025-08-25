@@ -1,0 +1,2 @@
+use 123;
+main(): int { return 0; }

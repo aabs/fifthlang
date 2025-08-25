@@ -1,0 +1,2 @@
+use Math, IO, Net;
+main(): int { return 0; }

@@ -1,0 +1,1 @@
+main(): int { arr: int[]; return 0; }

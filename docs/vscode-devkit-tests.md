@@ -62,3 +62,7 @@ dotnet test fifthlang.sln -c Release --no-build --logger "trx;LogFileName=result
 - Java/ANTLR build errors: The parser requires Java 17+. Verify with `java -version` and install Java 17 if missing.
 - Coverage files missing: Ensure runs use `--settings fifth.runsettings`. For a quick check, run `make coverage` and look for `coverage.cobertura.xml` under each test project’s `TestResults` folder.
   - TRX files are usually written under each test project’s `TestResults/` by default; when using `--results-directory TestResults` they land in a root `./TestResults/` folder instead. CI uses a root `TestResults` directory for easier artifact upload.
+
+## Syntax Test Plan
+- See `docs/syntax-testplan.md` for a comprehensive list of language syntax cases mapped from the grammar.
+- Samples live under `test/runtime-integration-tests/TestPrograms/Syntax/`; tests compile all valid samples and assert that invalid samples fail to parse.

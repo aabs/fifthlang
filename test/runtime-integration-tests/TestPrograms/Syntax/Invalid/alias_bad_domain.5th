@@ -1,0 +1,2 @@
+alias X as http://;
+main(): int { return 0; }

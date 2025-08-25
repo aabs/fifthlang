@@ -1,0 +1,4 @@
+main(): int {
+	map; interface; struct; type; package; for; switch; select; defer; go; goto; range; const; var; break; continue; fallthrough; default; case;
+	return 0;
+}

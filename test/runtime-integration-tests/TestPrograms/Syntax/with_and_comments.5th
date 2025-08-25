@@ -1,0 +1,8 @@
+// Single-line comment before alias
+alias Web as http: / / example . com ;
+/* Multi-line
+   comment */
+
+main(): int {
+    with new WebClient { /* inline comment */ } return 0;
+}

@@ -1,0 +1,3 @@
+class Person { First: string; Last: string; }
+f(p: Person { first: First, last: Last }): int { return 0; }
+main(): int { return f(new Person()); }

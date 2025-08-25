@@ -1,6 +1,7 @@
 # Major Development Targets for AST Builder
-.PHONY: help build-all restore test run-generator clean \
+.PHONY: help build-all restore test run-generator clean rebuild ci \
 	build-ast-model build-ast-generator build-ast-generated build-parser build-compiler build-tests \
+	test-ast test-runtime test-syntax \
 	coverage coverage-report
 
 help:
@@ -10,9 +11,20 @@ help:
 	@echo "  test              - Run all tests"
 	@echo "  run-generator     - Run AST code generator"
 	@echo "  clean             - Clean all build outputs"
+	@echo "  rebuild           - Clean then build the full solution"
+	@echo "  ci                - Build all, then run full test suite"
 	@echo "  help              - Show this help message"
 	@echo "  coverage          - Run tests with coverage (Cobertura via runsettings)"
 	@echo "  coverage-report   - Generate HTML/TextSummary report from Cobertura files"
+	@echo "  build-ast-model   - Build src/ast-model"
+	@echo "  build-ast-generator - Build src/ast_generator"
+	@echo "  build-ast-generated - Build src/ast-generated"
+	@echo "  build-parser      - Build src/parser"
+	@echo "  build-compiler    - Build src/compiler"
+	@echo "  build-tests       - Build all test projects"
+	@echo "  test-ast          - Run AST unit tests only"
+	@echo "  test-runtime      - Run runtime integration tests only"
+	@echo "  test-syntax       - Run isolated syntax-only parser tests"
 
 build-all: restore run-generator
 	dotnet build fifthlang.sln
@@ -22,6 +34,13 @@ restore:
 
 test:
 	dotnet test
+
+# Clean then build the full solution
+rebuild:
+	dotnet clean fifthlang.sln && dotnet build fifthlang.sln
+
+# CI-friendly alias: build everything then run all tests
+ci: build-all test
 
 # Run tests with Cobertura coverage output using runsettings
 
@@ -48,3 +67,37 @@ run-generator:
 
 clean:
 	dotnet clean fifthlang.sln
+
+# Granular build targets
+build-ast-model:
+	dotnet build src/ast-model/ast_model.csproj
+
+build-ast-generator:
+	dotnet build src/ast_generator/ast_generator.csproj
+
+build-ast-generated:
+	dotnet build src/ast-generated/ast_generated.csproj
+
+build-parser:
+	dotnet build src/parser/parser.csproj
+
+build-compiler:
+	dotnet build src/compiler/compiler.csproj
+
+build-tests:
+	dotnet build test/ast-tests/ast_tests.csproj
+	dotnet build test/runtime-integration-tests/runtime-integration-tests.csproj
+	dotnet build test/syntax-parser-tests/syntax-parser-tests.csproj
+
+# Granular test targets
+test-ast:
+	dotnet test test/ast-tests/ast_tests.csproj
+
+test-runtime:
+	dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj
+
+# Important: build before running to ensure updated assets are copied
+test-syntax:
+	dotnet clean test/syntax-parser-tests/syntax-parser-tests.csproj && \
+	  dotnet build test/syntax-parser-tests/syntax-parser-tests.csproj -v minimal && \
+	  dotnet test test/syntax-parser-tests/syntax-parser-tests.csproj -v minimal --no-build

@@ -1,0 +1,6 @@
+main(): int {
+    x: int; // requires semicolon
+    x = 1;  // requires semicolon
+    ;       // empty expr
+    return 0;
+}

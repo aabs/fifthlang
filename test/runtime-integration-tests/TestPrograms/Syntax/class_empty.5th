@@ -1,0 +1,2 @@
+class C { }
+main(): int { return 0; }

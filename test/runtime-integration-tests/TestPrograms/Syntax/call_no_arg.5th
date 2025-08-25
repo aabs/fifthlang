@@ -1,0 +1,2 @@
+f(): int { return 0; }
+main(): int { f(); return 0; }

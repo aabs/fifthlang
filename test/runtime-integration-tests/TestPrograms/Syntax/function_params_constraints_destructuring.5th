@@ -1,0 +1,5 @@
+f(x: int | x > 0, p: Person { first: FirstName, last: LastName }): int {
+    return 0;
+}
+
+main(): int { return f(1, new Person()); }

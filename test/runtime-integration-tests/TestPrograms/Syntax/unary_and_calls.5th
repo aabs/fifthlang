@@ -1,0 +1,8 @@
+foo(x: int): int { return x; }
+
+main(): int {
+    x: int;
+    x = 1;
+    ++x; x--; x = -x; x = +x; x = foo(x);
+    return 0;
+}

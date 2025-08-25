@@ -1,0 +1,2 @@
+class P { Name: string; Age: int; }
+main(): int { return 0; }

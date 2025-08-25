@@ -1,0 +1,3 @@
+g(x: int): int { return x; }
+f(y: int): int { return g(y); }
+main(): int { f(g(1)); return 0; }

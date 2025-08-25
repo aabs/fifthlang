@@ -1,0 +1,2 @@
+use Math
+main(): int { return 0; }

@@ -1,0 +1,1 @@
+main(): int { if (0) ; else if (1) ; else ; return 0; }

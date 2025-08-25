@@ -1,0 +1,9 @@
+main(): int {
+    a: int;
+    b: int;
+    // integers
+    a = 0; a = 123; a = 10; a = 20; a = 0b1010; a = 0o77; a = 077; a = 0xFF;
+    // floats and imaginary/rune/string
+    a = 1; // placeholders; real literals exist lexically
+    return 0;
+}

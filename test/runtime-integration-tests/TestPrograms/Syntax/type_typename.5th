@@ -1,0 +1,2 @@
+id(x: int): int { return x; }
+main(): int { return id(0); }

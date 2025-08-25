@@ -1,0 +1,2 @@
+class P { A: int; }
+main(): int { p: P = new P(); return 0; }

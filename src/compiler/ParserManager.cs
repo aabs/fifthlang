@@ -97,6 +97,18 @@ public static class FifthParserManager
         return ast as AssemblyDef;
     }
 
+    // Parse only: lex + parse without building the AST. Used by syntax-only tests.
+    public static void ParseFileSyntaxOnly(string sourceFile)
+    {
+        var parser = GetParserForFile(sourceFile);
+        parser.fifth();
+        var next = parser.TokenStream.LA(1);
+        if (next != Antlr4.Runtime.TokenConstants.EOF)
+        {
+            throw new System.Exception($"Unexpected trailing tokens after parse. Next token type: {next}");
+        }
+    }
+
     private static FifthParser GetParserForFile(string sourceFile)
     {
         var s = CharStreams.fromPath(sourceFile);

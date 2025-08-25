@@ -1,0 +1,2 @@
+alias X as ://example;
+main(): int { return 0; }
