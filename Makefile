@@ -24,10 +24,11 @@ test:
 	dotnet test
 
 # Run tests with Cobertura coverage output using runsettings
+
 coverage:
-	dotnet test fifthlang.sln --no-build --collect "XPlat Code Coverage" --logger "trx;LogFileName=results.trx" --settings fifth.runsettings
+	dotnet test fifthlang.sln --configuration Release --collect "XPlat Code Coverage" --logger "trx;LogFileName=results.trx" --results-directory "TestResults" --settings fifth.runsettings
 	@echo "TRX files:"
-	@find test -type f -name '*.trx' | sed -n '1,20p' || true
+	@{ find TestResults -type f -name '*.trx' 2>/dev/null; find test -type f -path '*/TestResults/*.trx' 2>/dev/null; } | sed -n '1,20p' || true
 	@echo "Cobertura files:"
 	@find . -type f -name 'coverage.cobertura.xml' | sed -n '1,40p' || true
 
@@ -35,8 +36,12 @@ coverage:
 coverage-report:
 	@dotnet tool install -g dotnet-reportgenerator-globaltool || true
 	@echo "Ensure dotnet tools are on PATH if needed: $$HOME/.dotnet/tools"
-	reportgenerator -reports:**/coverage.cobertura.xml -targetdir:CoverageReport -reporttypes:Html;TextSummary
-	@echo "CoverageReport generated at ./CoverageReport"
+	@if [ -n "$(shell find . -type f -name 'coverage.cobertura.xml' -print -quit)" ]; then \
+		reportgenerator -reports:**/coverage.cobertura.xml -targetdir:CoverageReport -reporttypes:Html;TextSummary;Cobertura; \
+		echo "CoverageReport generated at ./CoverageReport"; \
+	else \
+		echo "No Cobertura files found. Run 'make coverage' first (or ensure --collect and runsettings are used)."; \
+	fi
 
 run-generator:
 	dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated

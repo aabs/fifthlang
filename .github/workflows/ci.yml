@@ -5,6 +5,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
   schedule:
     - cron: '0 3 * * *' # Nightly at 03:00 UTC
 
@@ -41,11 +42,19 @@ jobs:
         run: dotnet build fifthlang.sln --configuration Release --no-restore
 
       - name: Test
+        shell: bash
         run: >-
           dotnet test fifthlang.sln --configuration Release --no-build
           --verbosity normal --logger "trx;LogFileName=test_results.trx"
           --results-directory "TestResults" --collect:"XPlat Code Coverage"
           --settings fifth.runsettings
+
+      - name: List coverage and TRX files
+        if: always()
+        shell: bash
+        run: |
+          echo "TRX files found:" && ls -1 TestResults/**/*.trx 2>/dev/null || true
+          echo "Cobertura files found:" && ls -1 **/coverage.cobertura.xml 2>/dev/null || true
 
       - name: Upload TRX Test Results
         uses: actions/upload-artifact@v4
@@ -64,12 +73,17 @@ jobs:
       - name: Generate Coverage Report
         shell: bash
         run: |
-          reportgenerator \
-            -reports:**/coverage.cobertura.xml \
-            -targetdir:CoverageReport \
-            -reporttypes:Html;Cobertura;TextSummary
-          echo "\nCoverage summary (partial):\n" >> $GITHUB_STEP_SUMMARY
-          if [ -f CoverageReport/Summary.txt ]; then head -n 50 CoverageReport/Summary.txt >> $GITHUB_STEP_SUMMARY; fi
+          if compgen -G "**/coverage.cobertura.xml" > /dev/null; then
+            reportgenerator \
+              -reports:**/coverage.cobertura.xml \
+              -targetdir:CoverageReport \
+              -reporttypes:Html;Cobertura;TextSummary
+            echo "\nCoverage summary (partial):\n" >> $GITHUB_STEP_SUMMARY
+            if [ -f CoverageReport/Summary.txt ]; then head -n 50 CoverageReport/Summary.txt >> $GITHUB_STEP_SUMMARY; fi
+          else
+            echo "No coverage files found; skipping report generation." | tee -a $GITHUB_STEP_SUMMARY
+            mkdir -p CoverageReport
+          fi
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
