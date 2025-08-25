@@ -503,6 +503,18 @@ public interface IFifthListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitExp_add([NotNull] FifthParser.Exp_addContext context);
 	/// <summary>
+	/// Enter a parse tree produced by the <c>exp_index</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterExp_index([NotNull] FifthParser.Exp_indexContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>exp_index</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitExp_index([NotNull] FifthParser.Exp_indexContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.function_call_expression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

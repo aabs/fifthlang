@@ -1,4 +1,5 @@
 using FluentAssertions;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace runtime_integration_tests;
@@ -115,7 +116,12 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         
         // Execute and validate result
         var result = await ExecuteAsync(executablePath);
-        result.ExitCode.Should().Be(12345, "Should return the ZipCode 12345 from nested destructuring");
+        var expected = 12345;
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            expected = expected % 256; // POSIX exit status is 8-bit
+        }
+        result.ExitCode.Should().Be(expected, "Should return the ZipCode 12345 from nested destructuring");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 

@@ -190,7 +190,7 @@ public class ControlFlowRuntimeTests : RuntimeTestBase
                 a: int = 10;
                 b: int = 20;
                 c: int = 30;
-                if (a < b && b < c && (a + b) < c) {
+                if (a < b && b < c && (a + b) <= c) {
                     return 1;
                 }
                 return 0;

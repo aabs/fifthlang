@@ -597,6 +597,20 @@ public partial class FifthBaseListener : IFifthListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitExp_add([NotNull] FifthParser.Exp_addContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by the <c>exp_index</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterExp_index([NotNull] FifthParser.Exp_indexContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>exp_index</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitExp_index([NotNull] FifthParser.Exp_indexContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.function_call_expression"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>

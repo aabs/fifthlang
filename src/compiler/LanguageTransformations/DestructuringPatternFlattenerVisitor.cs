@@ -19,17 +19,70 @@ public class DestructuringPatternFlattenerVisitor : DefaultRecursiveDescentVisit
     public Stack<(string, ISymbolTableEntry)> ResolutionScope { get; } = new();
     public List<Expression> CollectedConstraints { get; } = new();
 
+    private Expression RewriteConstraint(Expression constraint, string introducedVar, string paramName, string propertyName)
+    {
+        Expression Rewrite(Expression e)
+        {
+            switch (e)
+            {
+                case VarRefExp v when string.Equals(v.VarName, introducedVar, StringComparison.Ordinal):
+                    return new MemberAccessExp
+                    {
+                        Annotations = v.Annotations,
+                        Location = v.Location,
+                        Type = v.Type,
+                        LHS = new VarRefExp { Annotations = [], Location = v.Location, Type = v.Type, VarName = paramName },
+                        RHS = new VarRefExp { Annotations = [], Location = v.Location, Type = v.Type, VarName = propertyName }
+                    };
+                case BinaryExp b:
+                    return new BinaryExpBuilder()
+                        .WithOperator(b.Operator)
+                        .WithLHS(Rewrite(b.LHS))
+                        .WithRHS(Rewrite(b.RHS))
+                        .Build();
+                case UnaryExp u:
+                    return new UnaryExp { Annotations = u.Annotations, Location = u.Location, Type = u.Type, Operator = u.Operator, Operand = Rewrite(u.Operand) };
+                case FuncCallExp f:
+                    var newArgs = f.InvocationArguments?.Select(Rewrite).ToList() ?? new List<Expression>();
+                    return new FuncCallExp { Annotations = f.Annotations, Location = f.Location, Type = f.Type, FunctionDef = f.FunctionDef, InvocationArguments = newArgs };
+                default:
+                    return e;
+            }
+        }
+
+        return Rewrite(constraint);
+    }
+
     public override FunctionDef VisitFunctionDef(FunctionDef ctx)
     {
-        var statementGatherer = new PropertyBindingToVariableDeclarationTransformer();
-        statementGatherer.Visit(ctx);
-        return ctx with
+        // Only attempt to flatten destructuring patterns when the function actually
+        // declares parameters with destructuring. This avoids injecting synthesized
+        // variable declarations into unrelated functions (e.g., main) that do not
+        // use destructuring in their parameter list.
+        if (ctx.Params != null && ctx.Params.Any(p => p.DestructureDef != null))
         {
-            Body = ctx.Body with
+            // First, visit each ParamDef to collect and attach constraints
+            var updatedParams = new List<ParamDef>(ctx.Params.Count);
+            foreach (var p in ctx.Params)
             {
-                Statements = [.. statementGatherer.Statements, .. ctx.Body.Statements]
+                updatedParams.Add(VisitParamDef(p));
             }
-        };
+
+            // Next, synthesize variable declarations from property bindings
+            var statementGatherer = new PropertyBindingToVariableDeclarationTransformer();
+            statementGatherer.Visit(ctx);
+
+            return ctx with
+            {
+                Params = updatedParams,
+                Body = ctx.Body with
+                {
+                    Statements = [.. statementGatherer.Statements, .. ctx.Body.Statements]
+                }
+            };
+        }
+
+        return base.VisitFunctionDef(ctx);
     }
 
     public override ParamDef VisitParamDef(ParamDef ctx)
@@ -143,10 +196,14 @@ public class DestructuringPatternFlattenerVisitor : DefaultRecursiveDescentVisit
             }
         }
 
-        // Collect constraint from this property binding
+        // Collect constraint from this property binding, but rewrite references to the
+        // introduced variable (e.g. 'grade') as param.property (e.g. 'student.Grade') so
+        // guard functions (which only receive the param) can evaluate conditions directly.
         if (ctx.Constraint != null)
         {
-            CollectedConstraints.Add(ctx.Constraint);
+            var propName = ctx.ReferencedProperty?.Name.Value ?? ctx.ReferencedPropertyName.Value;
+            var rewritten = RewriteConstraint(ctx.Constraint, ctx.IntroducedVariable.Value, scopeVarName, propName);
+            CollectedConstraints.Add(rewritten);
         }
 
         return ctx;

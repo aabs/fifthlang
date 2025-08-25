@@ -313,6 +313,13 @@ public interface IFifthVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitExp_add([NotNull] FifthParser.Exp_addContext context);
 	/// <summary>
+	/// Visit a parse tree produced by the <c>exp_index</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExp_index([NotNull] FifthParser.Exp_indexContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.function_call_expression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

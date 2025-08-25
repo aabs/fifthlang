@@ -86,6 +86,38 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         return result;
     }
 
+    public override IAstThing VisitExpression_statement([NotNull] FifthParser.Expression_statementContext context)
+    {
+        var exprCtx = context.expression();
+        if (exprCtx != null)
+        {
+            var expr = (Expression)Visit(exprCtx);
+            return new ExpStatement
+            {
+                Annotations = [],
+                RHS = expr,
+                Location = GetLocationDetails(context),
+                Type = Void
+            };
+        }
+        // Represent empty ';' as a no-op expression statement
+        var noop = new Int32LiteralExp
+        {
+            Annotations = [],
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From(typeof(int).FullName) },
+            Value = 0
+        };
+        return new ExpStatement
+        {
+            Annotations = [],
+            RHS = noop,
+            Location = GetLocationDetails(context),
+            Type = Void
+        };
+    }
+
     public override IAstThing VisitBlock(FifthParser.BlockContext context)
     {
         var b = new BlockStatementBuilder()
@@ -192,7 +224,8 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             FifthParser.PLUS => Operator.ArithmeticAdd,
             FifthParser.MINUS => Operator.ArithmeticSubtract,
             FifthParser.OR => Operator.BitwiseOr,
-            FifthParser.LOGICAL_XOR => Operator.LogicalXor
+            FifthParser.LOGICAL_XOR => Operator.LogicalXor,
+            _ => Operator.ArithmeticAdd
         };
         
         // ANTLR visitor dispatch issue workaround: manually create FuncCallExp when needed
@@ -211,6 +244,31 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
+    }
+
+    public override IAstThing VisitExp_funccall([NotNull] FifthParser.Exp_funccallContext context)
+    {
+        // Build a FuncCallExp with arguments and stash the name for resolution in linkage
+        var functionName = context.funcname.Text;
+        var arguments = new List<Expression>();
+
+        if (context.expressionList() != null)
+        {
+            foreach (var exp in context.expressionList()._expressions)
+            {
+                arguments.Add((Expression)Visit(exp));
+            }
+        }
+
+        return new FuncCallExp
+        {
+            FunctionDef = null,
+            InvocationArguments = arguments,
+            Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = null
+        };
     }
 
     private FuncCallExp CreateFuncCallExp(FifthParser.Exp_funccallContext context)
@@ -288,7 +346,8 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             FifthParser.STAR => Operator.ArithmeticMultiply,
             FifthParser.DIV => Operator.ArithmeticDivide,
             FifthParser.MOD => Operator.ArithmeticMod,
-            FifthParser.STAR_STAR => Operator.ArithmeticPow
+            FifthParser.STAR_STAR => Operator.ArithmeticPow,
+            _ => Operator.ArithmeticMultiply
         };
         b.WithOperator(op)
             .WithLHS((Expression)Visit(context.lhs))
@@ -321,7 +380,8 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
             FifthParser.LESS => Operator.LessThan,
             FifthParser.LESS_OR_EQUALS => Operator.LessThanOrEqual,
             FifthParser.GREATER => Operator.GreaterThan,
-            FifthParser.GREATER_OR_EQUALS => Operator.GreaterThanOrEqual
+            FifthParser.GREATER_OR_EQUALS => Operator.GreaterThanOrEqual,
+            _ => Operator.Equal
         };
         b.WithOperator(op)
             .WithLHS((Expression)Visit(context.lhs))
@@ -339,7 +399,8 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         {
             FifthParser.PLUS => Operator.ArithmeticAdd,
             FifthParser.MINUS => Operator.ArithmeticNegative,
-            FifthParser.LOGICAL_NOT => Operator.LogicalNot
+            FifthParser.LOGICAL_NOT => Operator.LogicalNot,
+            _ => Operator.ArithmeticAdd
         };
         b.WithOperator(op)
             .WithOperand((Expression)Visit(context.expression()));
@@ -382,6 +443,11 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
         else if (operandContext.list() != null)
         {
             Console.WriteLine("DEBUG: Found list in operand");
+        }
+        else if (operandContext.L_PAREN() != null && operandContext.R_PAREN() != null)
+        {
+            Console.WriteLine("DEBUG: Found parenthesized expression in operand; visiting inner expression");
+            return Visit(operandContext.expression());
         }
         else
         {
@@ -455,10 +521,30 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
     {
         var b = new IfElseStatementBuilder();
         b.WithAnnotations([])
-            .WithCondition((Expression)Visit(context.condition))
-            .WithThenBlock((BlockStatement)Visit(context.ifpart));
+            .WithCondition((Expression)Visit(context.condition));
+
+        var thenAst = Visit(context.ifpart);
+        var thenBlock = thenAst as BlockStatement ?? new BlockStatement
+        {
+            Annotations = [],
+            Statements = [ (Statement)thenAst ],
+            Location = GetLocationDetails(context.ifpart),
+            Type = Void
+        };
+        b.WithThenBlock(thenBlock);
+
         if (context.elsepart is not null)
-            b.WithElseBlock((BlockStatement)Visit(context.elsepart));
+        {
+            var elseAst = Visit(context.elsepart);
+            var elseBlock = elseAst as BlockStatement ?? new BlockStatement
+            {
+                Annotations = [],
+                Statements = [ (Statement)elseAst ],
+                Location = GetLocationDetails(context.elsepart),
+                Type = Void
+            };
+            b.WithElseBlock(elseBlock);
+        }
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
@@ -641,8 +727,33 @@ public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
     {
         var b = new WhileStatementBuilder();
         b.WithAnnotations([])
-            .WithCondition((Expression)Visit(context.condition))
-            .WithBody((BlockStatement)Visit(context.looppart));
+            .WithCondition((Expression)Visit(context.condition));
+
+        var bodyAst = Visit(context.looppart);
+        var bodyBlock = bodyAst as BlockStatement ?? new BlockStatement
+        {
+            Annotations = [],
+            Statements = [ (Statement)bodyAst ],
+            Location = GetLocationDetails(context.looppart),
+            Type = Void
+        };
+        b.WithBody(bodyBlock);
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
+
+    // Handle indexing expressions: numbers[0]
+    public override IAstThing VisitExp_index([NotNull] FifthParser.Exp_indexContext context)
+    {
+        // Represent index access as a MemberAccessExp with RHS being the index expression in annotations
+        var target = (Expression)Visit(context.lhs);
+        var indexCtx = context.index();
+        var indexExpr = (Expression)Visit(indexCtx.expression());
+
+        // Create a temporary VarRefExp for the index and attach metadata to LHS for later lowering phases
+        var synthetic = new VarRefExp { VarName = "[index]", Annotations = new Dictionary<string, object> { ["IndexExpression"] = indexExpr }, Location = GetLocationDetails(context), Type = Void };
+
+        var b = new MemberAccessExpBuilder().WithAnnotations([]).WithLHS(target).WithRHS(synthetic);
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }

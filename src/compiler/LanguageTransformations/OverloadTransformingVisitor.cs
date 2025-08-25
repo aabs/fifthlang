@@ -9,7 +9,7 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
     public void ProcessOverloadedFunctionDefinition(OverloadedFunctionDefinition ctx)
     {
         clauseCounter = 1;
-        var clauses = new List<(Expression, MethodDef)>();
+        var clauses = new List<(Expression?, MethodDef)>();
         foreach (var clause in ctx.OverloadClauses)
         {
             var precondition = GetPrecondition(clause);
@@ -21,13 +21,13 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
         var guardFunction = GenerateGuardFunction(ctx, clauses);
         var newFunctions = clauses.Select(c => c.Item2);
         newFunctions = newFunctions.Prepend(guardFunction);
-        SubstituteFunctionDefinitions((ClassDef)ctx.Parent, [ctx], newFunctions);
+        SubstituteFunctionDefinitions((ClassDef)ctx.Parent!, [ctx], newFunctions);
     }
 
     public void ProcessOverloadedModuleFunctionDef(OverloadedFunctionDef ctx)
     {
         clauseCounter = 1;
-        var clauses = new List<(Expression, MethodDef)>();
+        var clauses = new List<(Expression?, MethodDef)>();
         foreach (var clause in ctx.OverloadClauses)
         {
             var precondition = GetPrecondition(clause);
@@ -38,7 +38,7 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
 
         var guardFunction = GenerateModuleGuardFunction(ctx, clauses);
         var subClauseFunctions = clauses.Select(c => c.Item2);
-        SubstituteModuleFunctionDefinitions((ModuleDef)ctx.Parent, [ctx], guardFunction, subClauseFunctions);
+        SubstituteModuleFunctionDefinitions((ModuleDef)ctx.Parent!, [ctx], guardFunction, subClauseFunctions);
     }
 
     public override ClassDef VisitClassDef(ClassDef ctx)
@@ -75,10 +75,10 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
 
     internal int clauseCounter;
 
-    internal MethodDef GenerateGuardFunction(OverloadedFunctionDefinition ctx, List<(Expression, MethodDef)> clauses)
+    internal MethodDef GenerateGuardFunction(OverloadedFunctionDefinition ctx, List<(Expression?, MethodDef)> clauses)
     {
         var ifStatements = new List<Statement>();
-        FunctionDef fd = (FunctionDef)new FunctionDefBuilder()
+     FunctionDef fd = (FunctionDef)new FunctionDefBuilder()
                .WithName(ctx.Name)
                .WithReturnType(ctx.Type)
                .WithBody(null)
@@ -95,11 +95,12 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
             var args = (from p in clause.Item2.FunctionDef.Params
                         select (Expression)new VarRefExp() { VarName = p.Name, Parent = p as IAstThing }).ToList();
 
+            // Call the specific subclause function, not the guard itself
             var funcCallExpression = new FuncCallExp()
             {
                 Annotations = [],
                 InvocationArguments = args,
-                FunctionDef = fd
+                FunctionDef = clause.Item2.FunctionDef
             };
 
             if (clause.Item1 != null)
@@ -143,7 +144,7 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
     /// </summary>
     /// <param name="clause">the original function with preconditions</param>
     /// <returns>an expression combining all preconditions</returns>
-    internal Expression GetPrecondition(IOverloadableFunction clause)
+    internal Expression? GetPrecondition(IOverloadableFunction clause)
     {
         var conditions = new Queue<Expression>();
         foreach (var pd in clause.Params)
@@ -238,7 +239,7 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
         }
     }
 
-    internal FunctionDef GenerateModuleGuardFunction(OverloadedFunctionDef ctx, List<(Expression, MethodDef)> clauses)
+    internal FunctionDef GenerateModuleGuardFunction(OverloadedFunctionDef ctx, List<(Expression?, MethodDef)> clauses)
     {
         var ifStatements = new List<Statement>();
         FunctionDef fd = (FunctionDef)new FunctionDefBuilder()
