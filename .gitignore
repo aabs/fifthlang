@@ -371,3 +371,5 @@ FodyWeavers.xsd
 test_*.5th
 test_*.exe
 test_*.runtimeconfig.json
+.idea/
+fifthlang.iml
