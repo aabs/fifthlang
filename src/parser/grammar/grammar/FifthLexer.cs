@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from Fifth.g4 by ANTLR 4.8
+// Generated from FifthLexer.g4 by ANTLR 4.8
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -133,7 +133,7 @@ public partial class FifthLexer : Lexer {
 		}
 	}
 
-	public override string GrammarFileName { get { return "Fifth.g4"; } }
+	public override string GrammarFileName { get { return "FifthLexer.g4"; } }
 
 	public override string[] RuleNames { get { return ruleNames; } }
 

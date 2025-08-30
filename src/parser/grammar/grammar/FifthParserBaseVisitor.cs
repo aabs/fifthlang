@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from Fifth.g4 by ANTLR 4.8
+// Generated from FifthParser.g4 by ANTLR 4.8
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -25,14 +25,14 @@ using IToken = Antlr4.Runtime.IToken;
 using ParserRuleContext = Antlr4.Runtime.ParserRuleContext;
 
 /// <summary>
-/// This class provides an empty implementation of <see cref="IFifthVisitor{Result}"/>,
+/// This class provides an empty implementation of <see cref="IFifthParserVisitor{Result}"/>,
 /// which can be extended to create a visitor which only needs to handle a subset
 /// of the available methods.
 /// </summary>
 /// <typeparam name="Result">The return type of the visit operation.</typeparam>
 [System.CodeDom.Compiler.GeneratedCode("ANTLR", "4.8")]
 [System.CLSCompliant(false)]
-public partial class FifthBaseVisitor<Result> : AbstractParseTreeVisitor<Result>, IFifthVisitor<Result> {
+public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<Result>, IFifthParserVisitor<Result> {
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.fifth"/>.
 	/// <para>

@@ -10,7 +10,7 @@ using Operator = ast.Operator;
 
 namespace compiler.LangProcessingPhases;
 
-public class AstBuilderVisitor : FifthBaseVisitor<IAstThing>
+public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 {
     public static readonly FifthType Void = new FifthType.TVoidType() { Name = TypeName.From("void") };
 

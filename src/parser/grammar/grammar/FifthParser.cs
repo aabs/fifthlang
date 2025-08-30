@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from Fifth.g4 by ANTLR 4.8
+// Generated from FifthParser.g4 by ANTLR 4.8
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -124,7 +124,7 @@ public partial class FifthParser : FifthParserBase {
 		}
 	}
 
-	public override string GrammarFileName { get { return "Fifth.g4"; } }
+	public override string GrammarFileName { get { return "FifthParser.g4"; } }
 
 	public override string[] RuleNames { get { return ruleNames; } }
 
@@ -180,15 +180,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_fifth; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterFifth(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitFifth(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitFifth(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -288,15 +288,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_module_import; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterModule_import(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitModule_import(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitModule_import(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -348,15 +348,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_module_name; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterModule_name(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitModule_name(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitModule_name(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -391,15 +391,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_packagename; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterPackagename(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitPackagename(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitPackagename(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -444,15 +444,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_alias; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterAlias(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitAlias(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitAlias(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -517,15 +517,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_function_declaration; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterFunction_declaration(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitFunction_declaration(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitFunction_declaration(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -593,15 +593,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_function_body; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterFunction_body(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitFunction_body(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitFunction_body(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -636,15 +636,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_function_name; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterFunction_name(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitFunction_name(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitFunction_name(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -683,15 +683,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_variable_constraint; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterVariable_constraint(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitVariable_constraint(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitVariable_constraint(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -739,15 +739,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_paramdecl; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterParamdecl(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitParamdecl(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitParamdecl(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -816,15 +816,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_destructuring_decl; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterDestructuring_decl(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitDestructuring_decl(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitDestructuring_decl(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -890,15 +890,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_destructure_binding; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterDestructure_binding(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitDestructure_binding(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitDestructure_binding(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -974,15 +974,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_class_definition; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterClass_definition(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitClass_definition(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitClass_definition(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1054,15 +1054,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_property_declaration; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterProperty_declaration(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitProperty_declaration(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitProperty_declaration(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1100,15 +1100,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_type_name; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterType_name(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitType_name(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitType_name(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1160,15 +1160,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_absoluteIri; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterAbsoluteIri(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitAbsoluteIri(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitAbsoluteIri(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1276,15 +1276,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_block; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterBlock(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitBlock(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitBlock(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1343,15 +1343,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_declaration; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterDeclaration(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitDeclaration(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitDeclaration(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1421,15 +1421,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_statement; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterStatement(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitStatement(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitStatement(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1521,15 +1521,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_assignment_statement; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterAssignment_statement(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitAssignment_statement(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitAssignment_statement(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1570,15 +1570,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_expression_statement; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExpression_statement(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExpression_statement(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExpression_statement(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1638,15 +1638,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_if_statement; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterIf_statement(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitIf_statement(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitIf_statement(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1699,15 +1699,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_return_statement; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterReturn_statement(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitReturn_statement(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitReturn_statement(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1754,15 +1754,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_while_statement; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterWhile_statement(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitWhile_statement(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitWhile_statement(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1807,15 +1807,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_with_statement; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterWith_statement(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitWith_statement(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitWith_statement(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1864,15 +1864,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_var_decl; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterVar_decl(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitVar_decl(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitVar_decl(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1927,15 +1927,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_var_name; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterVar_name(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitVar_name(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitVar_name(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -1975,15 +1975,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_list; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterList(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitList(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitList(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2025,15 +2025,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_list_body; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterList_body(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitList_body(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitList_body(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2082,15 +2082,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_list_literal; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterList_literal(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitList_literal(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitList_literal(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2138,15 +2138,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_list_comprehension; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterList_comprehension(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitList_comprehension(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitList_comprehension(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2191,15 +2191,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_list_type_signature; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterList_type_signature(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitList_type_signature(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitList_type_signature(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2244,15 +2244,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_array_type_signature; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterArray_type_signature(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitArray_type_signature(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitArray_type_signature(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2310,15 +2310,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_expressionList; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExpressionList(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExpressionList(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExpressionList(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2393,15 +2393,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode STAR_STAR() { return GetToken(FifthParser.STAR_STAR, 0); }
 		public Exp_mulContext(ExpressionContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExp_mul(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExp_mul(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExp_mul(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2418,15 +2418,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public Exp_andContext(ExpressionContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExp_and(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExp_and(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExp_and(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2449,15 +2449,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode GREATER_OR_EQUALS() { return GetToken(FifthParser.GREATER_OR_EQUALS, 0); }
 		public Exp_relContext(ExpressionContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExp_rel(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExp_rel(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExp_rel(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2468,15 +2468,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public Exp_operandContext(ExpressionContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExp_operand(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExp_operand(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExp_operand(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2490,15 +2490,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode MINUS_MINUS() { return GetToken(FifthParser.MINUS_MINUS, 0); }
 		public Exp_unary_postfixContext(ExpressionContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExp_unary_postfix(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExp_unary_postfix(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExp_unary_postfix(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2515,15 +2515,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode MINUS_MINUS() { return GetToken(FifthParser.MINUS_MINUS, 0); }
 		public Exp_unaryContext(ExpressionContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExp_unary(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExp_unary(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExp_unary(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2540,15 +2540,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public Exp_expContext(ExpressionContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExp_exp(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExp_exp(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExp_exp(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2563,15 +2563,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public Exp_funccallContext(ExpressionContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExp_funccall(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExp_funccall(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExp_funccall(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2588,15 +2588,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public Exp_member_accessContext(ExpressionContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExp_member_access(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExp_member_access(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExp_member_access(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2613,15 +2613,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public Exp_orContext(ExpressionContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExp_or(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExp_or(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExp_or(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2642,15 +2642,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode LOGICAL_XOR() { return GetToken(FifthParser.LOGICAL_XOR, 0); }
 		public Exp_addContext(ExpressionContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExp_add(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExp_add(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExp_add(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2665,15 +2665,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public Exp_indexContext(ExpressionContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterExp_index(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitExp_index(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExp_index(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2927,15 +2927,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_function_call_expression; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterFunction_call_expression(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitFunction_call_expression(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitFunction_call_expression(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -2998,15 +2998,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_operand; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterOperand(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitOperand(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitOperand(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3114,15 +3114,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_object_instantiation_expression; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterObject_instantiation_expression(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitObject_instantiation_expression(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitObject_instantiation_expression(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3227,15 +3227,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_initialiser_property_assignment; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterInitialiser_property_assignment(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitInitialiser_property_assignment(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitInitialiser_property_assignment(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3276,15 +3276,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_index; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterIndex(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitIndex(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitIndex(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3332,15 +3332,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_slice_; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterSlice_(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitSlice_(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitSlice_(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3431,15 +3431,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public Lit_stringContext(LiteralContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterLit_string(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitLit_string(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitLit_string(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3448,15 +3448,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode NIL_LIT() { return GetToken(FifthParser.NIL_LIT, 0); }
 		public Lit_nilContext(LiteralContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterLit_nil(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitLit_nil(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitLit_nil(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3467,15 +3467,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public Lit_intContext(LiteralContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterLit_int(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitLit_int(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitLit_int(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3486,15 +3486,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public Lit_boolContext(LiteralContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterLit_bool(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitLit_bool(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitLit_bool(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3503,15 +3503,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode REAL_LITERAL() { return GetToken(FifthParser.REAL_LITERAL, 0); }
 		public Lit_floatContext(LiteralContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterLit_float(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitLit_float(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitLit_float(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3599,15 +3599,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode RAW_STRING_LIT() { return GetToken(FifthParser.RAW_STRING_LIT, 0); }
 		public Str_rawContext(String_Context context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterStr_raw(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitStr_raw(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitStr_raw(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3616,15 +3616,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode INTERPRETED_STRING_LIT() { return GetToken(FifthParser.INTERPRETED_STRING_LIT, 0); }
 		public Str_plainContext(String_Context context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterStr_plain(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitStr_plain(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitStr_plain(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3633,15 +3633,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode INTERPOLATED_STRING_LIT() { return GetToken(FifthParser.INTERPOLATED_STRING_LIT, 0); }
 		public Str_interpolatedContext(String_Context context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterStr_interpolated(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitStr_interpolated(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitStr_interpolated(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3700,15 +3700,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_boolean; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterBoolean(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitBoolean(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitBoolean(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3760,15 +3760,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode BINARY_LIT() { return GetToken(FifthParser.BINARY_LIT, 0); }
 		public Num_binaryContext(IntegerContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterNum_binary(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitNum_binary(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitNum_binary(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3777,15 +3777,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode HEX_LIT() { return GetToken(FifthParser.HEX_LIT, 0); }
 		public Num_hexContext(IntegerContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterNum_hex(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitNum_hex(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitNum_hex(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3794,15 +3794,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode RUNE_LIT() { return GetToken(FifthParser.RUNE_LIT, 0); }
 		public Num_runeContext(IntegerContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterNum_rune(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitNum_rune(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitNum_rune(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3811,15 +3811,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode IMAGINARY_LIT() { return GetToken(FifthParser.IMAGINARY_LIT, 0); }
 		public Num_imaginaryContext(IntegerContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterNum_imaginary(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitNum_imaginary(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitNum_imaginary(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3831,15 +3831,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode SUF_LONG() { return GetToken(FifthParser.SUF_LONG, 0); }
 		public Num_decimalContext(IntegerContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterNum_decimal(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitNum_decimal(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitNum_decimal(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3848,15 +3848,15 @@ public partial class FifthParser : FifthParserBase {
 		public ITerminalNode OCTAL_LIT() { return GetToken(FifthParser.OCTAL_LIT, 0); }
 		public Num_octalContext(IntegerContext context) { CopyFrom(context); }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterNum_octal(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitNum_octal(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitNum_octal(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -3954,15 +3954,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_operandName; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterOperandName(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitOperandName(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitOperandName(this);
 			else return visitor.VisitChildren(this);
 		}
@@ -4001,15 +4001,15 @@ public partial class FifthParser : FifthParserBase {
 		}
 		public override int RuleIndex { get { return RULE_qualifiedIdent; } }
 		public override void EnterRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.EnterQualifiedIdent(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
-			IFifthListener typedListener = listener as IFifthListener;
+			IFifthParserListener typedListener = listener as IFifthParserListener;
 			if (typedListener != null) typedListener.ExitQualifiedIdent(this);
 		}
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
-			IFifthVisitor<TResult> typedVisitor = visitor as IFifthVisitor<TResult>;
+			IFifthParserVisitor<TResult> typedVisitor = visitor as IFifthParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitQualifiedIdent(this);
 			else return visitor.VisitChildren(this);
 		}
