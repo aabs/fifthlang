@@ -71,6 +71,8 @@ destructure_binding
 class_definition
     : CLASS
       name=IDENTIFIER
+      (EXTENDS superClass=type_name)?
+      (IN aliasScope=packagename)?
       L_CURLY
       ( functions += function_declaration
       | properties += property_declaration
