@@ -1,0 +1,5 @@
+# Ignore ANTLR generated artifacts in this folder
+*.interp
+*.tokens
+Fifth*.interp
+Fifth*.tokens

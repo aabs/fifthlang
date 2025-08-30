@@ -184,7 +184,7 @@ expressionList
 expression
     : lhs=expression DOT rhs=expression                                                                                   #exp_member_access
     | lhs=expression index                                                                                                #exp_index
-    | lhs=expression POW<assoc=right> rhs=expression                                                                      #exp_exp
+    | <assoc=right> lhs=expression POW rhs=expression                                                                      #exp_exp
     | lhs=expression mul_op=(STAR | DIV | MOD | LSHIFT | RSHIFT | AMPERSAND | STAR_STAR) rhs=expression                   #exp_mul
     | lhs=expression add_op=(PLUS | MINUS | OR | LOGICAL_XOR) rhs=expression                                              #exp_add
     | lhs=expression rel_op=( EQUALS | NOT_EQUALS | LESS | LESS_OR_EQUALS | GREATER | GREATER_OR_EQUALS) rhs=expression   #exp_rel
