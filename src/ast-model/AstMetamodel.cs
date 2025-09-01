@@ -18,8 +18,11 @@ using ast_model;
 using ast_model.Symbols;
 using ast_model.TypeSystem;
 using Vogen;
+using static ast_model.TypeSystem.Maybe<string>;
 
+//using static ast_model.TypeSystem.Maybe<string>;
 #region Core Abstractions
+
 
 /// <summary>
 /// Constraints on what can be done with the thing so adorned.
@@ -477,6 +480,8 @@ public record ClassDef : ScopedDefinition
 {
     public required TypeName Name { get; init; }
     public required List<MemberDef> MemberDefs { get; set; } = [];
+    public required List<string> BaseClasses { get; set; } = [];
+    public required string? AliasScope { get; set; } = default;
 }
 
 // out of scope for now...

@@ -830,6 +830,8 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
 {
     private ast_model.TypeSystem.TypeName _Name;
     private List<ast.MemberDef> _MemberDefs = [];
+    private List<System.String> _BaseClasses = [];
+    private System.String _AliasScope;
     private ast.Visibility _Visibility;
     private ast_model.Symbols.IScope _EnclosingScope;
     private ast_model.Symbols.ISymbolTable _SymbolTable;
@@ -840,6 +842,8 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
         return new ast.ClassDef(){
              Name = this._Name // from ClassDef
            , MemberDefs = this._MemberDefs // from ClassDef
+           , BaseClasses = this._BaseClasses // from ClassDef
+           , AliasScope = this._AliasScope // from ClassDef
            , Visibility = this._Visibility // from ScopedDefinition
            , EnclosingScope = this._EnclosingScope // from ScopeAstThing
            , SymbolTable = this._SymbolTable // from ScopeAstThing
@@ -861,6 +865,21 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
         _MemberDefs.Add(value);
         return this;
     }
+    public ClassDefBuilder WithBaseClasses(List<System.String> value){
+        _BaseClasses = value;
+        return this;
+    }
+
+    public ClassDefBuilder AddingItemToBaseClasses(System.String value){
+        _BaseClasses  ??= [];
+        _BaseClasses.Add(value);
+        return this;
+    }
+    public ClassDefBuilder WithAliasScope(System.String value){
+        _AliasScope = value;
+        return this;
+    }
+
     public ClassDefBuilder WithVisibility(ast.Visibility value){
         _Visibility = value;
         return this;

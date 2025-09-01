@@ -1,4 +1,6 @@
 using FluentAssertions;
+using ast;
+using compiler;
 
 namespace runtime_integration_tests;
 
@@ -7,6 +9,38 @@ namespace runtime_integration_tests;
 /// </summary>
 public class ClassRuntimeTests : RuntimeTestBase
 {
+    [Test]
+    public void ClassWithAliasScope_ShouldParseAndRecordAliasScope()
+    {
+        // Arrange
+        var sourceFile = Path.Combine("TestPrograms", "Classes", "class_with_alias_scope.5th");
+
+        // Read file and extract just the class definition to avoid alias directive syntax differences
+        File.Exists(sourceFile).Should().BeTrue($"Source file should exist: {sourceFile}");
+        var fullText = File.ReadAllText(sourceFile);
+        var classIdx = fullText.IndexOf("class", StringComparison.OrdinalIgnoreCase);
+        classIdx.Should().BeGreaterThanOrEqualTo(0, "file should contain a class definition");
+        var classOnly = fullText[classIdx..];
+
+        // Act: Parse the class portion and apply language analysis phases
+        var ast = FifthParserManager.ParseString(classOnly);
+        ast.Should().NotBeNull("class portion should parse without syntax errors");
+
+        var processed = FifthParserManager.ApplyLanguageAnalysisPhases(ast);
+        processed.Should().NotBeNull("AST should be processable by language analysis phases");
+
+        // Assert: aliasScope on the class is captured as 'x'
+        var assembly = processed as AssemblyDef;
+        assembly.Should().NotBeNull();
+
+        var personClass = assembly!.Modules
+            .SelectMany(m => m.Classes)
+            .FirstOrDefault(c => c.Name.Value == "Person");
+
+        personClass.Should().NotBeNull("the class 'Person' must exist in the parsed module");
+        personClass!.AliasScope.Should().Be("x", "class Person in x should record aliasScope as 'x'");
+    }
+
     [Test]
     public async Task SimpleClassWithProperties_ShouldCreateAndAccessCorrectly()
     {

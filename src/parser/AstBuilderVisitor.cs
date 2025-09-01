@@ -150,7 +150,19 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         b.WithVisibility(Visibility.Public);
         b.WithName(TypeName.From(context.name.Text));
         b.WithAnnotations([]);
-        var result = b.Build() with
+        // Set optional features prior to building so they appear in the result
+        if (context.superClass is not null)
+        {
+            b.AddingItemToBaseClasses(context.superClass.GetText());
+        }
+
+        if (context.aliasScope is not null)
+        {
+            b.WithAliasScope(context.aliasScope.GetText());
+        }
+
+        var built = b.Build();
+        var result = built with
         {
             Location = GetLocationDetails(context),
             Type = new FifthType.TType() { Name = TypeName.From(context.name.Text) }
