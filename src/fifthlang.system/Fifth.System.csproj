@@ -12,5 +12,7 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
-
+  <ItemGroup>
+      <PackageReference Include="dotNetRdf" Version="3.4.0" />
+  </ItemGroup>
 </Project>
