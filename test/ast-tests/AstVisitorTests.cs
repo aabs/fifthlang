@@ -32,7 +32,9 @@ public class AstVisitorTests
             Parent = null,
             Type = CreateType(name, typeId, SymbolKind.ClassDef),
             Visibility = Visibility.Public,
-            Location = null
+            Location = null,
+            BaseClasses = [],
+            AliasScope = null
         };
     }
 

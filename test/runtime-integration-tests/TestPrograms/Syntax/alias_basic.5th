@@ -1,2 +1,2 @@
-alias P as http: / / example ;
+alias P as <http://example>;
 main(): int { return 0; }

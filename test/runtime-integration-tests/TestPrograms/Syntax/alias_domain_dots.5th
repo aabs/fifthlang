@@ -1,2 +1,2 @@
-alias Web as http: / / example . com ;
+alias Web as <http://example.com>;
 main(): int { return 0; }

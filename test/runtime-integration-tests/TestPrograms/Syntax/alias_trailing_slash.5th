@@ -1,2 +1,2 @@
-alias Root as http: / / example . com / ;
+alias Root as <http://example.com/>;
 main(): int { return 0; }
