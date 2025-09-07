@@ -215,7 +215,6 @@ qualifiedIdent: IDENTIFIER DOT IDENTIFIER;
 // =====[KNOWLEDGE MANAGEMENT]=========
 iri
     : IRIREF
-    | PrefixedName
     ;
 
 graphDeclaration:

@@ -1,2 +1,2 @@
-alias Frag as http: / / example # ;
+alias Frag as <http://example#>;
 main(): int { return 0; }

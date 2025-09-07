@@ -1,5 +1,5 @@
 // Single-line comment before alias
-alias Web as http: / / example . com ;
+alias Web as <http://example.com>;
 /* Multi-line
    comment */
 

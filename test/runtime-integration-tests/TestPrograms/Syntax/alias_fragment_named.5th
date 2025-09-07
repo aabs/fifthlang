@@ -1,2 +1,2 @@
-alias Frag2 as http: / / example # anchor ;
+alias Frag2 as <http://example#anchor>;
 main(): int { return 0; }
