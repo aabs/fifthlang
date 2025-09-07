@@ -398,7 +398,7 @@ public record MethodDef : MemberDef, IOverloadableFunction
 {
     // todo: need the possibility of type parameters here.
     public FunctionDef FunctionDef { get; set; }
-    
+
     // IOverloadableFunction implementation - delegate to wrapped FunctionDef
     List<ParamDef> IOverloadableFunction.Params => FunctionDef.Params;
     BlockStatement IOverloadableFunction.Body => FunctionDef.Body;
@@ -418,7 +418,7 @@ public record OverloadedFunctionDef : ScopedDefinition
 {
     public List<IOverloadableFunction> OverloadClauses { get; init; } = [];
     public IFunctionSignature Signature { get; init; }
-    
+
     // Properties to make this compatible with FunctionDef for ModuleDef.Functions
     public required List<ParamDef> Params { get; set; } = [];
     public required BlockStatement Body { get; set; }
@@ -874,3 +874,7 @@ public record Graph : Expression
 }
 
 #endregion Expressions
+
+#region Knowledge Management
+
+#endregion Knowledge Management

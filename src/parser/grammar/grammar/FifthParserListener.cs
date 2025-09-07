@@ -181,16 +181,6 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitType_name([NotNull] FifthParser.Type_nameContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.absoluteIri"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterAbsoluteIri([NotNull] FifthParser.AbsoluteIriContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.absoluteIri"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitAbsoluteIri([NotNull] FifthParser.AbsoluteIriContext context);
-	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.block"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -772,4 +762,34 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitQualifiedIdent([NotNull] FifthParser.QualifiedIdentContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.iri"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterIri([NotNull] FifthParser.IriContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.iri"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitIri([NotNull] FifthParser.IriContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.graphDeclaration"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterGraphDeclaration([NotNull] FifthParser.GraphDeclarationContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.graphDeclaration"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitGraphDeclaration([NotNull] FifthParser.GraphDeclarationContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.store_decl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterStore_decl([NotNull] FifthParser.Store_declContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.store_decl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitStore_decl([NotNull] FifthParser.Store_declContext context);
 }

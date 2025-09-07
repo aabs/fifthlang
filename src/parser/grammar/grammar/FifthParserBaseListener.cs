@@ -216,18 +216,6 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitType_name([NotNull] FifthParser.Type_nameContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.absoluteIri"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterAbsoluteIri([NotNull] FifthParser.AbsoluteIriContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.absoluteIri"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitAbsoluteIri([NotNull] FifthParser.AbsoluteIriContext context) { }
-	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.block"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
@@ -915,6 +903,42 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitQualifiedIdent([NotNull] FifthParser.QualifiedIdentContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.iri"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterIri([NotNull] FifthParser.IriContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.iri"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitIri([NotNull] FifthParser.IriContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.graphDeclaration"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterGraphDeclaration([NotNull] FifthParser.GraphDeclarationContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.graphDeclaration"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitGraphDeclaration([NotNull] FifthParser.GraphDeclarationContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.store_decl"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterStore_decl([NotNull] FifthParser.Store_declContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.store_decl"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitStore_decl([NotNull] FifthParser.Store_declContext context) { }
 
 	/// <inheritdoc/>
 	/// <remarks>The default implementation does nothing.</remarks>

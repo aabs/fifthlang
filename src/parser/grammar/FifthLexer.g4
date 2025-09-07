@@ -9,6 +9,7 @@ lexer grammar FifthLexer;
 // $antlr-format allowShortRulesOnASingleLine true, allowShortBlocksOnASingleLine true, minEmptyLines 0, alignSemicolons ownLine
 // $antlr-format alignColons trailing, singleLineOverrulesHangingColon true, alignLexerCommands true, alignLabels true, alignTrailers true
 
+
 // Keywords
 
 ALIAS       : 'alias';
@@ -27,6 +28,7 @@ FOR         : 'for';
 FUNC        : 'func';
 GO          : 'go';
 GOTO        : 'goto';
+GRAPH       : 'graph';
 IF          : 'if';
 IMPORT      : 'import';
 IN          : 'in';
@@ -37,6 +39,8 @@ PACKAGE     : 'package';
 RANGE       : 'range';
 RETURN      : 'return' /*-> mode(NLSEMI)*/;
 SELECT      : 'select';
+SPARQL      : 'sparql_store';
+STORE       : 'store';
 STRUCT      : 'struct';
 SWITCH      : 'switch';
 TYPE        : 'type';
@@ -71,16 +75,16 @@ MINUS_MINUS    : '--' /*-> mode(NLSEMI)*/;
 STAR_STAR      : '**';
 DECLARE_ASSIGN : ':=';
 ELLIPSIS       : '...';
-GEN            : '<-' ;
+GEN            : '<-';
 UNDERSCORE     : '_';
 // Logical
 
 LOGICAL_NOT  : '!';
-LOGICAL_OR  : '||';
-LOGICAL_AND : '&&';
-LOGICAL_NAND: '!&';
-LOGICAL_NOR: '!|';
-LOGICAL_XOR: '~';
+LOGICAL_OR   : '||';
+LOGICAL_AND  : '&&';
+LOGICAL_NAND : '!&';
+LOGICAL_NOR  : '!|';
+LOGICAL_XOR  : '~';
 
 // Relation operators
 
@@ -93,44 +97,42 @@ GREATER_OR_EQUALS : '>=';
 
 // Arithmetic operators
 
-OR         : '|';
-DIV        : '/';
-MOD        : '%';
-LSHIFT     : '<<';
-RSHIFT     : '>>';
-POW        : '^';
+OR     : '|';
+DIV    : '/';
+MOD    : '%';
+LSHIFT : '<<';
+RSHIFT : '>>';
+POW    : '^';
 
 // Unary operators
 
-
-
 // Mixed operators
 
-PLUS      : '+';
-MINUS     : '-';
-STAR      : '*';
+PLUS  : '+';
+MINUS : '-';
+STAR  : '*';
 
 AMPERSAND : '&';
 SUCH_THAT : '#';
 CONCAT    : '<>';
 
-SUF_SHORT: [sS];
-SUF_DECIMAL: [cC];
-SUF_DOUBLE:  [dD];
-SUF_LONG: [lL];
+SUF_SHORT   : [sS];
+SUF_DECIMAL : [cC];
+SUF_DOUBLE  : [dD];
+SUF_LONG    : [lL];
 
 // Number literals
 
-DECIMAL_LIT : ('0' | [1-9] ('_'? [0-9])*)   /*-> mode(NLSEMI)*/;
-BINARY_LIT  : '0' [bB] ('_'? BIN_DIGIT)+    /*-> mode(NLSEMI)*/;
+DECIMAL_LIT : ('0' | [1-9] ('_'? [0-9])*) /*-> mode(NLSEMI)*/;
+BINARY_LIT  : '0' [bB] ('_'? BIN_DIGIT)+ /*-> mode(NLSEMI)*/;
 OCTAL_LIT   : '0' [oO]? ('_'? OCTAL_DIGIT)+ /*-> mode(NLSEMI)*/;
-HEX_LIT     : '0' [xX] ('_'? HEX_DIGIT)+    /*-> mode(NLSEMI)*/;
+HEX_LIT     : '0' [xX] ('_'? HEX_DIGIT)+ /*-> mode(NLSEMI)*/;
 
 REAL_LITERAL:
     ([0-9] ('_'* [0-9])*)? '.' [0-9] ('_'* [0-9])* ExponentPart? [FfDdMm]?
     | [0-9] ('_'* [0-9])* ([FfDdMm] | ExponentPart [FfDdMm]?)
 ;
-fragment ExponentPart      : [eE] ('+' | '-')? [0-9] ('_'* [0-9])*;
+fragment ExponentPart: [eE] ('+' | '-')? [0-9] ('_'* [0-9])*;
 
 FLOAT_LIT: (DECIMAL_FLOAT_LIT | HEX_FLOAT_LIT) /*-> mode(NLSEMI)*/;
 
@@ -145,7 +147,8 @@ fragment HEX_MANTISSA:
 
 fragment HEX_EXPONENT: [pP] [+-]? DECIMALS;
 
-IMAGINARY_LIT: (DECIMAL_LIT | BINARY_LIT | OCTAL_LIT | HEX_LIT | FLOAT_LIT) 'i' /*-> mode(NLSEMI)*/;
+IMAGINARY_LIT: (DECIMAL_LIT | BINARY_LIT | OCTAL_LIT | HEX_LIT | FLOAT_LIT) 'i' /*-> mode(NLSEMI)*/
+;
 
 // Rune literals
 
@@ -167,8 +170,8 @@ BIG_U_VALUE:
 
 // String literals
 
-RAW_STRING_LIT         : '`' ~'`'* '`'                     /*-> mode(NLSEMI)*/;
-INTERPRETED_STRING_LIT : '"' (~["\\] | ESCAPED_VALUE)* '"' /*-> mode(NLSEMI)*/;
+RAW_STRING_LIT          : '`' ~'`'* '`' /*-> mode(NLSEMI)*/;
+INTERPRETED_STRING_LIT  : '"' (~["\\] | ESCAPED_VALUE)* '"' /*-> mode(NLSEMI)*/;
 INTERPOLATED_STRING_LIT : '$' INTERPRETED_STRING_LIT /*-> mode(NLSEMI)*/;
 
 // Hidden tokens
@@ -219,3 +222,95 @@ LINE_COMMENT_NLSEMI : '//' ~[\r\n]*       -> channel(HIDDEN);
 EOS: ([\r\n]+ | ';' | '/*' .*? '*/' | EOF) -> mode(DEFAULT_MODE);
 // Did not find an EOS, so go back to normal lexing
 //OTHER: -> mode(DEFAULT_MODE), channel(HIDDEN);
+
+mode IRIMode;
+
+PrefixedName
+    : PNAME_LN
+    | PNAME_NS
+    ;
+PNAME_LN
+    : PNAME_NS PN_LOCAL
+    ;
+PN_LOCAL
+    : (PN_CHARS_U | ':' | [0-9] | PLX) ((PN_CHARS | '.' | ':' | PLX)* (PN_CHARS | ':' | PLX))?
+    ;
+PLX
+    : PERCENT
+    | PN_LOCAL_ESC
+    ;
+PERCENT
+    : '%' HEX HEX
+    ;
+IRIREF
+    : '<' (PN_CHARS | '.' | ':' | '/' | '\\' | '#' | '@' | '%' | '&' | UCHAR)* '>'
+    ;
+PNAME_NS
+    : PN_PREFIX? ':'
+    ;
+
+PN_PREFIX
+    : PN_CHARS_BASE ((PN_CHARS | '.')* PN_CHARS)?
+    ;
+PN_CHARS_BASE
+    : 'A' .. 'Z'
+    | 'a' .. 'z'
+    | '\u00C0' .. '\u00D6'
+    | '\u00D8' .. '\u00F6'
+    | '\u00F8' .. '\u02FF'
+    | '\u0370' .. '\u037D'
+    | '\u037F' .. '\u1FFF'
+    | '\u200C' .. '\u200D'
+    | '\u2070' .. '\u218F'
+    | '\u2C00' .. '\u2FEF'
+    | '\u3001' .. '\uD7FF'
+    | '\uF900' .. '\uFDCF'
+    | '\uFDF0' .. '\uFFFD'
+    ;
+
+PN_CHARS_U
+    : PN_CHARS_BASE
+    | '_'
+    ;
+
+PN_CHARS
+    : PN_CHARS_U
+    | '-'
+    | [0-9]
+    | '\u00B7'
+    | [\u0300-\u036F]
+    | [\u203F-\u2040]
+    ;
+UCHAR
+    : '\\u' HEX HEX HEX HEX
+    | '\\U' HEX HEX HEX HEX HEX HEX HEX HEX
+    ;
+HEX
+    : [0-9]
+    | [A-F]
+    | [a-f]
+    ;
+PN_LOCAL_ESC
+    : '\\' (
+        '_'
+        | '~'
+        | '.'
+        | '-'
+        | '!'
+        | '$'
+        | '&'
+        | '\''
+        | '('
+        | ')'
+        | '*'
+        | '+'
+        | ','
+        | ';'
+        | '='
+        | '/'
+        | '?'
+        | '#'
+        | '@'
+        | '%'
+    )
+    ;
