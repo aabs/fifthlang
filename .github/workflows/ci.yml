@@ -97,12 +97,3 @@ jobs:
             **/coverage.cobertura.xml
           if-no-files-found: warn
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        if: always()
-        with:
-          files: '**/coverage.cobertura.xml'
-          flags: ${{ matrix.os }}
-          fail_ci_if_error: false
-          verbose: true
-          token: ${{ secrets.CODECOV_TOKEN }}
