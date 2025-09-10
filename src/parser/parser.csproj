@@ -16,11 +16,17 @@
 
   <Target Name="GenerateParser">
     <Message Text="Generating Lexer" />
-  <Exec Command="java -jar ../tools/antlr-4.13.2-complete.jar -Dlanguage=CSharp -o grammar -Xexact-output-dir -lib . FifthLexer.g4" ConsoleToMsBuild="true" WorkingDirectory="$(MSBuildThisFileDirectory)grammar">
+    <Exec Command="java -jar ../tools/antlr-4.13.2-complete.jar -Dlanguage=CSharp -o grammar -Xexact-output-dir -lib . FifthLexer.g4" 
+          ConsoleToMsBuild="true" 
+          WorkingDirectory="$(MSBuildThisFileDirectory)grammar"
+          ContinueOnError="false">
       <Output TaskParameter="ConsoleOutput" PropertyName="LexerOutput" />
     </Exec>
     <Message Text="Generating Parser" />
-  <Exec Command="java -jar ../tools/antlr-4.13.2-complete.jar -Dlanguage=CSharp -visitor -listener -o grammar -Xexact-output-dir -lib grammar FifthParser.g4" ConsoleToMsBuild="true" WorkingDirectory="$(MSBuildThisFileDirectory)grammar">
+    <Exec Command="java -jar ../tools/antlr-4.13.2-complete.jar -Dlanguage=CSharp -visitor -listener -o grammar -Xexact-output-dir -lib grammar FifthParser.g4" 
+          ConsoleToMsBuild="true" 
+          WorkingDirectory="$(MSBuildThisFileDirectory)grammar"
+          ContinueOnError="false">
       <Output TaskParameter="ConsoleOutput" PropertyName="ParserOutput" />
     </Exec>
     <Message Text="----------------------------------------" />
