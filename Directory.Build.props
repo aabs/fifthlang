@@ -1,5 +1,9 @@
 <Project>
   <PropertyGroup>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- Ensure modern NuGet behavior and prevent fallback to nuget.exe -->
+    <RestoreTool>NuGet</RestoreTool>
+    <UseNETSdkDefaults>true</UseNETSdkDefaults>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
   </PropertyGroup>
 </Project>
