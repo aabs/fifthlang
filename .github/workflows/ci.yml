@@ -45,11 +45,26 @@ jobs:
 
       - name: Test
         shell: bash
-        run: >-
-          dotnet test fifthlang.sln --configuration Release --no-build
-          --verbosity normal --logger "trx;LogFileName=test_results.trx"
-          --results-directory "TestResults" --collect:"XPlat Code Coverage"
-          --settings fifth.runsettings
+        run: |
+          set -euo pipefail
+          echo "Running unit test projects (excluding runtime-integration-tests)"
+          projects=(
+            test/ast-tests/ast_tests.csproj
+            test/fifth-runtime-tests/fifth-runtime-tests.csproj
+            test/syntax-parser-tests/syntax-parser-tests.csproj
+          )
+          for p in "${projects[@]}"; do
+            name=$(basename "$p" .csproj)
+            echo "\n===> Testing $p";
+            dotnet test "$p" \
+              --configuration Release \
+              --no-build \
+              --verbosity normal \
+              --logger "trx;LogFileName=${name}.trx" \
+              --results-directory "TestResults/${name}" \
+              --collect:"XPlat Code Coverage" \
+              --settings fifth.runsettings
+          done
 
       - name: List coverage and TRX files
         if: always()
