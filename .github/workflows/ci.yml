@@ -105,3 +105,4 @@ jobs:
           flags: ${{ matrix.os }}
           fail_ci_if_error: false
           verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
