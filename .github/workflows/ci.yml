@@ -38,7 +38,7 @@ jobs:
           java-version: '17'
 
       - name: Restore
-        run: dotnet restore fifthlang.sln
+        run: dotnet nuget restore fifthlang.sln
 
       - name: Build
         run: dotnet build fifthlang.sln --configuration Release --no-restore
