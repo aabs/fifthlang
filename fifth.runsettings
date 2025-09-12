@@ -7,11 +7,13 @@
           <!-- Ensure Cobertura format so CI and Codecov can consume it -->
           <Format>cobertura</Format>
           <!-- Reduce noise in coverage -->
-          <Exclude>[
-            "[*]xunit.*",
-            "[*.Tests]*",
-            "[*.Test]*"
-          ]</Exclude>
+          <!-- The previous Exclude block used JSON-like syntax which the collector cannot parse.
+               Use semicolon/newline separated patterns in the supported format: [assembly]type -->
+          <Exclude>
+            [xunit.*]*;
+            [*.Tests]*;
+            [*.Test]*
+          </Exclude>
           <ExcludeByFile>**/bin/**,**/obj/**,**/*.g.cs,**/*.generated.cs</ExcludeByFile>
           <IncludeTestAssembly>false</IncludeTestAssembly>
           <UseSourceLink>true</UseSourceLink>
