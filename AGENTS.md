@@ -48,8 +48,8 @@ src/
 └── fifthlang.system/   # Built-in system functions
 
 test/
-└── ast-tests/          # XUnit tests with .5th code samples
-└── runtime-integration-tests/          # XUnit tests for end to end verification
+└── ast-tests/          # TUnit tests with .5th code samples
+└── runtime-integration-tests/          # TUnit tests for end to end verification
 ```
 
 ## Validation
@@ -139,7 +139,7 @@ myprint(int x) => std.print(x);
 - `Antlr4.Runtime.Standard` - ANTLR runtime for C#
 - `RazorLight` - Template engine for code generation
 - `System.CommandLine` - CLI parsing for AST generator
-- `xunit` - Test framework
+- `tunit` - Test framework
 - `FluentAssertions` - Test assertions
 - `dunet` - Discriminated unions for AST model
 - `Vogen` - Value object generation

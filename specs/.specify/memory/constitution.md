@@ -7,7 +7,7 @@ Key reference: see `AGENTS.md` and `.github/copilot-instructions.md` for authori
 ## Core Principles
 
 ### I. Library-First, Contracts-First
-Every feature starts as a focused library under `src/` with a clear, documented purpose and public contract. Libraries must be self-contained, independently buildable, and testable with xUnit. Avoid organizational or “glue-only” libraries. Contracts are expressed through:
+Every feature starts as a focused library under `src/` with a clear, documented purpose and public contract. Libraries must be self-contained, independently buildable, and testable with TUnit. Avoid organizational or “glue-only” libraries. Contracts are expressed through:
 - AST metamodels in `src/ast-model/`
 - Generated builders/visitors in `src/ast-generated/`
 - ANTLR grammar in `src/parser/grammar/Fifth.g4`
@@ -26,7 +26,7 @@ The AST generator is authoritative for builders, visitors, IL builders, and type
 3. Build the full solution to validate
 
 ### IV. Test-First (Non-Negotiable)
-Practice TDD: write/approve tests, see them fail, then implement. Use xUnit + FluentAssertions across:
+Practice TDD: write/approve tests, see them fail, then implement. Use TUnit + FluentAssertions across:
 - `test/ast-tests/` for AST and generator correctness
 - `test/syntax-parser-tests/` for grammar parsing
 - `test/runtime-integration-tests/` for end-to-end verification
@@ -68,7 +68,7 @@ Generated code changes follow metamodel versioning. Deprecations must be documen
 - PRs modifying generated folders must include the upstream metamodel/template changes and the regeneration command used
 
 ### Testing Requirements
-- Unit tests: xUnit with FluentAssertions
+- Unit tests: TUnit with FluentAssertions
 - Parser tests: grammar samples in `src/parser/grammar/test_samples/*.5th`
 - Integration tests: `test/runtime-integration-tests/`
 - Add tests first; ensure failing state is visible before implementing fixes

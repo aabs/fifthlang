@@ -10,7 +10,7 @@
           <!-- The previous Exclude block used JSON-like syntax which the collector cannot parse.
                Use semicolon/newline separated patterns in the supported format: [assembly]type -->
           <Exclude>
-            [xunit.*]*;
+            [tunit.*]*;
             [*.Tests]*;
             [*.Test]*
           </Exclude>
