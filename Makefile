@@ -1,5 +1,5 @@
 # Major Development Targets for AST Builder
-.PHONY: help build-all restore test run-generator clean rebuild ci \
+.PHONY: help build-all restore test run-generator clean rebuild ci setup-hooks \
 	build-ast-model build-ast-generator build-ast-generated build-parser build-compiler build-tests \
 	test-ast test-runtime test-syntax \
 	coverage coverage-report
@@ -25,6 +25,7 @@ help:
 	@echo "  test-ast          - Run AST unit tests only"
 	@echo "  test-runtime      - Run runtime integration tests only"
 	@echo "  test-syntax       - Run isolated syntax-only parser tests"
+	@echo "  setup-hooks       - Install git pre-commit and pre-push hooks"
 
 build-all: restore run-generator
 	dotnet build fifthlang.sln
@@ -64,6 +65,11 @@ coverage-report:
 
 run-generator:
 	dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
+
+# Install git hooks (requires fish)
+setup-hooks:
+	@which fish >/dev/null 2>&1 || { echo "fish shell required for setup"; exit 1; }
+	fish scripts/setup-githooks.fish
 
 clean:
 	dotnet clean fifthlang.sln

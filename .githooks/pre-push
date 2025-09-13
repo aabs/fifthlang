@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[pre-push] Running quick AST tests..."
+
+if ! command -v dotnet >/dev/null 2>&1; then
+  echo "[pre-push] dotnet not found; skipping tests." >&2
+  exit 0
+fi
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+# Build+test the AST tests only for speed
+dotnet test test/ast-tests/ast_tests.csproj -v minimal
+
+echo "[pre-push] AST tests passed. Proceeding with push."
+exit 0

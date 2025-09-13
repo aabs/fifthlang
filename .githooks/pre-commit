@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[pre-commit] Verifying generated code consistency..."
+
+if ! command -v dotnet >/dev/null 2>&1; then
+  echo "[pre-commit] dotnet not found; skipping generated code check." >&2
+  exit 0
+fi
+
+if ! command -v java >/dev/null 2>&1; then
+  echo "[pre-commit] java not found; skipping generated code check." >&2
+  exit 0
+fi
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "$tmp_dir"' EXIT
+
+dotnet run --project src/ast_generator/ast_generator.csproj -- --folder "$tmp_dir" >/dev/null
+
+if ! diff -ru src/ast-generated "$tmp_dir" > .git/precommit_gen_diff.txt 2>&1; then
+  echo "[pre-commit] Generated code differs from generator output." >&2
+  echo "Do not hand-edit files under src/ast-generated." >&2
+  echo "Update metamodel/templates and regenerate. Diff (first 200 lines):" >&2
+  sed -n '1,200p' .git/precommit_gen_diff.txt >&2
+  exit 1
+fi
+
+echo "[pre-commit] Generated code is consistent."
+exit 0

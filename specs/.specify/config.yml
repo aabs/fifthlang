@@ -1,0 +1,45 @@
+version: 1
+name: fifthlang-speckit
+
+commands:
+  restore: "dotnet restore fifthlang.sln"
+  build: "dotnet build fifthlang.sln"
+  test_ast: "dotnet test test/ast-tests/ast_tests.csproj"
+  test_all: "dotnet test fifthlang.sln"
+  generate_ast: "dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated"
+
+policies:
+  never_cancel_builds: true
+  toolchain:
+    dotnet: "8.0.x"
+    java: "17+"
+  generated_code:
+    path: "src/ast-generated"
+    editable: false
+    regeneration_required: true
+
+checks:
+  - id: build-succeeds
+    run: ["restore", "build"]
+  - id: ast-generator-idempotent
+    description: Regenerate to temp and compare against repo
+    script: |
+      set -euo pipefail
+      tmp_dir=$(mktemp -d)
+      dotnet run --project src/ast_generator/ast_generator.csproj -- --folder "$tmp_dir"
+      diff -ru src/ast-generated "$tmp_dir" | sed -n '1,200p' > diff.txt || true
+      if [ -s diff.txt ]; then
+        echo "Generated code differs from generator output." >&2
+        exit 1
+      fi
+  - id: tests-pass
+    run: ["test_ast", "test_all"]
+
+files_to_watch:
+  - src/ast-model/AstMetamodel.cs
+  - src/ast_generator/Templates/**
+  - src/ast-generated/**
+  - src/parser/grammar/Fifth.g4
+  - global.json
+  - AGENTS.md
+  - .github/copilot-instructions.md
