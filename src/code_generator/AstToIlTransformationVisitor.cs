@@ -463,6 +463,23 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             case MemberAccessExp memberAccess:
                 Console.WriteLine($"DEBUG: Processing MemberAccessExp with LHS: {memberAccess.LHS?.GetType().Name ?? "null"}, RHS: {memberAccess.RHS?.GetType().Name ?? "null"}");
 
+                // Qualified external static call: <Type>.<Method>(args)
+                if (memberAccess.RHS is ast.FuncCallExp extCall && extCall.Annotations != null &&
+                    extCall.Annotations.TryGetValue("ExternalType", out var tObj) && tObj is Type extType &&
+                    extCall.Annotations.TryGetValue("ExternalMethodName", out var mObj) && mObj is string mName)
+                {
+                    // Emit arguments first
+                    foreach (var arg in extCall.InvocationArguments ?? new List<ast.Expression>())
+                    {
+                        sequence.AddRange(GenerateExpression(arg).Instructions);
+                    }
+                    // Encode a special extcall signature for PEEmitter to resolve
+                    var paramList = string.Join(",", (extCall.InvocationArguments ?? new List<ast.Expression>()).Select(_ => "object"));
+                    var sig = $"extcall:Asm=Fifth.System;Ns={extType.Namespace};Type={extType.Name};Method={mName};Params={paramList};Return=object";
+                    sequence.Add(new CallInstruction("call", sig));
+                    break;
+                }
+
                 // Special-case: array creation syntax like int[10]
                 if (memberAccess.RHS is VarRefExp rhsIndex1 && string.Equals(rhsIndex1.VarName, "[index]", StringComparison.Ordinal))
                 {
@@ -491,7 +508,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     }
                 }
 
-                // Load the object (LHS) for normal member access or indexing into a variable
+                // Load the object (LHS) for normal member access or indexing into a variable (skip for extcall)
                 if (memberAccess.LHS != null)
                 {
                     sequence.AddRange(GenerateExpression(memberAccess.LHS).Instructions);
@@ -547,7 +564,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 }
                 else
                 {
-                    Console.WriteLine($"DEBUG: Unsupported member access RHS type: {memberAccess.RHS?.GetType().Name ?? "null"}");
+                    // Unsupported member access RHS type; skip emitting and avoid noisy logs
                 }
                 break;
 

@@ -114,6 +114,10 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
         //{
         //    builder.AddingItemToMemberDefs(fd);
         //}
-        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(t) { Name = TypeName.From(t.FullName) });
+        // Register both full name and short name to allow simple qualifiers like 'KG'
+        var full = new FifthType.TDotnetType(t) { Name = TypeName.From(t.FullName) };
+        TypeRegistry.DefaultRegistry.Register(full);
+        var shortName = new FifthType.TDotnetType(t) { Name = TypeName.From(t.Name) };
+        TypeRegistry.DefaultRegistry.Register(shortName);
     }
 }

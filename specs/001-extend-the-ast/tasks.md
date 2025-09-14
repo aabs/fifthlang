@@ -49,8 +49,8 @@
 	 - Without store declaration, compilation fails with diagnostic mentioning missing explicit store.
 
 ## Phase 3.4: Integration
-- [ ] T024 Built-ins: ensure `Fifth.System.KG` methods in `src/fifthlang.system/KnowledgeGraphs.cs` are registered as built-ins for symbol resolution.
-- [ ] T025 Polish: add or confirm `src/fifthlang.system/GlobalUsings.cs` to centralize KG namespaces (optional but recommended).
+- [x] T024 Built-ins: ensure `Fifth.System.KG` methods in `src/fifthlang.system/KnowledgeGraphs.cs` are registered as built-ins for symbol resolution. (Applied `[BuiltinFunction]` to key `KG` APIs and confirmed injection via `BuiltinInjectorVisitor`)
+- [x] T025 Polish: add or confirm `src/fifthlang.system/GlobalUsings.cs` to centralize KG namespaces (optional but recommended). (Existing `Usings.cs` already centralizes VDS.RDF namespaces; confirmed present)
 - [ ] T026 Validate example from quickstart compiles and runs through the full pipeline.
 
 ## Phase 3.5: Polish

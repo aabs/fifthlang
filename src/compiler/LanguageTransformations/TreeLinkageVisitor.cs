@@ -32,7 +32,7 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
         var result = base.VisitAssemblyDef(ctx);
 
         LeaveNonTerminal(ctx);
-        return result;
+        return result ?? ctx;
     }
 
     public override AssemblyRef VisitAssemblyRef(AssemblyRef ctx)
@@ -130,7 +130,7 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
             Console.WriteLine($"DEBUG: Result LHS type: {result.LHS?.GetType().Name ?? "null"}");
             Console.WriteLine($"DEBUG: Result RHS type: {result.RHS?.GetType().Name ?? "null"}");
         }
-        
+
         // If base.VisitBinaryExp returned null, this is the bug! Return the original context to avoid null
         if (result == null)
         {
@@ -138,7 +138,7 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
             LeaveNonTerminal(ctx);
             return ctx;
         }
-        
+
         // If the result has null LHS or RHS, also return the original context
         if (result.LHS == null || result.RHS == null)
         {
@@ -313,7 +313,7 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
         {
             Console.WriteLine($"DEBUG: result.FunctionDef = {result.FunctionDef?.Name.Value ?? "null"}");
         }
-        
+
         // If the base call returned null, something went wrong in the generated visitor
         if (result == null)
         {
@@ -321,7 +321,7 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
             LeaveNonTerminal(ctx);
             return ctx; // Return the original context to avoid null propagation
         }
-        
+
         // If already resolved, nothing to do
         if (result.FunctionDef != null)
         {
@@ -329,7 +329,7 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
             LeaveNonTerminal(ctx);
             return result;
         }
-        
+
         // Get the function name from annotations (stored by parser)
         var functionNameAnnotation = result.Annotations?.FirstOrDefault(a => a.Key == "FunctionName");
         if (functionNameAnnotation?.Value is not string functionName)
@@ -338,9 +338,17 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
             LeaveNonTerminal(ctx);
             return result;
         }
-        
+
         Console.WriteLine($"DEBUG: Trying to resolve function call: {functionName}");
-        
+
+        // If this is an external qualified call (e.g., KG.CreateGraph), skip internal resolution
+        if (result.Annotations != null && result.Annotations.TryGetValue("ExternalType", out var extTypeObj) && extTypeObj is Type)
+        {
+            Console.WriteLine($"DEBUG: FuncCallExp marked as external qualified call; skipping internal resolution.");
+            LeaveNonTerminal(ctx);
+            return result;
+        }
+
         // Find the nearest scope
         var nearestScope = ctx.NearestScope();
         if (nearestScope == null)
@@ -349,9 +357,9 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
             LeaveNonTerminal(ctx);
             return result;
         }
-        
+
         Console.WriteLine($"DEBUG: Found nearest scope: {nearestScope.GetType().Name}");
-        
+
         // Look for function definition in the scope
         var functionDef = FindFunctionInScope(functionName, nearestScope);
         if (functionDef != null)
@@ -368,7 +376,7 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
         LeaveNonTerminal(ctx);
         return result;
     }
-    
+
     private FunctionDef? FindFunctionInScope(string functionName, ScopeAstThing scope)
     {
         // Search in the current scope and parent scopes
@@ -406,11 +414,11 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
                         return functionDef;
                 }
             }
-            
+
             // Move to parent scope
             currentScope = currentScope.Parent as ScopeAstThing;
         }
-        
+
         return null;
     }
 
@@ -571,8 +579,49 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
 
         var result = base.VisitMemberAccessExp(ctx);
 
+        // Detect pattern: <TypeName>.<FuncCall>(...)
+        try
+        {
+            if (result?.LHS is VarRefExp typeQualifier && result.RHS is FuncCallExp memberCall)
+            {
+                var qualifierName = typeQualifier.VarName;
+                if (!string.IsNullOrWhiteSpace(qualifierName))
+                {
+                    // Try resolve type qualifier from registry by short name (e.g., "KG"),
+                    // or fall back to known builtins
+                    Type? resolvedType = null;
+                    if (ast_model.TypeSystem.TypeRegistry.DefaultRegistry.TryGetTypeByName(qualifierName, out var ft)
+                        && ft is ast_model.TypeSystem.FifthType.TDotnetType dotType1)
+                    {
+                        resolvedType = dotType1.TheType;
+                    }
+                    else if (string.Equals(qualifierName, "KG", StringComparison.Ordinal))
+                    {
+                        resolvedType = typeof(Fifth.System.KG);
+                    }
+
+                    if (resolvedType != null)
+                    {
+                        // Stash external call info on the FuncCallExp using annotation indexer
+                        memberCall["ExternalType"] = resolvedType;
+                        // Use parser-provided name as method name
+                        if (memberCall.Annotations.TryGetValue("FunctionName", out var nameObj) && nameObj is string fn)
+                        {
+                            memberCall["ExternalMethodName"] = fn;
+                        }
+
+                        Console.WriteLine($"DEBUG: Qualified external call detected: {resolvedType.FullName}::{(memberCall.Annotations.TryGetValue("FunctionName", out var n) ? n : "?")}");
+                    }
+                }
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Console.WriteLine($"DEBUG: Exception while annotating qualified call: {ex.Message}");
+        }
+
         LeaveNonTerminal(ctx);
-        return result;
+        return result ?? ctx;
     }
 
     public override MemberRef VisitMemberRef(MemberRef ctx)
