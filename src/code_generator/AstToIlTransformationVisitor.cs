@@ -30,6 +30,101 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         InitializeBuiltinTypes();
     }
 
+    private static bool IsImplicitNumericWidening(Type src, Type dest)
+    {
+        // Minimal widening support for common cases used in tests
+        if (src == typeof(int))
+        {
+            return dest == typeof(long) || dest == typeof(float) || dest == typeof(double) || dest == typeof(decimal);
+        }
+        if (src == typeof(float))
+        {
+            return dest == typeof(double);
+        }
+        if (src == typeof(long))
+        {
+            return dest == typeof(float) || dest == typeof(double) || dest == typeof(decimal);
+        }
+        return false;
+    }
+
+    private static int CompatibilityScore(Type? argType, Type paramType)
+    {
+        if (argType == null) return 0;
+        if (paramType == argType) return 100;
+        if (paramType.IsAssignableFrom(argType)) return 50;
+        if (IsImplicitNumericWidening(argType, paramType)) return 10;
+        return 0;
+    }
+
+    private Type? InferExpressionType(ast.Expression expr)
+    {
+        switch (expr)
+        {
+            case Int32LiteralExp:
+                return typeof(int);
+            case StringLiteralExp:
+                return typeof(string);
+            case BooleanLiteralExp:
+                return typeof(bool);
+            case Float4LiteralExp:
+                return typeof(float);
+            case Float8LiteralExp:
+                return typeof(double);
+            case MemberAccessExp ma when ma.RHS is ast.FuncCallExp inner && inner.Annotations != null &&
+                                         inner.Annotations.TryGetValue("ExternalType", out var tObj) && tObj is Type innerExtType &&
+                                         inner.Annotations.TryGetValue("ExternalMethodName", out var mObj) && mObj is string innerMName:
+                {
+                    var args = inner.InvocationArguments ?? new List<ast.Expression>();
+                    var chosen = ResolveExternalMethod(innerExtType, innerMName, args);
+                    return chosen?.ReturnType;
+                }
+        }
+        return null;
+    }
+
+    private System.Reflection.MethodInfo? ResolveExternalMethod(Type extType, string methodName, IList<ast.Expression> args)
+    {
+        var methods = extType.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(mi => string.Equals(mi.Name, methodName, StringComparison.Ordinal))
+            .ToList();
+        var argCount = args?.Count ?? 0;
+        var inferred = new List<Type?>();
+        for (int i = 0; i < argCount; i++)
+        {
+            var ai = args[i];
+            inferred.Add(ai != null ? InferExpressionType(ai) : null);
+        }
+
+        // Filter by arity and optional trailing params
+        var candidates = methods
+            .Select(mi => new { mi, ps = mi.GetParameters() })
+            .Where(x => x.ps.Length == argCount || (x.ps.Length > argCount && x.ps.Skip(argCount).All(p => p.IsOptional || p.HasDefaultValue)))
+            .ToList();
+
+        if (candidates.Count == 0)
+        {
+            // As a fallback, allow any method with name
+            return methods.FirstOrDefault();
+        }
+
+        // Score candidates by type compatibility of provided arguments
+        var scored = candidates.Select(x => new
+        {
+            x.mi,
+            x.ps,
+            score = Enumerable.Range(0, Math.Min(argCount, x.ps.Length))
+                .Sum(i => CompatibilityScore(inferred[i], x.ps[i].ParameterType)),
+            isGeneric = x.mi.IsGenericMethodDefinition
+        })
+        .OrderByDescending(s => s.score)
+        .ThenBy(s => s.ps.Length) // prefer fewer total params (i.e., fewer optionals)
+        .ThenBy(s => s.isGeneric) // prefer non-generic over generic
+        .ToList();
+
+        return scored.First().mi;
+    }
+
     private void InitializeBuiltinTypes()
     {
         // Map Fifth language type names to System types
@@ -495,30 +590,8 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                             .Replace('+', '.'); // nested types use '+' in FullName
                         return $"{full}@{asm}";
                     }
-
-                    var methods = extType.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
-                        .Where(mi => string.Equals(mi.Name, mName, StringComparison.Ordinal))
-                        .ToList();
                     var argCount = (extCall.InvocationArguments?.Count) ?? 0;
-
-                    // Prefer exact arg-count matches; otherwise allow methods with trailing optional parameters
-                    System.Reflection.MethodInfo? chosen = methods
-                        .FirstOrDefault(mi => mi.GetParameters().Length == argCount);
-                    if (chosen == null)
-                    {
-                        chosen = methods
-                            .Select(mi => new { mi, ps = mi.GetParameters() })
-                            .Where(x => x.ps.Length > argCount && x.ps.Skip(argCount).All(p => p.IsOptional || p.HasDefaultValue))
-                            .OrderBy(x => x.ps.Length)
-                            .Select(x => x.mi)
-                            .FirstOrDefault();
-                    }
-                    if (chosen == null)
-                    {
-                        // Last resort: first by name
-                        chosen = methods.FirstOrDefault();
-                    }
-
+                    var chosen = ResolveExternalMethod(extType, mName, extCall.InvocationArguments ?? new List<ast.Expression>());
                     var paramTokens = new List<string>();
                     var returnToken = "System.Object";
                     if (chosen != null)
