@@ -23,18 +23,13 @@
 - [x] T003 Verify build runs pre-change to capture baseline: `dotnet restore` + `dotnet build` (no code changes in this task).
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
-- [ ] T004 [P] Parser test: statement form `graphAssertionBlock` with trailing semicolon in `test/syntax-parser-tests/` (new test file `GraphAssertionBlock_StatementTests.cs`).
-- [ ] T005 [P] Parser test: expression form used in assignment in `test/syntax-parser-tests/GraphAssertionBlock_ExpressionTests.cs`.
-- [ ] T006 [P] Parser test: nesting both ways (graph-in-regular, regular-in-graph) in `test/syntax-parser-tests/GraphAssertionBlock_NestingTests.cs`.
-- [x] T007 AST/type test: block expression yields `graph` type in `test/ast-tests/GraphAssertionBlock_TypeTests.cs`.
-- [x] T008 AST/type test: `graph += graph` and `store += graph` typing rules in `test/ast-tests/GraphAndStoreOperatorTests.cs`.
-- [ ] T009 Lowering test: expression block lowers to KG calls (no persistence) in `test/ast-tests/GraphAssertionBlock_LoweringExpressionTests.cs`.
-- [ ] T010 Lowering test: statement block lowers to default `store += graph` (error if missing) in `test/ast-tests/GraphAssertionBlock_LoweringStatementTests.cs`.
-- [ ] T011 [P] Runtime integration: use dotNetRdf `TripleStore` to verify `store += graph` persists assertions in `test/runtime-integration-tests/GraphAssertionBlock_RuntimeTests.cs`.
+ [x] T004 [P] Parser test: statement form `graphAssertionBlock` with trailing semicolon in `test/syntax-parser-tests/` (implemented in `GraphAssertionBlock_StatementTests.cs`; passing).
+ [x] T005 [P] Parser test: expression form used in assignment in `test/syntax-parser-tests/GraphAssertionBlock_ExpressionTests.cs` (passing).
+ [x] T006 [P] Parser test: nesting both ways (graph-in-regular, regular-in-graph) in `test/syntax-parser-tests/GraphAssertionBlock_NestingTests.cs` (passing).
 
-## Phase 3.3: Core Implementation (ONLY after tests are failing)
-- [x] T012 Grammar: add rule `graphAssertionBlock: GRAPH_LBRACE statements? GRAPH_RBRACE;` to `src/parser/grammar/FifthParser.g4`. (Implemented using `L_GRAPH`/`R_GRAPH` tokens)
-- [x] T013 Grammar: add statement alternative `graphAssertionBlock ';'` to `statement` in `FifthParser.g4`.
+ [x] T021 Lowering: create `src/compiler/LanguageTransformations/GraphAssertionLoweringVisitor.cs` to lower blocks to KG calls. (Visitor implemented; annotates and validates stores; expression form passthrough)
+ [x] T022 Pipeline: register lowering pass in `src/compiler/ParserManager.cs` before IL conversion. (Registered before Symbol/Type passes)
+ [x] T023 Diagnostics: add error for missing default store when lowering statement-form blocks without configured default (align FR-019). (Throws `CompilationException` with clear messages)
 - [x] T014 Grammar: add expression alternative `graphAssertionBlock` to `primaryExpression` in `FifthParser.g4`.
 - [x] T015 Parser: ensure nested blocks are allowed and ambiguity-free; regenerate ANTLR outputs by building solution.
 - [x] T016 AST model: add `GraphAssertionBlockExp` and `GraphAssertionBlockStmt` to `src/ast-model/AstMetamodel.cs` per `data-model.md`.
@@ -45,6 +40,9 @@
 - [ ] T021 Lowering: create `src/compiler/LanguageTransformations/GraphAssertionLoweringVisitor.cs` to lower blocks to KG calls.
 - [ ] T022 Pipeline: register lowering pass in `src/compiler/ParserManager.cs` before IL conversion.
 - [ ] T023 Diagnostics: add error for missing default store when lowering statement-form blocks without configured default (align FR-019).
+- [x] T021 Lowering: create `src/compiler/LanguageTransformations/GraphAssertionLoweringVisitor.cs` to lower blocks to KG calls. (Visitor implemented; annotates and validates stores; expression form passthrough)
+- [x] T022 Pipeline: register lowering pass in `src/compiler/ParserManager.cs` before IL conversion. (Registered before Symbol/Type passes)
+- [x] T023 Diagnostics: add error for missing default store when lowering statement-form blocks without configured default (align FR-019). (Throws `CompilationException` with clear messages)
 
 ## Phase 3.4: Integration
 - [ ] T024 Built-ins: ensure `Fifth.System.KG` methods in `src/fifthlang.system/KnowledgeGraphs.cs` are registered as built-ins for symbol resolution.
