@@ -236,4 +236,4 @@ graphDeclaration:
 alias_scope_ref: IDENTIFIER | iri;
 
 store_decl:
-	STORE store_name = IDENTIFIER ASSIGN SPARQL L_PAREN iri R_PAREN SEMI;
+	STORE store_name = (IDENTIFIER | DEFAULT) ASSIGN SPARQL L_PAREN iri R_PAREN SEMI;

@@ -27,6 +27,9 @@
  [x] T005 [P] Parser test: expression form used in assignment in `test/syntax-parser-tests/GraphAssertionBlock_ExpressionTests.cs` (passing).
  [x] T006 [P] Parser test: nesting both ways (graph-in-regular, regular-in-graph) in `test/syntax-parser-tests/GraphAssertionBlock_NestingTests.cs` (passing).
 
+ [x] T009 [P] AST lowering test: expression form is a strict no-op (reference identity preserved) in `test/ast-tests/GraphAssertionBlock_LoweringExpressionTests.cs` (passing).
+ [x] T010 AST lowering test: statement form validates default store and annotates `ResolvedStoreName/ResolvedStoreUri` in `test/ast-tests/GraphAssertionBlock_LoweringStatementTests.cs` (passing).
+
  [x] T021 Lowering: create `src/compiler/LanguageTransformations/GraphAssertionLoweringVisitor.cs` to lower blocks to KG calls. (Visitor implemented; annotates and validates stores; expression form passthrough)
  [x] T022 Pipeline: register lowering pass in `src/compiler/ParserManager.cs` before IL conversion. (Registered before Symbol/Type passes)
  [x] T023 Diagnostics: add error for missing default store when lowering statement-form blocks without configured default (align FR-019). (Throws `CompilationException` with clear messages)
@@ -37,12 +40,13 @@
 - [x] T018 Types: implement typing for `graph += graph` and `store += graph` operators.
 - [x] T019 Codegen: regenerate AST builders/visitors via `make run-generator` (updates `src/ast-generated/*`).
 - [x] T020 Parser→AST: update `src/parser/AstBuilderVisitor.cs` to construct `GraphAssertionBlock*` nodes from the new rule.
-- [ ] T021 Lowering: create `src/compiler/LanguageTransformations/GraphAssertionLoweringVisitor.cs` to lower blocks to KG calls.
-- [ ] T022 Pipeline: register lowering pass in `src/compiler/ParserManager.cs` before IL conversion.
-- [ ] T023 Diagnostics: add error for missing default store when lowering statement-form blocks without configured default (align FR-019).
 - [x] T021 Lowering: create `src/compiler/LanguageTransformations/GraphAssertionLoweringVisitor.cs` to lower blocks to KG calls. (Visitor implemented; annotates and validates stores; expression form passthrough)
 - [x] T022 Pipeline: register lowering pass in `src/compiler/ParserManager.cs` before IL conversion. (Registered before Symbol/Type passes)
 - [x] T023 Diagnostics: add error for missing default store when lowering statement-form blocks without configured default (align FR-019). (Throws `CompilationException` with clear messages)
+
+ [x] T011 Runtime integration: add tests in `test/runtime-integration-tests/GraphAssertionBlock_RuntimeTests.cs`
+	 - With default store declared, program with empty graph assertion statement `<{ }>;` compiles successfully.
+	 - Without store declaration, compilation fails with diagnostic mentioning missing explicit store.
 
 ## Phase 3.4: Integration
 - [ ] T024 Built-ins: ensure `Fifth.System.KG` methods in `src/fifthlang.system/KnowledgeGraphs.cs` are registered as built-ins for symbol resolution.
@@ -56,12 +60,18 @@
 - [ ] T030 Update docs: spec notes and quickstart if syntax or behavior changed during implementation.
 
 ## Phase 3.4.1: Runtime & Built-ins Alignment
-- [ ] T031 Implement default store resolution used by lowering (compiler/runtime), with a single entrypoint accessible to the lowering pass (e.g., compiler configuration or implicit symbol). Emit error consistent with FR-019 when missing.
-- [ ] T032 Tests: default store present vs missing. Extend runtime tests in `test/runtime-integration-tests/GraphAssertionBlock_RuntimeTests.cs` to assert correct behavior and diagnostics.
+- [x] T031 Implement default store resolution used by lowering (compiler/runtime), with a single entrypoint accessible to the lowering pass (e.g., compiler configuration or implicit symbol). Emit error consistent with FR-019 when missing. (Implemented in `GraphAssertionLoweringVisitor` via `ModuleDef.Annotations` lookup; errors via `CompilationException`)
+- [x] T032 Tests: default store present vs missing. Extend runtime tests in `test/runtime-integration-tests/GraphAssertionBlock_RuntimeTests.cs` to assert correct behavior and diagnostics. (Added tests cover both cases and pass locally)
 - [ ] T033 Expose a public KG persist primitive (e.g., `KG.SaveGraph(IUpdateableStorage, IGraph, Uri?)`) or adjust lowering to call `IUpdateableStorage.SaveGraph` directly; ensure accessible from lowering.
 - [ ] T034 Register/annotate required `KG` methods as built-ins for symbol resolution so Fifth code can call them where appropriate.
 - [ ] T035 Add or alias a built-in `sparql_store(iri)` to `KG.ConnectToRemoteStore` so examples and tests resolve correctly.
 - [ ] T036 Verify/update IL type mappings for new types: `graph` → `VDS.RDF.IGraph`, `store` → `VDS.RDF.Storage.IUpdateableStorage`, `triple` → `VDS.RDF.Triple`, `iri` → `System.Uri`; add a small codegen sanity test if applicable.
+
+## Status Update (2025-09-14)
+- Parser attaches graph store declarations to `ModuleDef.Annotations` (`GraphStores`, `DefaultGraphStore`). Fixed NRE by initializing `Annotations` post-build in `src/parser/AstBuilderVisitor.cs`.
+- Lowering validates/annotates `GraphAssertionBlockStatement` and resolves default store with parent-chain fallback; expression form is identity.
+- Runtime tests for graph assertion block (with/without default store) are in place and passing; unrelated suite failures are out of scope for this feature.
+- Next up: register KG built-ins and global usings (T024–T025), and wire persist primitives + IL type mappings (T033–T036).
 
 ## Dependencies
 - T004–T011 before T012+ (TDD)

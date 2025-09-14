@@ -546,6 +546,11 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
         // Build the module so we can attach annotations for store declarations
         var module = mb.Build();
+        // Ensure annotations dictionary is initialized (builder may leave it null)
+        if (module.Annotations == null)
+        {
+            module = module with { Annotations = new Dictionary<string, object>() };
+        }
 
         // Parse store declarations: STORE <name> = sparql_store(<iri>);
         // Attach to module annotations for downstream phases

@@ -13,27 +13,45 @@ namespace compiler.LanguageTransformations;
 /// </summary>
 public class GraphAssertionLoweringVisitor : NullSafeRecursiveDescentVisitor
 {
+    private ModuleDef? _currentModule;
+
+    private static ModuleDef? FindEnclosingModule(IAstThing node)
+    {
+        var current = node.Parent;
+        while (current is not null)
+        {
+            if (current is ModuleDef m)
+                return m;
+            current = current.Parent;
+        }
+        return null;
+    }
+
+    public override ModuleDef VisitModuleDef(ModuleDef ctx)
+    {
+        var prev = _currentModule;
+        _currentModule = ctx;
+        try
+        {
+            return base.VisitModuleDef(ctx);
+        }
+        finally
+        {
+            _currentModule = prev;
+        }
+    }
+
     public override GraphAssertionBlockExp VisitGraphAssertionBlockExp(GraphAssertionBlockExp ctx)
     {
+        // Expression form: strict no-op. Do not create a new record instance
+        // to preserve reference identity for downstream passes/tests.
         // Future: Rewrite to explicit construction via KG.CreateGraph() and inner assertions.
-        return base.VisitGraphAssertionBlockExp(ctx);
+        return ctx;
     }
 
     public override GraphAssertionBlockStatement VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx)
     {
-        // Find the enclosing module by walking parents
-        IAstThing? p = ctx;
-        ModuleDef? module = null;
-        while (p != null && module == null)
-        {
-            if (p is ModuleDef m)
-            {
-                module = m;
-                break;
-            }
-            p = p.Parent;
-        }
-
+        var module = _currentModule ?? FindEnclosingModule(ctx);
         if (module is null)
         {
             throw new CompilationException("Graph assertion block statement not within a module scope.");
