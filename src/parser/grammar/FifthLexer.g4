@@ -9,7 +9,6 @@ lexer grammar FifthLexer;
 // $antlr-format allowShortRulesOnASingleLine true, allowShortBlocksOnASingleLine true, minEmptyLines 0, alignSemicolons ownLine
 // $antlr-format alignColons trailing, singleLineOverrulesHangingColon true, alignLexerCommands true, alignLabels true, alignTrailers true
 
-
 // Keywords
 
 ALIAS       : 'alias';
@@ -118,8 +117,8 @@ CONCAT    : '<>';
 
 // IRI Reference - must come after L_GRAPH, GEN, CONCAT for proper precedence
 // Required fragments moved from IRIMode for IRIREF
-fragment PN_CHARS_BASE
-    : 'A' .. 'Z'
+fragment PN_CHARS_BASE:
+    'A' .. 'Z'
     | 'a' .. 'z'
     | '\u00C0' .. '\u00D6'
     | '\u00D8' .. '\u00F6'
@@ -132,28 +131,32 @@ fragment PN_CHARS_BASE
     | '\u3001' .. '\uD7FF'
     | '\uF900' .. '\uFDCF'
     | '\uFDF0' .. '\uFFFD'
-    ;
+;
 
-fragment PN_CHARS_U
-    : PN_CHARS_BASE
-    | '_'
-    ;
+fragment PN_CHARS_U: PN_CHARS_BASE | '_';
 
-fragment PN_CHARS
-    : PN_CHARS_U
-    | '-'
-    | [0-9]
-    | '\u00B7'
-    | [\u0300-\u036F]
-    | [\u203F-\u2040]
-    ;
+fragment PN_CHARS: PN_CHARS_U | '-' | [0-9] | '\u00B7' | [\u0300-\u036F] | [\u203F-\u2040];
 
-fragment UCHAR
-    : '\\u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+fragment UCHAR:
+    '\\u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
     | '\\U' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
-    ;
+;
 
-IRIREF : '<' (PN_CHARS | '.' | ':' | '/' | '\\' | '#' | '@' | '%' | '&' | UCHAR)+ '>';
+// Require at least one of ':' '/' or '#' inside to avoid matching generics like '<int>'
+IRIREF:
+    '<' (PN_CHARS | '.' | ':' | '/' | '\\' | '#' | '@' | '%' | '&' | UCHAR)* (':' | '/' | '#') (
+        PN_CHARS
+        | '.'
+        | ':'
+        | '/'
+        | '\\'
+        | '#'
+        | '@'
+        | '%'
+        | '&'
+        | UCHAR
+    )* '>'
+;
 
 SUF_SHORT   : [sS];
 SUF_DECIMAL : [cC];
@@ -264,32 +267,17 @@ EOS: ([\r\n]+ | ';' | '/*' .*? '*/' | EOF) -> mode(DEFAULT_MODE);
 
 mode IRIMode;
 
-PrefixedName
-    : PNAME_LN
-    | PNAME_NS
-    ;
-PNAME_LN
-    : PNAME_NS PN_LOCAL
-    ;
-PN_LOCAL
-    : (PN_CHARS_U | ':' | [0-9] | PLX) ((PN_CHARS | '.' | ':' | PLX)* (PN_CHARS | ':' | PLX))?
-    ;
-PLX
-    : PERCENT
-    | PN_LOCAL_ESC
-    ;
-PERCENT
-    : '%' HEX_DIGIT HEX_DIGIT
-    ;
-PNAME_NS
-    : PN_PREFIX? ':'
-    ;
+PrefixedName : PNAME_LN | PNAME_NS;
+PNAME_LN     : PNAME_NS PN_LOCAL;
+PN_LOCAL: (PN_CHARS_U | ':' | [0-9] | PLX) ((PN_CHARS | '.' | ':' | PLX)* (PN_CHARS | ':' | PLX))?
+;
+PLX      : PERCENT | PN_LOCAL_ESC;
+PERCENT  : '%' HEX_DIGIT HEX_DIGIT;
+PNAME_NS : PN_PREFIX? ':';
 
-PN_PREFIX
-    : PN_CHARS_BASE ((PN_CHARS | '.')* PN_CHARS)?
-    ;
-PN_LOCAL_ESC
-    : '\\' (
+PN_PREFIX: PN_CHARS_BASE ((PN_CHARS | '.')* PN_CHARS)?;
+PN_LOCAL_ESC:
+    '\\' (
         '_'
         | '~'
         | '.'
@@ -311,4 +299,4 @@ PN_LOCAL_ESC
         | '@'
         | '%'
     )
-    ;
+;

@@ -50,7 +50,7 @@ destructure_binding:
 // ========[TYPE DEFINITIONS]=========
 class_definition:
 	CLASS name = IDENTIFIER (EXTENDS superClass = type_name)? (
-		IN aliasScope = iri
+		IN aliasScope = alias_scope_ref
 	)? L_CURLY (
 		functions += function_declaration
 		| properties += property_declaration
@@ -64,10 +64,13 @@ type_name: IDENTIFIER;
 // ========[STATEMENTS]=========
 block: L_CURLY statement* R_CURLY;
 
+graphAssertionBlock: L_GRAPH statement* R_GRAPH;
+
 declaration: decl = var_decl (ASSIGN init = expression)? SEMI;
 
 statement:
 	block
+	| graph_assertion_statement
 	| if_statement
 	| while_statement
 	| with_statement // #stmt_with // this is not useful as is
@@ -75,6 +78,8 @@ statement:
 	| return_statement
 	| expression_statement
 	| declaration;
+
+graph_assertion_statement: graphAssertionBlock SEMI;
 
 assignment_statement:
 	lvalue = expression ASSIGN rvalue = expression SEMI;
@@ -93,9 +98,11 @@ with_statement: WITH expression statement;
 
 var_decl:
 	var_name COLON (
-		type_name
-		| list_type_signature
+		// Order matters: try more specific signatures before plain identifiers
+		list_type_signature
 		| array_type_signature
+		| generic_type_signature
+		| type_name
 	);
 
 var_name: IDENTIFIER;
@@ -116,6 +123,10 @@ list_type_signature: L_BRACKET type_name R_BRACKET;
 
 array_type_signature:
 	type_name L_BRACKET (size = operand)? R_BRACKET;
+
+// ========[GENERIC TYPES]========= Supports syntax like: items: list<int>
+generic_type_signature:
+	generic_name = IDENTIFIER '<' inner = type_name '>';
 
 // ========[EXPRESSIONS]=========
 
@@ -155,7 +166,8 @@ expression:
 		| MINUS_MINUS
 	) expression										# exp_unary
 	| expression unary_op = (PLUS_PLUS | MINUS_MINUS)	# exp_unary_postfix
-	| operand											# exp_operand;
+	| operand											# exp_operand
+	| graphAssertionBlock								# exp_operand;
 
 function_call_expression:
 	un = function_name L_PAREN expressionList? R_PAREN;
@@ -165,6 +177,7 @@ operand:
 	| list
 	| var_name
 	| L_PAREN expression R_PAREN
+	| graphAssertionBlock
 	| object_instantiation_expression;
 
 object_instantiation_expression:
@@ -213,13 +226,13 @@ operandName: IDENTIFIER;
 qualifiedIdent: IDENTIFIER DOT IDENTIFIER;
 
 // =====[KNOWLEDGE MANAGEMENT]=========
-iri
-    : IRIREF
-    ;
+iri: IRIREF;
 
 graphDeclaration:
-	GRAPH name = IDENTIFIER (IN aliasScope = iri)? ASSIGN L_CURLY assignment_statement*
+	GRAPH name = IDENTIFIER (IN aliasScope = alias_scope_ref)? ASSIGN L_CURLY assignment_statement*
 		R_CURLY;
+
+alias_scope_ref: iri | IDENTIFIER;
 
 store_decl:
 	STORE store_name = IDENTIFIER ASSIGN SPARQL L_PAREN iri R_PAREN SEMI;

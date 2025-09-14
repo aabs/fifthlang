@@ -191,6 +191,16 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitBlock([NotNull] FifthParser.BlockContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.graphAssertionBlock"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterGraphAssertionBlock([NotNull] FifthParser.GraphAssertionBlockContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.graphAssertionBlock"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitGraphAssertionBlock([NotNull] FifthParser.GraphAssertionBlockContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.declaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -210,6 +220,16 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitStatement([NotNull] FifthParser.StatementContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.graph_assertion_statement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterGraph_assertion_statement([NotNull] FifthParser.Graph_assertion_statementContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.graph_assertion_statement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitGraph_assertion_statement([NotNull] FifthParser.Graph_assertion_statementContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.assignment_statement"/>.
 	/// </summary>
@@ -350,6 +370,16 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitArray_type_signature([NotNull] FifthParser.Array_type_signatureContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.generic_type_signature"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterGeneric_type_signature([NotNull] FifthParser.Generic_type_signatureContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.generic_type_signature"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitGeneric_type_signature([NotNull] FifthParser.Generic_type_signatureContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.expressionList"/>.
 	/// </summary>
@@ -782,6 +812,16 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitGraphDeclaration([NotNull] FifthParser.GraphDeclarationContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.alias_scope_ref"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterAlias_scope_ref([NotNull] FifthParser.Alias_scope_refContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.alias_scope_ref"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitAlias_scope_ref([NotNull] FifthParser.Alias_scope_refContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.store_decl"/>.
 	/// </summary>

@@ -11,8 +11,8 @@ public static class FifthParserManager
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast)
     {
         ArgumentNullException.ThrowIfNull(ast);
-        
-        try 
+
+        try
         {
             ast = new TreeLinkageVisitor().Visit(ast);
         }
@@ -22,14 +22,14 @@ public static class FifthParserManager
             Console.Error.WriteLine($"=== DEBUG: Stack trace: {ex.StackTrace} ===");
             throw;
         }
-        
+
         ast = new BuiltinInjectorVisitor().Visit(ast);
-        
+
         ast = new ClassCtorInserter().Visit(ast);
-        
+
         ast = new SymbolTableBuilderVisitor().Visit(ast);
-        
-        try 
+
+        try
         {
             ast = new PropertyToFieldExpander().Visit(ast);
         }
@@ -39,14 +39,14 @@ public static class FifthParserManager
             Console.Error.WriteLine($"=== DEBUG: Stack trace: {ex.StackTrace} ===");
             throw;
         }
-        
-    // Collect parameter constraints from destructured bindings BEFORE grouping overloads
-    ast = new DestructuringPatternFlattenerVisitor().Visit(ast);
 
-    // Gather overloads into grouped nodes now that constraints are present
-    ast = new OverloadGatheringVisitor().Visit(ast);
+        // Collect parameter constraints from destructured bindings BEFORE grouping overloads
+        ast = new DestructuringPatternFlattenerVisitor().Visit(ast);
 
-    // Generate guard and subclause functions using collected constraints on grouped overloads
+        // Gather overloads into grouped nodes now that constraints are present
+        ast = new OverloadGatheringVisitor().Visit(ast);
+
+        // Generate guard and subclause functions using collected constraints on grouped overloads
         // Debug: Check main method before OverloadTransformingVisitor
         if (ast is AssemblyDef asmBefore)
         {
@@ -63,13 +63,16 @@ public static class FifthParserManager
 
         // Now lower destructuring assignments
         ast = new DestructuringVisitor().Visit(ast);  // Handle destructuring transformation
-        
+
         ast = new TreeLinkageVisitor().Visit(ast);
-        
+
+        // Lower graph assertion blocks before symbol/type passes so rewrites can be resolved
+        ast = new GraphAssertionLoweringVisitor().Visit(ast);
+
         ast = new SymbolTableBuilderVisitor().Visit(ast);
-        
+
         ast = new TypeAnnotationVisitor().Visit(ast);
-        
+
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);
         return ast;
     }

@@ -107,17 +107,17 @@ public class Compiler
             }
 
             var (assemblyResult, assemblyPath) = await DirectPEEmissionPhase(transformedAst, options, diagnostics);
-            
+
             if (!assemblyResult)
             {
                 return CompilationResult.Failed(4, diagnostics);
             }
 
             stopwatch.Stop();
-            
+
             // Determine ILPath for result - not available with direct PE emission
             string? ilPathForResult = null;
-            
+
             return CompilationResult.Successful(
                 diagnostics,
                 outputPath: assemblyPath,
@@ -149,7 +149,7 @@ public class Compiler
             }
 
             var runResult = await RunPhase(buildResult.OutputPath!, options, diagnostics);
-            
+
             // Map non-zero exit code to 5, but preserve original for diagnostics
             var exitCode = runResult.exitCode == 0 ? 0 : 5;
             if (runResult.exitCode != 0)
@@ -276,6 +276,12 @@ Examples:
         {
             return FifthParserManager.ApplyLanguageAnalysisPhases(ast);
         }
+        catch (ast_model.CompilationException cex)
+        {
+            // Surface compilation diagnostics from language phases without extra prefixing
+            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, cex.Message));
+            return null;
+        }
         catch (System.Exception ex)
         {
             diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Transform error: {ex.Message}"));
@@ -305,13 +311,13 @@ Examples:
                 }
             };
 
-            var json = System.Text.Json.JsonSerializer.Serialize(runtimeConfig, new System.Text.Json.JsonSerializerOptions 
-            { 
-                WriteIndented = true 
+            var json = System.Text.Json.JsonSerializer.Serialize(runtimeConfig, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true
             });
 
             await File.WriteAllTextAsync(runtimeConfigPath, json);
-            
+
             if (diagnostics.Any(d => d.Level == DiagnosticLevel.Info && d.Message.Contains("Diagnostics mode")))
             {
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated runtime config: {runtimeConfigPath}"));
@@ -364,7 +370,7 @@ Examples:
 
             // Transform AST to IL metamodel
             var ilAssembly = _ilCodeGenerator.TransformToILMetamodel(assemblyDef);
-            
+
             // Ensure output directory exists
             var outputDir = Path.GetDirectoryName(options.Output);
             if (!string.IsNullOrWhiteSpace(outputDir) && !Directory.Exists(outputDir))
@@ -379,7 +385,7 @@ Examples:
 
             // Emit PE assembly directly
             var success = _peEmitter.EmitAssembly(ilAssembly, options.Output);
-            
+
             if (!success)
             {
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "Direct PE emission failed"));

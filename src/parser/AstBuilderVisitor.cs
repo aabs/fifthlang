@@ -45,7 +45,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         // Ensure the TypeRegistry is initialized with primitive types
         TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
-        
+
         // Create a mapping from Fifth language type names to .NET type names
         var typeNameMapping = new Dictionary<string, string>
         {
@@ -60,16 +60,16 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             { "short", "Int16" },
             { "decimal", "Decimal" }
         };
-        
+
         // Try to map the language type name to .NET type name
         string dotnetTypeName = typeNameMapping.TryGetValue(typeName, out string mappedName) ? mappedName : typeName;
-        
+
         // Try to resolve the type name using the TypeRegistry
         if (TypeRegistry.DefaultRegistry.TryGetTypeByName(dotnetTypeName, out FifthType resolvedType) && resolvedType != null)
         {
             return resolvedType;
         }
-        
+
         // Fall back to UnknownType if the type cannot be resolved
         return new FifthType.UnknownType() { Name = TypeName.From(typeName) };
     }
@@ -130,6 +130,46 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
+    }
+
+    public override IAstThing VisitGraphAssertionBlock(FifthParser.GraphAssertionBlockContext context)
+    {
+        // Build a BlockStatement from inner statements
+        var inner = new List<Statement>();
+        foreach (var s in context.statement())
+        {
+            inner.Add((Statement)Visit(s));
+        }
+
+        var block = new BlockStatement
+        {
+            Annotations = [],
+            Statements = inner,
+            Location = GetLocationDetails(context),
+            Type = Void
+        };
+
+        var exp = new GraphAssertionBlockExp
+        {
+            Annotations = [],
+            Content = block,
+            Location = GetLocationDetails(context),
+            Type = null
+        };
+        return exp;
+    }
+
+    public override IAstThing VisitGraph_assertion_statement(FifthParser.Graph_assertion_statementContext context)
+    {
+        var exp = (GraphAssertionBlockExp)VisitGraphAssertionBlock(context.graphAssertionBlock());
+        var stmt = new GraphAssertionBlockStatement
+        {
+            Annotations = [],
+            Content = exp,
+            Location = GetLocationDetails(context),
+            Type = Void
+        };
+        return stmt;
     }
 
     public override IAstThing VisitClass_definition(FifthParser.Class_definitionContext context)
@@ -202,15 +242,15 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         {
             b.WithDestructureDef((ParamDestructureDef)VisitDestructuring_decl(context.destructuring_decl()));
         }
-        
+
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        
+
         // Set constraint if present (WithConstraint method not generated for nullable properties)
         if (context.variable_constraint() is not null)
         {
             result = result with { Constraint = (Expression)Visit(context.variable_constraint()) };
         }
-        
+
         return result;
     }
 
@@ -239,16 +279,16 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             FifthParser.LOGICAL_XOR => Operator.LogicalXor,
             _ => Operator.ArithmeticAdd
         };
-        
+
         // ANTLR visitor dispatch issue workaround: manually create FuncCallExp when needed
-        var lhs = context.lhs is FifthParser.Exp_funccallContext lhsFunc 
-            ? CreateFuncCallExp(lhsFunc) 
+        var lhs = context.lhs is FifthParser.Exp_funccallContext lhsFunc
+            ? CreateFuncCallExp(lhsFunc)
             : (Expression)Visit(context.lhs);
-            
-        var rhs = context.rhs is FifthParser.Exp_funccallContext rhsFunc 
-            ? CreateFuncCallExp(rhsFunc) 
+
+        var rhs = context.rhs is FifthParser.Exp_funccallContext rhsFunc
+            ? CreateFuncCallExp(rhsFunc)
             : (Expression)Visit(context.rhs);
-        
+
         b.WithOperator(op)
             .WithLHS(lhs)
             .WithRHS(rhs)
@@ -287,7 +327,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var functionName = context.funcname.Text;
         var arguments = new List<Expression>();
-        
+
         // Handle expression list manually to avoid type issues
         if (context.expressionList() != null)
         {
@@ -425,7 +465,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         Console.WriteLine($"DEBUG: VisitExp_operand called, operand type: {context.operand().GetType().Name}");
         var operandContext = context.operand();
-        
+
         // Check what type of operand this is and route appropriately
         if (operandContext.object_instantiation_expression() != null)
         {
@@ -465,7 +505,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         {
             Console.WriteLine("DEBUG: Found other operand type");
         }
-        
+
         return Visit(operandContext);
     }
 
@@ -503,7 +543,51 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 mb.AddingItemToFunctions((FunctionDef)Visit(@func));
             }
         }
-        b.AddingItemToModules(mb.Build());
+
+        // Build the module so we can attach annotations for store declarations
+        var module = mb.Build();
+
+        // Parse store declarations: STORE <name> = sparql_store(<iri>);
+        // Attach to module annotations for downstream phases
+        try
+        {
+            var storeDecls = context.store_decl();
+            if (storeDecls != null && storeDecls.Length > 0)
+            {
+                var stores = new Dictionary<string, string>(StringComparer.Ordinal);
+                string defaultStore = null;
+                foreach (var s in storeDecls)
+                {
+                    var name = s.store_name?.Text ?? "";
+                    var uri = s.iri()?.GetText() ?? "";
+                    if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(uri))
+                    {
+                        stores[name] = uri;
+                        defaultStore ??= name; // First declared becomes default
+                    }
+                }
+
+                if (stores.Count > 0)
+                {
+                    module.Annotations["GraphStores"] = stores;
+                    if (defaultStore == null)
+                    {
+                        foreach (var k in stores.Keys)
+                        {
+                            defaultStore = k;
+                            break;
+                        }
+                    }
+                    module.Annotations["DefaultGraphStore"] = defaultStore;
+                }
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Console.Error.WriteLine($"DEBUG: Failed to capture store declarations: {ex.Message}");
+        }
+
+        b.AddingItemToModules(module);
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
@@ -539,7 +623,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var thenBlock = thenAst as BlockStatement ?? new BlockStatement
         {
             Annotations = [],
-            Statements = [ (Statement)thenAst ],
+            Statements = [(Statement)thenAst],
             Location = GetLocationDetails(context.ifpart),
             Type = Void
         };
@@ -551,7 +635,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             var elseBlock = elseAst as BlockStatement ?? new BlockStatement
             {
                 Annotations = [],
-                Statements = [ (Statement)elseAst ],
+                Statements = [(Statement)elseAst],
                 Location = GetLocationDetails(context.elsepart),
                 Type = Void
             };
@@ -687,12 +771,12 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     public override IAstThing VisitReturn_statement([NotNull] FifthParser.Return_statementContext context)
     {
         var returnExpr = (Expression)Visit(context.expression());
-        
+
         var b = new ReturnStatementBuilder()
             .WithAnnotations([])
             .WithReturnValue(returnExpr);
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        
+
         return result;
     }
 
@@ -716,6 +800,29 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         {
             b.WithTypeName(TypeName.From(context.array_type_signature().type_name().GetText()));
             b.WithCollectionType(CollectionType.Array);
+        }
+        else if (context.generic_type_signature() is not null)
+        {
+            // Handle generic syntax like list<int>
+            var genericName = context.generic_type_signature().generic_name?.Text ?? string.Empty;
+            var innerType = context.generic_type_signature().inner?.GetText() ?? "object";
+
+            if (string.Equals(genericName, "list", StringComparison.OrdinalIgnoreCase))
+            {
+                b.WithTypeName(TypeName.From(innerType));
+                b.WithCollectionType(CollectionType.List);
+            }
+            else if (string.Equals(genericName, "array", StringComparison.OrdinalIgnoreCase))
+            {
+                b.WithTypeName(TypeName.From(innerType));
+                b.WithCollectionType(CollectionType.Array);
+            }
+            else
+            {
+                // Fallback: treat as single instance of the inner type if unknown generic
+                b.WithTypeName(TypeName.From(innerType));
+                b.WithCollectionType(CollectionType.SingleInstance);
+            }
         }
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
@@ -745,7 +852,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var bodyBlock = bodyAst as BlockStatement ?? new BlockStatement
         {
             Annotations = [],
-            Statements = [ (Statement)bodyAst ],
+            Statements = [(Statement)bodyAst],
             Location = GetLocationDetails(context.looppart),
             Type = Void
         };
@@ -797,7 +904,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             foreach (var propContext in propertyAssignments)
             {
                 Console.WriteLine($"DEBUG: Processing property assignment context: {propContext?.GetType().Name ?? "null"}");
-                
+
                 // Try to explicitly cast to the specific context type and call the right visitor method
                 if (propContext is FifthParser.Initialiser_property_assignmentContext propAssignmentContext)
                 {
@@ -807,7 +914,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                         // Use direct method call since it's working now
                         var propResult = VisitInitialiser_property_assignment(propAssignmentContext);
                         Console.WriteLine($"DEBUG: VisitInitialiser_property_assignment returned: {propResult?.GetType().Name ?? "null"}");
-                        
+
                         var propInit = propResult as PropertyInitializerExp;
                         if (propInit != null)
                         {
@@ -864,45 +971,45 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     protected override IAstThing DefaultResult { get; }
 
-public override IAstThing VisitInitialiser_property_assignment([NotNull] FifthParser.Initialiser_property_assignmentContext context)
-{
-Console.WriteLine($"DEBUG: VisitInitialiser_property_assignment START");
+    public override IAstThing VisitInitialiser_property_assignment([NotNull] FifthParser.Initialiser_property_assignmentContext context)
+    {
+        Console.WriteLine($"DEBUG: VisitInitialiser_property_assignment START");
 
-var propertyName = context.var_name().GetText();
-Console.WriteLine($"DEBUG: Got property name: {propertyName}");
+        var propertyName = context.var_name().GetText();
+        Console.WriteLine($"DEBUG: Got property name: {propertyName}");
 
-var expression = Visit(context.expression()) as Expression;
-Console.WriteLine($"DEBUG: VisitInitialiser_property_assignment called for property: {propertyName}");
-Console.WriteLine($"DEBUG: Expression visit result: {expression?.GetType().Name ?? "null"}");
+        var expression = Visit(context.expression()) as Expression;
+        Console.WriteLine($"DEBUG: VisitInitialiser_property_assignment called for property: {propertyName}");
+        Console.WriteLine($"DEBUG: Expression visit result: {expression?.GetType().Name ?? "null"}");
 
-// Create PropertyRef manually since the builder seems incomplete
-var propertyRef = new PropertyRef 
-{ 
-    Property = new PropertyDef 
-    { 
-        Name = MemberName.From(propertyName),
-        AccessConstraints = [],
-        IsWriteOnly = false,
-        IsReadOnly = false,
-        BackingField = null,
-        Getter = null,
-        Setter = null,
-        CtorOnlySetter = false,
-        Visibility = Visibility.Public,
-        TypeName = TypeName.From("object") // We'll resolve this later
+        // Create PropertyRef manually since the builder seems incomplete
+        var propertyRef = new PropertyRef
+        {
+            Property = new PropertyDef
+            {
+                Name = MemberName.From(propertyName),
+                AccessConstraints = [],
+                IsWriteOnly = false,
+                IsReadOnly = false,
+                BackingField = null,
+                Getter = null,
+                Setter = null,
+                CtorOnlySetter = false,
+                Visibility = Visibility.Public,
+                TypeName = TypeName.From("object") // We'll resolve this later
+            }
+        };
+
+        var result = new PropertyInitializerExp
+        {
+            Annotations = new Dictionary<string, object>(),
+            PropertyToInitialize = propertyRef,
+            RHS = expression ?? new StringLiteralExp { Value = "" },
+            Location = GetLocationDetails(context),
+            Type = expression?.Type ?? new FifthType.UnknownType() { Name = TypeName.From("unknown") }
+        };
+        Console.WriteLine($"DEBUG: VisitInitialiser_property_assignment created PropertyInitializerExp for {propertyName}");
+        Console.WriteLine($"DEBUG: About to return result of type: {result.GetType().Name}");
+        return result;
     }
-};
-
-var result = new PropertyInitializerExp
-{
-    Annotations = new Dictionary<string, object>(),
-    PropertyToInitialize = propertyRef,
-    RHS = expression ?? new StringLiteralExp { Value = "" },
-    Location = GetLocationDetails(context),
-    Type = expression?.Type ?? new FifthType.UnknownType() { Name = TypeName.From("unknown") }
-};
-Console.WriteLine($"DEBUG: VisitInitialiser_property_assignment created PropertyInitializerExp for {propertyName}");
-Console.WriteLine($"DEBUG: About to return result of type: {result.GetType().Name}");
-return result;
-}
 }

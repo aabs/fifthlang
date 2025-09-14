@@ -15,12 +15,12 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
     private ModuleDeclaration? _currentModule;
     private ClassDefinition? _currentClass;
     private HashSet<string> _currentParameterNames = new(StringComparer.Ordinal);
-    
+
     public AstToIlTransformationVisitor()
     {
         InitializeBuiltinTypes();
     }
-    
+
     private void InitializeBuiltinTypes()
     {
         // Map Fifth language type names to System types
@@ -30,7 +30,9 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         _typeMap["double"] = new TypeReference { Namespace = "System", Name = "Double" };
         _typeMap["bool"] = new TypeReference { Namespace = "System", Name = "Boolean" };
         _typeMap["void"] = new TypeReference { Namespace = "System", Name = "Void" };
-        
+        // Map language 'graph' to dotNetRDF IGraph
+        _typeMap["graph"] = new TypeReference { Namespace = "VDS.RDF", Name = "IGraph" };
+
         // Also map .NET type names to System types (for cases where AST contains .NET type names)
         _typeMap["Int32"] = new TypeReference { Namespace = "System", Name = "Int32" };
         _typeMap["String"] = new TypeReference { Namespace = "System", Name = "String" };
@@ -38,7 +40,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         _typeMap["Double"] = new TypeReference { Namespace = "System", Name = "Double" };
         _typeMap["Boolean"] = new TypeReference { Namespace = "System", Name = "Boolean" };
         _typeMap["Void"] = new TypeReference { Namespace = "System", Name = "Void" };
-        
+
         // Additional .NET primitive types
         _typeMap["byte"] = new TypeReference { Namespace = "System", Name = "Byte" };
         _typeMap["Byte"] = new TypeReference { Namespace = "System", Name = "Byte" };
@@ -65,13 +67,13 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         };
 
         _currentAssembly = ilAssembly;
-        
+
         // Transform the first module (Fifth programs typically have one module)
         if (astAssembly.Modules.Count > 0)
         {
             ilAssembly.PrimeModule = TransformModule(astAssembly.Modules[0]);
         }
-        
+
         return ilAssembly;
     }
 
@@ -87,9 +89,23 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             },
             new AssemblyReference
             {
-                Name = "System.Console", 
+                Name = "System.Console",
                 PublicKeyToken = "b03f5f7f11d50a3a",
                 Version = new il_ast.Version(8, 0, 0, 0)
+            },
+            // Reference Fifth.System where KG helpers live
+            new AssemblyReference
+            {
+                Name = "Fifth.System",
+                PublicKeyToken = "",
+                Version = new il_ast.Version(1, 0, 0, 0)
+            },
+            // Reference dotNetRDF for IGraph types
+            new AssemblyReference
+            {
+                Name = "dotNetRDF",
+                PublicKeyToken = "",
+                Version = new il_ast.Version(3, 4, 0, 0)
             }
         };
     }
@@ -222,7 +238,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
     private MethodSignature CreateMethodSignature(FunctionDef astFunction)
     {
         var returnTypeName = astFunction.ReturnType?.Name.Value ?? "void";
-        
+
         var signature = new MethodSignature
         {
             CallingConvention = MethodCallingConvention.Default,
@@ -249,7 +265,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
     private Block TransformBlock(BlockStatement? astBlock)
     {
         var ilBlock = new Block();
-        
+
         if (astBlock?.Statements != null)
         {
             foreach (var astStatement in astBlock.Statements)
@@ -313,16 +329,21 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             Name = typeName
         };
     }
-    
+
     /// <summary>
     /// Generates instruction sequence for an expression that evaluates to a value on the stack
     /// </summary>
     public InstructionSequence GenerateExpression(ast.Expression expression)
     {
         var sequence = new InstructionSequence();
-        
+
         switch (expression)
         {
+            case GraphAssertionBlockExp gab:
+                // Placeholder: create a stub value to represent a graph
+                // Future: emit construction of an actual graph and assertions
+                sequence.Add(new LoadInstruction("ldnull", null));
+                break;
             case ast.ListLiteral listLit:
                 // Placeholder: lists/arrays not yet supported; push 0 to keep stack balanced
                 sequence.Add(new LoadInstruction("ldc.i4", 0));
@@ -330,23 +351,23 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             case Int32LiteralExp intLit:
                 sequence.Add(new LoadInstruction("ldc.i4", intLit.Value));
                 break;
-                
+
             case Float4LiteralExp floatLit:
                 sequence.Add(new LoadInstruction("ldc.r4", floatLit.Value));
                 break;
-                
+
             case Float8LiteralExp doubleLit:
                 sequence.Add(new LoadInstruction("ldc.r8", doubleLit.Value));
                 break;
-                
+
             case StringLiteralExp stringLit:
                 sequence.Add(new LoadInstruction("ldstr", $"\"{EscapeString(stringLit.Value)}\""));
                 break;
-                
+
             case BooleanLiteralExp boolLit:
                 sequence.Add(new LoadInstruction("ldc.i4", boolLit.Value ? 1 : 0));
                 break;
-                
+
             case VarRefExp varRef:
                 if (_currentParameterNames.Contains(varRef.VarName))
                 {
@@ -357,7 +378,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     sequence.Add(new LoadInstruction("ldloc", varRef.VarName));
                 }
                 break;
-                
+
             case BinaryExp binaryExp:
                 Console.WriteLine($"DEBUG: Processing BinaryExp with LHS: {binaryExp.LHS?.GetType().Name ?? "null"}, RHS: {binaryExp.RHS?.GetType().Name ?? "null"}, Operator: {binaryExp.Operator.ToString()}");
                 // Emit operands safely; only emit operation when both sides are present
@@ -378,14 +399,14 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     sequence.Add(new ArithmeticInstruction(GetBinaryOpCode(GetOperatorString(binaryExp.Operator))));
                 }
                 break;
-                
+
             case UnaryExp unaryExp:
                 // Emit operand
                 sequence.AddRange(GenerateExpression(unaryExp.Operand).Instructions);
                 // Emit operation
                 sequence.Add(new ArithmeticInstruction(GetUnaryOpCode(GetOperatorString(unaryExp.Operator))));
                 break;
-                
+
             case ast.FuncCallExp funcCall:
                 Console.WriteLine($"DEBUG: Processing FuncCallExp with function: {funcCall.FunctionDef?.Name.Value ?? "null"}, arguments: {funcCall.InvocationArguments?.Count ?? 0}");
                 // Emit arguments
@@ -419,16 +440,16 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     sequence.Add(new CallInstruction("call", $"{ilReturnType} {functionName}()"));
                 }
                 break;
-                
+
             case MemberAccessExp memberAccess:
                 Console.WriteLine($"DEBUG: Processing MemberAccessExp with LHS: {memberAccess.LHS?.GetType().Name ?? "null"}, RHS: {memberAccess.RHS?.GetType().Name ?? "null"}");
-                
+
                 // Load the object (LHS)
                 if (memberAccess.LHS != null)
                 {
                     sequence.AddRange(GenerateExpression(memberAccess.LHS).Instructions);
                 }
-                
+
                 // Load the field value (RHS should be the field/property name)
                 if (memberAccess.RHS is VarRefExp memberVarRef)
                 {
@@ -440,18 +461,18 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     Console.WriteLine($"DEBUG: Unsupported member access RHS type: {memberAccess.RHS?.GetType().Name ?? "null"}");
                 }
                 break;
-                
+
             case ObjectInitializerExp objectInit:
                 Console.WriteLine($"DEBUG: Processing ObjectInitializerExp for type: {objectInit.TypeToInitialize?.Name.Value ?? "unknown"}");
-                
+
                 // For object initialization, we need to:
                 // 1. Create new instance (constructor call)
                 // 2. Initialize each property
-                
+
                 // Create new instance - for now, assume default constructor
                 var typeName = objectInit.TypeToInitialize?.Name.Value ?? "object";
                 sequence.Add(new CallInstruction("newobj", $"instance void {typeName}::.ctor()"));
-                
+
                 // Initialize properties
                 if (objectInit.PropertyInitialisers != null)
                 {
@@ -459,10 +480,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     {
                         // Duplicate the object reference for each property assignment
                         sequence.Add(new LoadInstruction("dup", null));
-                        
+
                         // Load the value to assign
                         sequence.AddRange(GenerateExpression(propInit.RHS).Instructions);
-                        
+
                         // Store the field/property
                         var propertyName = propInit.PropertyToInitialize.Property.Name.Value ?? "unknown";
                         sequence.Add(new StoreInstruction("stfld", propertyName));
@@ -470,10 +491,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 }
                 break;
         }
-        
+
         return sequence;
     }
-    
+
     /// <summary>
     /// Generates instruction sequence for an if statement using branch instructions
     /// </summary>
@@ -482,10 +503,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         var sequence = new InstructionSequence();
         var endLabel = $"IL_end_{_labelCounter++}";
         var falseLabel = $"IL_false_{_labelCounter++}";
-        
+
         // Emit condition evaluation
         sequence.AddRange(GenerateExpression(ifStmt.Condition).Instructions);
-        
+
         var thenStmts = ifStmt.ThenBlock?.Statements ?? new List<ast.Statement>();
         var elseStmts = ifStmt.ElseBlock?.Statements ?? new List<ast.Statement>();
 
@@ -519,10 +540,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             }
             sequence.Add(new LabelInstruction(endLabel));
         }
-        
+
         return sequence;
     }
-    
+
     /// <summary>
     /// Generates instruction sequence for a while loop using branch instructions
     /// </summary>
@@ -531,47 +552,55 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         var sequence = new InstructionSequence();
         var startLabel = $"IL_loop_{_labelCounter++}";
         var endLabel = $"IL_end_{_labelCounter++}";
-        
+
         // Start label
         sequence.Add(new LabelInstruction(startLabel));
-        
+
         // Emit condition evaluation
         if (whileStmt.Condition != null)
         {
             sequence.AddRange(GenerateExpression(whileStmt.Condition).Instructions);
         }
-        
+
         // Branch to end if condition is false
         sequence.Add(new BranchInstruction("brfalse", endLabel));
-        
+
         // Emit loop body
         var bodyStmts = whileStmt.Body?.Statements ?? new List<ast.Statement>();
         foreach (var stmt in bodyStmts)
         {
             sequence.AddRange(GenerateStatement(stmt).Instructions);
         }
-        
+
         // Branch back to start
         sequence.Add(new BranchInstruction("br", startLabel));
-        
+
         // End label
         sequence.Add(new LabelInstruction(endLabel));
-        
+
         return sequence;
     }
-    
+
     /// <summary>
     /// Generates instruction sequence for any statement
     /// </summary>
     public InstructionSequence GenerateStatement(ast.Statement statement)
     {
         var sequence = new InstructionSequence();
-        
+
         // Debug: Log statement type and content
         Console.WriteLine($"DEBUG: GenerateStatement called with {statement?.GetType().Name ?? "null"}");
-        
+
         switch (statement)
         {
+            case GraphAssertionBlockStatement gabStmt:
+                // Evaluate inner graph block expression and discard result
+                if (gabStmt.Content != null)
+                {
+                    sequence.AddRange(GenerateExpression(gabStmt.Content).Instructions);
+                    sequence.Add(new StackInstruction("pop"));
+                }
+                break;
             case VarDeclStatement varDecl:
                 Console.WriteLine($"DEBUG: VarDeclStatement with variable: {varDecl.VariableDecl?.Name ?? "null"}, InitialValue type: {varDecl.InitialValue?.GetType().Name ?? "null"}");
                 // IL locals are typically declared in method header, 
@@ -583,7 +612,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     sequence.Add(new StoreInstruction("stloc", localName));
                 }
                 break;
-                
+
             case AssignmentStatement assignment:
                 // Handle assignment differently based on LValue kind
                 switch (assignment.LValue)
@@ -622,7 +651,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                         break;
                 }
                 break;
-                
+
             case ast.ReturnStatement returnStmt:
                 Console.WriteLine($"DEBUG: Processing ReturnStatement with ReturnValue: {returnStmt.ReturnValue?.GetType().Name ?? "null"}");
                 if (returnStmt.ReturnValue != null)
@@ -636,21 +665,21 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 }
                 sequence.Add(new ReturnInstruction());
                 break;
-                
+
             case IfElseStatement ifStmt:
                 sequence.AddRange(GenerateIfStatement(ifStmt).Instructions);
                 break;
-                
+
             case ast.WhileStatement whileStmt:
                 sequence.AddRange(GenerateWhileStatement(whileStmt).Instructions);
                 break;
-                
+
             case ExpStatement exprStmt:
                 sequence.AddRange(GenerateExpression(exprStmt.RHS).Instructions);
                 sequence.Add(new StackInstruction("pop")); // Pop unused result
                 break;
         }
-        
+
         return sequence;
     }
 
@@ -658,26 +687,26 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
     {
         _currentParameterNames = new HashSet<string>(parameterNames ?? Array.Empty<string>(), StringComparer.Ordinal);
     }
-    
+
     private string GetBinaryOpCode(string op)
     {
         return op switch
         {
             "+" => "add",
-            "-" => "sub", 
+            "-" => "sub",
             "*" => "mul",
             "/" => "div",
             "==" => "ceq",
             "!=" => "ceq_neg", // Special marker to emit ceq + ldc.i4.0 + ceq
             "<" => "clt",
-            ">" => "cgt", 
+            ">" => "cgt",
             "<=" => "cle",
             ">=" => "cge",
             "&&" => "and",
             _ => "add"
         };
     }
-    
+
     private string GetUnaryOpCode(string op)
     {
         return op switch
@@ -687,7 +716,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             _ => "neg"
         };
     }
-    
+
     private string EscapeString(string? input)
     {
         return input?.Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r") ?? "";

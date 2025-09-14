@@ -11,6 +11,8 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
     {
         WrapType(typeof(Fifth.System.IO));
         WrapType(typeof(Fifth.System.Math));
+        // Register knowledge graph helpers so lowering/codegen can reference them later
+        WrapType(typeof(Fifth.System.KG));
 
         // ctx.Functions.Add(new BuiltinFunctionDefinition("print", "void", ("format", "string"),
         // ("value", "string"))); ctx.Functions.Add(new BuiltinFunctionDefinition("print", "void",

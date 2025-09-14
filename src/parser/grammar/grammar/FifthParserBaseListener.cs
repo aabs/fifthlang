@@ -228,6 +228,18 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitBlock([NotNull] FifthParser.BlockContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.graphAssertionBlock"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterGraphAssertionBlock([NotNull] FifthParser.GraphAssertionBlockContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.graphAssertionBlock"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitGraphAssertionBlock([NotNull] FifthParser.GraphAssertionBlockContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.declaration"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
@@ -251,6 +263,18 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitStatement([NotNull] FifthParser.StatementContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.graph_assertion_statement"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterGraph_assertion_statement([NotNull] FifthParser.Graph_assertion_statementContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.graph_assertion_statement"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitGraph_assertion_statement([NotNull] FifthParser.Graph_assertion_statementContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.assignment_statement"/>.
 	/// <para>The default implementation does nothing.</para>
@@ -419,6 +443,18 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitArray_type_signature([NotNull] FifthParser.Array_type_signatureContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.generic_type_signature"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterGeneric_type_signature([NotNull] FifthParser.Generic_type_signatureContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.generic_type_signature"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitGeneric_type_signature([NotNull] FifthParser.Generic_type_signatureContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.expressionList"/>.
 	/// <para>The default implementation does nothing.</para>
@@ -927,6 +963,18 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitGraphDeclaration([NotNull] FifthParser.GraphDeclarationContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.alias_scope_ref"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterAlias_scope_ref([NotNull] FifthParser.Alias_scope_refContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.alias_scope_ref"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitAlias_scope_ref([NotNull] FifthParser.Alias_scope_refContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.store_decl"/>.
 	/// <para>The default implementation does nothing.</para>
