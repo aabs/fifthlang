@@ -4746,10 +4746,10 @@ public partial class FifthParser : FifthParserBase {
 	}
 
 	public partial class Alias_scope_refContext : ParserRuleContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IDENTIFIER() { return GetToken(FifthParser.IDENTIFIER, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public IriContext iri() {
 			return GetRuleContext<IriContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IDENTIFIER() { return GetToken(FifthParser.IDENTIFIER, 0); }
 		public Alias_scope_refContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
@@ -4781,18 +4781,18 @@ public partial class FifthParser : FifthParserBase {
 			State = 519;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
-			case IRIREF:
+			case IDENTIFIER:
 				EnterOuterAlt(_localctx, 1);
 				{
 				State = 517;
-				iri();
+				Match(IDENTIFIER);
 				}
 				break;
-			case IDENTIFIER:
+			case IRIREF:
 				EnterOuterAlt(_localctx, 2);
 				{
 				State = 518;
-				Match(IDENTIFIER);
+				iri();
 				}
 				break;
 			default:
@@ -5072,7 +5072,7 @@ public partial class FifthParser : FifthParserBase {
 		504,506,3,102,51,0,505,503,1,0,0,0,505,506,1,0,0,0,506,507,1,0,0,0,507,
 		508,5,49,0,0,508,512,5,43,0,0,509,511,3,40,20,0,510,509,1,0,0,0,511,514,
 		1,0,0,0,512,510,1,0,0,0,512,513,1,0,0,0,513,515,1,0,0,0,514,512,1,0,0,
-		0,515,516,5,44,0,0,516,101,1,0,0,0,517,520,3,98,49,0,518,520,5,40,0,0,
+		0,515,516,5,44,0,0,516,101,1,0,0,0,517,520,5,40,0,0,518,520,3,98,49,0,
 		519,517,1,0,0,0,519,518,1,0,0,0,520,103,1,0,0,0,521,522,5,29,0,0,522,523,
 		5,40,0,0,523,524,5,49,0,0,524,525,5,28,0,0,525,526,5,41,0,0,526,527,3,
 		98,49,0,527,528,5,42,0,0,528,529,5,51,0,0,529,105,1,0,0,0,47,109,115,121,

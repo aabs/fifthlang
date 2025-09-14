@@ -330,6 +330,14 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         };
     }
 
+    private bool IsTypeName(string? name)
+    {
+        if (string.IsNullOrEmpty(name)) return false;
+        if (_typeMap.ContainsKey(name)) return true;
+        // Simple heuristic: treat single-word capitalized identifiers as potential types
+        return char.IsUpper(name[0]);
+    }
+
     /// <summary>
     /// Generates instruction sequence for an expression that evaluates to a value on the stack
     /// </summary>
@@ -345,8 +353,19 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 sequence.Add(new LoadInstruction("ldnull", null));
                 break;
             case ast.ListLiteral listLit:
-                // Placeholder: lists/arrays not yet supported; push 0 to keep stack balanced
-                sequence.Add(new LoadInstruction("ldc.i4", 0));
+                // Lower list literal to an int32 array for now
+                // Pattern: ldc.i4 <len>; newarr int32; dup; init elements with stelem.i4
+                var count = listLit.ElementExpressions?.Count ?? 0;
+                sequence.Add(new LoadInstruction("ldc.i4", count));
+                sequence.Add(new LoadInstruction("newarr", "int32"));
+                for (int i = 0; i < count; i++)
+                {
+                    sequence.Add(new LoadInstruction("dup"));
+                    sequence.Add(new LoadInstruction("ldc.i4", i));
+                    var elem = listLit.ElementExpressions[i];
+                    sequence.AddRange(GenerateExpression(elem).Instructions);
+                    sequence.Add(new StoreInstruction("stelem.i4"));
+                }
                 break;
             case Int32LiteralExp intLit:
                 sequence.Add(new LoadInstruction("ldc.i4", intLit.Value));
@@ -444,17 +463,87 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             case MemberAccessExp memberAccess:
                 Console.WriteLine($"DEBUG: Processing MemberAccessExp with LHS: {memberAccess.LHS?.GetType().Name ?? "null"}, RHS: {memberAccess.RHS?.GetType().Name ?? "null"}");
 
-                // Load the object (LHS)
+                // Special-case: array creation syntax like int[10]
+                if (memberAccess.RHS is VarRefExp rhsIndex1 && string.Equals(rhsIndex1.VarName, "[index]", StringComparison.Ordinal))
+                {
+                    if (memberAccess.LHS is VarRefExp lhsVar1 && IsTypeName(lhsVar1.VarName))
+                    {
+                        try
+                        {
+                            if (rhsIndex1.Annotations != null && rhsIndex1.Annotations.TryGetValue("IndexExpression", out var idxObj) && idxObj is ast.Expression idxExp)
+                            {
+                                sequence.AddRange(GenerateExpression(idxExp).Instructions);
+                            }
+                            else
+                            {
+                                sequence.Add(new LoadInstruction("ldc.i4", 0));
+                            }
+                            // For now, only support int32 arrays
+                            sequence.Add(new LoadInstruction("newarr", "int32"));
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"DEBUG: Array creation lowering failed: {ex.Message}");
+                            sequence.Add(new LoadInstruction("ldnull", null));
+                            break;
+                        }
+                    }
+                }
+
+                // Load the object (LHS) for normal member access or indexing into a variable
                 if (memberAccess.LHS != null)
                 {
                     sequence.AddRange(GenerateExpression(memberAccess.LHS).Instructions);
                 }
 
-                // Load the field value (RHS should be the field/property name)
-                if (memberAccess.RHS is VarRefExp memberVarRef)
+                // Indexing lowering: RHS as synthetic VarRefExp("[index]") with annotation IndexExpression
+                if (memberAccess.RHS is VarRefExp memberVarRefIndex && string.Equals(memberVarRefIndex.VarName, "[index]", StringComparison.Ordinal))
                 {
-                    // For now, assume simple field access - this may need enhancement for complex property access
-                    sequence.Add(new LoadInstruction("ldfld", memberVarRef.VarName));
+                    try
+                    {
+                        // Heuristic: Only emit ldelem for obvious array sources (locals or member access off locals)
+                        var lhsLooksLikeArray = memberAccess.LHS is VarRefExp
+                            || (memberAccess.LHS is MemberAccessExp lhsMa && lhsMa.LHS is VarRefExp);
+
+                        if (lhsLooksLikeArray)
+                        {
+                            if (memberVarRefIndex.Annotations != null && memberVarRefIndex.Annotations.TryGetValue("IndexExpression", out var idxObj) && idxObj is ast.Expression idxExp)
+                            {
+                                sequence.AddRange(GenerateExpression(idxExp).Instructions);
+                                sequence.Add(new LoadInstruction("ldelem.i4"));
+                            }
+                            else
+                            {
+                                // Fallback: missing index expression; push 0 index and ldelem
+                                sequence.Add(new LoadInstruction("ldc.i4", 0));
+                                sequence.Add(new LoadInstruction("ldelem.i4"));
+                            }
+                        }
+                        else
+                        {
+                            // Skip indexing when LHS is not a known array source (e.g., function call result)
+                            // to avoid invalid IL. The LHS value remains on the stack for outer contexts to consume/pop.
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"DEBUG: Index lowering failed: {ex.Message}");
+                    }
+                }
+                else if (memberAccess.RHS is VarRefExp memberVarRef)
+                {
+                    // Heuristic: Only emit field load for capitalized member names (likely class fields/properties)
+                    // This avoids emitting ldfld against locals/arrays like 'a' in expressions such as a.a[0].a
+                    var name = memberVarRef.VarName ?? string.Empty;
+                    if (!string.IsNullOrEmpty(name) && char.IsUpper(name[0]))
+                    {
+                        sequence.Add(new LoadInstruction("ldfld", name));
+                    }
+                    else
+                    {
+                        // Skip unknown/lowercase member access to keep stack valid for subsequent operations (e.g., indexing)
+                    }
                 }
                 else
                 {

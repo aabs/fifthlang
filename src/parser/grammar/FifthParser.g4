@@ -232,7 +232,8 @@ graphDeclaration:
 	GRAPH name = IDENTIFIER (IN aliasScope = alias_scope_ref)? ASSIGN L_CURLY assignment_statement*
 		R_CURLY;
 
-alias_scope_ref: iri | IDENTIFIER;
+// Prefer simple identifier first to avoid mispredicting IRI when both are viable
+alias_scope_ref: IDENTIFIER | iri;
 
 store_decl:
 	STORE store_name = IDENTIFIER ASSIGN SPARQL L_PAREN iri R_PAREN SEMI;

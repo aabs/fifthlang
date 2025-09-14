@@ -708,6 +708,25 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitLit_int(FifthParser.Lit_intContext context)
     {
+        // Delegate to specific number literal handlers based on actual child alternative
+        var intCtx = context.integer();
+        if (intCtx is FifthParser.Num_decimalContext dec)
+        {
+            return VisitNum_decimal(dec);
+        }
+        if (intCtx is FifthParser.Num_binaryContext bin)
+        {
+            return VisitNum_binary(bin);
+        }
+        if (intCtx is FifthParser.Num_octalContext oct)
+        {
+            return VisitNum_octal(oct);
+        }
+        if (intCtx is FifthParser.Num_hexContext hex)
+        {
+            return VisitNum_hex(hex);
+        }
+        // Fallback
         return CreateLiteral<Int32LiteralExp, int>(context, int.Parse);
     }
 
@@ -723,6 +742,59 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             FifthParser.SUF_SHORT => CreateLiteral<Int16LiteralExp, short>(context, short.Parse),
             FifthParser.SUF_LONG => CreateLiteral<Int64LiteralExp, long>(context, long.Parse),
             _ => CreateLiteral<Int32LiteralExp, int>(context, int.Parse)
+        };
+    }
+
+    public override IAstThing VisitNum_binary(FifthParser.Num_binaryContext context)
+    {
+        var text = context.GetText();
+        // Strip 0b/0B and underscores
+        var payload = text.StartsWith("0b", StringComparison.OrdinalIgnoreCase)
+            ? text.Substring(2)
+            : text;
+        payload = payload.Replace("_", string.Empty);
+        return new Int32LiteralExp
+        {
+            Annotations = [],
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From(typeof(int).FullName) },
+            Value = Convert.ToInt32(payload, 2)
+        };
+    }
+
+    public override IAstThing VisitNum_octal(FifthParser.Num_octalContext context)
+    {
+        var text = context.GetText();
+        // Strip leading 0 or 0o/0O and underscores
+        var payload = text.StartsWith("0o", StringComparison.OrdinalIgnoreCase) ? text.Substring(2) : text;
+        if (payload.Length > 0 && payload[0] == '0') payload = payload.Substring(1);
+        payload = payload.Replace("_", string.Empty);
+        return new Int32LiteralExp
+        {
+            Annotations = [],
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From(typeof(int).FullName) },
+            Value = Convert.ToInt32(payload.Length == 0 ? "0" : payload, 8)
+        };
+    }
+
+    public override IAstThing VisitNum_hex(FifthParser.Num_hexContext context)
+    {
+        var text = context.GetText();
+        // Strip 0x/0X and underscores
+        var payload = text.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+            ? text.Substring(2)
+            : text;
+        payload = payload.Replace("_", string.Empty);
+        return new Int32LiteralExp
+        {
+            Annotations = [],
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From(typeof(int).FullName) },
+            Value = Convert.ToInt32(payload, 16)
         };
     }
 

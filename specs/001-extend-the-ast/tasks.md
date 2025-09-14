@@ -18,30 +18,30 @@
 - Include exact file paths in descriptions
 
 ## Phase 3.1: Setup
-- [ ] T001 Ensure graph block tokens exist in `src/parser/grammar/FifthLexer.g4` (`GRAPH_LBRACE` for `<{`, `GRAPH_RBRACE` for `}>`) and are not used elsewhere.
+- [x] T001 Ensure graph block tokens exist in `src/parser/grammar/FifthLexer.g4` (`GRAPH_LBRACE` for `<{`, `GRAPH_RBRACE` for `}>`) and are not used elsewhere. (Implemented as `L_GRAPH`/`R_GRAPH`)
 - [ ] T002 Add/confirm global usings in `src/fifthlang.system/GlobalUsings.cs` for `VDS.RDF` and `VDS.RDF.Storage` to simplify KG code.
-- [ ] T003 Verify build runs pre-change to capture baseline: `dotnet restore` + `dotnet build` (no code changes in this task).
+- [x] T003 Verify build runs pre-change to capture baseline: `dotnet restore` + `dotnet build` (no code changes in this task).
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 - [ ] T004 [P] Parser test: statement form `graphAssertionBlock` with trailing semicolon in `test/syntax-parser-tests/` (new test file `GraphAssertionBlock_StatementTests.cs`).
 - [ ] T005 [P] Parser test: expression form used in assignment in `test/syntax-parser-tests/GraphAssertionBlock_ExpressionTests.cs`.
 - [ ] T006 [P] Parser test: nesting both ways (graph-in-regular, regular-in-graph) in `test/syntax-parser-tests/GraphAssertionBlock_NestingTests.cs`.
-- [ ] T007 AST/type test: block expression yields `graph` type in `test/ast-tests/GraphAssertionBlock_TypeTests.cs`.
-- [ ] T008 AST/type test: `graph += graph` and `store += graph` typing rules in `test/ast-tests/GraphAndStoreOperatorTests.cs`.
+- [x] T007 AST/type test: block expression yields `graph` type in `test/ast-tests/GraphAssertionBlock_TypeTests.cs`.
+- [x] T008 AST/type test: `graph += graph` and `store += graph` typing rules in `test/ast-tests/GraphAndStoreOperatorTests.cs`.
 - [ ] T009 Lowering test: expression block lowers to KG calls (no persistence) in `test/ast-tests/GraphAssertionBlock_LoweringExpressionTests.cs`.
 - [ ] T010 Lowering test: statement block lowers to default `store += graph` (error if missing) in `test/ast-tests/GraphAssertionBlock_LoweringStatementTests.cs`.
 - [ ] T011 [P] Runtime integration: use dotNetRdf `TripleStore` to verify `store += graph` persists assertions in `test/runtime-integration-tests/GraphAssertionBlock_RuntimeTests.cs`.
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
-- [ ] T012 Grammar: add rule `graphAssertionBlock: GRAPH_LBRACE statements? GRAPH_RBRACE;` to `src/parser/grammar/FifthParser.g4`.
-- [ ] T013 Grammar: add statement alternative `graphAssertionBlock ';'` to `statement` in `FifthParser.g4`.
-- [ ] T014 Grammar: add expression alternative `graphAssertionBlock` to `primaryExpression` in `FifthParser.g4`.
-- [ ] T015 Parser: ensure nested blocks are allowed and ambiguity-free; regenerate ANTLR outputs by building solution.
-- [ ] T016 AST model: add `GraphAssertionBlockExp` and `GraphAssertionBlockStmt` to `src/ast-model/AstMetamodel.cs` per `data-model.md`.
-- [ ] T017 Types: add `store`, `graph`, `triple`, `iri` types in `src/ast-model/TypeSystem/` and wire in `src/ast-model/AstTypeProvider.cs`.
-- [ ] T018 Types: implement typing for `graph += graph` and `store += graph` operators.
-- [ ] T019 Codegen: regenerate AST builders/visitors via `make run-generator` (updates `src/ast-generated/*`).
-- [ ] T020 Parser→AST: update `src/parser/AstBuilderVisitor.cs` to construct `GraphAssertionBlock*` nodes from the new rule.
+- [x] T012 Grammar: add rule `graphAssertionBlock: GRAPH_LBRACE statements? GRAPH_RBRACE;` to `src/parser/grammar/FifthParser.g4`. (Implemented using `L_GRAPH`/`R_GRAPH` tokens)
+- [x] T013 Grammar: add statement alternative `graphAssertionBlock ';'` to `statement` in `FifthParser.g4`.
+- [x] T014 Grammar: add expression alternative `graphAssertionBlock` to `primaryExpression` in `FifthParser.g4`.
+- [x] T015 Parser: ensure nested blocks are allowed and ambiguity-free; regenerate ANTLR outputs by building solution.
+- [x] T016 AST model: add `GraphAssertionBlockExp` and `GraphAssertionBlockStmt` to `src/ast-model/AstMetamodel.cs` per `data-model.md`.
+- [x] T017 Types: add `store`, `graph`, `triple`, `iri` types in `src/ast-model/TypeSystem/` and wire in `src/ast-model/AstTypeProvider.cs`.
+- [x] T018 Types: implement typing for `graph += graph` and `store += graph` operators.
+- [x] T019 Codegen: regenerate AST builders/visitors via `make run-generator` (updates `src/ast-generated/*`).
+- [x] T020 Parser→AST: update `src/parser/AstBuilderVisitor.cs` to construct `GraphAssertionBlock*` nodes from the new rule.
 - [ ] T021 Lowering: create `src/compiler/LanguageTransformations/GraphAssertionLoweringVisitor.cs` to lower blocks to KG calls.
 - [ ] T022 Pipeline: register lowering pass in `src/compiler/ParserManager.cs` before IL conversion.
 - [ ] T023 Diagnostics: add error for missing default store when lowering statement-form blocks without configured default (align FR-019).

@@ -27,6 +27,9 @@ public class PEEmitter
     private string? _pendingNewobjTypeName;
     private readonly Dictionary<string, TypeDefinitionHandle> _localVarClassTypeHandles = new(StringComparer.Ordinal);
 
+    // Cached type references for common system types used in emission
+    private EntityHandle _systemInt32TypeRef;
+
     /// <summary>
     /// Generate a PE assembly directly from IL metamodel
     /// </summary>
@@ -40,17 +43,17 @@ public class PEEmitter
             // Generate PE assembly directly from IL metamodel
             var metadataBuilder = new MetadataBuilder();
             var blobBuilder = new BlobBuilder();
-            
+
             // Collect method bodies for PE builder using MethodBodyStreamEncoder
             var methodBodyStream = new BlobBuilder();
             var methodBodyEncoder = new MethodBodyStreamEncoder(methodBodyStream);
             MethodDefinitionHandle? entryPointMethodHandle = null;
-            
+
             // Ensure we have a valid assembly name - use output filename if IL assembly name is empty
-            var assemblyName = string.IsNullOrWhiteSpace(ilAssembly.Name) 
-                ? Path.GetFileNameWithoutExtension(outputPath) 
+            var assemblyName = string.IsNullOrWhiteSpace(ilAssembly.Name)
+                ? Path.GetFileNameWithoutExtension(outputPath)
                 : ilAssembly.Name;
-            
+
             // Add assembly reference to mscorlib/System.Runtime
             var systemRuntimeRef = metadataBuilder.AddAssemblyReference(
                 metadataBuilder.GetOrAddString("System.Runtime"),
@@ -97,12 +100,18 @@ public class PEEmitter
                 metadataBuilder.GetOrAddString("System"),
                 metadataBuilder.GetOrAddString("Console"));
 
+            // Cache System.Int32 type reference for array element types
+            _systemInt32TypeRef = metadataBuilder.AddTypeReference(
+                systemRuntimeRef,
+                metadataBuilder.GetOrAddString("System"),
+                metadataBuilder.GetOrAddString("Int32"));
+
             var writeLineSignatureBlob = new BlobBuilder();
             writeLineSignatureBlob.WriteByte(0x00); // calling convention
             writeLineSignatureBlob.WriteByte(0x01); // parameter count
             writeLineSignatureBlob.WriteByte((byte)SignatureTypeCode.Void); // return type
             writeLineSignatureBlob.WriteByte((byte)SignatureTypeCode.String); // parameter type
-            
+
             var writeLineMethodRef = metadataBuilder.AddMemberReference(
                 consoleTypeRef,
                 metadataBuilder.GetOrAddString("WriteLine"),
@@ -207,7 +216,7 @@ public class PEEmitter
             {
                 // Process all functions in the module
                 var functions = ilAssembly.PrimeModule.Functions.ToList();
-                
+
                 if (functions.Any())
                 {
                     // Reserve the method row id that will be the first method of Program
@@ -223,7 +232,7 @@ public class PEEmitter
                         // Program has no fields; FieldList should point past the last existing field
                         MetadataTokens.FieldDefinitionHandle(metadataBuilder.GetRowCount(TableIndex.Field) + 1),
                         firstMethodHandle);
-                    
+
                     // Pre-compute MethodDefinitionHandles so calls can reference them before they're defined
                     var functionList = functions.ToList();
                     var methodMap = new Dictionary<string, MethodDefinitionHandle>(StringComparer.Ordinal);
@@ -318,10 +327,10 @@ public class PEEmitter
                         MetadataTokens.MethodDefinitionHandle(1));
                 }
             }
-            
+
             // Build PE with method bodies using original approach but fixed method format
             var peHeaderBuilder = new PEHeaderBuilder(imageCharacteristics: Characteristics.ExecutableImage);
-            
+
             var peBuilder = new ManagedPEBuilder(
                 peHeaderBuilder,
                 new MetadataRootBuilder(metadataBuilder),
@@ -334,7 +343,7 @@ public class PEEmitter
             // Write to file
             using var stream = File.Create(outputPath);
             peBlob.WriteContentTo(stream);
-            
+
             return true;
         }
         catch (System.Exception ex)
@@ -353,13 +362,13 @@ public class PEEmitter
         var ilInstructions = new BlobBuilder();
         var controlFlow = new ControlFlowBuilder();
         var il = new InstructionEncoder(ilInstructions, controlFlow);
-        
+
         // Reset per-method inference state
         _lastLoadedLocal = null;
         _lastWasNewobj = false;
         _localVarTypeMap = new Dictionary<string, SignatureTypeCode>(StringComparer.Ordinal);
-    _pendingNewobjTypeName = null;
-    _localVarClassTypeHandles.Clear();
+        _pendingNewobjTypeName = null;
+        _localVarClassTypeHandles.Clear();
 
         // Use AstToIlTransformationVisitor to get instruction sequences for each statement
         var transformer = new AstToIlTransformationVisitor();
@@ -369,8 +378,8 @@ public class PEEmitter
         // Build a map from parameter name to argument index
         var paramIndexMap = new Dictionary<string, int>(StringComparer.Ordinal);
         for (int i = 0; i < paramNames.Count; i++) paramIndexMap[paramNames[i]] = i;
-        
-    // Track local variables
+
+        // Track local variables
         var localVariables = new List<string>();
         void AddLocal(string name)
         {
@@ -382,40 +391,40 @@ public class PEEmitter
                 if (!_localVarTypeMap.ContainsKey(name)) _localVarTypeMap[name] = SignatureTypeCode.Int32;
             }
         }
-        
+
         var bodyStatements = ilMethod?.Impl?.Body?.Statements ?? new List<ast.Statement>();
         Console.WriteLine($"DEBUG: Generating method body for '{ilMethod?.Name ?? "Unnamed"}' with {bodyStatements.Count} statements");
-        
+
         // Generate instructions from the method's body statements
         if (bodyStatements.Any())
         {
             foreach (var statement in bodyStatements)
             {
                 var instructionSequence = transformer.GenerateStatement(statement);
-                
+
                 Console.WriteLine($"DEBUG: Statement generated {instructionSequence.Instructions.Count} instructions");
                 foreach (var instr in instructionSequence.Instructions)
                 {
                     Console.WriteLine($"  - {instr.GetType().Name}: {instr}");
                 }
-                
+
                 // Collect local variable information
                 foreach (var instruction in instructionSequence.Instructions)
                 {
-                    if (instruction is il_ast.LoadInstruction loadInst && 
-                            loadInst.Opcode.ToLowerInvariant() == "ldloc" && 
+                    if (instruction is il_ast.LoadInstruction loadInst &&
+                            loadInst.Opcode.ToLowerInvariant() == "ldloc" &&
                             loadInst.Value is string loadVar)
                     {
                         AddLocal(loadVar);
                     }
-                    else if (instruction is il_ast.StoreInstruction storeInst && 
-                            storeInst.Opcode.ToLowerInvariant() == "stloc" && 
+                    else if (instruction is il_ast.StoreInstruction storeInst &&
+                            storeInst.Opcode.ToLowerInvariant() == "stloc" &&
                             storeInst.Target is string storeVar)
                     {
                         AddLocal(storeVar);
                     }
                 }
-                
+
                 EmitInstructionSequence(il, instructionSequence, metadataBuilder, writeLineMethodRef, methodMap, localVariables, paramIndexMap);
             }
         }
@@ -429,7 +438,7 @@ public class PEEmitter
                 il.LoadConstantI4(42); // Default return value
             }
         }
-        
+
         // Always ensure a final return exists with a sensible default value
         var retTypeName = ilMethod?.Signature?.ReturnTypeSignature?.Name ?? "Void";
         switch (retTypeName)
@@ -456,7 +465,7 @@ public class PEEmitter
                 il.OpCode(ILOpCode.Ret);
                 break;
         }
-    return (il, localVariables, _localVarTypeMap);
+        return (il, localVariables, _localVarTypeMap);
     }
 
     /// <summary>
@@ -467,7 +476,7 @@ public class PEEmitter
         var localsSignature = new BlobBuilder();
         localsSignature.WriteByte(0x07); // LOCAL_SIG
         localsSignature.WriteCompressedInteger(localVariables.Count); // Number of locals
-        
+
         // Use inferred types where available (default Int32)
         foreach (var localVar in localVariables)
         {
@@ -489,14 +498,14 @@ public class PEEmitter
                 localsSignature.WriteByte((byte)sigType);
             }
         }
-        
+
         return metadataBuilder.AddStandaloneSignature(metadataBuilder.GetOrAddBlob(localsSignature));
     }
 
     /// <summary>
     /// Emit instruction sequence using InstructionEncoder
     /// </summary>
-    private void EmitInstructionSequence(InstructionEncoder il, il_ast.InstructionSequence sequence, 
+    private void EmitInstructionSequence(InstructionEncoder il, il_ast.InstructionSequence sequence,
         MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null, List<string>? orderedLocals = null, Dictionary<string, int>? paramIndexMap = null, Dictionary<string, EntityHandle>? methodMemberRefMap = null)
     {
         // Predefine labels present in this sequence so branches can target them
@@ -508,30 +517,30 @@ public class PEEmitter
                 labelMap[li.Label] = il.DefineLabel();
             }
         }
-        
+
         // Use provided locals ordering if available; otherwise derive per-sequence
         var localVarNames = orderedLocals != null ? new List<string>(orderedLocals) : new List<string>();
         if (orderedLocals == null)
         {
             foreach (var instruction in sequence.Instructions)
             {
-                if (instruction is il_ast.LoadInstruction loadInst && 
-                    loadInst.Opcode.ToLowerInvariant() == "ldloc" && 
-                    loadInst.Value is string loadVar && 
+                if (instruction is il_ast.LoadInstruction loadInst &&
+                    loadInst.Opcode.ToLowerInvariant() == "ldloc" &&
+                    loadInst.Value is string loadVar &&
                     !localVarNames.Contains(loadVar))
                 {
                     localVarNames.Add(loadVar);
                 }
-                else if (instruction is il_ast.StoreInstruction storeInst && 
-                        storeInst.Opcode.ToLowerInvariant() == "stloc" && 
-                        storeInst.Target is string storeVar && 
+                else if (instruction is il_ast.StoreInstruction storeInst &&
+                        storeInst.Opcode.ToLowerInvariant() == "stloc" &&
+                        storeInst.Target is string storeVar &&
                         !localVarNames.Contains(storeVar))
                 {
                     localVarNames.Add(storeVar);
                 }
             }
         }
-        
+
         foreach (var instruction in sequence.Instructions)
         {
             try
@@ -549,7 +558,7 @@ public class PEEmitter
     /// <summary>
     /// Emit a single instruction using InstructionEncoder
     /// </summary>
-    private void EmitInstruction(InstructionEncoder il, il_ast.CilInstruction instruction, 
+    private void EmitInstruction(InstructionEncoder il, il_ast.CilInstruction instruction,
         MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, List<string>? localVarNames = null, Dictionary<string, MethodDefinitionHandle>? methodMap = null, Dictionary<string, LabelHandle>? labelMap = null, Dictionary<string, int>? paramIndexMap = null, Dictionary<string, EntityHandle>? methodMemberRefMap = null)
     {
         switch (instruction)
@@ -557,27 +566,27 @@ public class PEEmitter
             case il_ast.LoadInstruction loadInst:
                 EmitLoadInstruction(il, loadInst, metadataBuilder, localVarNames ?? new List<string>(), paramIndexMap ?? new Dictionary<string, int>(StringComparer.Ordinal));
                 break;
-                
+
             case il_ast.StoreInstruction storeInst:
                 EmitStoreInstruction(il, storeInst, localVarNames ?? new List<string>());
                 break;
-                
+
             case il_ast.ArithmeticInstruction arithInst:
                 EmitArithmeticInstruction(il, arithInst);
                 break;
-                
+
             case il_ast.CallInstruction callInst:
                 EmitCallInstruction(il, callInst, metadataBuilder, writeLineMethodRef, methodMap);
                 break;
-                
+
             case il_ast.BranchInstruction branchInst:
                 EmitBranchInstruction(il, branchInst, labelMap);
                 break;
-                
+
             case il_ast.ReturnInstruction:
                 il.OpCode(ILOpCode.Ret);
                 break;
-                
+
             case il_ast.LabelInstruction labelInst:
                 if (labelMap != null && !string.IsNullOrEmpty(labelInst.Label) && labelMap.TryGetValue(labelInst.Label, out var lh))
                 {
@@ -607,21 +616,34 @@ public class PEEmitter
                     il.LoadConstantI4(intValue);
                 }
                 break;
-                
+            case "newarr":
+                // Expect Value to be element type hint like "int32" for now
+                // Stack: (size) -> (array ref)
+                il.OpCode(ILOpCode.Newarr);
+                // Use cached System.Int32 for now
+                il.Token(_systemInt32TypeRef);
+                // Mark that a reference type is produced for subsequent stloc typing as object
+                _lastWasNewobj = true;
+                _pendingNewobjTypeName = null;
+                break;
+            case "ldelem.i4":
+                il.OpCode(ILOpCode.Ldelem_i4);
+                break;
+
             case "ldc.r4":
                 if (loadInst.Value is float floatValue)
                 {
                     il.LoadConstantR4(floatValue);
                 }
                 break;
-                
+
             case "ldc.r8":
                 if (loadInst.Value is double doubleValue)
                 {
                     il.LoadConstantR8(doubleValue);
                 }
                 break;
-                
+
             case "ldstr":
                 if (loadInst.Value is string stringValue)
                 {
@@ -630,7 +652,7 @@ public class PEEmitter
                     il.LoadString(metadataBuilder.GetOrAddUserString(cleanString));
                 }
                 break;
-                
+
             case "ldloc":
                 if (loadInst.Value is string varName && localVarNames != null)
                 {
@@ -667,7 +689,7 @@ public class PEEmitter
                     _lastLoadedLocal = null;
                 }
                 break;
-            
+
             case "ldfld":
                 if (loadInst.Value is string fldName)
                 {
@@ -707,7 +729,7 @@ public class PEEmitter
                     }
                 }
                 break;
-                
+
             case "dup":
                 // Duplicate the top value on the stack
                 il.OpCode(ILOpCode.Dup);
@@ -758,7 +780,10 @@ public class PEEmitter
                 // Not supported yet; pop to keep stack balanced
                 il.OpCode(ILOpCode.Pop);
                 break;
-                
+            case "stelem.i4":
+                il.OpCode(ILOpCode.Stelem_i4);
+                break;
+
             case "stfld":
                 if (storeInst.Target is string fieldName)
                 {
@@ -865,7 +890,7 @@ public class PEEmitter
     /// <summary>
     /// Emit call instruction
     /// </summary>
-    private void EmitCallInstruction(InstructionEncoder il, il_ast.CallInstruction callInst, 
+    private void EmitCallInstruction(InstructionEncoder il, il_ast.CallInstruction callInst,
         MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
     {
         Console.WriteLine($"DEBUG: EmitCallInstruction opcode='{callInst.Opcode}', sig='{callInst.MethodSignature}'");
@@ -889,19 +914,19 @@ public class PEEmitter
             _pendingNewobjTypeName = null;
             return;
         }
-        
+
         // For external calls, redirect print calls to Console.WriteLine
-        if (callInst.MethodSignature?.Contains("Console") == true || 
+        if (callInst.MethodSignature?.Contains("Console") == true ||
             callInst.MethodSignature?.Contains("WriteLine") == true ||
             callInst.MethodSignature?.Contains("print") == true)
         {
             il.Call(writeLineMethodRef);
             return;
         }
-        
+
         // Extract method name from the signature
         var methodName = ExtractMethodName(callInst.MethodSignature ?? "");
-        
+
         Console.WriteLine($"DEBUG: Trying to resolve method call: '{callInst.MethodSignature}' -> '{methodName}'");
         if (methodMap != null)
         {
@@ -911,7 +936,7 @@ public class PEEmitter
                 Console.WriteLine($"  - {k}");
             }
         }
-        
+
         // Try to resolve internal method calls using the method map
         if (methodMap != null && methodMap.TryGetValue(methodName, out var methodHandle))
         {
@@ -919,7 +944,7 @@ public class PEEmitter
             il.Call(methodHandle);
             return;
         }
-        
+
         // Also try to handle subclause method calls by checking for the pattern
         // This handles cases where the IL calls subclause methods directly
         if (methodName.Contains("_subclause") && methodMap != null)
@@ -931,7 +956,7 @@ public class PEEmitter
                 return;
             }
         }
-        
+
         // For unresolved method calls, try to find any method that starts with the same base name
         if (methodMap != null)
         {
@@ -944,7 +969,7 @@ public class PEEmitter
                 return;
             }
         }
-        
+
         // If still unresolved, emit a warning and push a default value based on the signature to keep stack balanced
         Console.WriteLine($"WARNING: Skipping unresolved method call: {callInst.MethodSignature}");
         var sig = callInst.MethodSignature ?? string.Empty;
@@ -977,7 +1002,7 @@ public class PEEmitter
         il.OpCode(ILOpCode.Nop);
         il.OpCode(ILOpCode.Nop);
     }
-    
+
     /// <summary>
     /// Extract method name from method signature string
     /// </summary>
@@ -988,13 +1013,13 @@ public class PEEmitter
         {
             return methodSignature.Split("::").Last();
         }
-        
+
         // If it looks like a simple method name, return as-is
         if (!methodSignature.Contains(" ") && !methodSignature.Contains("("))
         {
             return methodSignature;
         }
-        
+
         // For more complex signatures, try to extract the method name before parentheses
         var parenIndex = methodSignature.IndexOf('(');
         if (parenIndex > 0)
@@ -1007,7 +1032,7 @@ public class PEEmitter
             }
             return beforeParen;
         }
-        
+
         return methodSignature;
     }
 
@@ -1084,7 +1109,7 @@ public class PEEmitter
                 _ => SignatureTypeCode.Object
             };
         }
-        
+
         return SignatureTypeCode.Object;
     }
 
