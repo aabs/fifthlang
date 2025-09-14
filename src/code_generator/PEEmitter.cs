@@ -384,6 +384,10 @@ public class PEEmitter
         // Provide current parameter names to the transformer so it can emit ldarg for them
         var paramNames = ilMethod?.Signature?.ParameterSignatures?.Select(p => p.Name ?? "param").ToList() ?? new List<string>();
         transformer.SetCurrentParameters(paramNames);
+        var paramInfos = ilMethod?.Signature?.ParameterSignatures
+            ?.Select(p => (name: p.Name ?? "param", typeName: p.TypeReference != null ? $"{p.TypeReference.Namespace}.{p.TypeReference.Name}" : null))
+            ?.ToList() ?? new List<(string name, string? typeName)>();
+        transformer.SetCurrentParameterTypes(paramInfos);
         // Build a map from parameter name to argument index
         var paramIndexMap = new Dictionary<string, int>(StringComparer.Ordinal);
         for (int i = 0; i < paramNames.Count; i++) paramIndexMap[paramNames[i]] = i;

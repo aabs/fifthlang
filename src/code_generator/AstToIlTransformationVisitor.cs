@@ -24,6 +24,8 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
     private ModuleDeclaration? _currentModule;
     private ClassDefinition? _currentClass;
     private HashSet<string> _currentParameterNames = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Type> _currentParameterTypes = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Type> _localVariableTypes = new(StringComparer.Ordinal);
 
     public AstToIlTransformationVisitor()
     {
@@ -57,6 +59,38 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         return 0;
     }
 
+    private static bool IsNumeric(Type t)
+    {
+        return t == typeof(int) || t == typeof(long) || t == typeof(float) || t == typeof(double) || t == typeof(decimal);
+    }
+
+    private static Type PromoteNumeric(Type a, Type b)
+    {
+        if (a == typeof(double) || b == typeof(double)) return typeof(double);
+        if (a == typeof(float) || b == typeof(float)) return typeof(float);
+        if (a == typeof(long) || b == typeof(long)) return typeof(long);
+        if (a == typeof(decimal) || b == typeof(decimal)) return typeof(decimal);
+        return typeof(int);
+    }
+
+    private static Type? MapBuiltinFifthTypeNameToSystem(string? name)
+    {
+        return name switch
+        {
+            "int" or "System.Int32" or "Int32" => typeof(int),
+            "string" or "System.String" or "String" => typeof(string),
+            "float" or "System.Single" or "Single" => typeof(float),
+            "double" or "System.Double" or "Double" => typeof(double),
+            "bool" or "System.Boolean" or "Boolean" => typeof(bool),
+            "long" or "System.Int64" or "Int64" => typeof(long),
+            "short" or "System.Int16" or "Int16" => typeof(short),
+            "byte" or "System.Byte" or "Byte" => typeof(byte),
+            "char" or "System.Char" or "Char" => typeof(char),
+            "decimal" or "System.Decimal" or "Decimal" => typeof(decimal),
+            _ => null
+        };
+    }
+
     private Type? InferExpressionType(ast.Expression expr)
     {
         switch (expr)
@@ -71,6 +105,48 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 return typeof(float);
             case Float8LiteralExp:
                 return typeof(double);
+            case VarRefExp v:
+                if (_localVariableTypes.TryGetValue(v.VarName, out var lty)) return lty;
+                if (_currentParameterTypes.TryGetValue(v.VarName, out var pty)) return pty;
+                return null;
+            case BinaryExp be:
+                {
+                    var lt = be.LHS != null ? InferExpressionType(be.LHS) : null;
+                    var rt = be.RHS != null ? InferExpressionType(be.RHS) : null;
+                    // Comparison/logical -> bool
+                    switch (be.Operator)
+                    {
+                        case Operator.Equal:
+                        case Operator.NotEqual:
+                        case Operator.LessThan:
+                        case Operator.GreaterThan:
+                        case Operator.LessThanOrEqual:
+                        case Operator.GreaterThanOrEqual:
+                        case Operator.LogicalAnd:
+                            return typeof(bool);
+                    }
+                    // Addition: string concatenation if either is string
+                    if (be.Operator == Operator.ArithmeticAdd && (lt == typeof(string) || rt == typeof(string)))
+                    {
+                        return typeof(string);
+                    }
+                    // Numeric promotion
+                    if (lt != null && rt != null && IsNumeric(lt) && IsNumeric(rt))
+                    {
+                        return PromoteNumeric(lt, rt);
+                    }
+                    return null;
+                }
+            case UnaryExp ue:
+                {
+                    var ot = InferExpressionType(ue.Operand);
+                    return ue.Operator switch
+                    {
+                        Operator.ArithmeticNegative => ot, // preserve numeric type
+                        Operator.LogicalNot => typeof(bool),
+                        _ => ot
+                    };
+                }
             case MemberAccessExp ma when ma.RHS is ast.FuncCallExp inner && inner.Annotations != null &&
                                          inner.Annotations.TryGetValue("ExternalType", out var tObj) && tObj is Type innerExtType &&
                                          inner.Annotations.TryGetValue("ExternalMethodName", out var mObj) && mObj is string innerMName:
@@ -79,6 +155,8 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     var chosen = ResolveExternalMethod(innerExtType, innerMName, args);
                     return chosen?.ReturnType;
                 }
+            case ast.FuncCallExp fc when fc.FunctionDef?.ReturnType?.Name.Value is string tn:
+                return MapBuiltinFifthTypeNameToSystem(tn);
         }
         return null;
     }
@@ -88,7 +166,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         var methods = extType.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
             .Where(mi => string.Equals(mi.Name, methodName, StringComparison.Ordinal))
             .ToList();
-        var argCount = args?.Count ?? 0;
+        var argCount = args.Count;
         var inferred = new List<Type?>();
         for (int i = 0; i < argCount; i++)
         {
@@ -459,14 +537,15 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             case ast.ListLiteral listLit:
                 // Lower list literal to an int32 array for now
                 // Pattern: ldc.i4 <len>; newarr int32; dup; init elements with stelem.i4
-                var count = listLit.ElementExpressions?.Count ?? 0;
+                var elems = listLit.ElementExpressions ?? new List<ast.Expression>();
+                var count = elems.Count;
                 sequence.Add(new LoadInstruction("ldc.i4", count));
                 sequence.Add(new LoadInstruction("newarr", "int32"));
                 for (int i = 0; i < count; i++)
                 {
                     sequence.Add(new LoadInstruction("dup"));
                     sequence.Add(new LoadInstruction("ldc.i4", i));
-                    var elem = listLit.ElementExpressions[i];
+                    var elem = elems[i];
                     sequence.AddRange(GenerateExpression(elem).Instructions);
                     sequence.Add(new StoreInstruction("stelem.i4"));
                 }
@@ -853,6 +932,18 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     sequence.AddRange(GenerateExpression(varDecl.InitialValue).Instructions);
                     var localName = varDecl.VariableDecl?.Name ?? "temp";
                     sequence.Add(new StoreInstruction("stloc", localName));
+                    // Track inferred type from initializer; fall back to declared type if available
+                    var inferred = InferExpressionType(varDecl.InitialValue);
+                    if (inferred != null)
+                    {
+                        _localVariableTypes[localName] = inferred;
+                    }
+                    else if (varDecl.VariableDecl != null)
+                    {
+                        var dtn = varDecl.VariableDecl.TypeName.Value;
+                        var mapped = MapBuiltinFifthTypeNameToSystem(dtn) ?? ResolveTypeByFullName(dtn);
+                        if (mapped != null) _localVariableTypes[localName] = mapped;
+                    }
                 }
                 break;
 
@@ -864,6 +955,12 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                         // Simple local variable assignment: eval RHS, store to local
                         sequence.AddRange(GenerateExpression(assignment.RValue).Instructions);
                         sequence.Add(new StoreInstruction("stloc", varRef.VarName));
+                        // Update local variable type from RHS
+                        var rhsType = InferExpressionType(assignment.RValue);
+                        if (rhsType != null)
+                        {
+                            _localVariableTypes[varRef.VarName] = rhsType;
+                        }
                         break;
 
                     case MemberAccessExp memberAccess:
@@ -929,6 +1026,44 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
     public void SetCurrentParameters(IEnumerable<string> parameterNames)
     {
         _currentParameterNames = new HashSet<string>(parameterNames ?? Array.Empty<string>(), StringComparer.Ordinal);
+    }
+
+    public void SetCurrentParameterTypes(IEnumerable<(string name, string? typeName)> parameterInfos)
+    {
+        _currentParameterTypes.Clear();
+        if (parameterInfos == null) return;
+        foreach (var (name, typeName) in parameterInfos)
+        {
+            if (string.IsNullOrWhiteSpace(name)) continue;
+            var t = MapBuiltinFifthTypeNameToSystem(typeName) ?? ResolveTypeByFullName(typeName);
+            if (t != null)
+            {
+                _currentParameterTypes[name] = t;
+            }
+        }
+    }
+
+    private static Type? ResolveTypeByFullName(string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName)) return null;
+        var direct = Type.GetType(fullName!, throwOnError: false, ignoreCase: false);
+        if (direct != null) return direct;
+        foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            try
+            {
+                var tt = asm.GetType(fullName!, throwOnError: false, ignoreCase: false);
+                if (tt != null) return tt;
+            }
+            catch { /* ignore */ }
+        }
+        // Common external map
+        if (string.Equals(fullName, "VDS.RDF.IGraph", StringComparison.Ordinal))
+        {
+            var alt = Type.GetType("VDS.RDF.IGraph, dotNetRDF", throwOnError: false, ignoreCase: false);
+            if (alt != null) return alt;
+        }
+        return null;
     }
 
     private string GetBinaryOpCode(string op)
