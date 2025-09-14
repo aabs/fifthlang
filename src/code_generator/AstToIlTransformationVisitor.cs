@@ -10,6 +10,15 @@ namespace code_generator;
 /// </summary>
 public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 {
+    private static bool DebugEnabled =>
+        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("1", StringComparison.Ordinal) ||
+        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("true", StringComparison.OrdinalIgnoreCase) ||
+        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("on", StringComparison.OrdinalIgnoreCase);
+
+    private static void DebugLog(string message)
+    {
+        if (DebugEnabled) Console.WriteLine(message);
+    }
     private readonly Dictionary<string, TypeReference> _typeMap = new();
     private AssemblyDeclaration? _currentAssembly;
     private ModuleDeclaration? _currentModule;
@@ -399,7 +408,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
 
             case BinaryExp binaryExp:
-                Console.WriteLine($"DEBUG: Processing BinaryExp with LHS: {binaryExp.LHS?.GetType().Name ?? "null"}, RHS: {binaryExp.RHS?.GetType().Name ?? "null"}, Operator: {binaryExp.Operator.ToString()}");
+                DebugLog($"DEBUG: Processing BinaryExp with LHS: {binaryExp.LHS?.GetType().Name ?? "null"}, RHS: {binaryExp.RHS?.GetType().Name ?? "null"}, Operator: {binaryExp.Operator.ToString()}");
                 // Emit operands safely; only emit operation when both sides are present
                 var leftPresent = binaryExp.LHS != null;
                 var rightPresent = binaryExp.RHS != null;
@@ -427,7 +436,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
 
             case ast.FuncCallExp funcCall:
-                Console.WriteLine($"DEBUG: Processing FuncCallExp with function: {funcCall.FunctionDef?.Name.Value ?? "null"}, arguments: {funcCall.InvocationArguments?.Count ?? 0}");
+                DebugLog($"DEBUG: Processing FuncCallExp with function: {funcCall.FunctionDef?.Name.Value ?? "null"}, arguments: {funcCall.InvocationArguments?.Count ?? 0}");
                 // Emit arguments
                 if (funcCall.InvocationArguments != null)
                 {
@@ -461,7 +470,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
 
             case MemberAccessExp memberAccess:
-                Console.WriteLine($"DEBUG: Processing MemberAccessExp with LHS: {memberAccess.LHS?.GetType().Name ?? "null"}, RHS: {memberAccess.RHS?.GetType().Name ?? "null"}");
+                DebugLog($"DEBUG: Processing MemberAccessExp with LHS: {memberAccess.LHS?.GetType().Name ?? "null"}, RHS: {memberAccess.RHS?.GetType().Name ?? "null"}");
 
                 // Qualified external static call: <Type>.<Method>(args)
                 if (memberAccess.RHS is ast.FuncCallExp extCall && extCall.Annotations != null &&
@@ -501,7 +510,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"DEBUG: Array creation lowering failed: {ex.Message}");
+                            DebugLog($"DEBUG: Array creation lowering failed: {ex.Message}");
                             sequence.Add(new LoadInstruction("ldnull", null));
                             break;
                         }
@@ -545,7 +554,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"DEBUG: Index lowering failed: {ex.Message}");
+                        DebugLog($"DEBUG: Index lowering failed: {ex.Message}");
                     }
                 }
                 else if (memberAccess.RHS is VarRefExp memberVarRef)
@@ -569,7 +578,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
 
             case ObjectInitializerExp objectInit:
-                Console.WriteLine($"DEBUG: Processing ObjectInitializerExp for type: {objectInit.TypeToInitialize?.Name.Value ?? "unknown"}");
+                DebugLog($"DEBUG: Processing ObjectInitializerExp for type: {objectInit.TypeToInitialize?.Name.Value ?? "unknown"}");
 
                 // For object initialization, we need to:
                 // 1. Create new instance (constructor call)
@@ -695,7 +704,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         var sequence = new InstructionSequence();
 
         // Debug: Log statement type and content
-        Console.WriteLine($"DEBUG: GenerateStatement called with {statement?.GetType().Name ?? "null"}");
+        DebugLog($"DEBUG: GenerateStatement called with {statement?.GetType().Name ?? "null"}");
 
         switch (statement)
         {
@@ -708,7 +717,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 }
                 break;
             case VarDeclStatement varDecl:
-                Console.WriteLine($"DEBUG: VarDeclStatement with variable: {varDecl.VariableDecl?.Name ?? "null"}, InitialValue type: {varDecl.InitialValue?.GetType().Name ?? "null"}");
+                DebugLog($"DEBUG: VarDeclStatement with variable: {varDecl.VariableDecl?.Name ?? "null"}, InitialValue type: {varDecl.InitialValue?.GetType().Name ?? "null"}");
                 // IL locals are typically declared in method header, 
                 // so we just handle initialization if present
                 if (varDecl.InitialValue != null)
@@ -759,7 +768,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
 
             case ast.ReturnStatement returnStmt:
-                Console.WriteLine($"DEBUG: Processing ReturnStatement with ReturnValue: {returnStmt.ReturnValue?.GetType().Name ?? "null"}");
+                DebugLog($"DEBUG: Processing ReturnStatement with ReturnValue: {returnStmt.ReturnValue?.GetType().Name ?? "null"}");
                 if (returnStmt.ReturnValue != null)
                 {
                     sequence.AddRange(GenerateExpression(returnStmt.ReturnValue).Instructions);

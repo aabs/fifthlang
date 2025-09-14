@@ -8,6 +8,11 @@ namespace compiler;
 
 public static class FifthParserManager
 {
+    private static bool DebugEnabled =>
+        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("1", StringComparison.Ordinal) ||
+        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("true", StringComparison.OrdinalIgnoreCase) ||
+        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("on", StringComparison.OrdinalIgnoreCase);
+
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast)
     {
         ArgumentNullException.ThrowIfNull(ast);
@@ -18,8 +23,11 @@ public static class FifthParserManager
         }
         catch (System.Exception ex)
         {
-            Console.Error.WriteLine($"=== DEBUG: TreeLinkageVisitor failed with: {ex.Message} ===");
-            Console.Error.WriteLine($"=== DEBUG: Stack trace: {ex.StackTrace} ===");
+            if (DebugEnabled)
+            {
+                Console.Error.WriteLine($"=== DEBUG: TreeLinkageVisitor failed with: {ex.Message} ===");
+                Console.Error.WriteLine($"=== DEBUG: Stack trace: {ex.StackTrace} ===");
+            }
             throw;
         }
 
@@ -35,8 +43,11 @@ public static class FifthParserManager
         }
         catch (System.Exception ex)
         {
-            Console.Error.WriteLine($"=== DEBUG: PropertyToFieldExpander failed with: {ex.Message} ===");
-            Console.Error.WriteLine($"=== DEBUG: Stack trace: {ex.StackTrace} ===");
+            if (DebugEnabled)
+            {
+                Console.Error.WriteLine($"=== DEBUG: PropertyToFieldExpander failed with: {ex.Message} ===");
+                Console.Error.WriteLine($"=== DEBUG: Stack trace: {ex.StackTrace} ===");
+            }
             throw;
         }
 
@@ -97,7 +108,7 @@ public static class FifthParserManager
         var tree = parser.fifth();
         var v = new AstBuilderVisitor();
         var ast = v.Visit(tree);
-        return ast as AssemblyDef;
+        return ast as AssemblyDef ?? throw new System.Exception("ParseFile did not produce an AssemblyDef AST");
     }
 
     // Parse only: lex + parse without building the AST. Used by syntax-only tests.
@@ -128,7 +139,7 @@ public static class FifthParserManager
         var tree = parser.fifth();
         var v = new AstBuilderVisitor();
         var ast = v.Visit(tree);
-        return ast as AssemblyDef;
+        return ast as AssemblyDef ?? throw new System.Exception("ParseEmbeddedResource did not produce an AssemblyDef AST");
     }
 
     private static FifthParser GetParserForEmbeddedResource(Stream sourceStream)
@@ -147,7 +158,7 @@ public static class FifthParserManager
         var tree = parser.fifth();
         var v = new AstBuilderVisitor();
         var ast = v.Visit(tree);
-        return ast as AssemblyDef;
+        return ast as AssemblyDef ?? throw new System.Exception("ParseString did not produce an AssemblyDef AST");
     }
 
     private static FifthParser GetParserForString(string source)

@@ -12,6 +12,15 @@ namespace code_generator;
 /// </summary>
 public class PEEmitter
 {
+    private static bool DebugEnabled =>
+        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("1", StringComparison.Ordinal) ||
+        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("true", StringComparison.OrdinalIgnoreCase) ||
+        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("on", StringComparison.OrdinalIgnoreCase);
+
+    private static void DebugLog(string message)
+    {
+        if (DebugEnabled) Console.WriteLine(message);
+    }
     // Maps for types, fields, and constructors defined in this assembly
     private readonly Dictionary<string, TypeDefinitionHandle> _typeHandles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, FieldDefinitionHandle> _fieldHandles = new(StringComparer.Ordinal);
@@ -262,7 +271,7 @@ public class PEEmitter
                             attributes: localVariables.Any() ? MethodBodyAttributes.InitLocals : MethodBodyAttributes.None);
 
                         bodyOffsets[function.Name] = bodyOffset;
-                        Console.WriteLine($"DEBUG: Added body for '{function.Name}' at offset {bodyOffset}");
+                        DebugLog($"DEBUG: Added body for '{function.Name}' at offset {bodyOffset}");
                     }
 
                     // Create Parameter rows and remember ParamList start for each method
@@ -393,7 +402,7 @@ public class PEEmitter
         }
 
         var bodyStatements = ilMethod?.Impl?.Body?.Statements ?? new List<ast.Statement>();
-        Console.WriteLine($"DEBUG: Generating method body for '{ilMethod?.Name ?? "Unnamed"}' with {bodyStatements.Count} statements");
+        DebugLog($"DEBUG: Generating method body for '{ilMethod?.Name ?? "Unnamed"}' with {bodyStatements.Count} statements");
 
         // Generate instructions from the method's body statements
         if (bodyStatements.Any())
@@ -402,10 +411,13 @@ public class PEEmitter
             {
                 var instructionSequence = transformer.GenerateStatement(statement);
 
-                Console.WriteLine($"DEBUG: Statement generated {instructionSequence.Instructions.Count} instructions");
-                foreach (var instr in instructionSequence.Instructions)
+                DebugLog($"DEBUG: Statement generated {instructionSequence.Instructions.Count} instructions");
+                if (DebugEnabled)
                 {
-                    Console.WriteLine($"  - {instr.GetType().Name}: {instr}");
+                    foreach (var instr in instructionSequence.Instructions)
+                    {
+                        Console.WriteLine($"  - {instr.GetType().Name}: {instr}");
+                    }
                 }
 
                 // Collect local variable information
@@ -893,7 +905,7 @@ public class PEEmitter
     private void EmitCallInstruction(InstructionEncoder il, il_ast.CallInstruction callInst,
         MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
     {
-        Console.WriteLine($"DEBUG: EmitCallInstruction opcode='{callInst.Opcode}', sig='{callInst.MethodSignature}'");
+        DebugLog($"DEBUG: EmitCallInstruction opcode='{callInst.Opcode}', sig='{callInst.MethodSignature}'");
         // Handle external static call signature produced by AstToIlTransformationVisitor
         if ((callInst.MethodSignature ?? string.Empty).StartsWith("extcall:", StringComparison.Ordinal))
         {
@@ -942,7 +954,7 @@ public class PEEmitter
         // Handle constructor calls (newobj)
         if (callInst.Opcode?.ToLowerInvariant() == "newobj")
         {
-            Console.WriteLine($"DEBUG: Emitting newobj for: {callInst.MethodSignature}");
+            DebugLog($"DEBUG: Emitting newobj for: {callInst.MethodSignature}");
             // Try to extract type name and resolve our emitted constructor
             var typeName = ExtractCtorTypeName(callInst.MethodSignature ?? string.Empty);
             if (!string.IsNullOrEmpty(typeName) && _ctorHandles.TryGetValue(typeName, out var ctorHandle))
@@ -972,8 +984,8 @@ public class PEEmitter
         // Extract method name from the signature
         var methodName = ExtractMethodName(callInst.MethodSignature ?? "");
 
-        Console.WriteLine($"DEBUG: Trying to resolve method call: '{callInst.MethodSignature}' -> '{methodName}'");
-        if (methodMap != null)
+        DebugLog($"DEBUG: Trying to resolve method call: '{callInst.MethodSignature}' -> '{methodName}'");
+        if (methodMap != null && DebugEnabled)
         {
             Console.WriteLine("DEBUG: Available methods:");
             foreach (var k in methodMap.Keys)
@@ -985,7 +997,7 @@ public class PEEmitter
         // Try to resolve internal method calls using the method map
         if (methodMap != null && methodMap.TryGetValue(methodName, out var methodHandle))
         {
-            Console.WriteLine($"DEBUG: Found method '{methodName}' in method map");
+            DebugLog($"DEBUG: Found method '{methodName}' in method map");
             il.Call(methodHandle);
             return;
         }
@@ -996,7 +1008,7 @@ public class PEEmitter
         {
             if (methodMap.TryGetValue(methodName, out var subclaueueHandle))
             {
-                Console.WriteLine($"DEBUG: Found subclause method '{methodName}' in method map");
+                DebugLog($"DEBUG: Found subclause method '{methodName}' in method map");
                 il.Call(subclaueueHandle);
                 return;
             }
@@ -1009,7 +1021,7 @@ public class PEEmitter
             var matchingMethod = methodMap.FirstOrDefault(kvp => kvp.Key.StartsWith(baseName));
             if (!matchingMethod.Equals(default(KeyValuePair<string, MethodDefinitionHandle>)))
             {
-                Console.WriteLine($"DEBUG: Found matching method by base name '{baseName}': '{matchingMethod.Key}'");
+                DebugLog($"DEBUG: Found matching method by base name '{baseName}': '{matchingMethod.Key}'");
                 il.Call(matchingMethod.Value);
                 return;
             }
@@ -1110,7 +1122,7 @@ public class PEEmitter
     /// </summary>
     private void EmitBranchInstruction(InstructionEncoder il, il_ast.BranchInstruction branchInst, Dictionary<string, LabelHandle>? labelMap)
     {
-        Console.WriteLine($"DEBUG: EmitBranchInstruction called with opcode: {branchInst.Opcode}, label: {branchInst.TargetLabel ?? "null"}");
+        DebugLog($"DEBUG: EmitBranchInstruction called with opcode: {branchInst.Opcode}, label: {branchInst.TargetLabel ?? "null"}");
 
         if (labelMap == null || string.IsNullOrEmpty(branchInst.TargetLabel) || !labelMap.TryGetValue(branchInst.TargetLabel, out var target))
         {

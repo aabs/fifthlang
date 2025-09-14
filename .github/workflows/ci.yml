@@ -81,6 +81,16 @@ jobs:
             --collect:"XPlat Code Coverage" \
             --settings fifth.runsettings
 
+      - name: Run KG smoke tests (isolated)
+        run: |
+          dotnet test test/kg-smoke-tests/kg-smoke-tests.csproj \
+            --configuration Release \
+            --no-build \
+            --logger "trx;LogFileName=kg-smoke-tests.trx" \
+            --results-directory "TestResults/kg-smoke-tests" \
+            --collect:"XPlat Code Coverage" \
+            --settings fifth.runsettings
+
       - name: List TRX and coverage
         if: always()
         shell: bash
