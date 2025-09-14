@@ -19,7 +19,7 @@
 
 ## Phase 3.1: Setup
 - [x] T001 Ensure graph block tokens exist in `src/parser/grammar/FifthLexer.g4` (`GRAPH_LBRACE` for `<{`, `GRAPH_RBRACE` for `}>`) and are not used elsewhere. (Implemented as `L_GRAPH`/`R_GRAPH`)
-- [ ] T002 Add/confirm global usings in `src/fifthlang.system/GlobalUsings.cs` for `VDS.RDF` and `VDS.RDF.Storage` to simplify KG code.
+- [x] T002 Add/confirm global usings in `src/fifthlang.system/GlobalUsings.cs` for `VDS.RDF` and `VDS.RDF.Storage` to simplify KG code. (Confirmed present via `src/compiler/Usings.cs` centralization and Fifth.System references)
 - [x] T003 Verify build runs pre-change to capture baseline: `dotnet restore` + `dotnet build` (no code changes in this task).
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
@@ -62,16 +62,17 @@
 ## Phase 3.4.1: Runtime & Built-ins Alignment
 - [x] T031 Implement default store resolution used by lowering (compiler/runtime), with a single entrypoint accessible to the lowering pass (e.g., compiler configuration or implicit symbol). Emit error consistent with FR-019 when missing. (Implemented in `GraphAssertionLoweringVisitor` via `ModuleDef.Annotations` lookup; errors via `CompilationException`)
 - [x] T032 Tests: default store present vs missing. Extend runtime tests in `test/runtime-integration-tests/GraphAssertionBlock_RuntimeTests.cs` to assert correct behavior and diagnostics. (Added tests cover both cases and pass locally)
-- [ ] T033 Expose a public KG persist primitive (e.g., `KG.SaveGraph(IUpdateableStorage, IGraph, Uri?)`) or adjust lowering to call `IUpdateableStorage.SaveGraph` directly; ensure accessible from lowering.
-- [ ] T034 Register/annotate required `KG` methods as built-ins for symbol resolution so Fifth code can call them where appropriate.
+- [~] T033 Expose a public KG persist primitive (e.g., `KG.SaveGraph(IUpdateableStorage, IGraph, Uri?)`) or adjust lowering to call `IUpdateableStorage.SaveGraph` directly; ensure accessible from lowering. (Partial: KG APIs in place; explicit persist helper pending)
+- [x] T034 Register/annotate required `KG` methods as built-ins for symbol resolution so Fifth code can call them where appropriate. (Completed via `BuiltinInjectorVisitor` and annotations)
 - [ ] T035 Add or alias a built-in `sparql_store(iri)` to `KG.ConnectToRemoteStore` so examples and tests resolve correctly.
-- [ ] T036 Verify/update IL type mappings for new types: `graph` → `VDS.RDF.IGraph`, `store` → `VDS.RDF.Storage.IUpdateableStorage`, `triple` → `VDS.RDF.Triple`, `iri` → `System.Uri`; add a small codegen sanity test if applicable.
+- [x] T036 Verify/update IL type mappings for new types: `graph` → `VDS.RDF.IGraph`, `store` → `VDS.RDF.Storage.IUpdateableStorage`, `triple` → `VDS.RDF.Triple`, `iri` → `System.Uri`; add a small codegen sanity test if applicable. (Type mapping wired in transformer and PE emitter; basic runtime smoke tests pass)
 
-## Status Update (2025-09-14)
+## Status Update (2025-09-15)
 - Parser attaches graph store declarations to `ModuleDef.Annotations` (`GraphStores`, `DefaultGraphStore`). Fixed NRE by initializing `Annotations` post-build in `src/parser/AstBuilderVisitor.cs`.
 - Lowering validates/annotates `GraphAssertionBlockStatement` and resolves default store with parent-chain fallback; expression form is identity.
 - Runtime tests for graph assertion block (with/without default store) are in place and passing; unrelated suite failures are out of scope for this feature.
-- Next up: register KG built-ins and global usings (T024–T025), and wire persist primitives + IL type mappings (T033–T036).
+- External interop: extcall signatures now include accurate param/return types; overload resolution uses literal/var/binary/unary inference. `graph` maps to `VDS.RDF.IGraph`. Smoke tests cover optional params and nested calls.
+- Next up: finalize persist helper (T033), add `sparql_store` alias (T035), validate quickstart (T026), and add negative tests + diagnostics (T027–T028).
 
 ## Dependencies
 - T004–T011 before T012+ (TDD)
