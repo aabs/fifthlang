@@ -1,18 +1,22 @@
-# AST Builder for Fifth Language
+# Fifth Language Development Agent Instructions
 
-AST Builder is a C# .NET 8.0 solution that provides Abstract Syntax Tree (AST) construction capabilities for the Fifth programming language. It includes an ANTLR-based parser, code generation for AST builders and visitors, and a compiler with various language transformations.
+This file provides operational guidance for GitHub Copilot and automated agents working on the Fifth language codebase. 
 
-Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
+**Primary Reference**: All architectural decisions, principles, and comprehensive documentation are in `/specs/.specify/memory/constitution.md`. Always consult the constitution first for authoritative guidance on project structure, build processes, and development philosophy.
 
-## Working Effectively
+This file contains focused operational commands and agent-specific workflow instructions that complement the constitution.
 
-### Bootstrap, Build, and Test
+## Quick Start Commands
+
+### Prerequisites Verification
 ```bash
-# Prerequisites: .NET 8.0 SDK and Java 17+ are required and available
-# Verify prerequisites
+# Verify prerequisites (as detailed in constitution)
 dotnet --version  # Should show 8.0.x (global.json uses 8.0.118)
 java -version     # Should show Java 17+ for ANTLR
+```
 
+### Essential Build Commands
+```bash
 # Initial setup and build (run these commands in sequence)
 dotnet restore fifthlang.sln                      # Takes ~70 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
 dotnet build fifthlang.sln                        # Takes ~60 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
@@ -31,37 +35,30 @@ make run-generator                                 # Takes ~5 seconds.
 dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
 ```
 
-**CRITICAL BUILD NOTES:**
+## Project Structure Reference
+
+See the constitution (`/specs/.specify/memory/constitution.md`) for the complete project structure diagram and component descriptions. Key operational points:
+
+- `src/ast-model/` - Edit `AstMetamodel.cs` or `ILMetamodel.cs` to modify AST definitions
+- `src/ast-generated/` - **NEVER edit manually**; regenerate via `make run-generator`
+- `src/parser/grammar/` - `FifthLexer.g4` + `FifthParser.g4` (split grammar)
+- `src/compiler/LanguageTransformations/` - AST transformation passes
+- `test/` - TUnit tests with FluentAssertions
+
+## Agent Workflow Guidelines
+
+### Critical Build Rules
 - **NEVER CANCEL** any build operations - they can take up to 2 minutes
 - ANTLR grammar compilation happens automatically during parser project build
 - AST code generation runs automatically before compilation via MSBuild targets
+- **NEVER edit files in `src/ast-generated/` manually**
 
-### Project Structure
-```
-src/
-├── ast-model/          # Core AST model definitions and type system
-├── ast-generated/      # Auto-generated AST builders and visitors  
-├── ast_generator/      # Code generator that creates AST infrastructure
-├── code_generator/     # IL code generator and emission pipeline
-├── parser/             # ANTLR-based parser with Fifth.g4 grammar
-├── compiler/           # Main compiler with language transformations
-└── fifthlang.system/   # Built-in system functions
-
-test/
-└── ast-tests/          # TUnit tests with .5th code samples
-└── runtime-integration-tests/          # TUnit tests for end to end verification
-```
-
-## Validation
-
-Never under any circumstances mask a failing test with a catch-all try-catch block. It is better to transparently allow tests to fail to properly reflect the state of the code base.
-
-### Always Validate Changes
-After making any changes to the codebase:
+### Validation Protocol
+After making changes, always run in this order:
 
 1. **Build validation:**
    ```bash
-      dotnet build fifthlang.sln  # NEVER CANCEL - wait up to 2 minutes
+   dotnet build fifthlang.sln  # NEVER CANCEL - wait up to 2 minutes
    ```
 
 2. **Test validation:**
@@ -69,8 +66,7 @@ After making any changes to the codebase:
    dotnet test test/ast-tests/ast_tests.csproj  # NEVER CANCEL - wait up to 1 minute
    ```
 
-3. **Manual AST functionality test:**
-   Create a simple test to verify AST builders work:
+3. **AST smoke test:**
    ```csharp
    using ast;
    using ast_generated;
@@ -81,94 +77,51 @@ After making any changes to the codebase:
    // Should complete without errors
    ```
 
-### Expected Build Warnings
-The following warnings are normal and can be ignored:
-- ANTLR warning: "rule expression contains an assoc terminal option in an unrecognized location"
+## Common Development Tasks
+
+### AST Code Generation
+```bash
+# Regenerate AST builders and visitors after metamodel changes
+dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
+# OR
+make run-generator
+```
+
+### Grammar Development
+- Edit `src/parser/grammar/FifthLexer.g4` (tokens, keywords, literals)
+- Edit `src/parser/grammar/FifthParser.g4` (syntactic rules)
+- Update `src/parser/AstBuilderVisitor.cs` for new syntax constructs
+- ANTLR compilation happens automatically during build
+
+### Language Transformations
+- Add/modify visitors in `src/compiler/LanguageTransformations/`
+- Update transformation pipeline in `src/compiler/ParserManager.cs`
+- See constitution for complete transformation phase descriptions
+
+## Expected Build Warnings (Safe to Ignore)
+- ANTLR: "rule expression contains an assoc terminal option in an unrecognized location"
 - Various C# nullable reference warnings throughout the codebase
 - Switch expression exhaustiveness warnings in parser
 
-## Common Tasks
+## Agent-Specific Notes
 
-### Code Generation
-The AST generator is central to this project:
-```bash
-# Regenerate AST builders and visitors
-dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
+### File Editing Rules
+- **NEVER** hand-edit files in `src/ast-generated/`
+- To modify AST: edit `src/ast-model/AstMetamodel.cs` or `src/ast-model/ILMetamodel.cs`, then regenerate
+- Grammar changes: update both `FifthLexer.g4` AND `FifthParser.g4` as needed
+- Always update corresponding `AstBuilderVisitor.cs` for grammar changes
 
-# The generator reads from src/ast-model/AstMetamodel.cs and generates:
-# - builders.generated.cs          (Builder pattern classes)
-# - visitors.generated.cs          (Visitor pattern classes)  
-# - il.builders.generated.cs       (IL-specific builders)
-# - typeinference.generated.cs     (Type inference support)
-```
+### Testing Philosophy
+- Practice TDD: write/approve tests, see them fail, then implement
+- Use TUnit + FluentAssertions
+- Never mask failing tests with broad try/catch blocks
+- Let failures surface to properly reflect codebase state
 
-### Parser Development
-When working with grammar files:
-```bash
-# Grammar files location: src/parser/grammar/Fifth.g4
-# ANTLR compilation happens automatically during build
-# Manual ANTLR generation (if needed):
-cd src/parser/grammar
-java -jar ../tools/antlr-4.8-complete.jar -Dlanguage=CSharp -visitor -listener -o grammar -lib . Fifth.g4
-```
+### Multi-Pass Compilation Context
+When adding language features, prefer AST transformations over code generation complexity:
+1. Implement syntactic sugar in main AST model (`AstMetamodel.cs`)
+2. Use transformation visitors to lower to simpler forms
+3. Keep IL AST model (`ILMetamodel.cs`) simple and close to IL instructions
+4. Reserve IL-level transformations for optimizations
 
-### Working with Fifth Language Files
-Sample Fifth language files are in:
-- `test/ast-tests/CodeSamples/*.5th` - Test code samples
-- `src/parser/grammar/test_samples/*.5th` - Parser test samples
-
-Example Fifth syntax:
-```fifth
-class Person {
-    Name: string;
-    Height: float;
-}
-
-main() => myprint(5 + 6);
-myprint(int x) => std.print(x);
-```
-
-## Dependencies and Requirements
-
-### System Requirements
-- **.NET 8.0 SDK** (global.json pins 8.0.118)
-- **Java 17+** (for ANTLR grammar compilation)
-- **ANTLR 4.8** (jar file included at `src/parser/tools/antlr-4.8-complete.jar`)
-
-### Key NuGet Packages
-- `Antlr4.Runtime.Standard` - ANTLR runtime for C#
-- `RazorLight` - Template engine for code generation
-- `System.CommandLine` - CLI parsing for AST generator
-- `tunit` - Test framework
-- `FluentAssertions` - Test assertions
-- `dunet` - Discriminated unions for AST model
-- `Vogen` - Value object generation
-
-### Build Timing Guidelines
-- **Restore**: ~70 seconds (set timeout to 120+ seconds)
-- **Build**: ~60 seconds (set timeout to 120+ seconds) 
-- **Test**: ~25 seconds (set timeout to 60+ seconds)
-- **Code Generation**: ~5 seconds (set timeout to 30+ seconds)
-
-## Troubleshooting
-
-### Common Issues
-1. **"java command not found"** - Install Java 17+ 
-2. **ANTLR grammar errors** - Check Fifth.g4 syntax in `src/parser/grammar/`
-3. **Missing generated files** - Run `make run-generator` to regenerate AST code
-4. **Build timeouts** - Use longer timeout values, builds can legitimately take 1-2 minutes
-
-### Key Files to Watch
-- Always check generated files in `src/ast-generated/` after modifying `src/ast-model/AstMetamodel.cs`
-- Parser changes require attention to both `src/parser/grammar/Fifth.g4` and `src/parser/AstBuilderVisitor.cs`
-- Test failures in grammar parsing usually indicate issues in ANTLR grammar or visitor implementation
-
-### Build Order Dependencies
-1. `ast-model` (base AST definitions)
-2. `ast_generator` (creates builders/visitors) 
-3. `ast-generated` (output of generator, depends on ast-model)
-4. `parser` (depends on ast-model, ast-generated, runs ANTLR)
-5. `compiler` (depends on all above)
-6. `ast-tests` (depends on all above)
-
-Always build the full solution rather than individual projects to ensure proper dependency resolution.
+See constitution for complete transformation pipeline details.
