@@ -918,6 +918,8 @@ public class PEEmitter
                 dict.TryGetValue("Ns", out var ns);
                 dict.TryGetValue("Type", out var typeName);
                 dict.TryGetValue("Method", out var extMethodName);
+                dict.TryGetValue("Params", out var paramList);
+                dict.TryGetValue("Return", out var returnToken);
 
                 // Create an AssemblyRef for the external assembly (fallback to System.Runtime for metadata needs)
                 var asmRef = metadataBuilder.AddAssemblyReference(
@@ -930,12 +932,76 @@ public class PEEmitter
                     metadataBuilder.GetOrAddString(string.IsNullOrWhiteSpace(ns) ? "Fifth.System" : ns),
                     metadataBuilder.GetOrAddString(typeName ?? "KG"));
 
-                // Build a simple DEFAULT call signature: return type object, N object params (we currently push args as object)
+                // Helper to write a type token (e.g., System.Int32 or Namespace.Type@Asm) to signature
+                void WriteTypeToken(BlobBuilder sigBuilder, string token, string? fallbackAsm)
+                {
+                    if (string.IsNullOrWhiteSpace(token))
+                    {
+                        sigBuilder.WriteByte((byte)SignatureTypeCode.Object);
+                        return;
+                    }
+                    var t = token.Trim();
+                    // System primitives and common types
+                    switch (t)
+                    {
+                        case "System.Void": sigBuilder.WriteByte((byte)SignatureTypeCode.Void); return;
+                        case "System.Int32": sigBuilder.WriteByte((byte)SignatureTypeCode.Int32); return;
+                        case "System.String": sigBuilder.WriteByte((byte)SignatureTypeCode.String); return;
+                        case "System.Single": sigBuilder.WriteByte((byte)SignatureTypeCode.Single); return;
+                        case "System.Double": sigBuilder.WriteByte((byte)SignatureTypeCode.Double); return;
+                        case "System.Boolean": sigBuilder.WriteByte((byte)SignatureTypeCode.Boolean); return;
+                        case "System.Object": sigBuilder.WriteByte((byte)SignatureTypeCode.Object); return;
+                    }
+
+                    // External/class types: expect "Full.Name@Asm" or "Full.Name" (use fallback assembly)
+                    string fullName = t;
+                    string asm = fallbackAsm ?? "Fifth.System";
+                    var atIdx = t.LastIndexOf('@');
+                    if (atIdx > 0)
+                    {
+                        fullName = t.Substring(0, atIdx);
+                        asm = t.Substring(atIdx + 1);
+                    }
+
+                    // Split namespace and type name
+                    string typeNs = string.Empty;
+                    string simpleName = fullName;
+                    var lastDot = fullName.LastIndexOf('.');
+                    if (lastDot > 0)
+                    {
+                        typeNs = fullName.Substring(0, lastDot);
+                        simpleName = fullName.Substring(lastDot + 1);
+                    }
+                    // Build AssemblyRef and TypeRef
+                    var paramAsmRef = metadataBuilder.AddAssemblyReference(
+                        metadataBuilder.GetOrAddString(asm),
+                        new System.Version(1, 0, 0, 0), default, default, default, default);
+                    var paramTypeRef = metadataBuilder.AddTypeReference(
+                        paramAsmRef,
+                        metadataBuilder.GetOrAddString(typeNs),
+                        metadataBuilder.GetOrAddString(simpleName));
+
+                    // Write CLASS + TypeDefOrRef coded index (TypeRef tag = 1)
+                    sigBuilder.WriteByte(0x12);
+                    var rowId = MetadataTokens.GetRowNumber((TypeReferenceHandle)paramTypeRef);
+                    var codedIndex = (rowId << 2) | 1; // tag 1 = TypeRef
+                    sigBuilder.WriteCompressedInteger(codedIndex);
+                }
+
+                // Build signature using accurate param and return types
                 var methodSig = new BlobBuilder();
                 methodSig.WriteByte(0x00); // DEFAULT
-                // params count: unknown; infer not from signature for now, assume 0 so stack usage remains valid in smoke tests
-                methodSig.WriteByte(0x00);
-                methodSig.WriteByte((byte)SignatureTypeCode.Object); // return type
+                var paramTokens = new List<string>();
+                if (!string.IsNullOrWhiteSpace(paramList))
+                {
+                    paramTokens = paramList.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                }
+                methodSig.WriteByte((byte)paramTokens.Count);
+                WriteTypeToken(methodSig, string.IsNullOrWhiteSpace(returnToken) ? "System.Object" : returnToken!, asmName);
+                foreach (var pTok in paramTokens)
+                {
+                    WriteTypeToken(methodSig, pTok, asmName);
+                }
 
                 var memberRef = metadataBuilder.AddMemberReference(
                     typeRef,

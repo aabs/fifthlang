@@ -482,9 +482,64 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     {
                         sequence.AddRange(GenerateExpression(arg).Instructions);
                     }
-                    // Encode a special extcall signature for PEEmitter to resolve
-                    var paramList = string.Join(",", (extCall.InvocationArguments ?? new List<ast.Expression>()).Select(_ => "object"));
-                    var sig = $"extcall:Asm=Fifth.System;Ns={extType.Namespace};Type={extType.Name};Method={mName};Params={paramList};Return=object";
+                    // Build accurate extcall signature using reflection for param/return types
+                    string TypeToToken(Type t)
+                    {
+                        if (t == typeof(void)) return "System.Void";
+                        if (t.Namespace != null && t.Namespace.StartsWith("System", StringComparison.Ordinal))
+                        {
+                            return $"{t.Namespace}.{t.Name}";
+                        }
+                        var asm = t.Assembly.GetName().Name ?? string.Empty;
+                        var full = (t.FullName ?? ($"{t.Namespace}.{t.Name}"))
+                            .Replace('+', '.'); // nested types use '+' in FullName
+                        return $"{full}@{asm}";
+                    }
+
+                    var methods = extType.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                        .Where(mi => string.Equals(mi.Name, mName, StringComparison.Ordinal))
+                        .ToList();
+                    var argCount = (extCall.InvocationArguments?.Count) ?? 0;
+
+                    // Prefer exact arg-count matches; otherwise allow methods with trailing optional parameters
+                    System.Reflection.MethodInfo? chosen = methods
+                        .FirstOrDefault(mi => mi.GetParameters().Length == argCount);
+                    if (chosen == null)
+                    {
+                        chosen = methods
+                            .Select(mi => new { mi, ps = mi.GetParameters() })
+                            .Where(x => x.ps.Length > argCount && x.ps.Skip(argCount).All(p => p.IsOptional || p.HasDefaultValue))
+                            .OrderBy(x => x.ps.Length)
+                            .Select(x => x.mi)
+                            .FirstOrDefault();
+                    }
+                    if (chosen == null)
+                    {
+                        // Last resort: first by name
+                        chosen = methods.FirstOrDefault();
+                    }
+
+                    var paramTokens = new List<string>();
+                    var returnToken = "System.Object";
+                    if (chosen != null)
+                    {
+                        var ps = chosen.GetParameters();
+                        // Only emit tokens for actually supplied arguments to keep signature consistent
+                        for (int i = 0; i < Math.Min(argCount, ps.Length); i++)
+                        {
+                            paramTokens.Add(TypeToToken(ps[i].ParameterType));
+                        }
+                        returnToken = TypeToToken(chosen.ReturnType);
+                    }
+                    else
+                    {
+                        // Fallback: assume object params and object return to keep stack valid
+                        paramTokens = Enumerable.Repeat("System.Object", argCount).ToList();
+                        returnToken = "System.Object";
+                    }
+
+                    var paramList = string.Join(",", paramTokens);
+                    var sig = $"extcall:Asm=Fifth.System;Ns={extType.Namespace};Type={extType.Name};Method={mName};Params={paramList};Return={returnToken}";
                     sequence.Add(new CallInstruction("call", sig));
                     break;
                 }

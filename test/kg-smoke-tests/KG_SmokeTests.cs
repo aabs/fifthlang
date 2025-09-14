@@ -36,4 +36,34 @@ public class KG_SmokeTests
 
         File.Exists(outPath).Should().BeTrue();
     }
+
+    [Test]
+    public async Task KG_Merge_Graphs_ShouldCompileWithIGraphParams()
+    {
+        var src = """
+            main(): int {
+                KG.Merge(KG.CreateGraph(), KG.CreateGraph());
+                return 0;
+            }
+            """;
+
+        var compiler = new Compiler();
+        var tempDir = Path.Combine(Path.GetTempPath(), $"FifthRuntime_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        var srcPath = Path.Combine(tempDir, "kg_merge_smoke.5th");
+        var outPath = Path.Combine(tempDir, "kg_merge_smoke.exe");
+        await File.WriteAllTextAsync(srcPath, src);
+
+        var options = new CompilerOptions(
+            Command: CompilerCommand.Build,
+            Source: srcPath,
+            Output: outPath,
+            Args: Array.Empty<string>(),
+            KeepTemp: false,
+            Diagnostics: true);
+        var result = await compiler.CompileAsync(options);
+        result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
+
+        File.Exists(outPath).Should().BeTrue();
+    }
 }
