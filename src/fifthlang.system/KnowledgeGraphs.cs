@@ -1,4 +1,6 @@
 using System;
+using VDS.RDF;
+using VDS.RDF.Storage;
 
 namespace Fifth.System;
 
@@ -142,7 +144,8 @@ public static class KG
     /// <param name="g">the graph to save.</param>
     /// <param name="graphUri">the URI of the graph (optional).</param>
     /// <returns>the updated store.</returns>
-    private static IUpdateableStorage Save(this IUpdateableStorage store, IGraph g, Uri? graphUri = null)
+    [BuiltinFunction]
+    public static IUpdateableStorage SaveGraph(this IUpdateableStorage store, IGraph g, Uri? graphUri = null)
     {
         if (graphUri == null)
         {

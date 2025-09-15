@@ -62,10 +62,20 @@
 ## Phase 3.4.1: Runtime & Built-ins Alignment
 - [x] T031 Implement default store resolution used by lowering (compiler/runtime), with a single entrypoint accessible to the lowering pass (e.g., compiler configuration or implicit symbol). Emit error consistent with FR-019 when missing. (Implemented in `GraphAssertionLoweringVisitor` via `ModuleDef.Annotations` lookup; errors via `CompilationException`)
 - [x] T032 Tests: default store present vs missing. Extend runtime tests in `test/runtime-integration-tests/GraphAssertionBlock_RuntimeTests.cs` to assert correct behavior and diagnostics. (Added tests cover both cases and pass locally)
-- [~] T033 Expose a public KG persist primitive (e.g., `KG.SaveGraph(IUpdateableStorage, IGraph, Uri?)`) or adjust lowering to call `IUpdateableStorage.SaveGraph` directly; ensure accessible from lowering. (Partial: KG APIs in place; explicit persist helper pending)
+- [x] T033 Expose a public KG persist primitive (e.g., `KG.SaveGraph(IUpdateableStorage, IGraph, Uri?)`) or adjust lowering to call `IUpdateableStorage.SaveGraph` directly; ensure accessible from lowering. (Done: added `KG.SaveGraph` builtin helper; lowering remains annotative and can call helper in a follow-up.)
 - [x] T034 Register/annotate required `KG` methods as built-ins for symbol resolution so Fifth code can call them where appropriate. (Completed via `BuiltinInjectorVisitor` and annotations)
 - [ ] T035 Add or alias a built-in `sparql_store(iri)` to `KG.ConnectToRemoteStore` so examples and tests resolve correctly.
 - [x] T036 Verify/update IL type mappings for new types: `graph` → `VDS.RDF.IGraph`, `store` → `VDS.RDF.Storage.IUpdateableStorage`, `triple` → `VDS.RDF.Triple`, `iri` → `System.Uri`; add a small codegen sanity test if applicable. (Type mapping wired in transformer and PE emitter; basic runtime smoke tests pass)
+
+## Supplemental: Type Inference Validation
+- [x] T037 [P] Add smoke test: numeric promotion int + double prefers double overload (KG.CreateLiteral) in `test/kg-smoke-tests/KG_TypeInference_SmokeTests.cs`.
+- [x] T038 [P] Add smoke test: unary negation preserves double type (KG.CreateLiteral) in `test/kg-smoke-tests/KG_TypeInference_SmokeTests.cs`.
+- [x] T039 [P] Add smoke test: string concatenation chain prefers string overload in `test/kg-smoke-tests/KG_TypeInference_SmokeTests.cs`.
+- [x] T040 [P] Add smoke test: bool equality infers bool for overload resolution in `test/kg-smoke-tests/KG_TypeInference_SmokeTests.cs`.
+- [x] T041 [P] Add smoke test: logical not on comparison compiles (`!(1 < 2)`) in `test/kg-smoke-tests/KG_TypeInference_SmokeTests.cs`.
+- [x] T042 [P] Add smoke test: param-typed arithmetic (float + int) prefers float overload in `test/kg-smoke-tests/KG_TypeInference_SmokeTests.cs`.
+- [x] T043 [P] Add smoke test: string concatenation with param ("a" + x) prefers string overload in `test/kg-smoke-tests/KG_TypeInference_SmokeTests.cs`.
+- [x] T044 [P] Add smoke test: nested call flows inferred types to callee (bar(y + 1)) in `test/kg-smoke-tests/KG_TypeInference_SmokeTests.cs`.
 
 ## Status Update (2025-09-15)
 - Parser attaches graph store declarations to `ModuleDef.Annotations` (`GraphStores`, `DefaultGraphStore`). Fixed NRE by initializing `Annotations` post-build in `src/parser/AstBuilderVisitor.cs`.
