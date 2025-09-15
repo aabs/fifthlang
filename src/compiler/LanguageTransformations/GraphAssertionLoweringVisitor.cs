@@ -1,6 +1,7 @@
 using ast;
 using ast_model;
 using ast_model.Symbols;
+using System.Collections.Generic;
 
 namespace compiler.LanguageTransformations;
 
@@ -96,10 +97,7 @@ public class GraphAssertionLoweringVisitor : NullSafeRecursiveDescentVisitor
         ctx.Annotations["ResolvedStoreName"] = defaultStoreName;
         ctx.Annotations["ResolvedStoreUri"] = storeUri;
 
-        // Lowering: Rewrite the statement-form graph block into an explicit persistence call
-        // using the built-in KG helpers: KG.SaveGraph(KG.ConnectToRemoteStore(uri), <graph-exp>);
-        // Note: The expression form currently yields a fresh graph via KG.CreateGraph().
-
+        // Build KG.ConnectToRemoteStore(uri)
         var kgVarForConnect = new VarRefExp
         {
             Annotations = new Dictionary<string, object>(),
@@ -133,6 +131,226 @@ public class GraphAssertionLoweringVisitor : NullSafeRecursiveDescentVisitor
             Type = ctx.Type
         };
 
+        // Build KG.CreateGraph() to materialize a graph instance we'll populate
+        var kgVarForCreateGraph = new VarRefExp
+        {
+            Annotations = new Dictionary<string, object>(),
+            Location = ctx.Location,
+            Parent = null,
+            VarName = "KG"
+        };
+        var createGraphCall = new FuncCallExp
+        {
+            InvocationArguments = new List<Expression>(),
+            Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateGraph" },
+            Location = ctx.Location,
+            Parent = null
+        };
+        var createGraphExpr = new MemberAccessExp
+        {
+            Annotations = new Dictionary<string, object>(),
+            LHS = kgVarForCreateGraph,
+            RHS = createGraphCall,
+            Location = ctx.Location,
+            Type = ctx.Type
+        };
+
+        // Now lower inner statements into a graph-building expression by chaining Assert calls.
+        Expression graphBuilder = createGraphExpr;
+        var innerStatements = ctx.Content?.Content?.Statements ?? new List<Statement>();
+
+        foreach (var s in innerStatements)
+        {
+            if (s is AssertionStatement asrt)
+            {
+                // Translate assertion to: KG.Assert(<graph>, KG.CreateTriple(KG.CreateUri(<graph>, subj), KG.CreateUri(<graph>, pred), ObjNode))
+                // Subject
+                Expression subjNode;
+                if (asrt.Assertion?.SubjectExp is UriLiteralExp sUri)
+                {
+                    var subjUriLiteral = new StringLiteralExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        Location = sUri.Location,
+                        Parent = null,
+                        Value = sUri.Value.AbsoluteUri
+                    };
+                    var subjCreateUriCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, subjUriLiteral },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateUri" },
+                        Location = sUri.Location,
+                        Parent = null
+                    };
+                    subjNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = sUri.Location },
+                        RHS = subjCreateUriCall,
+                        Location = sUri.Location
+                    };
+                }
+                else
+                {
+                    // Fallback: emit null to trip runtime if unsupported
+                    subjNode = new VarRefExp { VarName = "null", Annotations = new Dictionary<string, object>(), Location = s.Location };
+                }
+
+                // Predicate
+                Expression predNode;
+                if (asrt.Assertion?.PredicateExp is UriLiteralExp pUri)
+                {
+                    var predUriLiteral = new StringLiteralExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        Location = pUri.Location,
+                        Parent = null,
+                        Value = pUri.Value.AbsoluteUri
+                    };
+                    var predCreateUriCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, predUriLiteral },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateUri" },
+                        Location = pUri.Location,
+                        Parent = null
+                    };
+                    predNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = pUri.Location },
+                        RHS = predCreateUriCall,
+                        Location = pUri.Location
+                    };
+                }
+                else
+                {
+                    predNode = new VarRefExp { VarName = "null", Annotations = new Dictionary<string, object>(), Location = s.Location };
+                }
+
+                // Object node: support string/int/bool literals minimal set; else try expression as-is
+                Expression objNode;
+                if (asrt.Assertion?.ObjectExp is StringLiteralExp str)
+                {
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, new StringLiteralExp { Value = str.Value, Annotations = new Dictionary<string, object>(), Location = str.Location } },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = str.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = str.Location },
+                        RHS = createLiteralCall,
+                        Location = str.Location
+                    };
+                }
+                else if (asrt.Assertion?.ObjectExp is Int32LiteralExp i32)
+                {
+                    var intLit = new Int32LiteralExp { Annotations = new Dictionary<string, object>(), Location = i32.Location, Parent = null, Value = i32.Value, Type = i32.Type };
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, intLit },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = i32.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = i32.Location },
+                        RHS = createLiteralCall,
+                        Location = i32.Location
+                    };
+                }
+                else if (asrt.Assertion?.ObjectExp is BooleanLiteralExp bl)
+                {
+                    var boolLit = new BooleanLiteralExp { Annotations = new Dictionary<string, object>(), Location = bl.Location, Parent = null, Value = bl.Value, Type = bl.Type };
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, boolLit },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = bl.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = bl.Location },
+                        RHS = createLiteralCall,
+                        Location = bl.Location
+                    };
+                }
+                else if (asrt.Assertion?.ObjectExp is UriLiteralExp oUri)
+                {
+                    var objUriLiteral = new StringLiteralExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        Location = oUri.Location,
+                        Parent = null,
+                        Value = oUri.Value.AbsoluteUri
+                    };
+                    var objCreateUriCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, objUriLiteral },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateUri" },
+                        Location = oUri.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = oUri.Location },
+                        RHS = objCreateUriCall,
+                        Location = oUri.Location
+                    };
+                }
+                else
+                {
+                    // Fallback: attempt to use expression as-is
+                    objNode = asrt.Assertion?.ObjectExp ?? new VarRefExp { VarName = "null", Annotations = new Dictionary<string, object>(), Location = s.Location };
+                }
+
+                // KG.CreateTriple(subjNode, predNode, objNode)
+                var createTripleCall = new FuncCallExp
+                {
+                    InvocationArguments = new List<Expression> { subjNode, predNode, objNode },
+                    Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateTriple" },
+                    Location = s.Location,
+                    Parent = null
+                };
+                var createTripleExpr = new MemberAccessExp
+                {
+                    Annotations = new Dictionary<string, object>(),
+                    LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = s.Location },
+                    RHS = createTripleCall,
+                    Location = s.Location
+                };
+
+                // KG.Assert(graphBuilder, triple)
+                var assertCall = new FuncCallExp
+                {
+                    InvocationArguments = new List<Expression> { graphBuilder, createTripleExpr },
+                    Annotations = new Dictionary<string, object> { ["FunctionName"] = "Assert" },
+                    Location = s.Location,
+                    Parent = null
+                };
+                graphBuilder = new MemberAccessExp
+                {
+                    Annotations = new Dictionary<string, object>(),
+                    LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = s.Location },
+                    RHS = assertCall,
+                    Location = s.Location
+                };
+            }
+            else
+            {
+                // Non-assertion statements are ignored in graph-building context for now
+            }
+        }
+
+        // Finally: KG.SaveGraph(KG.ConnectToRemoteStore(uri), graphBuilder)
         var kgVarForSave = new VarRefExp
         {
             Annotations = new Dictionary<string, object>(),
@@ -140,15 +358,13 @@ public class GraphAssertionLoweringVisitor : NullSafeRecursiveDescentVisitor
             Parent = null,
             VarName = "KG"
         };
-
         var saveCall = new FuncCallExp
         {
-            InvocationArguments = new List<Expression> { connectExpr, ctx.Content },
+            InvocationArguments = new List<Expression> { connectExpr, graphBuilder },
             Annotations = new Dictionary<string, object> { ["FunctionName"] = "SaveGraph" },
             Location = ctx.Location,
             Parent = null,
         };
-
         var saveExpr = new MemberAccessExp
         {
             Annotations = new Dictionary<string, object>(),

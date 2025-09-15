@@ -37,6 +37,30 @@ public static class KG
     }
 
     /// <summary>
+    /// Creates a URI node for the given absolute URI string within the provided graph.
+    /// </summary>
+    /// <param name="g">the graph that will own the created node.</param>
+    /// <param name="uri">an absolute URI string.</param>
+    /// <returns>a URI node.</returns>
+    [BuiltinFunction]
+    public static IUriNode CreateUri(this IGraph g, string uri)
+    {
+        return g.CreateUriNode(new Uri(uri));
+    }
+
+    /// <summary>
+    /// Creates a URI node for the given absolute URI within the provided graph.
+    /// </summary>
+    /// <param name="g">the graph that will own the created node.</param>
+    /// <param name="uri">an absolute URI.</param>
+    /// <returns>a URI node.</returns>
+    [BuiltinFunction]
+    public static IUriNode CreateUri(this IGraph g, Uri uri)
+    {
+        return g.CreateUriNode(uri);
+    }
+
+    /// <summary>
     /// Creates a URI node for the type of the given assertable instance.
     /// </summary>
     /// <param name="g">the graph to which the URI node belongs.</param>

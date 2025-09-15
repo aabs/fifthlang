@@ -26,6 +26,8 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
     private HashSet<string> _currentParameterNames = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Type> _currentParameterTypes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Type> _localVariableTypes = new(StringComparer.Ordinal);
+    // Counter for generating unique temporary local variable names
+    private int _tempCounter = 0;
 
     public AstToIlTransformationVisitor()
     {
@@ -561,12 +563,109 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 sequence.Add(new LoadInstruction("newarr", "int32"));
                 break;
             case GraphAssertionBlockExp gab:
-                // Lower graph block expression to a concrete graph via KG.CreateGraph(),
-                // evaluate inner statements (no-ops in IL yet), and leave the graph on stack.
-                // Emit extcall to Fifth.System.KG.CreateGraph()
-                sequence.Add(new CallInstruction("call", "extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateGraph;Params=;Return=VDS.RDF.IGraph@dotNetRDF") { ArgCount = 0 });
-                // For now, we do not lower inner assertions; future work can duplicate and assert.
-                break;
+                {
+                    // Emit: var g = KG.CreateGraph(); then apply inner assertion statements to populate it.
+                    string GraphToken = "VDS.RDF.IGraph@dotNetRDF";
+                    string INodeToken = "VDS.RDF.INode@dotNetRDF";
+                    string IUriNodeToken = "VDS.RDF.IUriNode@dotNetRDF";
+                    string ILiteralNodeToken = "VDS.RDF.ILiteralNode@dotNetRDF";
+                    string TripleToken = "VDS.RDF.Triple@dotNetRDF";
+
+                    string graphLocal = $"__graph{_tempCounter++}";
+
+                    // g = KG.CreateGraph()
+                    sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateGraph;Params=;Return={GraphToken}") { ArgCount = 0 });
+                    sequence.Add(new StoreInstruction("stloc", graphLocal));
+
+                    var stmts = gab.Content?.Statements ?? new List<ast.Statement>();
+                    int idx = 0;
+                    foreach (var st in stmts)
+                    {
+                        if (st is AssertionStatement asrt && asrt.Assertion != null)
+                        {
+                            var triple = asrt.Assertion;
+
+                            // Subject must be a URI
+                            if (triple.SubjectExp is not UriLiteralExp subjUri || triple.PredicateExp is not UriLiteralExp predUri)
+                            {
+                                continue; // skip unsupported forms for now
+                            }
+
+                            string sLocal = $"__s{idx}_{_tempCounter++}";
+                            string pLocal = $"__p{idx}_{_tempCounter++}";
+                            string oLocal = $"__o{idx}_{_tempCounter++}";
+                            string tLocal = $"__t{idx}_{_tempCounter++}";
+
+                            // subj = KG.CreateUri(g, "...")
+                            sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                            sequence.Add(new LoadInstruction("ldstr", subjUri.Value?.AbsoluteUri ?? string.Empty));
+                            sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateUri;Params={GraphToken},System.String;Return={IUriNodeToken}") { ArgCount = 2 });
+                            sequence.Add(new StoreInstruction("stloc", sLocal));
+
+                            // pred = KG.CreateUri(g, "...")
+                            sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                            sequence.Add(new LoadInstruction("ldstr", predUri.Value?.AbsoluteUri ?? string.Empty));
+                            sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateUri;Params={GraphToken},System.String;Return={IUriNodeToken}") { ArgCount = 2 });
+                            sequence.Add(new StoreInstruction("stloc", pLocal));
+
+                            // obj
+                            if (triple.ObjectExp is UriLiteralExp objUri)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldstr", objUri.Value?.AbsoluteUri ?? string.Empty));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateUri;Params={GraphToken},System.String;Return={IUriNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else if (triple.ObjectExp is StringLiteralExp strLit)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldstr", strLit.Value ?? string.Empty));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.String;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else if (triple.ObjectExp is Int32LiteralExp intLit2)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldc.i4", intLit2.Value));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.Int32;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else if (triple.ObjectExp is BooleanLiteralExp boolLit2)
+                            {
+                                // Use string form to avoid IL bool width issues
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldstr", boolLit2.Value ? "true" : "false"));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.String;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else
+                            {
+                                // Unsupported object type; skip this assertion
+                                idx++;
+                                continue;
+                            }
+
+                            // t = KG.CreateTriple(subj,pred,obj)
+                            sequence.Add(new LoadInstruction("ldloc", sLocal));
+                            sequence.Add(new LoadInstruction("ldloc", pLocal));
+                            sequence.Add(new LoadInstruction("ldloc", oLocal));
+                            sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateTriple;Params={INodeToken},{INodeToken},{INodeToken};Return={TripleToken}") { ArgCount = 3 });
+                            sequence.Add(new StoreInstruction("stloc", tLocal));
+
+                            // g = KG.Assert(g, t)
+                            sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                            sequence.Add(new LoadInstruction("ldloc", tLocal));
+                            sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=Assert;Params={GraphToken},{TripleToken};Return={GraphToken}") { ArgCount = 2 });
+                            sequence.Add(new StoreInstruction("stloc", graphLocal));
+
+                            idx++;
+                        }
+                    }
+
+                    // Leave populated graph on stack as expression result
+                    sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                    break;
+                }
             case ast.ListLiteral listLit:
                 // Lower list literal to an int32 array for now
                 // Pattern: ldc.i4 <len>; newarr int32; dup; init elements with stelem.i4
