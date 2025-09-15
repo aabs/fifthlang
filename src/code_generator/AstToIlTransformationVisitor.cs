@@ -561,9 +561,11 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 sequence.Add(new LoadInstruction("newarr", "int32"));
                 break;
             case GraphAssertionBlockExp gab:
-                // Placeholder: create a stub value to represent a graph
-                // Future: emit construction of an actual graph and assertions
-                sequence.Add(new LoadInstruction("ldnull", null));
+                // Lower graph block expression to a concrete graph via KG.CreateGraph(),
+                // evaluate inner statements (no-ops in IL yet), and leave the graph on stack.
+                // Emit extcall to Fifth.System.KG.CreateGraph()
+                sequence.Add(new CallInstruction("call", "extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateGraph;Params=;Return=VDS.RDF.IGraph@dotNetRDF") { ArgCount = 0 });
+                // For now, we do not lower inner assertions; future work can duplicate and assert.
                 break;
             case ast.ListLiteral listLit:
                 // Lower list literal to an int32 array for now
