@@ -71,6 +71,7 @@ COLON          : ':';
 DOT            : '.';
 PLUS_PLUS      : '++' /*-> mode(NLSEMI)*/;
 MINUS_MINUS    : '--' /*-> mode(NLSEMI)*/;
+PLUS_ASSIGN    : '+=';
 STAR_STAR      : '**';
 DECLARE_ASSIGN : ':=';
 ELLIPSIS       : '...';

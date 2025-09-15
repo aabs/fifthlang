@@ -88,6 +88,39 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitAssignment_statement([NotNull] FifthParser.Assignment_statementContext context)
     {
+        // Support '+=' sugar by desugaring to KG.SaveGraph(lvalue, rvalue)
+        if (context.op != null && context.op.Type == FifthParser.PLUS_ASSIGN)
+        {
+            // Create a MemberAccessExp representing KG.SaveGraph(...)
+            var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
+            var func = new FuncCallExp
+            {
+                FunctionDef = null,
+                InvocationArguments = [(Expression)Visit(context.lvalue), (Expression)Visit(context.rvalue)],
+                Annotations = new Dictionary<string, object> { ["FunctionName"] = "SaveGraph" },
+                Location = GetLocationDetails(context),
+                Parent = null,
+                Type = null
+            };
+
+            var call = new MemberAccessExp
+            {
+                Annotations = [],
+                LHS = kgVar,
+                RHS = func,
+                Location = GetLocationDetails(context),
+                Type = Void
+            };
+
+            return new ExpStatement
+            {
+                Annotations = [],
+                RHS = call,
+                Location = GetLocationDetails(context),
+                Type = Void
+            };
+        }
+
         var b = new AssignmentStatementBuilder()
             .WithAnnotations([])
             .WithLValue((Expression)Visit(context.lvalue))
