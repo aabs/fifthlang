@@ -67,6 +67,14 @@
 - [ ] T035 Add or alias a built-in `sparql_store(iri)` to `KG.ConnectToRemoteStore` so examples and tests resolve correctly.
 - [x] T036 Verify/update IL type mappings for new types: `graph` → `VDS.RDF.IGraph`, `store` → `VDS.RDF.Storage.IUpdateableStorage`, `triple` → `VDS.RDF.Triple`, `iri` → `System.Uri`; add a small codegen sanity test if applicable. (Type mapping wired in transformer and PE emitter; basic runtime smoke tests pass)
 
+## Phase 3.4.2: Literal Coverage
+- [x] T045 [P] Runtime tests: literal coverage for graph block objects (expression and statement) in `test/runtime-integration-tests/GraphAssertionBlock_Literals_RuntimeTests.cs` (URIs, negatives, float/double, and precise decimals).
+- [x] T046 [P] Built-ins: extend `src/fifthlang.system/KnowledgeGraphs.cs` with `KG.CreateLiteral` overloads for full primitive set (long/short/sbyte/byte/ushort/uint/ulong/float/double/decimal/bool/char) and add `KG.CountTriples(IGraph)` helper.
+- [x] T047 Codegen: update `src/code_generator/AstToIlTransformationVisitor.cs` to emit typed decimal (`System.Decimal`) via invariant parsing and call `KG.CreateLiteral(IGraph, decimal)`; ensure general literal emission and inference map decimal correctly.
+- [x] T048 Lowering: extend `src/compiler/LanguageTransformations/GraphAssertionLoweringVisitor.cs` object handling to cover all supported primitives (including decimal, unsigned types, and char).
+- [ ] T049 [P] Add edge-case tests for decimal extremes (very large/small magnitudes and scales) and unsigned extremes in `test/runtime-integration-tests/GraphAssertionBlock_Literals_RuntimeTests.cs`.
+- [ ] T050 [P] Add verification helpers or targeted assertions to inspect datatype IRIs of created literals using dotNetRDF APIs (optional): extend tests to assert RDF datatype IRIs for decimal/double/float.
+
 ## Supplemental: Type Inference Validation
 - [x] T037 [P] Add smoke test: numeric promotion int + double prefers double overload (KG.CreateLiteral) in `test/kg-smoke-tests/KG_TypeInference_SmokeTests.cs`.
 - [x] T038 [P] Add smoke test: unary negation preserves double type (KG.CreateLiteral) in `test/kg-smoke-tests/KG_TypeInference_SmokeTests.cs`.
@@ -92,6 +100,14 @@
 	- Entry-point wrapper behavior aligned with broader suite expectations: `main(): int` (no params) returns its value; otherwise wrapper returns `0`.
 - Impact: no changes to Graph Assertion Block syntax/typing/lowering; overall runtime stability improved for programs that may mix graph code with destructuring/control flow.
 - Remaining graph-focused tasks unchanged: T026 (quickstart validation), T035 (`sparql_store` alias), T027–T030 (negative tests, diagnostics, perf sanity, docs).
+
+## Status Update (2025-09-16)
+- Literal coverage completed end-to-end: lowered and IL paths handle object-position literals for strings, booleans, chars, all signed/unsigned integrals, float/double, and decimal.
+- Decimal support implemented precisely: IL constructs `System.Decimal` (InvariantCulture) and routes to `KG.CreateLiteral(IGraph, decimal)`; inference maps decimal nodes to `System.Decimal` for overload resolution.
+- `KnowledgeGraphs.cs` updated with the necessary `CreateLiteral` overloads and a `CountTriples` helper; lowering updated to recognize all primitives.
+- Tests expanded in `GraphAssertionBlock_Literals_RuntimeTests.cs` for expression and statement forms, including precise decimal cases; all new tests pass.
+- Test run snapshot: Passed 165, Failed 7, Total 172. The 7 failures are known unrelated (destructuring, constraints, precedence) and pre-existing.
+- Next: T026 (quickstart validation), T035 (`sparql_store` alias), and new literal edge-case tasks T049–T050. Polish tasks T027–T030 remain pending.
 
 ## Dependencies
 - T004–T011 before T012+ (TDD)
