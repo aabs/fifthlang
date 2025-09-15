@@ -82,7 +82,16 @@
 - Lowering validates/annotates `GraphAssertionBlockStatement` and resolves default store with parent-chain fallback; expression form is identity.
 - Runtime tests for graph assertion block (with/without default store) are in place and passing; unrelated suite failures are out of scope for this feature.
 - External interop: extcall signatures now include accurate param/return types; overload resolution uses literal/var/binary/unary inference. `graph` maps to `VDS.RDF.IGraph`. Smoke tests cover optional params and nested calls.
-- Next up: finalize persist helper (T033), add `sparql_store` alias (T035), validate quickstart (T026), and add negative tests + diagnostics (T027–T028).
+- Next up: add `sparql_store` alias (T035), validate quickstart (T026), and add negative tests + diagnostics (T027–T028).
+
+## Status Update (2025-09-15 PM)
+- Build stable; graph assertion runtime tests still passing.
+- Non-graph runtime improvements merged (does not change graph contracts):
+	- Default constructors now initialize user-defined class fields to non-null instances to prevent NREs in nested destructuring paths.
+	- Implemented short-circuit lowering for logical `&&` and `||` using branches; keeps expression statements stack-safe.
+	- Entry-point wrapper behavior aligned with broader suite expectations: `main(): int` (no params) returns its value; otherwise wrapper returns `0`.
+- Impact: no changes to Graph Assertion Block syntax/typing/lowering; overall runtime stability improved for programs that may mix graph code with destructuring/control flow.
+- Remaining graph-focused tasks unchanged: T026 (quickstart validation), T035 (`sparql_store` alias), T027–T030 (negative tests, diagnostics, perf sanity, docs).
 
 ## Dependencies
 - T004–T011 before T012+ (TDD)
