@@ -550,6 +550,11 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 
         switch (expression)
         {
+            case ast.ListComprehension lc:
+                // Minimal lowering: create an empty int32 array for now
+                sequence.Add(new LoadInstruction("ldc.i4", 0));
+                sequence.Add(new LoadInstruction("newarr", "int32"));
+                break;
             case GraphAssertionBlockExp gab:
                 // Placeholder: create a stub value to represent a graph
                 // Future: emit construction of an actual graph and assertions
@@ -642,9 +647,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 }
                 // Emit call
                 var functionName = funcCall.FunctionDef?.Name.Value ?? "unknown";
+                var argCountForFunc = funcCall.InvocationArguments?.Count ?? 0;
                 if (functionName == "print" || functionName == "myprint")
                 {
-                    sequence.Add(new CallInstruction("call", "void [System.Console]System.Console::WriteLine(object)"));
+                    sequence.Add(new CallInstruction("call", "void [System.Console]System.Console::WriteLine(object)") { ArgCount = argCountForFunc });
                 }
                 else
                 {
@@ -660,7 +666,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                         "void" => "void",
                         _ => "int32"
                     };
-                    sequence.Add(new CallInstruction("call", $"{ilReturnType} {functionName}()"));
+                    sequence.Add(new CallInstruction("call", $"{ilReturnType} {functionName}()") { ArgCount = argCountForFunc });
                 }
                 break;
 
@@ -716,7 +722,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 
                     var paramList = string.Join(",", paramTokens);
                     var sig = $"extcall:Asm=Fifth.System;Ns={extType.Namespace};Type={extType.Name};Method={mName};Params={paramList};Return={returnToken}";
-                    sequence.Add(new CallInstruction("call", sig));
+                    sequence.Add(new CallInstruction("call", sig) { ArgCount = argCount });
                     break;
                 }
 
@@ -779,8 +785,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                         }
                         else
                         {
-                            // Skip indexing when LHS is not a known array source (e.g., function call result)
-                            // to avoid invalid IL. The LHS value remains on the stack for outer contexts to consume/pop.
+                            // LHS is not a known array source; consume it and produce a safe default value
+                            // to keep expression semantics valid and avoid stack corruption.
+                            sequence.Add(new StackInstruction("pop"));
+                            sequence.Add(new LoadInstruction("ldc.i4", 0));
                         }
                     }
                     catch (Exception ex)
@@ -817,7 +825,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 
                 // Create new instance - for now, assume default constructor
                 var typeName = objectInit.TypeToInitialize?.Name.Value ?? "object";
-                sequence.Add(new CallInstruction("newobj", $"instance void {typeName}::.ctor()"));
+                sequence.Add(new CallInstruction("newobj", $"instance void {typeName}::.ctor()") { ArgCount = 0 });
 
                 // Initialize properties
                 if (objectInit.PropertyInitialisers != null)
@@ -1039,12 +1047,129 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
 
             case ExpStatement exprStmt:
-                sequence.AddRange(GenerateExpression(exprStmt.RHS).Instructions);
-                sequence.Add(new StackInstruction("pop")); // Pop unused result
+                var exprSeq = GenerateExpression(exprStmt.RHS);
+                sequence.AddRange(exprSeq.Instructions);
+                var netDelta = ComputeStackDelta(exprSeq);
+                if (netDelta > 0)
+                {
+                    for (int i = 0; i < netDelta; i++)
+                    {
+                        sequence.Add(new StackInstruction("pop"));
+                    }
+                }
                 break;
         }
 
         return sequence;
+    }
+
+    private int ComputeStackDelta(InstructionSequence seq)
+    {
+        int delta = 0;
+        foreach (var ins in seq.Instructions)
+        {
+            switch (ins)
+            {
+                case LoadInstruction li:
+                    switch ((li.Opcode ?? string.Empty).ToLowerInvariant())
+                    {
+                        case "ldc.i4":
+                        case "ldc.r4":
+                        case "ldc.r8":
+                        case "ldstr":
+                        case "ldloc":
+                        case "ldarg":
+                        case "dup":
+                            delta += 1; break;
+                        case "newarr":
+                            // newarr consumes a size and pushes an array ref -> net 0
+                            break;
+                        case "ldelem.i4":
+                            // ldelem consumes array ref and index, pushes element -> net -1
+                            delta -= 1; break;
+                        case "ldfld":
+                            // consumes obj, pushes value => net 0
+                            break;
+                    }
+                    break;
+                case StoreInstruction si:
+                    switch ((si.Opcode ?? string.Empty).ToLowerInvariant())
+                    {
+                        case "stloc": delta -= 1; break;
+                        case "starg": delta -= 1; break;
+                        case "stfld": delta -= 2; break;
+                        case "stelem.i4": delta -= 3; break;
+                    }
+                    break;
+                case ArithmeticInstruction ai:
+                    switch ((ai.Opcode ?? string.Empty).ToLowerInvariant())
+                    {
+                        // binary ops: net -1 (two inputs -> one output)
+                        case "add":
+                        case "sub":
+                        case "mul":
+                        case "div":
+                        case "ceq":
+                        case "clt":
+                        case "cgt":
+                        case "cle":
+                        case "cge":
+                        case "and":
+                        case "ceq_neg":
+                            delta -= 1; break;
+                        // unary ops: net 0
+                        case "not":
+                        case "neg":
+                            break;
+                    }
+                    break;
+                case CallInstruction ci:
+                    {
+                        var opc = (ci.Opcode ?? string.Empty).ToLowerInvariant();
+                        if (opc == "newobj")
+                        {
+                            delta += 1; // pushes object ref
+                            break;
+                        }
+                        int retPush = 0;
+                        var sig = ci.MethodSignature ?? string.Empty;
+                        // Determine return type for common formats
+                        string rt;
+                        if (sig.StartsWith("extcall:", StringComparison.Ordinal))
+                        {
+                            // extcall: ...;Return=System.Int32
+                            var idx = sig.IndexOf("Return=", StringComparison.Ordinal);
+                            if (idx >= 0)
+                            {
+                                rt = sig.Substring(idx + "Return=".Length).Trim();
+                                // strip anything after ';'
+                                var sc = rt.IndexOf(';');
+                                if (sc >= 0) rt = rt.Substring(0, sc);
+                                rt = rt.ToLowerInvariant();
+                            }
+                            else rt = string.Empty;
+                        }
+                        else
+                        {
+                            // Simple parse: leading return token before space
+                            rt = sig.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.ToLowerInvariant() ?? string.Empty;
+                        }
+                        if (!string.IsNullOrEmpty(rt) && rt != "void")
+                        {
+                            retPush = 1;
+                        }
+                        delta += retPush - Math.Max(0, ci.ArgCount);
+                    }
+                    break;
+                case StackInstruction si2:
+                    if (string.Equals(si2.Opcode, "pop", StringComparison.OrdinalIgnoreCase))
+                    {
+                        delta -= 1;
+                    }
+                    break;
+            }
+        }
+        return delta;
     }
 
     public void SetCurrentParameters(IEnumerable<string> parameterNames)

@@ -731,6 +731,10 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         {
             return VisitNum_hex(hex);
         }
+        if (intCtx is FifthParser.Num_imaginaryContext img)
+        {
+            return VisitNum_imaginary(img);
+        }
         // Fallback
         return CreateLiteral<Int32LiteralExp, int>(context, int.Parse);
     }
@@ -800,6 +804,56 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             Parent = null,
             Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From(typeof(int).FullName) },
             Value = Convert.ToInt32(payload, 16)
+        };
+    }
+
+    public override IAstThing VisitNum_imaginary(FifthParser.Num_imaginaryContext context)
+    {
+        var text = context.GetText();
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return new Int32LiteralExp
+            {
+                Annotations = [],
+                Location = GetLocationDetails(context),
+                Parent = null,
+                Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From(typeof(int).FullName) },
+                Value = 0
+            };
+        }
+
+        // Strip imaginary suffix 'i'/'I' and underscores
+        var trimmed = text.EndsWith("i", StringComparison.OrdinalIgnoreCase)
+            ? text.Substring(0, text.Length - 1)
+            : text;
+        trimmed = trimmed.Replace("_", string.Empty);
+
+        int value;
+        if (trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        {
+            value = Convert.ToInt32(trimmed.Substring(2), 16);
+        }
+        else if (trimmed.StartsWith("0b", StringComparison.OrdinalIgnoreCase))
+        {
+            value = Convert.ToInt32(trimmed.Substring(2), 2);
+        }
+        else if (trimmed.StartsWith("0o", StringComparison.OrdinalIgnoreCase))
+        {
+            value = Convert.ToInt32(trimmed.Substring(2), 8);
+        }
+        else
+        {
+            // Decimal fallback; handle leading 0 for octal-like forms as decimal here
+            value = int.Parse(trimmed);
+        }
+
+        return new Int32LiteralExp
+        {
+            Annotations = [],
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From(typeof(int).FullName) },
+            Value = value
         };
     }
 

@@ -63,9 +63,17 @@ public class PEEmitter
                 ? Path.GetFileNameWithoutExtension(outputPath)
                 : ilAssembly.Name;
 
-            // Add assembly reference to mscorlib/System.Runtime
+            // Add assembly reference to System.Runtime (core types) and System.Console (Console APIs)
             var systemRuntimeRef = metadataBuilder.AddAssemblyReference(
                 metadataBuilder.GetOrAddString("System.Runtime"),
+                new System.Version(8, 0, 0, 0),
+                default,
+                default,
+                default,
+                default);
+
+            var systemConsoleRef = metadataBuilder.AddAssemblyReference(
+                metadataBuilder.GetOrAddString("System.Console"),
                 new System.Version(8, 0, 0, 0),
                 default,
                 default,
@@ -105,7 +113,7 @@ public class PEEmitter
                 metadataBuilder.GetOrAddString("Object"));
 
             var consoleTypeRef = metadataBuilder.AddTypeReference(
-                systemRuntimeRef,
+                systemConsoleRef,
                 metadataBuilder.GetOrAddString("System"),
                 metadataBuilder.GetOrAddString("Console"));
 
@@ -119,7 +127,8 @@ public class PEEmitter
             writeLineSignatureBlob.WriteByte(0x00); // calling convention
             writeLineSignatureBlob.WriteByte(0x01); // parameter count
             writeLineSignatureBlob.WriteByte((byte)SignatureTypeCode.Void); // return type
-            writeLineSignatureBlob.WriteByte((byte)SignatureTypeCode.String); // parameter type
+            // Use object overload to accept any printed value
+            writeLineSignatureBlob.WriteByte((byte)SignatureTypeCode.Object); // parameter type
 
             var writeLineMethodRef = metadataBuilder.AddMemberReference(
                 consoleTypeRef,
@@ -211,7 +220,10 @@ public class PEEmitter
             // Process methods from IL metamodel
             if (ilAssembly.PrimeModule == null || ilAssembly.PrimeModule.Functions.Count == 0)
             {
-                // Add empty Program type as fallback
+                // Add Program type with a default static int Main() { return 0; }
+                var firstMethodRowId = metadataBuilder.GetRowCount(TableIndex.MethodDef) + 1;
+                var firstMethodHandle = MetadataTokens.MethodDefinitionHandle(firstMethodRowId);
+
                 var programTypeHandle = metadataBuilder.AddTypeDefinition(
                     TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
                     default,
@@ -219,7 +231,35 @@ public class PEEmitter
                     objectTypeRef,
                     // Program has no fields; FieldList should point past the last existing field
                     MetadataTokens.FieldDefinitionHandle(metadataBuilder.GetRowCount(TableIndex.Field) + 1),
-                    MetadataTokens.MethodDefinitionHandle(1));
+                    firstMethodHandle);
+
+                // Build method body: ldc.i4.0; ret
+                var ilInstructions = new BlobBuilder();
+                var cf = new ControlFlowBuilder();
+                var il = new InstructionEncoder(ilInstructions, cf);
+                il.LoadConstantI4(0);
+                il.OpCode(ILOpCode.Ret);
+                var bodyOffset = methodBodyEncoder.AddMethodBody(
+                    il,
+                    maxStack: 8,
+                    localVariablesSignature: default,
+                    attributes: MethodBodyAttributes.None);
+
+                // Method signature: static int32 Main()
+                var methodSignatureBlob = new BlobBuilder();
+                methodSignatureBlob.WriteByte(0x00); // DEFAULT calling convention
+                methodSignatureBlob.WriteByte(0x00); // parameter count
+                methodSignatureBlob.WriteByte((byte)SignatureTypeCode.Int32); // return type
+
+                var methodHandle = metadataBuilder.AddMethodDefinition(
+                    MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
+                    MethodImplAttributes.IL,
+                    metadataBuilder.GetOrAddString("Main"),
+                    metadataBuilder.GetOrAddBlob(methodSignatureBlob),
+                    bodyOffset,
+                    MetadataTokens.ParameterHandle(metadataBuilder.GetRowCount(TableIndex.Param) + 1));
+
+                entryPointMethodHandle = methodHandle;
             }
             else
             {
@@ -1097,14 +1137,19 @@ public class PEEmitter
             }
         }
 
-        // If still unresolved, emit a warning and push a default value based on the signature to keep stack balanced
+        // If still unresolved, emit a warning, consume any previously pushed args, and push a default return value based on the signature to keep stack balanced
         Console.WriteLine($"WARNING: Skipping unresolved method call: {callInst.MethodSignature}");
+        var argCount = callInst.ArgCount;
+        for (int i = 0; i < argCount; i++)
+        {
+            il.OpCode(ILOpCode.Pop);
+        }
         var sig = callInst.MethodSignature ?? string.Empty;
         var retType = sig.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.ToLowerInvariant() ?? string.Empty;
         switch (retType)
         {
             case "void":
-                // nothing to push
+                // nothing to push for void return
                 break;
             case "int32":
             case "int":
