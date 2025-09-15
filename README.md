@@ -9,7 +9,7 @@ Coverage: CI collects cross-platform coverage via XPlat Code Coverage; HTML and 
 A compiler and language tooling for the Fifth programming language.
 
 ## Quickstart
-```fifth
+```csharp
 alias x as <http://example.com/blah#>;
 
 // Declare a default SPARQL store (canonical syntax)
