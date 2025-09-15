@@ -20,22 +20,33 @@ public class PropertyBindingToVariableDeclarationTransformer : DefaultRecursiveD
         // if it's a paramdecl, then add it's type directly as the resolution scope
         if (ctx.Parent is ParamDef pd)
         {
-            var paramType = ctx.NearestScope().ResolveByName(pd.TypeName.Value);
-            ResolutionScope.Push((pd.Name, paramType));
+            if (ctx.NearestScope().TryResolveByName(pd.TypeName.Value, out var paramType))
+            {
+                ResolutionScope.Push((pd.Name, paramType));
+            }
         }
         else if (ctx.Parent is PropertyBindingDef db)
         {
             var propdeclname = db.ReferencedPropertyName;
-            if (db.ReferencedProperty is null && ResolutionScope.Peek().Item2.OriginatingAstThing is ScopeAstThing scope)
+            if (db.ReferencedProperty is null)
             {
                 // we need to resolve the property that the db.ReferencedPropertyName refers to
-                var x = scope.ResolveByName(db.ReferencedPropertyName.Value);
-                ResolutionScope.Push((db.IntroducedVariable.Value, x));
+                if (ResolutionScope.Count > 0 && ResolutionScope.Peek().Item2.OriginatingAstThing is ScopeAstThing scope)
+                {
+                    if (scope.TryResolveByName(db.ReferencedPropertyName.Value, out var x))
+                    {
+                        ResolutionScope.Push((db.IntroducedVariable.Value, x));
+                    }
+                }
             }
             else
             {
-                var paramType = db.ReferencedProperty.NearestScope().ResolveByName(db.ReferencedProperty.TypeName.Value);
-                ResolutionScope.Push((/*propdecl.Name*/ db.IntroducedVariable.Value, paramType));
+                var nearest = db.ReferencedProperty?.NearestScope();
+                if (nearest != null && db.ReferencedProperty != null &&
+                    nearest.TryResolveByName(db.ReferencedProperty.TypeName.Value, out var paramType))
+                {
+                    ResolutionScope.Push((/*propdecl.Name*/ db.IntroducedVariable.Value, paramType));
+                }
             }
         }
         try
@@ -44,7 +55,10 @@ public class PropertyBindingToVariableDeclarationTransformer : DefaultRecursiveD
         }
         finally
         {
-            ResolutionScope.Pop();
+            if (ResolutionScope.Count > 0)
+            {
+                ResolutionScope.Pop();
+            }
         }
     }
 
@@ -52,6 +66,11 @@ public class PropertyBindingToVariableDeclarationTransformer : DefaultRecursiveD
     {
         // TODO Use symtab entry Kind to guide processing here. it could be a class a paramdecl or
         // something else here.
+        if (ResolutionScope.Count == 0)
+        {
+            // Without a resolution scope, we cannot safely transform; leave as-is
+            return base.VisitPropertyBindingDef(ctx);
+        }
 
         var (scopeVarName, propertyDefinitionScope) = ResolutionScope.Peek();
 

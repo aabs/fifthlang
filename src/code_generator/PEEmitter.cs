@@ -28,6 +28,8 @@ public class PEEmitter
     // Note: We avoid MemberReferences for fields within the same module; use FieldDefinitionHandles instead
     private readonly Dictionary<TypeDefinitionHandle, string> _typeNamesByHandle = new();
     private readonly Dictionary<string, MethodDefinitionHandle> _ctorHandles = new(StringComparer.Ordinal);
+    // Track declared field types so we can propagate local class typing from ldfld results
+    private readonly Dictionary<FieldDefinitionHandle, il_ast.TypeReference> _fieldDeclaredTypes = new();
 
     // Per-method emission state for simple local type inference
     private string? _lastLoadedLocal;
@@ -35,6 +37,11 @@ public class PEEmitter
     private Dictionary<string, SignatureTypeCode> _localVarTypeMap = new(StringComparer.Ordinal);
     private string? _pendingNewobjTypeName;
     private readonly Dictionary<string, TypeDefinitionHandle> _localVarClassTypeHandles = new(StringComparer.Ordinal);
+    // Track the class type of the current stack top when known (e.g., result of ldfld/newobj)
+    private TypeDefinitionHandle? _pendingStackTopClassType;
+    // Track parameter class types per-method and the last loaded parameter name
+    private readonly Dictionary<string, TypeDefinitionHandle> _paramClassTypeHandles = new(StringComparer.Ordinal);
+    private string? _lastLoadedParam;
 
     // Cached type references for common system types used in emission
     private EntityHandle _systemInt32TypeRef;
@@ -175,7 +182,23 @@ public class PEEmitter
                     {
                         var fieldSig = new BlobBuilder();
                         fieldSig.WriteByte(0x06); // FIELD signature
-                        fieldSig.WriteByte((byte)GetSignatureTypeCode(field.TheType));
+                        // Encode precise type: primitives via SignatureTypeCode; user classes via CLASS TypeDefOrRef
+                        if (field.TheType.Namespace == "System")
+                        {
+                            fieldSig.WriteByte((byte)GetSignatureTypeCode(field.TheType));
+                        }
+                        else if (!string.IsNullOrEmpty(field.TheType.Name) && _typeHandles.TryGetValue(field.TheType.Name, out var fTypeDef))
+                        {
+                            fieldSig.WriteByte(0x12); // ELEMENT_TYPE_CLASS
+                            var rowId = MetadataTokens.GetRowNumber(fTypeDef);
+                            var codedIndex = (rowId << 2) | 0; // TypeDefOrRef tag 0 = TypeDef
+                            fieldSig.WriteCompressedInteger(codedIndex);
+                        }
+                        else
+                        {
+                            // Fallback
+                            fieldSig.WriteByte((byte)SignatureTypeCode.Object);
+                        }
                         var fh = metadataBuilder.AddFieldDefinition(
                             FieldAttributes.Public,
                             metadataBuilder.GetOrAddString(field.Name ?? "field"),
@@ -183,6 +206,8 @@ public class PEEmitter
                         // Store by simple field name (assume unique across types for now)
                         _fieldHandles[field.Name ?? "field"] = fh;
                         _fieldHandlesByTypeAndName[$"{name}::{field.Name}"] = fh;
+                        // Remember declared field type for later local typing propagation
+                        _fieldDeclaredTypes[fh] = field.TheType;
                     }
 
                     // Emit a default parameterless instance constructor
@@ -197,6 +222,29 @@ public class PEEmitter
                     var ctorIl = new InstructionEncoder(ilInstructions, cf);
                     ctorIl.LoadArgument(0);
                     ctorIl.Call(objectCtorMemberRef);
+                    // Initialize user-defined class fields to non-null instances
+                    foreach (var field in cls.Fields)
+                    {
+                        try
+                        {
+                            if (field.TheType != null && !string.Equals(field.TheType.Namespace, "System", StringComparison.Ordinal) && !string.IsNullOrEmpty(field.TheType.Name))
+                            {
+                                if (_ctorHandles.TryGetValue(field.TheType.Name!, out var depCtor))
+                                {
+                                    // this.<field> = new <Type>()
+                                    ctorIl.LoadArgument(0);
+                                    ctorIl.OpCode(ILOpCode.Newobj);
+                                    ctorIl.Token(depCtor);
+                                    if (_fieldHandlesByTypeAndName.TryGetValue($"{name}::{field.Name}", out var fHandle))
+                                    {
+                                        ctorIl.OpCode(ILOpCode.Stfld);
+                                        ctorIl.Token(fHandle);
+                                    }
+                                }
+                            }
+                        }
+                        catch { /* best-effort init; skip on failure */ }
+                    }
                     ctorIl.OpCode(ILOpCode.Ret);
                     var bodyOffset = new MethodBodyStreamEncoder(methodBodyStream).AddMethodBody(
                         ctorIl,
@@ -352,15 +400,90 @@ public class PEEmitter
                         var methodHandle = metadataBuilder.AddMethodDefinition(
                             MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
                             MethodImplAttributes.IL,
-                            metadataBuilder.GetOrAddString(function.Header.IsEntrypoint ? "Main" : function.Name),
+                            metadataBuilder.GetOrAddString(function.Name),
                             metadataBuilder.GetOrAddBlob(methodSignatureBlob),
                             bodyOffsets[function.Name],
                             paramListStartMap[function.Name]);
+                        // Do not set entry point here; we'll add a wrapper Main that always returns 0
+                    }
 
-                        if (function.Header.IsEntrypoint)
+                    // Add a wrapper entrypoint: static int32 Main() { call main(); if int/no-params return value else 0 }
+                    // Only if a 'main' function exists
+                    if (methodMap.TryGetValue("main", out var fifthMainHandle))
+                    {
+                        var fifthMainFunc = functionList.FirstOrDefault(f => string.Equals(f.Name, "main", StringComparison.Ordinal));
+                        var mainReturnsInt32 = string.Equals(fifthMainFunc?.Signature?.ReturnTypeSignature?.Namespace, "System", StringComparison.Ordinal)
+                            && string.Equals(fifthMainFunc?.Signature?.ReturnTypeSignature?.Name, "Int32", StringComparison.Ordinal);
+                        var mainHasNoParams = (fifthMainFunc?.Signature?.ParameterSignatures?.Count ?? 0) == 0;
+                        // Build body
+                        var wrapperIl = new BlobBuilder();
+                        var wrapperCf = new ControlFlowBuilder();
+                        var wrapper = new InstructionEncoder(wrapperIl, wrapperCf);
+                        // call main
+                        wrapper.Call(fifthMainHandle);
+                        if (mainReturnsInt32 && mainHasNoParams)
                         {
-                            entryPointMethodHandle = methodHandle;
+                            // Directly return the value produced by main
+                            wrapper.OpCode(ILOpCode.Ret);
                         }
+                        else
+                        {
+                            // Ensure stack is clean then return 0 as a safe default
+                            wrapper.OpCode(ILOpCode.Pop);
+                            wrapper.LoadConstantI4(0);
+                            wrapper.OpCode(ILOpCode.Ret);
+                        }
+
+                        var wrapperBodyOffset = methodBodyEncoder.AddMethodBody(
+                            wrapper,
+                            maxStack: 8,
+                            localVariablesSignature: default,
+                            attributes: MethodBodyAttributes.None);
+
+                        // Signature: static int32 Main()
+                        var wrapperSig = new BlobBuilder();
+                        wrapperSig.WriteByte(0x00); // DEFAULT
+                        wrapperSig.WriteByte(0x00); // param count
+                        wrapperSig.WriteByte((byte)SignatureTypeCode.Int32); // return type
+
+                        var wrapperHandle = metadataBuilder.AddMethodDefinition(
+                            MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
+                            MethodImplAttributes.IL,
+                            metadataBuilder.GetOrAddString("Main"),
+                            metadataBuilder.GetOrAddBlob(wrapperSig),
+                            wrapperBodyOffset,
+                            MetadataTokens.ParameterHandle(metadataBuilder.GetRowCount(TableIndex.Param) + 1));
+
+                        entryPointMethodHandle = wrapperHandle;
+                    }
+                    else
+                    {
+                        // No 'main' found; create a default Main that returns 0 to satisfy entrypoint
+                        var ilInstructions = new BlobBuilder();
+                        var cf = new ControlFlowBuilder();
+                        var il = new InstructionEncoder(ilInstructions, cf);
+                        il.LoadConstantI4(0);
+                        il.OpCode(ILOpCode.Ret);
+                        var bodyOffset = methodBodyEncoder.AddMethodBody(
+                            il,
+                            maxStack: 8,
+                            localVariablesSignature: default,
+                            attributes: MethodBodyAttributes.None);
+
+                        var methodSignatureBlob = new BlobBuilder();
+                        methodSignatureBlob.WriteByte(0x00); // DEFAULT calling convention
+                        methodSignatureBlob.WriteByte(0x00); // parameter count
+                        methodSignatureBlob.WriteByte((byte)SignatureTypeCode.Int32); // return type
+
+                        var methodHandle = metadataBuilder.AddMethodDefinition(
+                            MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
+                            MethodImplAttributes.IL,
+                            metadataBuilder.GetOrAddString("Main"),
+                            metadataBuilder.GetOrAddBlob(methodSignatureBlob),
+                            bodyOffset,
+                            MetadataTokens.ParameterHandle(metadataBuilder.GetRowCount(TableIndex.Param) + 1));
+
+                        entryPointMethodHandle = methodHandle;
                     }
                 }
                 else
@@ -417,7 +540,10 @@ public class PEEmitter
         _lastWasNewobj = false;
         _localVarTypeMap = new Dictionary<string, SignatureTypeCode>(StringComparer.Ordinal);
         _pendingNewobjTypeName = null;
+        _pendingStackTopClassType = null;
         _localVarClassTypeHandles.Clear();
+        _paramClassTypeHandles.Clear();
+        _lastLoadedParam = null;
 
         // Use AstToIlTransformationVisitor to get instruction sequences for each statement
         var transformer = new AstToIlTransformationVisitor();
@@ -431,6 +557,20 @@ public class PEEmitter
         // Build a map from parameter name to argument index
         var paramIndexMap = new Dictionary<string, int>(StringComparer.Ordinal);
         for (int i = 0; i < paramNames.Count; i++) paramIndexMap[paramNames[i]] = i;
+        // Build parameter class type handles (for user-defined types only)
+        var sigParams = ilMethod?.Signature?.ParameterSignatures ?? new List<il_ast.ParameterSignature>();
+        foreach (var ps in sigParams)
+        {
+            var pName = ps.Name ?? string.Empty;
+            var tr = ps.TypeReference;
+            if (!string.IsNullOrEmpty(pName) && tr != null && !string.Equals(tr.Namespace, "System", StringComparison.Ordinal) && !string.IsNullOrEmpty(tr.Name))
+            {
+                if (_typeHandles.TryGetValue(tr.Name, out var th))
+                {
+                    _paramClassTypeHandles[pName] = th;
+                }
+            }
+        }
 
         // Track local variables
         var localVariables = new List<string>();
@@ -703,10 +843,21 @@ public class PEEmitter
             case "ldstr":
                 if (loadInst.Value is string stringValue)
                 {
-                    // Remove quotes if present
-                    var cleanString = stringValue.Trim('"');
-                    il.LoadString(metadataBuilder.GetOrAddUserString(cleanString));
+                    // Ensure we don't double-quote: Trim existing quotes, then use as-is
+                    var clean = stringValue;
+                    if (clean.Length >= 2 && clean.StartsWith("\"") && clean.EndsWith("\""))
+                    {
+                        clean = clean.Substring(1, clean.Length - 2);
+                    }
+                    il.LoadString(metadataBuilder.GetOrAddUserString(clean));
                 }
+                break;
+            case "ldnull":
+                // Push a null reference onto the evaluation stack
+                il.OpCode(ILOpCode.Ldnull);
+                _lastLoadedLocal = null;
+                _pendingStackTopClassType = null;
+                _lastLoadedParam = null;
                 break;
 
             case "ldloc":
@@ -717,12 +868,24 @@ public class PEEmitter
                     {
                         il.LoadLocal(index);
                         _lastLoadedLocal = varName;
+                        // If this local has a known class type, propagate to pending stack top
+                        if (_localVarClassTypeHandles.TryGetValue(varName, out var tdh))
+                        {
+                            _pendingStackTopClassType = tdh;
+                        }
+                        else
+                        {
+                            _pendingStackTopClassType = null;
+                        }
+                        _lastLoadedParam = null;
                     }
                     else
                     {
                         // Unknown local; push default int to keep stack balanced
                         il.LoadConstantI4(0);
                         _lastLoadedLocal = null;
+                        _pendingStackTopClassType = null;
+                        _lastLoadedParam = null;
                     }
                 }
                 else
@@ -730,6 +893,8 @@ public class PEEmitter
                     // Fallback for non-string value or no local var names
                     il.LoadConstantI4(0);
                     _lastLoadedLocal = null;
+                    _pendingStackTopClassType = null;
+                    _lastLoadedParam = null;
                 }
                 break;
             case "ldarg":
@@ -737,12 +902,22 @@ public class PEEmitter
                 {
                     il.LoadArgument(argIndex);
                     _lastLoadedLocal = null;
+                    _lastLoadedParam = argName;
+                    if (_paramClassTypeHandles.TryGetValue(argName, out var pth))
+                    {
+                        _pendingStackTopClassType = pth;
+                    }
+                    else
+                    {
+                        _pendingStackTopClassType = null;
+                    }
                 }
                 else
                 {
                     // Unknown arg; push default int
                     il.LoadConstantI4(0);
                     _lastLoadedLocal = null;
+                    _lastLoadedParam = null;
                 }
                 break;
 
@@ -751,12 +926,34 @@ public class PEEmitter
                 {
                     // Resolve FieldDefinitionHandle for the field. Prefer exact owner type if known.
                     EntityHandle? fieldToken = null;
-                    if (!string.IsNullOrEmpty(_lastLoadedLocal) && _localVarClassTypeHandles.TryGetValue(_lastLoadedLocal, out var typeHandle) && _typeNamesByHandle.TryGetValue(typeHandle, out var typeName))
+                    // Try using pending stack top class type first (e.g., from ldarg/ldloc/newobj)
+                    if (_pendingStackTopClassType.HasValue && _typeNamesByHandle.TryGetValue(_pendingStackTopClassType.Value, out var pTypeName))
+                    {
+                        var keyDef = $"{pTypeName}::{fldName}";
+                        if (_fieldHandlesByTypeAndName.TryGetValue(keyDef, out var fdef1))
+                        {
+                            fieldToken = fdef1;
+                            DebugLog($"DEBUG: ldfld owner via pendingStack '{pTypeName}', field '{fldName}' -> def handle {MetadataTokens.GetRowNumber(fdef1)}");
+                        }
+                    }
+                    // Then try last-loaded local's class type
+                    if (fieldToken == null && !string.IsNullOrEmpty(_lastLoadedLocal) && _localVarClassTypeHandles.TryGetValue(_lastLoadedLocal, out var typeHandle) && _typeNamesByHandle.TryGetValue(typeHandle, out var typeName))
                     {
                         var keyDef = $"{typeName}::{fldName}";
                         if (_fieldHandlesByTypeAndName.TryGetValue(keyDef, out var fdef))
                         {
                             fieldToken = fdef;
+                            DebugLog($"DEBUG: ldfld owner via lastLoadedLocal '{typeName}', field '{fldName}' -> def handle {MetadataTokens.GetRowNumber(fdef)}");
+                        }
+                    }
+                    // Then try last-loaded parameter's class type
+                    if (fieldToken == null && !string.IsNullOrEmpty(_lastLoadedParam) && _paramClassTypeHandles.TryGetValue(_lastLoadedParam, out var pTypeHandle) && _typeNamesByHandle.TryGetValue(pTypeHandle, out var pName))
+                    {
+                        var keyDef = $"{pName}::{fldName}";
+                        if (_fieldHandlesByTypeAndName.TryGetValue(keyDef, out var fdef2))
+                        {
+                            fieldToken = fdef2;
+                            DebugLog($"DEBUG: ldfld owner via lastLoadedParam '{pName}', field '{fldName}' -> def handle {MetadataTokens.GetRowNumber(fdef2)}");
                         }
                     }
 
@@ -764,17 +961,36 @@ public class PEEmitter
                     if (fieldToken == null && _fieldHandles.TryGetValue(fldName, out var fldHandle))
                     {
                         fieldToken = fldHandle;
+                        DebugLog($"DEBUG: ldfld falling back by simple name '{fldName}' -> def handle {MetadataTokens.GetRowNumber(fldHandle)}");
                     }
 
                     if (fieldToken != null)
                     {
                         il.OpCode(ILOpCode.Ldfld);
                         il.Token(fieldToken.Value);
-                        if (!string.IsNullOrEmpty(_lastLoadedLocal))
+                        // If we know the declared field type and it's a user class, remember it for subsequent stloc typing
+                        _pendingStackTopClassType = null;
+                        if (fieldToken.HasValue)
                         {
-                            _localVarTypeMap[_lastLoadedLocal] = SignatureTypeCode.Object;
-                            _lastLoadedLocal = null;
+                            var eh = fieldToken.Value;
+                            if (eh.Kind == HandleKind.FieldDefinition)
+                            {
+                                var fdh = (FieldDefinitionHandle)eh;
+                                if (_fieldDeclaredTypes.TryGetValue(fdh, out var declaredType))
+                                {
+                                    if (!string.Equals(declaredType.Namespace, "System", StringComparison.Ordinal) && !string.IsNullOrEmpty(declaredType.Name))
+                                    {
+                                        if (_typeHandles.TryGetValue(declaredType.Name, out var declTypeHandle))
+                                        {
+                                            _pendingStackTopClassType = declTypeHandle;
+                                        }
+                                    }
+                                }
+                            }
                         }
+                        // Consuming local as object; reset last-loaded-local tracker
+                        _lastLoadedLocal = null;
+                        _lastLoadedParam = null;
                     }
                     else
                     {
@@ -782,6 +998,8 @@ public class PEEmitter
                         il.OpCode(ILOpCode.Pop);
                         il.LoadConstantI4(0);
                         _lastLoadedLocal = null;
+                        _lastLoadedParam = null;
+                        _pendingStackTopClassType = null;
                     }
                 }
                 break;
@@ -815,6 +1033,12 @@ public class PEEmitter
                                 _localVarClassTypeHandles[varName] = tdh;
                             }
                         }
+                        // If the top of the stack is a known class type (from ldfld), propagate that to the target local
+                        if (_pendingStackTopClassType.HasValue)
+                        {
+                            _localVarTypeMap[varName] = SignatureTypeCode.Object;
+                            _localVarClassTypeHandles[varName] = _pendingStackTopClassType.Value;
+                        }
                     }
                     else
                     {
@@ -823,6 +1047,7 @@ public class PEEmitter
                     }
                     _lastWasNewobj = false;
                     _pendingNewobjTypeName = null;
+                    _pendingStackTopClassType = null;
                 }
                 else
                 {
@@ -830,6 +1055,7 @@ public class PEEmitter
                     il.StoreLocal(0);
                     _lastWasNewobj = false;
                     _pendingNewobjTypeName = null;
+                    _pendingStackTopClassType = null;
                 }
                 break;
             case "starg":
@@ -845,12 +1071,34 @@ public class PEEmitter
                 {
                     // Use FieldDefinitionHandle directly; prefer exact owner type if known
                     EntityHandle? fieldToken = null;
-                    if (!string.IsNullOrEmpty(_lastLoadedLocal) && _localVarClassTypeHandles.TryGetValue(_lastLoadedLocal, out var typeHandle) && _typeNamesByHandle.TryGetValue(typeHandle, out var typeName))
+                    // First, if we have a pending newobj type, use it as the owner
+                    if (!string.IsNullOrEmpty(_pendingNewobjTypeName) && _typeHandles.TryGetValue(_pendingNewobjTypeName, out var newObjTypeHandle) && _typeNamesByHandle.TryGetValue(newObjTypeHandle, out var newObjTypeName))
+                    {
+                        var keyNew = $"{newObjTypeName}::{fieldName}";
+                        if (_fieldHandlesByTypeAndName.TryGetValue(keyNew, out var fdefNew))
+                        {
+                            fieldToken = fdefNew;
+                            DebugLog($"DEBUG: stfld owner via pendingNewobj '{newObjTypeName}', field '{fieldName}' -> def handle {MetadataTokens.GetRowNumber(fdefNew)}");
+                        }
+                    }
+                    // Then try last-loaded local's class type
+                    if (fieldToken == null && !string.IsNullOrEmpty(_lastLoadedLocal) && _localVarClassTypeHandles.TryGetValue(_lastLoadedLocal, out var typeHandle) && _typeNamesByHandle.TryGetValue(typeHandle, out var typeName))
                     {
                         var keyDef = $"{typeName}::{fieldName}";
                         if (_fieldHandlesByTypeAndName.TryGetValue(keyDef, out var fdef))
                         {
                             fieldToken = fdef;
+                            DebugLog($"DEBUG: stfld owner via lastLoadedLocal '{typeName}', field '{fieldName}' -> def handle {MetadataTokens.GetRowNumber(fdef)}");
+                        }
+                    }
+                    // Then try last-loaded parameter's class type
+                    if (fieldToken == null && !string.IsNullOrEmpty(_lastLoadedParam) && _paramClassTypeHandles.TryGetValue(_lastLoadedParam, out var pTypeHandle) && _typeNamesByHandle.TryGetValue(pTypeHandle, out var pName))
+                    {
+                        var keyPar = $"{pName}::{fieldName}";
+                        if (_fieldHandlesByTypeAndName.TryGetValue(keyPar, out var fdefPar))
+                        {
+                            fieldToken = fdefPar;
+                            DebugLog($"DEBUG: stfld owner via lastLoadedParam '{pName}', field '{fieldName}' -> def handle {MetadataTokens.GetRowNumber(fdefPar)}");
                         }
                     }
 
@@ -858,6 +1106,7 @@ public class PEEmitter
                     if (fieldToken == null && _fieldHandles.TryGetValue(fieldName, out var fldHandle2))
                     {
                         fieldToken = fldHandle2;
+                        DebugLog($"DEBUG: stfld falling back by simple name '{fieldName}' -> def handle {MetadataTokens.GetRowNumber(fldHandle2)}");
                     }
 
                     if (fieldToken != null)
@@ -870,6 +1119,7 @@ public class PEEmitter
                             _localVarTypeMap[_lastLoadedLocal] = SignatureTypeCode.Object;
                             _lastLoadedLocal = null;
                         }
+                        _lastLoadedParam = null;
                     }
                     else
                     {
@@ -877,6 +1127,7 @@ public class PEEmitter
                         il.OpCode(ILOpCode.Pop); // value
                         il.OpCode(ILOpCode.Pop); // obj
                         _lastLoadedLocal = null;
+                        _lastLoadedParam = null;
                     }
                 }
                 break;
@@ -932,6 +1183,12 @@ public class PEEmitter
             case "and":
                 il.OpCode(ILOpCode.And);
                 break;
+            case "or":
+                il.OpCode(ILOpCode.Or);
+                break;
+            case "xor":
+                il.OpCode(ILOpCode.Xor);
+                break;
             case "not":
                 // Logical not for booleans: compare with 0
                 il.LoadConstantI4(0);
@@ -966,9 +1223,21 @@ public class PEEmitter
                 dict.TryGetValue("Return", out var returnToken);
 
                 // Create an AssemblyRef for the external assembly (fallback to System.Runtime for metadata needs)
+                // Choose appropriate assembly version for known framework libs
+                System.Version ResolveAssemblyVersion(string? name)
+                {
+                    if (string.Equals(name, "System.Runtime", StringComparison.Ordinal)) return new System.Version(8, 0, 0, 0);
+                    if (string.Equals(name, "System.Console", StringComparison.Ordinal)) return new System.Version(8, 0, 0, 0);
+                    if (string.Equals(name, "dotNetRDF", StringComparison.Ordinal)) return new System.Version(3, 4, 0, 0);
+                    if (string.Equals(name, "System.Private.CoreLib", StringComparison.Ordinal)) return new System.Version(8, 0, 0, 0);
+                    if (string.Equals(name, "Fifth.System", StringComparison.Ordinal)) return new System.Version(1, 0, 0, 0);
+                    return new System.Version(1, 0, 0, 0);
+                }
+
+                var asmNameResolved = string.IsNullOrWhiteSpace(asmName) ? "Fifth.System" : asmName;
                 var asmRef = metadataBuilder.AddAssemblyReference(
-                    metadataBuilder.GetOrAddString(string.IsNullOrWhiteSpace(asmName) ? "Fifth.System" : asmName),
-                    new System.Version(1, 0, 0, 0), default, default, default, default);
+                    metadataBuilder.GetOrAddString(asmNameResolved!),
+                    ResolveAssemblyVersion(asmNameResolved), default, default, default, default);
 
                 // Create a TypeRef for the external type
                 var typeRef = metadataBuilder.AddTypeReference(
@@ -1019,7 +1288,7 @@ public class PEEmitter
                     // Build AssemblyRef and TypeRef
                     var paramAsmRef = metadataBuilder.AddAssemblyReference(
                         metadataBuilder.GetOrAddString(asm),
-                        new System.Version(1, 0, 0, 0), default, default, default, default);
+                        ResolveAssemblyVersion(asm), default, default, default, default);
                     var paramTypeRef = metadataBuilder.AddTypeReference(
                         paramAsmRef,
                         metadataBuilder.GetOrAddString(typeNs),

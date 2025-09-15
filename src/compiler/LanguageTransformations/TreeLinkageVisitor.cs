@@ -473,13 +473,29 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
                     {
                         resolvedType = typeof(Fifth.System.KG);
                     }
+                    else if (string.Equals(qualifierName, "std", StringComparison.Ordinal))
+                    {
+                        // Only map 'std.print' to System.Console.WriteLine; leave other std.* unresolved
+                        if (memberCall.Annotations.TryGetValue("FunctionName", out var fnObjStd) && fnObjStd is string fnStd && string.Equals(fnStd, "print", StringComparison.Ordinal))
+                        {
+                            resolvedType = typeof(System.Console);
+                        }
+                    }
 
                     if (resolvedType != null)
                     {
                         memberCall["ExternalType"] = resolvedType;
                         if (memberCall.Annotations.TryGetValue("FunctionName", out var nameObj) && nameObj is string fn)
                         {
-                            memberCall["ExternalMethodName"] = fn;
+                            // For std.print mapped to Console
+                            if (resolvedType == typeof(System.Console) && string.Equals(fn, "print", StringComparison.Ordinal))
+                            {
+                                memberCall["ExternalMethodName"] = "WriteLine";
+                            }
+                            else
+                            {
+                                memberCall["ExternalMethodName"] = fn;
+                            }
                         }
 
                         DebugLog($"DEBUG: Qualified external call detected: {resolvedType.FullName}::{(memberCall.Annotations.TryGetValue("FunctionName", out var n) ? n : "?")}");

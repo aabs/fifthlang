@@ -123,6 +123,8 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                         case Operator.LessThanOrEqual:
                         case Operator.GreaterThanOrEqual:
                         case Operator.LogicalAnd:
+                        case Operator.LogicalOr:
+                        case Operator.LogicalXor:
                             return typeof(bool);
                     }
                     // Addition: string concatenation if either is string
@@ -513,6 +515,9 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             Operator.LessThanOrEqual => "<=",
             Operator.GreaterThanOrEqual => ">=",
             Operator.LogicalAnd => "&&",
+            Operator.BitwiseOr => "|",
+            Operator.LogicalOr => "||",
+            Operator.LogicalXor => "xor",
             Operator.ArithmeticNegative => "-",
             Operator.LogicalNot => "!",
             _ => "+"
@@ -589,7 +594,8 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
 
             case StringLiteralExp stringLit:
-                sequence.Add(new LoadInstruction("ldstr", $"\"{EscapeString(stringLit.Value)}\""));
+                // Pass through raw literal; emitter will handle unescaping and trimming quotes
+                sequence.Add(new LoadInstruction("ldstr", stringLit.Value ?? string.Empty));
                 break;
 
             case BooleanLiteralExp boolLit:
@@ -609,6 +615,101 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 
             case BinaryExp binaryExp:
                 DebugLog($"DEBUG: Processing BinaryExp with LHS: {binaryExp.LHS?.GetType().Name ?? "null"}, RHS: {binaryExp.RHS?.GetType().Name ?? "null"}, Operator: {binaryExp.Operator.ToString()}");
+                // Special handling for exponentiation
+                if (binaryExp.Operator == Operator.ArithmeticPow)
+                {
+                    // Constant fold for common int literal cases to keep stack types int32
+                    if (binaryExp.LHS is Int32LiteralExp li && binaryExp.RHS is Int32LiteralExp ri)
+                    {
+                        int baseVal = li.Value;
+                        int expVal = ri.Value;
+                        int res = 1;
+                        if (expVal < 0)
+                        {
+                            // Negative exponents yield 0 for int folding in our minimal semantics
+                            res = 0;
+                        }
+                        else
+                        {
+                            for (int i = 0; i < expVal; i++) res *= baseVal;
+                        }
+                        sequence.Add(new LoadInstruction("ldc.i4", res));
+                        break;
+                    }
+
+                    // General numeric case: promote both to double and call System.Math.Pow(double,double)
+                    var lhsSeq = binaryExp.LHS != null ? GenerateExpression(binaryExp.LHS).Instructions : new List<il_ast.CilInstruction>();
+                    var rhsSeq = binaryExp.RHS != null ? GenerateExpression(binaryExp.RHS).Instructions : new List<il_ast.CilInstruction>();
+                    var lt = binaryExp.LHS != null ? InferExpressionType(binaryExp.LHS) : null;
+                    var rt = binaryExp.RHS != null ? InferExpressionType(binaryExp.RHS) : null;
+
+                    string? TypeToToken(Type? t)
+                    {
+                        if (t == typeof(int)) return "System.Int32";
+                        if (t == typeof(float)) return "System.Single";
+                        if (t == typeof(double)) return "System.Double";
+                        if (t == typeof(long)) return "System.Int64";
+                        return null;
+                    }
+
+                    void MaybeConvertTopToDouble(Type? t)
+                    {
+                        if (t == typeof(double)) return;
+                        var tok = TypeToToken(t);
+                        if (tok == null) return;
+                        sequence.Add(new CallInstruction("call", $"extcall:Asm=System.Runtime;Ns=System;Type=Convert;Method=ToDouble;Params={tok};Return=System.Double") { ArgCount = 1 });
+                    }
+
+                    // Emit LHS then convert if needed
+                    foreach (var ins in lhsSeq) sequence.Add(ins);
+                    MaybeConvertTopToDouble(lt);
+                    // Emit RHS then convert if needed
+                    foreach (var ins in rhsSeq) sequence.Add(ins);
+                    MaybeConvertTopToDouble(rt);
+                    // Call Math.Pow(double,double)
+                    sequence.Add(new CallInstruction("call", "extcall:Asm=System.Runtime;Ns=System;Type=Math;Method=Pow;Params=System.Double,System.Double;Return=System.Double") { ArgCount = 2 });
+                    break;
+                }
+
+                // Short-circuit logical operations
+                if (binaryExp.Operator == Operator.LogicalAnd || binaryExp.Operator == Operator.LogicalOr)
+                {
+                    var endLabel = $"IL_end_{_labelCounter++}";
+                    var skipRhsLabel = $"IL_skip_{_labelCounter++}";
+                    // Emit LHS
+                    if (binaryExp.LHS != null)
+                    {
+                        sequence.AddRange(GenerateExpression(binaryExp.LHS).Instructions);
+                    }
+                    // Duplicate LHS for branching decision
+                    sequence.Add(new LoadInstruction("dup"));
+                    if (binaryExp.Operator == Operator.LogicalAnd)
+                    {
+                        // if lhs == 0, skip RHS and leave 0; else pop dup, eval RHS
+                        sequence.Add(new BranchInstruction("brfalse", skipRhsLabel));
+                        // consume duplicated lhs before evaluating rhs
+                        sequence.Add(new StackInstruction("pop"));
+                        if (binaryExp.RHS != null)
+                        {
+                            sequence.AddRange(GenerateExpression(binaryExp.RHS).Instructions);
+                        }
+                        sequence.Add(new LabelInstruction(skipRhsLabel));
+                    }
+                    else
+                    {
+                        // LogicalOr: if lhs != 0, skip RHS and keep 1; else pop dup and eval RHS
+                        sequence.Add(new BranchInstruction("brtrue", skipRhsLabel));
+                        // consume duplicated lhs before evaluating rhs
+                        sequence.Add(new StackInstruction("pop"));
+                        if (binaryExp.RHS != null)
+                        {
+                            sequence.AddRange(GenerateExpression(binaryExp.RHS).Instructions);
+                        }
+                        sequence.Add(new LabelInstruction(skipRhsLabel));
+                    }
+                    break;
+                }
+
                 // Emit operands safely; only emit operation when both sides are present
                 var leftPresent = binaryExp.LHS != null;
                 var rightPresent = binaryExp.RHS != null;
@@ -624,7 +725,19 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 
                 if (leftPresent && rightPresent)
                 {
-                    sequence.Add(new ArithmeticInstruction(GetBinaryOpCode(GetOperatorString(binaryExp.Operator))));
+                    // If this is string concatenation, emit a call to System.String.Concat(object, object)
+                    var isAdd = binaryExp.Operator == Operator.ArithmeticAdd;
+                    var lt = binaryExp.LHS != null ? InferExpressionType(binaryExp.LHS) : null;
+                    var rt = binaryExp.RHS != null ? InferExpressionType(binaryExp.RHS) : null;
+                    if (isAdd && (lt == typeof(string) || rt == typeof(string)))
+                    {
+                        // Use the System.String.Concat(string, string) overload to avoid boxing where possible
+                        sequence.Add(new CallInstruction("call", "extcall:Asm=System.Runtime;Ns=System;Type=String;Method=Concat;Params=System.String,System.String;Return=System.String") { ArgCount = 2 });
+                    }
+                    else
+                    {
+                        sequence.Add(new ArithmeticInstruction(GetBinaryOpCode(GetOperatorString(binaryExp.Operator))));
+                    }
                 }
                 break;
 
@@ -697,6 +810,22 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                         return $"{full}@{asm}";
                     }
                     var argCount = (extCall.InvocationArguments?.Count) ?? 0;
+                    // Special-case: std.print previously mapped to Console.WriteLine via linkage
+                    if (extType == typeof(System.Console) && string.Equals(mName, "WriteLine", StringComparison.Ordinal))
+                    {
+                        // Prefer WriteLine(string) overload for string arguments; fallback to object otherwise.
+                        var useString = false;
+                        if ((extCall.InvocationArguments?.Count ?? 0) == 1)
+                        {
+                            var t0 = InferExpressionType(extCall.InvocationArguments![0]);
+                            useString = t0 == typeof(string);
+                        }
+                        var sigPrint = useString
+                            ? "extcall:Asm=System.Console;Ns=System;Type=Console;Method=WriteLine;Params=System.String;Return=System.Void"
+                            : "extcall:Asm=System.Console;Ns=System;Type=Console;Method=WriteLine;Params=System.Object;Return=System.Void";
+                        sequence.Add(new CallInstruction("call", sigPrint) { ArgCount = argCount });
+                        break;
+                    }
                     var chosen = ResolveExternalMethod(extType, mName, extCall.InvocationArguments ?? new List<ast.Expression>());
                     if (chosen == null)
                     {
@@ -721,7 +850,9 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     returnToken = TypeToToken(chosen.ReturnType);
 
                     var paramList = string.Join(",", paramTokens);
-                    var sig = $"extcall:Asm=Fifth.System;Ns={extType.Namespace};Type={extType.Name};Method={mName};Params={paramList};Return={returnToken}";
+                    // Use declaring assembly name for accurate references
+                    var asmName = chosen.DeclaringType?.Assembly?.GetName()?.Name ?? (extType.Assembly?.GetName()?.Name ?? "Fifth.System");
+                    var sig = $"extcall:Asm={asmName};Ns={extType.Namespace};Type={extType.Name};Method={mName};Params={paramList};Return={returnToken}";
                     sequence.Add(new CallInstruction("call", sig) { ArgCount = argCount });
                     break;
                 }
@@ -1065,6 +1196,11 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 
     private int ComputeStackDelta(InstructionSequence seq)
     {
+        // Short-circuit logical expressions introduce branches; treat as single-value result
+        if (seq.Instructions.Any(i => i is il_ast.BranchInstruction))
+        {
+            return 1;
+        }
         int delta = 0;
         foreach (var ins in seq.Instructions)
         {
@@ -1077,6 +1213,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                         case "ldc.r4":
                         case "ldc.r8":
                         case "ldstr":
+                        case "ldnull":
                         case "ldloc":
                         case "ldarg":
                         case "dup":
@@ -1115,6 +1252,8 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                         case "cle":
                         case "cge":
                         case "and":
+                        case "or":
+                        case "xor":
                         case "ceq_neg":
                             delta -= 1; break;
                         // unary ops: net 0
@@ -1154,7 +1293,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                             // Simple parse: leading return token before space
                             rt = sig.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.ToLowerInvariant() ?? string.Empty;
                         }
-                        if (!string.IsNullOrEmpty(rt) && rt != "void")
+                        if (!string.IsNullOrEmpty(rt) && rt != "void" && rt != "system.void")
                         {
                             retPush = 1;
                         }
@@ -1230,6 +1369,9 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             "<=" => "cle",
             ">=" => "cge",
             "&&" => "and",
+            "|" => "or",
+            "||" => "or",
+            "xor" => "xor",
             _ => "add"
         };
     }
