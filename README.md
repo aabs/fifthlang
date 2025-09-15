@@ -10,15 +10,31 @@ A compiler and language tooling for the Fifth programming language.
 
 ## Quickstart
 ```fifth
-// Declare a default SPARQL store (canonical syntax)
-store default = sparql_store(<http://example.org/store>);
+alias x as <http://example.com/blah#>;
 
-main(): int {
-  // Statement-form graph block: lowers to SaveGraph(default, graph)
-  <{
-    <http://example.org/s> <http://example.org/p> "o";
-  }>;
-  return 0;
+// Declare a default SPARQL store (canonical syntax)
+home : store = sparql_store(<http://localhost:8080/graphdb>);
+
+class Person in <x:>
+{
+    dob : datetime ;
+    age : int ;
+}
+
+calculate_age(val : datetime): TimeSpan
+{
+    return datetime.Now() - val;
+}
+
+foo(a : int, n : string): void
+{
+    eric : Person = new Person();
+    ericKnowledge : graph in <x:people> = <{
+        d: datetime = datetime(1926, 5, 14);
+        eric.dob = d;
+        eric.age = calculate_age(d);
+    }>;
+    home += ericKnowledge;
 }
 ```
 
