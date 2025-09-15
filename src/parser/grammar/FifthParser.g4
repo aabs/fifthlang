@@ -6,7 +6,7 @@ options {
 }
 
 fifth:
-	module_import* alias* store_decl* (
+	module_import* alias* (store_decl | colon_store_decl)* (
 		functions += function_declaration
 		| classes += class_definition
 	)*;
@@ -77,7 +77,9 @@ statement:
 	| assignment_statement
 	| return_statement
 	| expression_statement
-	| declaration;
+	| declaration
+	| colon_store_decl
+	| colon_graph_decl;
 
 graph_assertion_statement: graphAssertionBlock SEMI;
 
@@ -232,8 +234,18 @@ graphDeclaration:
 	GRAPH name = IDENTIFIER (IN aliasScope = alias_scope_ref)? ASSIGN L_CURLY assignment_statement*
 		R_CURLY;
 
+// Colon form graph variable: g : graph in <scope?> = <{ ... }>;
+colon_graph_decl:
+	name = IDENTIFIER COLON GRAPH (
+		IN aliasScope = alias_scope_ref
+	)? ASSIGN graphAssertionBlock SEMI;
+
 // Prefer simple identifier first to avoid mispredicting IRI when both are viable
 alias_scope_ref: IDENTIFIER | iri;
 
 store_decl:
 	STORE store_name = (IDENTIFIER | DEFAULT) ASSIGN SPARQL L_PAREN iri R_PAREN SEMI;
+
+// Colon-form variant: name : store = sparql_store(<iri>);
+colon_store_decl:
+	store_name = IDENTIFIER COLON STORE ASSIGN SPARQL L_PAREN iri R_PAREN SEMI;

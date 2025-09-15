@@ -964,6 +964,18 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitGraphDeclaration([NotNull] FifthParser.GraphDeclarationContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.colon_graph_decl"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterColon_graph_decl([NotNull] FifthParser.Colon_graph_declContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.colon_graph_decl"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitColon_graph_decl([NotNull] FifthParser.Colon_graph_declContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.alias_scope_ref"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
@@ -987,6 +999,18 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitStore_decl([NotNull] FifthParser.Store_declContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.colon_store_decl"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterColon_store_decl([NotNull] FifthParser.Colon_store_declContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.colon_store_decl"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitColon_store_decl([NotNull] FifthParser.Colon_store_declContext context) { }
 
 	/// <inheritdoc/>
 	/// <remarks>The default implementation does nothing.</remarks>

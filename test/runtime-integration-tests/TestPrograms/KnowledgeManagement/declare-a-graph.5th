@@ -17,7 +17,7 @@ foo(a : int, n : string): void
 {
     eric : Person = new Person();
     ericKnowledge : graph in <x:people> = <{
-        d: datetime = new datetime(1926, 5, 14);
+        d: datetime = datetime(1926, 5, 14);
         eric.dob = d;
         eric.age = calculate_age(d);
     }>;

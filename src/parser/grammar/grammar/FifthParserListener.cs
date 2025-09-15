@@ -813,6 +813,16 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitGraphDeclaration([NotNull] FifthParser.GraphDeclarationContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.colon_graph_decl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterColon_graph_decl([NotNull] FifthParser.Colon_graph_declContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.colon_graph_decl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitColon_graph_decl([NotNull] FifthParser.Colon_graph_declContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.alias_scope_ref"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -832,4 +842,14 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitStore_decl([NotNull] FifthParser.Store_declContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.colon_store_decl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterColon_store_decl([NotNull] FifthParser.Colon_store_declContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.colon_store_decl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitColon_store_decl([NotNull] FifthParser.Colon_store_declContext context);
 }

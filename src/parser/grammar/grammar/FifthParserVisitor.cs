@@ -496,6 +496,12 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitGraphDeclaration([NotNull] FifthParser.GraphDeclarationContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.colon_graph_decl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitColon_graph_decl([NotNull] FifthParser.Colon_graph_declContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.alias_scope_ref"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -507,4 +513,10 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitStore_decl([NotNull] FifthParser.Store_declContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.colon_store_decl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitColon_store_decl([NotNull] FifthParser.Colon_store_declContext context);
 }

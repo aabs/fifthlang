@@ -14,6 +14,12 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 {
     public static readonly FifthType Void = new FifthType.TVoidType() { Name = TypeName.From("void") };
 
+    // Track function-scoped variable and parameter names to decide on '+=' desugaring
+    private readonly Stack<HashSet<string>> _functionLocals = new();
+    private HashSet<string>? CurrentFunctionLocals => _functionLocals.Count > 0 ? _functionLocals.Peek() : null;
+    private bool IsNameInCurrentFunctionScope(string? name)
+        => !string.IsNullOrEmpty(name) && CurrentFunctionLocals != null && CurrentFunctionLocals.Contains(name!);
+
     private static bool DebugEnabled =>
         (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("1", StringComparison.Ordinal) ||
         (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("true", StringComparison.OrdinalIgnoreCase) ||
@@ -91,12 +97,40 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         // Support '+=' sugar by desugaring to KG.SaveGraph(lvalue, rvalue)
         if (context.op != null && context.op.Type == FifthParser.PLUS_ASSIGN)
         {
-            // Create a MemberAccessExp representing KG.SaveGraph(...)
-            var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
+            // Prefer using an in-scope variable for the store if available; else fallback to KG.CreateStore()
+            var lhsExpr = (Expression)Visit(context.lvalue);
+
+            Expression storeArg;
+            if (lhsExpr is VarRefExp v && IsNameInCurrentFunctionScope(v.VarName))
+            {
+                storeArg = v;
+            }
+            else
+            {
+                var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
+                storeArg = new MemberAccessExp
+                {
+                    Annotations = [],
+                    LHS = kgVar,
+                    RHS = new FuncCallExp
+                    {
+                        FunctionDef = null,
+                        InvocationArguments = [],
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateStore" },
+                        Location = GetLocationDetails(context),
+                        Parent = null,
+                        Type = null
+                    },
+                    Location = GetLocationDetails(context),
+                    Type = Void
+                };
+            }
+
+            var kgVar2 = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
             var func = new FuncCallExp
             {
                 FunctionDef = null,
-                InvocationArguments = [(Expression)Visit(context.lvalue), (Expression)Visit(context.rvalue)],
+                InvocationArguments = [storeArg, (Expression)Visit(context.rvalue)],
                 Annotations = new Dictionary<string, object> { ["FunctionName"] = "SaveGraph" },
                 Location = GetLocationDetails(context),
                 Parent = null,
@@ -106,7 +140,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             var call = new MemberAccessExp
             {
                 Annotations = [],
-                LHS = kgVar,
+                LHS = kgVar2,
                 RHS = func,
                 Location = GetLocationDetails(context),
                 Type = Void
@@ -601,44 +635,64 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             module = module with { Annotations = new Dictionary<string, object>() };
         }
 
-        // Parse store declarations: STORE <name> = sparql_store(<iri>);
-        // Attach to module annotations for downstream phases
+        // Collect both legacy and colon-form store declarations; colon form is canonical.
         try
         {
-            var storeDecls = context.store_decl();
-            if (storeDecls != null && storeDecls.Length > 0)
-            {
-                var stores = new Dictionary<string, string>(StringComparer.Ordinal);
-                string defaultStore = null;
-                foreach (var s in storeDecls)
-                {
-                    var name = s.store_name?.Text ?? "";
-                    var uri = s.iri()?.GetText() ?? "";
-                    if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(uri))
-                    {
-                        stores[name] = uri;
-                        defaultStore ??= name; // First declared becomes default
-                    }
-                }
+            var stores = new Dictionary<string, string>(StringComparer.Ordinal);
+            string defaultStore = null;
 
-                if (stores.Count > 0)
+            // Legacy keyword-first form (will be phased out but still parsed if present)
+            foreach (var s in context.store_decl())
+            {
+                var name = s.store_name?.Text ?? string.Empty;
+                var uri = s.iri()?.GetText() ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(uri))
                 {
-                    module.Annotations["GraphStores"] = stores;
-                    if (defaultStore == null)
-                    {
-                        foreach (var k in stores.Keys)
-                        {
-                            defaultStore = k;
-                            break;
-                        }
-                    }
-                    module.Annotations["DefaultGraphStore"] = defaultStore;
+                    stores[name] = uri;
+                    defaultStore ??= name;
                 }
             }
+
+            // Colon form: IDENTIFIER ':' STORE '=' SPARQL '(' iri ')' ';'
+            foreach (var s in context.colon_store_decl())
+            {
+                var name = s.store_name?.Text ?? string.Empty;
+                var uri = s.iri()?.GetText() ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(uri))
+                {
+                    stores[name] = uri; // overrides legacy if duplicated
+                    defaultStore ??= name;
+                }
+            }
+
+            if (stores.Count > 0)
+            {
+                module.Annotations["GraphStores"] = stores;
+                module.Annotations["DefaultGraphStore"] = defaultStore ?? string.Empty;
+            }
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Console.Error.WriteLine($"DEBUG: Failed to capture store declarations: {ex.Message}");
+        }
+
+        // Collect colon-form graph declarations by scanning function bodies (coarse approach for now)
+        try
+        {
+            var graphs = new List<Dictionary<string, string>>();
+            foreach (var funcCtx in context.function_declaration())
+            {
+                // Walk statements in function bodies after they are built (handled earlier)
+                // This simple pass is deferred to later transformation phases; here we only reserve annotation.
+            }
+            if (graphs.Count > 0)
+            {
+                module.Annotations["GraphDeclarations"] = graphs;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"DEBUG: Failed (non-fatal) to collect graph declarations: {ex.Message}");
         }
 
         b.AddingItemToModules(module);
@@ -649,6 +703,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitFunction_declaration(FifthParser.Function_declarationContext context)
     {
+        // Begin tracking function-scoped names
+        _functionLocals.Push(new HashSet<string>(StringComparer.Ordinal));
         var returnType = ResolveTypeFromName(context.result_type.GetText());
 
         var b = new FunctionDefBuilder();
@@ -664,6 +720,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         }
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        // End tracking
+        _functionLocals.Pop();
         return result;
     }
 
@@ -914,6 +972,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 .WithName(context.var_name().GetText())
                 .WithTypeName(TypeName.From(context.type_name().GetText()))
             ;
+        // Record parameter name in current function scope set
+        CurrentFunctionLocals?.Add(context.var_name().GetText());
         if (context.destructuring_decl() is not null)
         {
             var destructuringDef = VisitDestructuring_decl(context.destructuring_decl());
@@ -965,6 +1025,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var b = new VariableDeclBuilder()
             .WithAnnotations([]);
         b.WithName(context.var_name().GetText());
+        // Record variable declaration name in current function scope set
+        CurrentFunctionLocals?.Add(context.var_name().GetText());
 
         if (context.type_name() is not null)
         {
@@ -1006,6 +1068,92 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         }
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
+    }
+
+    public override IAstThing VisitColon_store_decl(FifthParser.Colon_store_declContext context)
+    {
+        var name = context.store_name?.Text ?? string.Empty;
+        // Build call: KG.CreateStore() (prefer well-tested local store path)
+        var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
+        var func = new FuncCallExp
+        {
+            FunctionDef = null,
+            InvocationArguments = [],
+            Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateStore" },
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = null
+        };
+        var call = new MemberAccessExp
+        {
+            Annotations = [],
+            LHS = kgVar,
+            RHS = func,
+            Location = GetLocationDetails(context),
+            Type = Void
+        };
+
+        var varDecl = new VariableDecl
+        {
+            Annotations = [],
+            CollectionType = CollectionType.SingleInstance,
+            Name = name,
+            Visibility = Visibility.Public,
+            TypeName = TypeName.From("IUpdateableStorage")
+        };
+
+        return new VarDeclStatement
+        {
+            Annotations = new Dictionary<string, object> { ["Kind"] = "StoreDecl" },
+            VariableDecl = varDecl,
+            InitialValue = call,
+            Location = GetLocationDetails(context),
+            Type = Void
+        };
+    }
+
+    public override IAstThing VisitColon_graph_decl(FifthParser.Colon_graph_declContext context)
+    {
+        var name = context.name?.Text ?? string.Empty;
+
+        // For now we ignore inline assertions and just create an empty graph via KG.CreateGraph().
+        // TODO: Lower the graphAssertionBlock contents into imperative assertions after creation.
+        var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
+        var func = new FuncCallExp
+        {
+            FunctionDef = null,
+            InvocationArguments = [],
+            Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateGraph" },
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = null
+        };
+        var call = new MemberAccessExp
+        {
+            Annotations = [],
+            LHS = kgVar,
+            RHS = func,
+            Location = GetLocationDetails(context),
+            Type = Void
+        };
+
+        var varDecl = new VariableDecl
+        {
+            Annotations = [],
+            CollectionType = CollectionType.SingleInstance,
+            Name = name,
+            Visibility = Visibility.Public,
+            TypeName = TypeName.From("IGraph")
+        };
+
+        return new VarDeclStatement
+        {
+            Annotations = new Dictionary<string, object> { ["Kind"] = "GraphDecl" },
+            VariableDecl = varDecl,
+            InitialValue = call,
+            Location = GetLocationDetails(context),
+            Type = Void
+        };
     }
 
     public override IAstThing VisitVar_name(FifthParser.Var_nameContext context)
