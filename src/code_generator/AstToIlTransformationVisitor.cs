@@ -179,11 +179,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             .Select(mi => new { mi, ps = mi.GetParameters() })
             .Where(x => x.ps.Length == argCount || (x.ps.Length > argCount && x.ps.Skip(argCount).All(p => p.IsOptional || p.HasDefaultValue)))
             .ToList();
-
         if (candidates.Count == 0)
         {
-            // As a fallback, allow any method with name
-            return methods.FirstOrDefault();
+            // No arity-compatible methods
+            return null;
         }
 
         // Score candidates by type compatibility of provided arguments
@@ -200,7 +199,29 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         .ThenBy(s => s.isGeneric) // prefer non-generic over generic
         .ToList();
 
-        return scored.First().mi;
+        // If no arguments supplied, any arity-compatible (zero-param) candidate is acceptable
+        if (argCount == 0 && scored.Count > 0)
+        {
+            return scored[0].mi;
+        }
+
+        // Reject if best score indicates incompatible arguments for supplied args
+        if (scored.Count == 0 || scored[0].score <= 0)
+        {
+            return null;
+        }
+
+        // Additionally ensure each supplied argument is compatible
+        var best = scored[0];
+        for (int i = 0; i < Math.Min(argCount, best.ps.Length); i++)
+        {
+            if (CompatibilityScore(inferred[i], best.ps[i].ParameterType) <= 0)
+            {
+                return null;
+            }
+        }
+
+        return best.mi;
     }
 
     private void InitializeBuiltinTypes()
@@ -396,7 +417,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         var ilMethod = new MethodDefinition
         {
             Name = astFunction.Name.Value ?? "UnnamedMethod",
-            ParentClass = _currentClass,
+            ParentClass = _currentClass!,
             TypeOfMember = MemberType.Method,
             Visibility = MemberAccessability.Public,
             IsStatic = _currentClass == null || astFunction.IsStatic,
@@ -671,24 +692,27 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                     }
                     var argCount = (extCall.InvocationArguments?.Count) ?? 0;
                     var chosen = ResolveExternalMethod(extType, mName, extCall.InvocationArguments ?? new List<ast.Expression>());
+                    if (chosen == null)
+                    {
+                        // Construct a helpful error message with inferred arg types
+                        var inferredTypes = new List<string>();
+                        for (int i = 0; i < argCount; i++)
+                        {
+                            var t = InferExpressionType(extCall.InvocationArguments![i]);
+                            inferredTypes.Add(t?.FullName ?? "<unknown>");
+                        }
+                        var inferredSig = string.Join(", ", inferredTypes);
+                        throw new ast_model.CompilationException($"No matching overload found for {extType.FullName}.{mName}({inferredSig})");
+                    }
                     var paramTokens = new List<string>();
                     var returnToken = "System.Object";
-                    if (chosen != null)
+                    var psChosen = chosen.GetParameters();
+                    // Only emit tokens for actually supplied arguments to keep signature consistent
+                    for (int i = 0; i < Math.Min(argCount, psChosen.Length); i++)
                     {
-                        var ps = chosen.GetParameters();
-                        // Only emit tokens for actually supplied arguments to keep signature consistent
-                        for (int i = 0; i < Math.Min(argCount, ps.Length); i++)
-                        {
-                            paramTokens.Add(TypeToToken(ps[i].ParameterType));
-                        }
-                        returnToken = TypeToToken(chosen.ReturnType);
+                        paramTokens.Add(TypeToToken(psChosen[i].ParameterType));
                     }
-                    else
-                    {
-                        // Fallback: assume object params and object return to keep stack valid
-                        paramTokens = Enumerable.Repeat("System.Object", argCount).ToList();
-                        returnToken = "System.Object";
-                    }
+                    returnToken = TypeToToken(chosen.ReturnType);
 
                     var paramList = string.Join(",", paramTokens);
                     var sig = $"extcall:Asm=Fifth.System;Ns={extType.Namespace};Type={extType.Name};Method={mName};Params={paramList};Return={returnToken}";

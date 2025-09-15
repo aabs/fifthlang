@@ -88,6 +88,54 @@ public static class KG
     }
 
     /// <summary>
+    /// Creates a typed literal node for a 32-bit integer value.
+    /// </summary>
+    /// <param name="g">the graph to which the literal node belongs.</param>
+    /// <param name="value">the integer value.</param>
+    /// <returns>a typed literal node with xsd:int datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteral(this IGraph g, int value)
+    {
+        return g.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#int"));
+    }
+
+    /// <summary>
+    /// Creates a typed literal node for a 64-bit floating point value.
+    /// </summary>
+    /// <param name="g">the graph to which the literal node belongs.</param>
+    /// <param name="value">the double value.</param>
+    /// <returns>a typed literal node with xsd:double datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteral(this IGraph g, double value)
+    {
+        return g.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#double"));
+    }
+
+    /// <summary>
+    /// Creates a typed literal node for a 32-bit floating point value.
+    /// </summary>
+    /// <param name="g">the graph to which the literal node belongs.</param>
+    /// <param name="value">the float value.</param>
+    /// <returns>a typed literal node with xsd:float datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteral(this IGraph g, float value)
+    {
+        return g.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#float"));
+    }
+
+    /// <summary>
+    /// Creates a typed literal node for a boolean value.
+    /// </summary>
+    /// <param name="g">the graph to which the literal node belongs.</param>
+    /// <param name="value">the boolean value.</param>
+    /// <returns>a typed literal node with xsd:boolean datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteral(this IGraph g, bool value)
+    {
+        return g.CreateLiteralNode(value ? "true" : "false", UriFactory.Create("http://www.w3.org/2001/XMLSchema#boolean"));
+    }
+
+    /// <summary>
     /// Creates a triple with the given subject, predicate, and object nodes.
     /// </summary>
     /// <param name="subj">The subject node of the triple.</param>
@@ -138,24 +186,31 @@ public static class KG
     }
 
     /// <summary>
-    /// Saves the given graph to the specified store, optionally under a specific graph URI, and returns the store for chaining.
+    /// Saves the given graph to the specified store and returns the store for chaining.
     /// </summary>
     /// <param name="store">the store to which the graph will be saved.</param>
     /// <param name="g">the graph to save.</param>
-    /// <param name="graphUri">the URI of the graph (optional).</param>
     /// <returns>the updated store.</returns>
     [BuiltinFunction]
-    public static IUpdateableStorage SaveGraph(this IUpdateableStorage store, IGraph g, Uri? graphUri = null)
+    public static IStorageProvider SaveGraph(this IStorageProvider store, IGraph g)
     {
-        if (graphUri == null)
-        {
-            store.SaveGraph(g);
-        }
-        else
-        {
-            var x = new Graph(graphUri, g.Triples);
-            store.SaveGraph(x);
-        }
+        store.SaveGraph(g);
+        return store;
+    }
+
+    /// <summary>
+    /// Saves the given graph to the specified store, under a specific graph URI, and returns the store for chaining.
+    /// </summary>
+    /// <param name="store">the store to which the graph will be saved.</param>
+    /// <param name="g">the graph to save.</param>
+    /// <param name="graphUri">the URI of the graph as a string.</param>
+    /// <returns>the updated store.</returns>
+    [BuiltinFunction]
+    public static IStorageProvider SaveGraph(this IStorageProvider store, IGraph g, string graphUri)
+    {
+        var uri = new Uri(graphUri);
+        var x = new Graph(uri, g.Triples);
+        store.SaveGraph(x);
         return store;
     }
 }

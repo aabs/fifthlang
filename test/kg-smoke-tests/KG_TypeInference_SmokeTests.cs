@@ -12,7 +12,7 @@ public class KG_TypeInference_SmokeTests
     {
         var src = """
             main(): int {
-                KG.CreateLiteral(1 + 2.0);
+                KG.CreateLiteral(KG.CreateGraph(), 1 + 2.0);
                 return 0;
             }
             """;
@@ -40,7 +40,7 @@ public class KG_TypeInference_SmokeTests
     {
         var src = """
             main(): int {
-                KG.CreateLiteral("abc" + 123);
+                KG.CreateLiteral(KG.CreateGraph(), "abc" + 123);
                 return 0;
             }
             """;
@@ -68,7 +68,7 @@ public class KG_TypeInference_SmokeTests
     {
         var src = """
             foo(x: int): int {
-                KG.CreateLiteral(x);
+                KG.CreateLiteral(KG.CreateGraph(), x);
                 return 0;
             }
             main(): int { return foo(42); }
@@ -97,7 +97,7 @@ public class KG_TypeInference_SmokeTests
     {
         var src = """
             main(): int {
-                KG.CreateLiteral(1 + 2.0 + 3);
+                KG.CreateLiteral(KG.CreateGraph(), 1 + 2.0 + 3);
                 return 0;
             }
             """;
@@ -125,7 +125,7 @@ public class KG_TypeInference_SmokeTests
     {
         var src = """
             main(): int {
-                KG.CreateLiteral(-(1.5));
+                KG.CreateLiteral(KG.CreateGraph(), -(1.5));
                 return 0;
             }
             """;
@@ -153,7 +153,7 @@ public class KG_TypeInference_SmokeTests
     {
         var src = """
             main(): int {
-                KG.CreateLiteral("a" + 1 + "b");
+                KG.CreateLiteral(KG.CreateGraph(), "a" + 1 + "b");
                 return 0;
             }
             """;
@@ -181,7 +181,7 @@ public class KG_TypeInference_SmokeTests
     {
         var src = """
             main(): int {
-                KG.CreateLiteral(1 == 1);
+                KG.CreateLiteral(KG.CreateGraph(), 1 == 1);
                 return 0;
             }
             """;
@@ -237,7 +237,7 @@ public class KG_TypeInference_SmokeTests
     {
         var src = """
             foo(x: float): int {
-                KG.CreateLiteral(x + 1);
+                KG.CreateLiteral(KG.CreateGraph(), x + 1);
                 return 0;
             }
             main(): int { return foo(1.25); }
@@ -266,7 +266,7 @@ public class KG_TypeInference_SmokeTests
     {
         var src = """
             foo(x: string): int {
-                KG.CreateLiteral("a" + x);
+                KG.CreateLiteral(KG.CreateGraph(), "a" + x);
                 return 0;
             }
             main(): int { return foo("b"); }
@@ -295,7 +295,7 @@ public class KG_TypeInference_SmokeTests
     {
         var src = """
             bar(x: int): int {
-                KG.CreateLiteral(x);
+                KG.CreateLiteral(KG.CreateGraph(), x);
                 return 0;
             }
             foo(y: int): int {
