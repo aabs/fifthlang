@@ -37,9 +37,11 @@ checks:
 
 files_to_watch:
   - src/ast-model/AstMetamodel.cs
+  - src/ast-model/ILMetamodel.cs
   - src/ast_generator/Templates/**
   - src/ast-generated/**
-  - src/parser/grammar/Fifth.g4
+  - src/parser/grammar/FifthLexer.g4
+  - src/parser/grammar/FifthParser.g4
   - global.json
   - AGENTS.md
   - .github/copilot-instructions.md

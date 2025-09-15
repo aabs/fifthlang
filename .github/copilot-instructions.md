@@ -43,13 +43,13 @@ src/
 ├── ast-generated/      # Auto-generated AST builders and visitors  
 ├── ast_generator/      # Code generator that creates AST infrastructure
 ├── code_generator/     # IL code generator and emission pipeline
-├── parser/             # ANTLR-based parser with Fifth.g4 grammar
+├── parser/             # ANTLR-based parser with split grammar
 ├── compiler/           # Main compiler with language transformations
 └── fifthlang.system/   # Built-in system functions
 
 test/
-└── ast-tests/          # XUnit tests with .5th code samples
-└── runtime-integration-tests/          # XUnit tests for end to end verification
+└── ast-tests/          # TUnit tests with .5th code samples
+└── runtime-integration-tests/          # TUnit tests for end-to-end verification
 ```
 
 ## Validation
@@ -105,11 +105,11 @@ dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-
 ### Parser Development
 When working with grammar files:
 ```bash
-# Grammar files location: src/parser/grammar/Fifth.g4
+# Grammar files location: src/parser/grammar/FifthLexer.g4 and FifthParser.g4
 # ANTLR compilation happens automatically during build
 # Manual ANTLR generation (if needed):
 cd src/parser/grammar
-java -jar ../tools/antlr-4.8-complete.jar -Dlanguage=CSharp -visitor -listener -o grammar -lib . Fifth.g4
+java -jar ../tools/antlr-4.8-complete.jar -Dlanguage=CSharp -visitor -listener -o grammar -lib . FifthParser.g4
 ```
 
 ### Working with Fifth Language Files
@@ -126,6 +126,20 @@ class Person {
 
 main() => myprint(5 + 6);
 myprint(int x) => std.print(x);
+```
+
+Knowledge Graphs quickstart:
+```fifth
+// Canonical store declaration (default store)
+store default = sparql_store(<http://example.org/store>);
+
+main(): int {
+   // Statement-form graph block saves to the default store
+   <{
+      <http://example.org/s> <http://example.org/p> 42;
+   }>;
+   return 0;
+}
 ```
 
 ## Dependencies and Requirements

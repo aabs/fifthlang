@@ -408,6 +408,7 @@ public record CallInstruction : CilInstruction
     private readonly string _opcode = "";
     public override string Opcode => _opcode;
     public string? MethodSignature { get; init; }
+    public int ArgCount { get; init; }
 }
 
 /// <summary>
@@ -454,12 +455,12 @@ public record LabelInstruction : CilInstruction
 public record InstructionSequence : AstThing
 {
     public List<CilInstruction> Instructions { get; set; } = new();
-    
+
     public void Add(CilInstruction instruction)
     {
         Instructions.Add(instruction);
     }
-    
+
     public void AddRange(IEnumerable<CilInstruction> instructions)
     {
         Instructions.AddRange(instructions);

@@ -11,6 +11,8 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
     {
         WrapType(typeof(Fifth.System.IO));
         WrapType(typeof(Fifth.System.Math));
+        // Register knowledge graph helpers so lowering/codegen can reference them later
+        WrapType(typeof(Fifth.System.KG));
 
         // ctx.Functions.Add(new BuiltinFunctionDefinition("print", "void", ("format", "string"),
         // ("value", "string"))); ctx.Functions.Add(new BuiltinFunctionDefinition("print", "void",
@@ -112,6 +114,10 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
         //{
         //    builder.AddingItemToMemberDefs(fd);
         //}
-        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(t) { Name = TypeName.From(t.FullName) });
+        // Register both full name and short name to allow simple qualifiers like 'KG'
+        var full = new FifthType.TDotnetType(t) { Name = TypeName.From(t.FullName) };
+        TypeRegistry.DefaultRegistry.Register(full);
+        var shortName = new FifthType.TDotnetType(t) { Name = TypeName.From(t.Name) };
+        TypeRegistry.DefaultRegistry.Register(shortName);
     }
 }

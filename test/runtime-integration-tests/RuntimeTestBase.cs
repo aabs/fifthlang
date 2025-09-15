@@ -71,7 +71,7 @@ public abstract class RuntimeTestBase : IDisposable
     protected async Task<string> CompileFileAsync(string sourceFilePath, string? outputFileName = null)
     {
         File.Exists(sourceFilePath).Should().BeTrue($"Source file should exist: {sourceFilePath}");
-        
+
         outputFileName ??= Path.GetFileNameWithoutExtension(sourceFilePath);
         var outputFile = Path.Combine(TempDirectory, $"{outputFileName}.exe");
         GeneratedFiles.Add(outputFile);
@@ -114,11 +114,11 @@ public abstract class RuntimeTestBase : IDisposable
             }
         };
 
-        var json = System.Text.Json.JsonSerializer.Serialize(runtimeConfig, new System.Text.Json.JsonSerializerOptions 
-        { 
-            WriteIndented = true 
+        var json = System.Text.Json.JsonSerializer.Serialize(runtimeConfig, new System.Text.Json.JsonSerializerOptions
+        {
+            WriteIndented = true
         });
-        
+
         await File.WriteAllTextAsync(runtimeConfigPath, json);
         GeneratedFiles.Add(runtimeConfigPath);
     }
@@ -135,15 +135,51 @@ public abstract class RuntimeTestBase : IDisposable
     {
         File.Exists(executablePath).Should().BeTrue($"Executable should exist: {executablePath}");
 
+        // Prepare deps/probing so runtime can resolve Fifth.System and transitive packages
+        static string FindRepoRoot()
+        {
+            var dir = Directory.GetCurrentDirectory();
+            while (!string.IsNullOrEmpty(dir))
+            {
+                if (File.Exists(Path.Combine(dir, "fifthlang.sln"))) return dir;
+                dir = Directory.GetParent(dir)?.FullName ?? string.Empty;
+            }
+            return Directory.GetCurrentDirectory();
+        }
+
+        var exeDir = Path.GetDirectoryName(executablePath)!;
+        var runtimeConfigPath = Path.ChangeExtension(executablePath, "runtimeconfig.json");
+        var repoRoot = FindRepoRoot();
+        var compilerAsm = typeof(Compiler).Assembly.Location;
+        var tfmDir = Path.GetDirectoryName(compilerAsm)!; // .../net8.0
+        var configDir = Path.GetDirectoryName(tfmDir)!;    // .../Debug
+        var tfm = Path.GetFileName(tfmDir);
+        var config = Path.GetFileName(configDir);
+        var systemBin = Path.Combine(repoRoot, "src", "fifthlang.system", "bin", config, tfm);
+        if (Directory.Exists(systemBin))
+        {
+            foreach (var dll in Directory.EnumerateFiles(systemBin, "*.dll"))
+            {
+                var dest = Path.Combine(exeDir, Path.GetFileName(dll));
+                try { File.Copy(dll, dest, overwrite: true); } catch { /* ignore */ }
+            }
+        }
+
+        var systemDeps = Path.Combine(systemBin, "Fifth.System.deps.json");
+        var nugetCache = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+
         var startInfo = new ProcessStartInfo
         {
-            FileName = GetExecutableCommand(executablePath),
-            Arguments = GetExecutableArguments(executablePath, arguments),
+            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet" : "dotnet",
+            Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? $"exec --depsfile \"{systemDeps}\" --runtimeconfig \"{runtimeConfigPath}\" --additionalprobingpath \"{nugetCache}\" \"{executablePath}\" {arguments ?? string.Empty}".Trim()
+                : $"exec --depsfile \"{systemDeps}\" --runtimeconfig \"{runtimeConfigPath}\" --additionalprobingpath \"{nugetCache}\" \"{executablePath}\" {arguments ?? string.Empty}".Trim(),
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             RedirectStandardInput = input != null,
             UseShellExecute = false,
-            CreateNoWindow = true
+            CreateNoWindow = true,
+            WorkingDirectory = exeDir
         };
 
         using var process = new Process { StartInfo = startInfo };

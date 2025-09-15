@@ -6,7 +6,7 @@ options {
 }
 
 fifth:
-	module_import* alias* store_decl* (
+	module_import* alias* (colon_store_decl)* (
 		functions += function_declaration
 		| classes += class_definition
 	)*;
@@ -50,7 +50,7 @@ destructure_binding:
 // ========[TYPE DEFINITIONS]=========
 class_definition:
 	CLASS name = IDENTIFIER (EXTENDS superClass = type_name)? (
-		IN aliasScope = iri
+		IN aliasScope = alias_scope_ref
 	)? L_CURLY (
 		functions += function_declaration
 		| properties += property_declaration
@@ -64,20 +64,27 @@ type_name: IDENTIFIER;
 // ========[STATEMENTS]=========
 block: L_CURLY statement* R_CURLY;
 
+graphAssertionBlock: L_GRAPH statement* R_GRAPH;
+
 declaration: decl = var_decl (ASSIGN init = expression)? SEMI;
 
 statement:
 	block
+	| graph_assertion_statement
 	| if_statement
 	| while_statement
 	| with_statement // #stmt_with // this is not useful as is
 	| assignment_statement
 	| return_statement
 	| expression_statement
-	| declaration;
+	| declaration
+	| colon_store_decl
+	| colon_graph_decl;
+
+graph_assertion_statement: graphAssertionBlock SEMI;
 
 assignment_statement:
-	lvalue = expression ASSIGN rvalue = expression SEMI;
+	lvalue = expression (op = ASSIGN | op = PLUS_ASSIGN) rvalue = expression SEMI;
 
 expression_statement: expression? SEMI;
 
@@ -93,9 +100,11 @@ with_statement: WITH expression statement;
 
 var_decl:
 	var_name COLON (
-		type_name
-		| list_type_signature
+		// Order matters: try more specific signatures before plain identifiers
+		list_type_signature
 		| array_type_signature
+		| generic_type_signature
+		| type_name
 	);
 
 var_name: IDENTIFIER;
@@ -116,6 +125,10 @@ list_type_signature: L_BRACKET type_name R_BRACKET;
 
 array_type_signature:
 	type_name L_BRACKET (size = operand)? R_BRACKET;
+
+// ========[GENERIC TYPES]========= Supports syntax like: items: list<int>
+generic_type_signature:
+	generic_name = IDENTIFIER '<' inner = type_name '>';
 
 // ========[EXPRESSIONS]=========
 
@@ -155,7 +168,8 @@ expression:
 		| MINUS_MINUS
 	) expression										# exp_unary
 	| expression unary_op = (PLUS_PLUS | MINUS_MINUS)	# exp_unary_postfix
-	| operand											# exp_operand;
+	| operand											# exp_operand
+	| graphAssertionBlock								# exp_operand;
 
 function_call_expression:
 	un = function_name L_PAREN expressionList? R_PAREN;
@@ -165,6 +179,7 @@ operand:
 	| list
 	| var_name
 	| L_PAREN expression R_PAREN
+	| graphAssertionBlock
 	| object_instantiation_expression;
 
 object_instantiation_expression:
@@ -213,13 +228,21 @@ operandName: IDENTIFIER;
 qualifiedIdent: IDENTIFIER DOT IDENTIFIER;
 
 // =====[KNOWLEDGE MANAGEMENT]=========
-iri
-    : IRIREF
-    ;
+iri: IRIREF;
 
 graphDeclaration:
-	GRAPH name = IDENTIFIER (IN aliasScope = iri)? ASSIGN L_CURLY assignment_statement*
+	GRAPH name = IDENTIFIER (IN aliasScope = alias_scope_ref)? ASSIGN L_CURLY assignment_statement*
 		R_CURLY;
 
-store_decl:
-	STORE store_name = IDENTIFIER ASSIGN SPARQL L_PAREN iri R_PAREN SEMI;
+// Colon form graph variable: g : graph in <scope?> = <{ ... }>;
+colon_graph_decl:
+	name = IDENTIFIER COLON GRAPH (
+		IN aliasScope = alias_scope_ref
+	)? ASSIGN graphAssertionBlock SEMI;
+
+// Prefer simple identifier first to avoid mispredicting IRI when both are viable
+alias_scope_ref: IDENTIFIER | iri;
+
+// Colon-form variant: name : store = sparql_store(<iri>);
+colon_store_decl:
+	store_name = IDENTIFIER COLON STORE ASSIGN SPARQL L_PAREN iri R_PAREN SEMI;

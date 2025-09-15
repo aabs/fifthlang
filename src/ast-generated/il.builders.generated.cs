@@ -208,15 +208,22 @@ public class BranchInstructionBuilder : IBuilder<il_ast.BranchInstruction>
 public class CallInstructionBuilder : IBuilder<il_ast.CallInstruction>
 {
     private System.String _MethodSignature;
+    private System.Int32 _ArgCount;
     
     public il_ast.CallInstruction Build()
     {
         return new il_ast.CallInstruction(){
              MethodSignature = this._MethodSignature // from CallInstruction
+           , ArgCount = this._ArgCount // from CallInstruction
         };
     }
     public CallInstructionBuilder WithMethodSignature(System.String value){
         _MethodSignature = value;
+        return this;
+    }
+
+    public CallInstructionBuilder WithArgCount(System.Int32 value){
+        _ArgCount = value;
         return this;
     }
 

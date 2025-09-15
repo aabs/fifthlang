@@ -16,9 +16,9 @@ public class IRITests
     {
         // Arrange
         var input = "<http://example.org/Person>";
-        
+
         // Act & Assert
-        ParserTestUtils.AssertNoErrors(input, p => p.iri(), 
+        ParserTestUtils.AssertNoErrors(input, p => p.iri(),
             "Angle-bracketed IRI should parse successfully");
     }
 
@@ -27,9 +27,9 @@ public class IRITests
     {
         // Arrange
         var input = "alias p as <x:Person>;";
-        
+
         // Act & Assert
-        ParserTestUtils.AssertNoErrors(input, p => p.alias(), 
+        ParserTestUtils.AssertNoErrors(input, p => p.alias(),
             "Alias with angle-bracketed IRI should parse successfully");
     }
 
@@ -43,9 +43,9 @@ public class IRITests
                 Height: float; 
             }
             """;
-        
+
         // Act & Assert
-        ParserTestUtils.AssertNoErrors(input, p => p.class_definition(), 
+        ParserTestUtils.AssertNoErrors(input, p => p.class_definition(),
             "Class with property declarations should parse successfully");
     }
 
@@ -54,7 +54,7 @@ public class IRITests
     {
         // Arrange
         var input = "Name: string; Height: float;";
-        
+
         // Act & Assert
         ParserTestUtils.AssertDoesNotContainTokens(input, "PrefixedName", "PNAME_NS", "PNAME_LN");
         ParserTestUtils.AssertContainsTokens(input, "IDENTIFIER", "COLON");
@@ -65,21 +65,21 @@ public class IRITests
     {
         // Arrange
         var input = "graph G in <http://example.org/Person> = { };";
-        
+
         // Act & Assert
-        ParserTestUtils.AssertNoErrors(input, p => p.graphDeclaration(), 
+        ParserTestUtils.AssertNoErrors(input, p => p.graphDeclaration(),
             "Graph declaration with angle-bracketed IRI should parse successfully");
     }
 
     [Test]
-    public void StoreDeclaration_WithAngleBracketedIri_ShouldParse()
+    public void ColonStoreDeclaration_WithAngleBracketedIri_ShouldParse()
     {
         // Arrange
-        var input = "store S = sparql_store(<http://example.org/>);";
-        
+        var input = "S: store = sparql_store(<http://example.org/>);";
+
         // Act & Assert
-        ParserTestUtils.AssertNoErrors(input, p => p.store_decl(), 
-            "Store declaration with angle-bracketed IRI should parse successfully");
+        ParserTestUtils.AssertNoErrors(input, p => p.colon_store_decl(),
+            "Colon-form store declaration with angle-bracketed IRI should parse successfully");
     }
 
     [Test]
@@ -87,9 +87,9 @@ public class IRITests
     {
         // Arrange - This should fail because x:Person is not in angle brackets
         var input = "alias p as x:Person;";
-        
+
         // Act & Assert
-        ParserTestUtils.AssertHasErrors(input, p => p.alias(), 
+        ParserTestUtils.AssertHasErrors(input, p => p.alias(),
             "Alias with unbracketed prefixed name should fail parsing");
     }
 
@@ -98,11 +98,11 @@ public class IRITests
     {
         // Arrange - This should tokenize as separate IDENTIFIER, LESS, IDENTIFIER tokens
         var input = "a < b";
-        
+
         // Act
         var tokenInfo = ParserTestUtils.GetTokenInfo(input);
         var tokenNames = tokenInfo.Select(t => t.typeName).ToList();
-        
+
         // Assert
         tokenNames.Should().Contain("IDENTIFIER");
         tokenNames.Should().Contain("LESS");
@@ -114,7 +114,7 @@ public class IRITests
     {
         // Arrange
         var input = "<-";
-        
+
         // Act & Assert
         ParserTestUtils.AssertContainsTokens(input, "GEN");
         ParserTestUtils.AssertDoesNotContainTokens(input, "IRIREF");
@@ -125,7 +125,7 @@ public class IRITests
     {
         // Arrange
         var input = "<>";
-        
+
         // Act & Assert
         ParserTestUtils.AssertContainsTokens(input, "CONCAT");
         ParserTestUtils.AssertDoesNotContainTokens(input, "IRIREF");
@@ -136,7 +136,7 @@ public class IRITests
     {
         // Arrange
         var input = "<{";
-        
+
         // Act & Assert
         ParserTestUtils.AssertContainsTokens(input, "L_GRAPH");
         ParserTestUtils.AssertDoesNotContainTokens(input, "IRIREF");
@@ -147,11 +147,11 @@ public class IRITests
     {
         // Arrange - Empty angle brackets should tokenize as LESS + GREATER, not IRIREF
         var input = "<>";
-        
+
         // Act
         var tokenInfo = ParserTestUtils.GetTokenInfo(input);
         var tokenNames = tokenInfo.Select(t => t.typeName).ToList();
-        
+
         // Assert - Should be CONCAT, not IRIREF
         tokenNames.Should().Contain("CONCAT");
         tokenNames.Should().NotContain("IRIREF", "Empty angle brackets should be CONCAT token, not IRIREF");
@@ -162,7 +162,7 @@ public class IRITests
     {
         // Arrange
         var input = "<http://example.org>";
-        
+
         // Act & Assert
         ParserTestUtils.AssertContainsTokens(input, "IRIREF");
     }
@@ -177,7 +177,7 @@ public class IRITests
                 Age: int;
             }
             """;
-        
+
         // Act & Assert
         ParserTestUtils.AssertNoErrors(input, p => p.class_definition(),
             "Class with both IRI and property declarations should parse correctly");
@@ -195,11 +195,11 @@ public class IRITests
                 owl: string;
             }
             """;
-        
+
         // Act & Assert
         ParserTestUtils.AssertNoErrors(input, p => p.class_definition(),
             "Property names that look like namespace prefixes should parse as properties");
-        
+
         // Verify no prefixed name tokens appear
         var classTokens = ParserTestUtils.GetTokenInfo(input);
         classTokens.Select(t => t.typeName).Should().NotContain(
@@ -213,13 +213,13 @@ public class IRITests
         // This test helps debug tokenization differences
         var propertyInput = "Name: string;";
         var iriInput = "<x:Person>";
-        
+
         Console.WriteLine("Property declaration tokens:");
         Console.WriteLine(ParserTestUtils.PrintTokens(propertyInput));
-        
+
         Console.WriteLine("\nIRI tokens:");
         Console.WriteLine(ParserTestUtils.PrintTokens(iriInput));
-        
+
         // Should always pass - this is just for debugging output
         true.Should().BeTrue();
     }

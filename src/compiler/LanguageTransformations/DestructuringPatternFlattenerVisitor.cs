@@ -91,10 +91,10 @@ public class DestructuringPatternFlattenerVisitor : DefaultRecursiveDescentVisit
         {
             return ctx;
         }
-        
+
         // Clear constraints for this parameter
         CollectedConstraints.Clear();
-        
+
         ParamDef? result = null;
         if (ctx.NearestScope().TryResolveByName(ctx.TypeName.Value, out var paramType))
         {
@@ -102,12 +102,12 @@ public class DestructuringPatternFlattenerVisitor : DefaultRecursiveDescentVisit
             try
             {
                 result = base.VisitParamDef(ctx);
-                
+
                 // If we collected any constraints from property bindings, combine them with existing parameter constraint
                 if (CollectedConstraints.Count > 0)
                 {
                     Expression combinedConstraint;
-                    
+
                     if (CollectedConstraints.Count == 1)
                     {
                         combinedConstraint = CollectedConstraints[0];
@@ -125,7 +125,7 @@ public class DestructuringPatternFlattenerVisitor : DefaultRecursiveDescentVisit
                                 .Build();
                         }
                     }
-                    
+
                     // Combine with existing parameter constraint if any
                     if (ctx.ParameterConstraint != null)
                     {
@@ -135,14 +135,14 @@ public class DestructuringPatternFlattenerVisitor : DefaultRecursiveDescentVisit
                             .WithRHS(combinedConstraint)
                             .Build();
                     }
-                    
+
                     // Create new ParamDef with combined constraint
                     result = result with { ParameterConstraint = combinedConstraint };
                 }
             }
             finally
             {
-                ResolutionScope.Pop();
+                if (ResolutionScope.Count > 0) ResolutionScope.Pop();
             }
         }
         return result ?? ctx;
@@ -163,7 +163,7 @@ public class DestructuringPatternFlattenerVisitor : DefaultRecursiveDescentVisit
             // PropertyBindingToVariableDeclarationTransformer.EnterDestructuringBinding when the
             // propertyDefinitionScope is a classdefinition
             var propdecl = db.ReferencedPropertyName;
-            if (db.NearestScope().TryResolveByName(propdecl.Value, out var paramType))
+            if (ctx.NearestScope().TryResolveByName(propdecl.Value, out var paramType))
             {
                 ResolutionScope.Push((propdecl.Value, paramType));
             }
@@ -175,13 +175,17 @@ public class DestructuringPatternFlattenerVisitor : DefaultRecursiveDescentVisit
         }
         finally
         {
-            ResolutionScope.Pop();
+            if (ResolutionScope.Count > 0) ResolutionScope.Pop();
         }
         return result;
     }
 
     public override PropertyBindingDef VisitPropertyBindingDef(PropertyBindingDef ctx)
     {
+        if (ResolutionScope.Count == 0)
+        {
+            return ctx; // nothing to link against
+        }
         var (scopeVarName, propertyDefinitionScope) = ResolutionScope.Peek();
 
         if (propertyDefinitionScope.Symbol.Kind == SymbolKind.ClassDef && propertyDefinitionScope.OriginatingAstThing is ClassDef c)

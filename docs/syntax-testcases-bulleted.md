@@ -43,8 +43,13 @@
 - Constraints & Destructuring
   - Param constraints; Complex constraints; Binding constraints; Nested destructuring with constraints
 - Trivia
-  - Single-line comments; Multi-line; Whitespace; explicit semicolons
+  - Single-line comments; Multi-line comments; Whitespace; explicit semicolons
 - Invalid/Unused Tokens
   - !&, !|; <>; :=, ..., <-; _; unused keywords in expr/stmt positions
 - Error Cases
   - Missing semicolons; Mismatched delimiters; `a.`; `a[]`; `[]`; slices; return outside function; `1 = x;`
+
+- Knowledge Graphs
+  - Canonical store declarations: `name : store = sparql_store(<iri>);` and `store default = sparql_store(<iri>);`
+  - Graph assertion blocks: statement-form and expression-form
+  - See `docs/knowledge-graphs.md` for details

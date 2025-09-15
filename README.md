@@ -8,6 +8,20 @@ Coverage: CI collects cross-platform coverage via XPlat Code Coverage; HTML and 
 
 A compiler and language tooling for the Fifth programming language.
 
+## Quickstart
+```fifth
+// Declare a default SPARQL store (canonical syntax)
+store default = sparql_store(<http://example.org/store>);
+
+main(): int {
+  // Statement-form graph block: lowers to SaveGraph(default, graph)
+  <{
+    <http://example.org/s> <http://example.org/p> "o";
+  }>;
+  return 0;
+}
+```
+
 ## Prerequisites
 - .NET SDK 8.0+
 - Java 17+ (ANTLR toolchain; 11 may work but 17 is recommended)
@@ -17,6 +31,8 @@ A compiler and language tooling for the Fifth programming language.
 ```fish
 # From repo root
  dotnet build fifthlang.sln
+ # Or with Make (runs restore + build fast)
+ make build-all
 ```
 
 ## Tests
@@ -50,6 +66,14 @@ open CoverageReport/index.html 2>/dev/null; and echo "Opened report in browser"
 - Recommended extensions are defined in `.vscode/extensions.json`.
 - Dev Kit Testing UI with TUnit:
   - See `docs/vscode-devkit-tests.md` for setup and discovery steps.
+
+## Knowledge Graphs (Overview)
+- Canonical store declaration: `name : store = sparql_store(<iri>);` or `store default = sparql_store(<iri>);`
+- Graph assertion blocks: `<{ ... }>`
+  - Expression-form yields an `IGraph` value.
+  - Statement-form requires a default store and saves the graph to it.
+- Built-ins are provided via `Fifth.System.KG` (e.g., `CreateGraph`, `CreateUri`, `CreateLiteral`, `CreateTriple`, `Assert`, `SaveGraph`).
+- Supported object literals include strings, booleans, chars, all signed/unsigned integers, float, double, and precise `decimal`.
 
 ## Repo layout
 - `src/` – language, parser, code generator, compiler

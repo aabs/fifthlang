@@ -10,6 +10,7 @@ namespace runtime_integration_tests;
 public class ClassRuntimeTests : RuntimeTestBase
 {
     [Test]
+    [Category("ParserOnly")]
     public void ClassWithAliasScope_ShouldParseAndRecordAliasScope()
     {
         // Arrange
@@ -215,7 +216,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         {
             var executablePath = await CompileSourceAsync(sourceCode);
             var result = await ExecuteAsync(executablePath);
-            
+
             result.ExitCode.Should().Be(12, "Should handle float properties (2.0 * 2.0 * 3 = 12)");
             result.StandardError.Should().BeEmpty("No errors should occur");
         }

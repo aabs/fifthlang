@@ -66,3 +66,7 @@ dotnet test fifthlang.sln -c Release --no-build --logger "trx;LogFileName=result
 ## Syntax Test Plan
 - See `docs/syntax-testplan.md` for a comprehensive list of language syntax cases mapped from the grammar.
 - Samples live under `test/runtime-integration-tests/TestPrograms/Syntax/`; tests compile all valid samples and assert that invalid samples fail to parse.
+
+## Knowledge Graphs
+- Graph assertion blocks and store declarations are covered by runtime tests in `test/runtime-integration-tests`.
+- Refer to `docs/knowledge-graphs.md` for canonical store syntax and examples.

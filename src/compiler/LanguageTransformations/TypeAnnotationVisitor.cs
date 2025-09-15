@@ -31,20 +31,20 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     {
         // Initialize the type system 
         typeSystem = new TypeSystem();
-        
+
         // Create language-friendly type mappings
         InitializeLanguageFriendlyTypes();
-        
+
         // Add all types to the type system
         foreach (var fifthType in languageFriendlyTypes.Values)
         {
             typeSystem.WithType(fifthType);
         }
-        
+
         // Add void type
         var voidType = new FifthType.TVoidType() { Name = TypeName.From("void") };
         typeSystem.WithType(voidType);
-        
+
         // Set up common binary operators using the registered types
         if (languageFriendlyTypes.TryGetValue(typeof(int), out var intType) &&
             languageFriendlyTypes.TryGetValue(typeof(float), out var floatType))
@@ -54,13 +54,38 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
                      .WithFunction([intType, intType], intType, "-")
                      .WithFunction([intType, intType], intType, "*")
                      .WithFunction([intType, intType], floatType, "/");
-            
+
             // Arithmetic operators for floats
             typeSystem.WithFunction([floatType, floatType], floatType, "+")
                      .WithFunction([floatType, floatType], floatType, "-")
                      .WithFunction([floatType, floatType], floatType, "*")
                      .WithFunction([floatType, floatType], floatType, "/");
         }
+    }
+
+    /// <summary>
+    /// Visits a GraphAssertionBlockExp and sets its type. We keep the language-level name 'graph',
+    /// but downstream codegen will map it to IGraph. For now, annotate with Name 'graph'.
+    /// </summary>
+    public override GraphAssertionBlockExp VisitGraphAssertionBlockExp(GraphAssertionBlockExp ctx)
+    {
+        var result = base.VisitGraphAssertionBlockExp(ctx);
+
+        var graphType = new FifthType.TType() { Name = TypeName.From("graph") };
+        OnTypeInferred(result, graphType);
+        return result with { Type = graphType };
+    }
+
+    /// <summary>
+    /// Visits a GraphAssertionBlockStatement and annotates it as 'void'.
+    /// </summary>
+    public override GraphAssertionBlockStatement VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx)
+    {
+        var result = base.VisitGraphAssertionBlockStatement(ctx);
+
+        var voidType = new FifthType.TVoidType() { Name = TypeName.From("void") };
+        OnTypeInferred(result, voidType);
+        return result with { Type = voidType };
     }
 
     /// <summary>
@@ -73,11 +98,11 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
         {
             [typeof(bool)] = "bool",
             [typeof(byte)] = "byte",
-            [typeof(sbyte)] = "sbyte", 
+            [typeof(sbyte)] = "sbyte",
             [typeof(char)] = "char",
             [typeof(short)] = "short",
             [typeof(ushort)] = "ushort",
-            [typeof(int)] = "int", 
+            [typeof(int)] = "int",
             [typeof(uint)] = "uint",
             [typeof(long)] = "long",
             [typeof(ulong)] = "ulong",
@@ -88,7 +113,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             [typeof(DateTime)] = "DateTime",
             [typeof(DateTimeOffset)] = "DateTimeOffset"
         };
-        
+
         // Create types with language-friendly names from TypeRegistry.Primitives
         foreach (var primitiveType in TypeRegistry.Primitives)
         {
@@ -133,7 +158,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
         // The AssemblyDef itself doesn't typically have a meaningful type
         // but we can set it to void for consistency
         var voidType = new FifthType.TVoidType() { Name = TypeName.From("void") };
-        
+
         return result with { Type = voidType };
     }
 
@@ -143,10 +168,10 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     public override Int32LiteralExp VisitInt32LiteralExp(Int32LiteralExp ctx)
     {
         var result = base.VisitInt32LiteralExp(ctx);
-        
-        var intType = GetLanguageFriendlyType(typeof(int)) ?? 
+
+        var intType = GetLanguageFriendlyType(typeof(int)) ??
                      new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From("int") };
-        
+
         OnTypeInferred(result, intType);
         return result with { Type = intType };
     }
@@ -157,10 +182,10 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     public override Int64LiteralExp VisitInt64LiteralExp(Int64LiteralExp ctx)
     {
         var result = base.VisitInt64LiteralExp(ctx);
-        
-        var longType = GetLanguageFriendlyType(typeof(long)) ?? 
+
+        var longType = GetLanguageFriendlyType(typeof(long)) ??
                       new FifthType.TDotnetType(typeof(long)) { Name = TypeName.From("long") };
-        
+
         OnTypeInferred(result, longType);
         return result with { Type = longType };
     }
@@ -171,10 +196,10 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     public override Float8LiteralExp VisitFloat8LiteralExp(Float8LiteralExp ctx)
     {
         var result = base.VisitFloat8LiteralExp(ctx);
-        
-        var doubleType = GetLanguageFriendlyType(typeof(double)) ?? 
+
+        var doubleType = GetLanguageFriendlyType(typeof(double)) ??
                         new FifthType.TDotnetType(typeof(double)) { Name = TypeName.From("double") };
-        
+
         OnTypeInferred(result, doubleType);
         return result with { Type = doubleType };
     }
@@ -185,10 +210,10 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     public override Float4LiteralExp VisitFloat4LiteralExp(Float4LiteralExp ctx)
     {
         var result = base.VisitFloat4LiteralExp(ctx);
-        
-        var floatType = GetLanguageFriendlyType(typeof(float)) ?? 
+
+        var floatType = GetLanguageFriendlyType(typeof(float)) ??
                        new FifthType.TDotnetType(typeof(float)) { Name = TypeName.From("float") };
-        
+
         OnTypeInferred(result, floatType);
         return result with { Type = floatType };
     }
@@ -199,10 +224,10 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     public override BooleanLiteralExp VisitBooleanLiteralExp(BooleanLiteralExp ctx)
     {
         var result = base.VisitBooleanLiteralExp(ctx);
-        
-        var boolType = GetLanguageFriendlyType(typeof(bool)) ?? 
+
+        var boolType = GetLanguageFriendlyType(typeof(bool)) ??
                       new FifthType.TDotnetType(typeof(bool)) { Name = TypeName.From("bool") };
-        
+
         OnTypeInferred(result, boolType);
         return result with { Type = boolType };
     }
@@ -213,10 +238,10 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     public override StringLiteralExp VisitStringLiteralExp(StringLiteralExp ctx)
     {
         var result = base.VisitStringLiteralExp(ctx);
-        
-        var stringType = GetLanguageFriendlyType(typeof(string)) ?? 
+
+        var stringType = GetLanguageFriendlyType(typeof(string)) ??
                         new FifthType.TDotnetType(typeof(string)) { Name = TypeName.From("string") };
-        
+
         OnTypeInferred(result, stringType);
         return result with { Type = stringType };
     }
@@ -227,16 +252,16 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     public override BinaryExp VisitBinaryExp(BinaryExp ctx)
     {
         var result = base.VisitBinaryExp(ctx);
-        
+
         // Get the types of the operands  
         var leftType = result.LHS?.Type;
         var rightType = result.RHS?.Type;
-        
+
         if (leftType != null && rightType != null)
         {
             // Get the operator string
             var operatorStr = GetOperatorString(result.Operator);
-            
+
             // Try to use the type system for inference first
             try
             {
@@ -251,17 +276,17 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             {
                 // Fall back to simple inference if type system inference fails
             }
-            
+
             // Fallback to simple operator result type inference
             var resultType = GetSimpleOperatorResultType(leftType, rightType, result.Operator);
-            
+
             if (resultType != null)
             {
                 OnTypeInferred(result, resultType);
                 return result with { Type = resultType };
             }
         }
-        
+
         OnTypeNotFound(result);
         var unknownTypeDefault = new FifthType.UnknownType() { Name = TypeName.From("unknown") };
         return result with { Type = unknownTypeDefault };
@@ -273,7 +298,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     public override FunctionDef VisitFunctionDef(FunctionDef ctx)
     {
         var result = base.VisitFunctionDef(ctx);
-        
+
         // Function definitions already have their return type specified
         // We can set the overall type to match the return type
         OnTypeInferred(result, result.ReturnType);
@@ -315,21 +340,21 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             // Arithmetic operators
             Operator.ArithmeticAdd or Operator.ArithmeticSubtract or Operator.ArithmeticMultiply =>
                 GetArithmeticResultType(leftType, rightType),
-            
+
             Operator.ArithmeticDivide =>
                 // Division always returns float
                 GetLanguageFriendlyType(typeof(float)) ?? new FifthType.TDotnetType(typeof(float)) { Name = TypeName.From("float") },
-            
+
             // Comparison operators always return bool
-            Operator.Equal or Operator.NotEqual or 
+            Operator.Equal or Operator.NotEqual or
             Operator.LessThan or Operator.LessThanOrEqual or
             Operator.GreaterThan or Operator.GreaterThanOrEqual =>
                 GetLanguageFriendlyType(typeof(bool)) ?? new FifthType.TDotnetType(typeof(bool)) { Name = TypeName.From("bool") },
-            
+
             // Logical operators return bool
             Operator.LogicalAnd or Operator.LogicalOr =>
                 GetLanguageFriendlyType(typeof(bool)) ?? new FifthType.TDotnetType(typeof(bool)) { Name = TypeName.From("bool") },
-            
+
             _ => null // Unknown operator
         };
     }
@@ -344,13 +369,13 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
         {
             return GetLanguageFriendlyType(typeof(float)) ?? new FifthType.TDotnetType(typeof(float)) { Name = TypeName.From("float") };
         }
-        
+
         // If both are integers, result is int
         if (IsIntType(leftType) && IsIntType(rightType))
         {
             return GetLanguageFriendlyType(typeof(int)) ?? new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From("int") };
         }
-        
+
         // Default to the left type
         return leftType;
     }
@@ -360,7 +385,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     /// </summary>
     private static bool IsFloatType(FifthType type)
     {
-        return type is FifthType.TDotnetType dotnetType && 
+        return type is FifthType.TDotnetType dotnetType &&
                (dotnetType.TheType == typeof(float) || dotnetType.TheType == typeof(double));
     }
 
@@ -369,7 +394,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     /// </summary>
     private static bool IsIntType(FifthType type)
     {
-        return type is FifthType.TDotnetType dotnetType && 
+        return type is FifthType.TDotnetType dotnetType &&
                (dotnetType.TheType == typeof(int) || dotnetType.TheType == typeof(long) ||
                 dotnetType.TheType == typeof(short) || dotnetType.TheType == typeof(byte));
     }
@@ -384,7 +409,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     {
         // This method serves as the event mechanism callback for successful type inference
         // The actual type assignment is done in the Visit methods using the 'with' syntax
-        
+
         // We could add logging or additional processing here if needed
         // For now, this serves as the event callback interface
     }
@@ -403,7 +428,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             node.Location?.Line ?? 0,
             node.Location?.Column ?? 0,
             new[] { type1, type2 });
-        
+
         errors.Add(error);
     }
 
@@ -419,7 +444,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             node.Location?.Line ?? 0,
             node.Location?.Column ?? 0,
             Array.Empty<FifthType>());
-        
+
         errors.Add(error);
     }
 

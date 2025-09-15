@@ -31,7 +31,7 @@ public class DestructuringVisitor : DefaultRecursiveDescentVisitor
             }
             finally
             {
-                ResolutionScope.Pop();
+                if (ResolutionScope.Count > 0) ResolutionScope.Pop();
             }
         }
         return result ?? ctx;
@@ -48,11 +48,8 @@ public class DestructuringVisitor : DefaultRecursiveDescentVisitor
         }
         else if (ctx.Parent is PropertyBindingDef db)
         {
-            // currently the only place that sets this annotation is
-            // PropertyBindingToVariableDeclarationTransformer.EnterDestructuringBinding when the
-            // propertyDefinitionScope is a classdefinition
             var propdecl = db.ReferencedPropertyName;
-            if (db.NearestScope().TryResolveByName(propdecl.Value, out var paramType))
+            if (ctx.NearestScope().TryResolveByName(propdecl.Value, out var paramType))
             {
                 ResolutionScope.Push((propdecl.Value, paramType));
             }
@@ -64,13 +61,17 @@ public class DestructuringVisitor : DefaultRecursiveDescentVisitor
         }
         finally
         {
-            ResolutionScope.Pop();
+            if (ResolutionScope.Count > 0) ResolutionScope.Pop();
         }
         return result;
     }
 
     public override PropertyBindingDef VisitPropertyBindingDef(PropertyBindingDef ctx)
     {
+        if (ResolutionScope.Count == 0)
+        {
+            return ctx;
+        }
         var (scopeVarName, propertyDefinitionScope) = ResolutionScope.Peek();
 
         if (propertyDefinitionScope.Symbol.Kind == SymbolKind.ClassDef && propertyDefinitionScope.OriginatingAstThing is ClassDef c)

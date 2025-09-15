@@ -125,3 +125,13 @@ When adding language features, prefer AST transformations over code generation c
 4. Reserve IL-level transformations for optimizations
 
 See constitution for complete transformation pipeline details.
+
+## Knowledge Graphs (Agent Notes)
+- Canonical store declarations only: `name : store = sparql_store(<iri>);` or `store default = sparql_store(<iri>);`
+- Graph assertion blocks `<{ ... }>`:
+   - Statement-form saves to default store.
+   - Expression-form yields an `IGraph`.
+- Validate quickly:
+   - `dotnet test test/kg-smoke-tests/kg-smoke-tests.csproj`
+   - `dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj -v minimal --filter FullyQualifiedName~GraphAssertionBlock_`
+- Reference: `docs/knowledge-graphs.md`

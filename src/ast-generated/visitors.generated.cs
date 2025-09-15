@@ -70,6 +70,8 @@ public interface IAstVisitor
     public void LeaveVarDeclStatement(VarDeclStatement ctx);
     public void EnterWhileStatement(WhileStatement ctx);
     public void LeaveWhileStatement(WhileStatement ctx);
+    public void EnterGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx);
+    public void LeaveGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx);
     public void EnterAssertionStatement(AssertionStatement ctx);
     public void LeaveAssertionStatement(AssertionStatement ctx);
     public void EnterAssertionObject(AssertionObject ctx);
@@ -82,6 +84,8 @@ public interface IAstVisitor
     public void LeaveRetractionStatement(RetractionStatement ctx);
     public void EnterWithScopeStatement(WithScopeStatement ctx);
     public void LeaveWithScopeStatement(WithScopeStatement ctx);
+    public void EnterGraphAssertionBlockExp(GraphAssertionBlockExp ctx);
+    public void LeaveGraphAssertionBlockExp(GraphAssertionBlockExp ctx);
     public void EnterBinaryExp(BinaryExp ctx);
     public void LeaveBinaryExp(BinaryExp ctx);
     public void EnterCastExp(CastExp ctx);
@@ -220,6 +224,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveVarDeclStatement(VarDeclStatement ctx){}
     public virtual void EnterWhileStatement(WhileStatement ctx){}
     public virtual void LeaveWhileStatement(WhileStatement ctx){}
+    public virtual void EnterGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx){}
+    public virtual void LeaveGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx){}
     public virtual void EnterAssertionStatement(AssertionStatement ctx){}
     public virtual void LeaveAssertionStatement(AssertionStatement ctx){}
     public virtual void EnterAssertionObject(AssertionObject ctx){}
@@ -232,6 +238,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveRetractionStatement(RetractionStatement ctx){}
     public virtual void EnterWithScopeStatement(WithScopeStatement ctx){}
     public virtual void LeaveWithScopeStatement(WithScopeStatement ctx){}
+    public virtual void EnterGraphAssertionBlockExp(GraphAssertionBlockExp ctx){}
+    public virtual void LeaveGraphAssertionBlockExp(GraphAssertionBlockExp ctx){}
     public virtual void EnterBinaryExp(BinaryExp ctx){}
     public virtual void LeaveBinaryExp(BinaryExp ctx){}
     public virtual void EnterCastExp(CastExp ctx){}
@@ -339,12 +347,14 @@ public interface IAstRecursiveDescentVisitor
     public ReturnStatement VisitReturnStatement(ReturnStatement ctx);
     public VarDeclStatement VisitVarDeclStatement(VarDeclStatement ctx);
     public WhileStatement VisitWhileStatement(WhileStatement ctx);
+    public GraphAssertionBlockStatement VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx);
     public AssertionStatement VisitAssertionStatement(AssertionStatement ctx);
     public AssertionObject VisitAssertionObject(AssertionObject ctx);
     public AssertionPredicate VisitAssertionPredicate(AssertionPredicate ctx);
     public AssertionSubject VisitAssertionSubject(AssertionSubject ctx);
     public RetractionStatement VisitRetractionStatement(RetractionStatement ctx);
     public WithScopeStatement VisitWithScopeStatement(WithScopeStatement ctx);
+    public GraphAssertionBlockExp VisitGraphAssertionBlockExp(GraphAssertionBlockExp ctx);
     public BinaryExp VisitBinaryExp(BinaryExp ctx);
     public CastExp VisitCastExp(CastExp ctx);
     public LambdaExp VisitLambdaExp(LambdaExp ctx);
@@ -420,12 +430,14 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              ReturnStatement node => VisitReturnStatement(node),
              VarDeclStatement node => VisitVarDeclStatement(node),
              WhileStatement node => VisitWhileStatement(node),
+             GraphAssertionBlockStatement node => VisitGraphAssertionBlockStatement(node),
              AssertionStatement node => VisitAssertionStatement(node),
              AssertionObject node => VisitAssertionObject(node),
              AssertionPredicate node => VisitAssertionPredicate(node),
              AssertionSubject node => VisitAssertionSubject(node),
              RetractionStatement node => VisitRetractionStatement(node),
              WithScopeStatement node => VisitWithScopeStatement(node),
+             GraphAssertionBlockExp node => VisitGraphAssertionBlockExp(node),
              BinaryExp node => VisitBinaryExp(node),
              CastExp node => VisitCastExp(node),
              LambdaExp node => VisitLambdaExp(node),
@@ -696,6 +708,12 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         ,Body = (ast.BlockStatement)Visit((AstThing)ctx.Body)
         };
     }
+    public virtual GraphAssertionBlockStatement VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx)
+    {
+     return ctx with {
+         Content = (ast.GraphAssertionBlockExp)Visit((AstThing)ctx.Content)
+        };
+    }
     public virtual AssertionStatement VisitAssertionStatement(AssertionStatement ctx)
     {
      return ctx with {
@@ -728,6 +746,12 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual WithScopeStatement VisitWithScopeStatement(WithScopeStatement ctx)
     {
      return ctx with {
+        };
+    }
+    public virtual GraphAssertionBlockExp VisitGraphAssertionBlockExp(GraphAssertionBlockExp ctx)
+    {
+     return ctx with {
+         Content = (ast.BlockStatement)Visit((AstThing)ctx.Content)
         };
     }
     public virtual BinaryExp VisitBinaryExp(BinaryExp ctx)

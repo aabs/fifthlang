@@ -266,6 +266,17 @@ main() => myprint(5 + 6);
 myprint(int x) => std.print(x);
 ```
 
+### Knowledge Graphs (Canonical Syntax & Lowering)
+- Canonical store declaration forms:
+  - `name : store = sparql_store(<http://example.org/store>);`
+  - `store default = sparql_store(<http://example.org/store>);` (sets default)
+- Graph assertion blocks `<{ ... }>`:
+  - Statement-form (ends with `;`): constructs a graph and saves it to the default store.
+  - Expression-form: returns an `IGraph` value without saving.
+- Literal support in object position includes: strings, booleans, chars, all signed/unsigned integers, float, double, and precise `decimal`.
+- Lowering strategy: prefer AST transformations that lower graph blocks to `Fifth.System.KG` helper calls (`CreateGraph`, `CreateUri`, `CreateLiteral`, `CreateTriple`, `Assert`, `SaveGraph`). Avoid bespoke codegen where existing helpers suffice.
+- Tests: runtime coverage under `test/runtime-integration-tests` and smoke tests under `test/kg-smoke-tests` validate end-to-end behavior.
+
 ## Engineering Constraints & Standards
 
 ### Toolchain & Environment
