@@ -107,6 +107,8 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 return typeof(float);
             case Float8LiteralExp:
                 return typeof(double);
+            case Float16LiteralExp:
+                return typeof(decimal);
             case VarRefExp v:
                 if (_localVariableTypes.TryGetValue(v.VarName, out var lty)) return lty;
                 if (_currentParameterTypes.TryGetValue(v.VarName, out var pty)) return pty;
@@ -630,12 +632,90 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                                 sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.Int32;Return={ILiteralNodeToken}") { ArgCount = 2 });
                                 sequence.Add(new StoreInstruction("stloc", oLocal));
                             }
+                            else if (triple.ObjectExp is Float8LiteralExp d64Lit)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldc.r8", d64Lit.Value));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.Double;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else if (triple.ObjectExp is Float4LiteralExp f32Lit)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldc.r4", f32Lit.Value));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.Single;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else if (triple.ObjectExp is Int64LiteralExp i64Lit)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldc.i8", i64Lit.Value));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.Int64;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else if (triple.ObjectExp is Int16LiteralExp i16Lit)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldc.i4", i16Lit.Value));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.Int16;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else if (triple.ObjectExp is Int8LiteralExp i8Lit)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldc.i4", (int)i8Lit.Value));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.SByte;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else if (triple.ObjectExp is UnsignedInt8LiteralExp ui8Lit)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldc.i4", (int)ui8Lit.Value));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.Byte;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else if (triple.ObjectExp is UnsignedInt16LiteralExp ui16Lit)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldc.i4", (int)ui16Lit.Value));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.UInt16;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else if (triple.ObjectExp is UnsignedInt32LiteralExp ui32Lit)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldc.i4", (int)ui32Lit.Value));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.UInt32;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else if (triple.ObjectExp is UnsignedInt64LiteralExp ui64Lit)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldc.i8", (long)ui64Lit.Value));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.UInt64;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else if (triple.ObjectExp is Float16LiteralExp decLit2)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                // Build decimal using System.Decimal.Parse on an invariant-culture string, then call KG.CreateLiteral(graph, decimal)
+                                sequence.Add(new LoadInstruction("ldstr", decLit2.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+                                sequence.Add(new CallInstruction("call", "extcall:Asm=System.Runtime;Ns=System;Type=Decimal;Method=Parse;Params=System.String;Return=System.Decimal") { ArgCount = 1 });
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.Decimal;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
+                            else if (triple.ObjectExp is CharLiteralExp chLit)
+                            {
+                                sequence.Add(new LoadInstruction("ldloc", graphLocal));
+                                sequence.Add(new LoadInstruction("ldc.i4", (int)chLit.Value));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.Char;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new StoreInstruction("stloc", oLocal));
+                            }
                             else if (triple.ObjectExp is BooleanLiteralExp boolLit2)
                             {
-                                // Use string form to avoid IL bool width issues
                                 sequence.Add(new LoadInstruction("ldloc", graphLocal));
-                                sequence.Add(new LoadInstruction("ldstr", boolLit2.Value ? "true" : "false"));
-                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.String;Return={ILiteralNodeToken}") { ArgCount = 2 });
+                                sequence.Add(new LoadInstruction("ldc.i4", boolLit2.Value ? 1 : 0));
+                                sequence.Add(new CallInstruction("call", $"extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateLiteral;Params={GraphToken},System.Boolean;Return={ILiteralNodeToken}") { ArgCount = 2 });
                                 sequence.Add(new StoreInstruction("stloc", oLocal));
                             }
                             else
@@ -692,6 +772,11 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 
             case Float8LiteralExp doubleLit:
                 sequence.Add(new LoadInstruction("ldc.r8", doubleLit.Value));
+                break;
+
+            case Float16LiteralExp decimalLit:
+                sequence.Add(new LoadInstruction("ldstr", decimalLit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+                sequence.Add(new CallInstruction("call", "extcall:Asm=System.Runtime;Ns=System;Type=Decimal;Method=Parse;Params=System.String;Return=System.Decimal") { ArgCount = 1 });
                 break;
 
             case StringLiteralExp stringLit:

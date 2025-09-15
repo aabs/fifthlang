@@ -227,7 +227,7 @@ public class GraphAssertionLoweringVisitor : NullSafeRecursiveDescentVisitor
                     predNode = new VarRefExp { VarName = "null", Annotations = new Dictionary<string, object>(), Location = s.Location };
                 }
 
-                // Object node: support string/int/bool literals minimal set; else try expression as-is
+                // Object node: support strings, numerics, bool, uris; else try expression as-is
                 Expression objNode;
                 if (asrt.Assertion?.ObjectExp is StringLiteralExp str)
                 {
@@ -246,6 +246,42 @@ public class GraphAssertionLoweringVisitor : NullSafeRecursiveDescentVisitor
                         Location = str.Location
                     };
                 }
+                else if (asrt.Assertion?.ObjectExp is Float8LiteralExp d64)
+                {
+                    var lit = new Float8LiteralExp { Annotations = new Dictionary<string, object>(), Location = d64.Location, Parent = null, Value = d64.Value, Type = d64.Type };
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, lit },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = d64.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = d64.Location },
+                        RHS = createLiteralCall,
+                        Location = d64.Location
+                    };
+                }
+                else if (asrt.Assertion?.ObjectExp is Float4LiteralExp f32)
+                {
+                    var lit = new Float4LiteralExp { Annotations = new Dictionary<string, object>(), Location = f32.Location, Parent = null, Value = f32.Value, Type = f32.Type };
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, lit },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = f32.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = f32.Location },
+                        RHS = createLiteralCall,
+                        Location = f32.Location
+                    };
+                }
                 else if (asrt.Assertion?.ObjectExp is Int32LiteralExp i32)
                 {
                     var intLit = new Int32LiteralExp { Annotations = new Dictionary<string, object>(), Location = i32.Location, Parent = null, Value = i32.Value, Type = i32.Type };
@@ -262,6 +298,168 @@ public class GraphAssertionLoweringVisitor : NullSafeRecursiveDescentVisitor
                         LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = i32.Location },
                         RHS = createLiteralCall,
                         Location = i32.Location
+                    };
+                }
+                else if (asrt.Assertion?.ObjectExp is Int64LiteralExp i64)
+                {
+                    var lit = new Int64LiteralExp { Annotations = new Dictionary<string, object>(), Location = i64.Location, Parent = null, Value = i64.Value, Type = i64.Type };
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, lit },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = i64.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = i64.Location },
+                        RHS = createLiteralCall,
+                        Location = i64.Location
+                    };
+                }
+                else if (asrt.Assertion?.ObjectExp is UnsignedInt32LiteralExp ui32)
+                {
+                    var lit = new UnsignedInt32LiteralExp { Annotations = new Dictionary<string, object>(), Location = ui32.Location, Parent = null, Value = ui32.Value, Type = ui32.Type };
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, lit },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = ui32.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = ui32.Location },
+                        RHS = createLiteralCall,
+                        Location = ui32.Location
+                    };
+                }
+                else if (asrt.Assertion?.ObjectExp is UnsignedInt64LiteralExp ui64)
+                {
+                    var lit = new UnsignedInt64LiteralExp { Annotations = new Dictionary<string, object>(), Location = ui64.Location, Parent = null, Value = ui64.Value, Type = ui64.Type };
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, lit },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = ui64.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = ui64.Location },
+                        RHS = createLiteralCall,
+                        Location = ui64.Location
+                    };
+                }
+                else if (asrt.Assertion?.ObjectExp is UnsignedInt16LiteralExp ui16)
+                {
+                    var lit = new UnsignedInt16LiteralExp { Annotations = new Dictionary<string, object>(), Location = ui16.Location, Parent = null, Value = ui16.Value, Type = ui16.Type };
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, lit },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = ui16.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = ui16.Location },
+                        RHS = createLiteralCall,
+                        Location = ui16.Location
+                    };
+                }
+                else if (asrt.Assertion?.ObjectExp is UnsignedInt8LiteralExp ui8)
+                {
+                    var lit = new UnsignedInt8LiteralExp { Annotations = new Dictionary<string, object>(), Location = ui8.Location, Parent = null, Value = ui8.Value, Type = ui8.Type };
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, lit },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = ui8.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = ui8.Location },
+                        RHS = createLiteralCall,
+                        Location = ui8.Location
+                    };
+                }
+                else if (asrt.Assertion?.ObjectExp is Int16LiteralExp i16)
+                {
+                    var lit = new Int16LiteralExp { Annotations = new Dictionary<string, object>(), Location = i16.Location, Parent = null, Value = i16.Value, Type = i16.Type };
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, lit },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = i16.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = i16.Location },
+                        RHS = createLiteralCall,
+                        Location = i16.Location
+                    };
+                }
+                else if (asrt.Assertion?.ObjectExp is Int8LiteralExp i8)
+                {
+                    var lit = new Int8LiteralExp { Annotations = new Dictionary<string, object>(), Location = i8.Location, Parent = null, Value = i8.Value, Type = i8.Type };
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, lit },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = i8.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = i8.Location },
+                        RHS = createLiteralCall,
+                        Location = i8.Location
+                    };
+                }
+                else if (asrt.Assertion?.ObjectExp is Float16LiteralExp decLit)
+                {
+                    var lit = new Float16LiteralExp { Annotations = new Dictionary<string, object>(), Location = decLit.Location, Parent = null, Value = decLit.Value, Type = decLit.Type };
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, lit },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = decLit.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = decLit.Location },
+                        RHS = createLiteralCall,
+                        Location = decLit.Location
+                    };
+                }
+                else if (asrt.Assertion?.ObjectExp is CharLiteralExp ch)
+                {
+                    var lit = new CharLiteralExp { Annotations = new Dictionary<string, object>(), Location = ch.Location, Parent = null, Value = ch.Value, Type = ch.Type };
+                    var createLiteralCall = new FuncCallExp
+                    {
+                        InvocationArguments = new List<Expression> { graphBuilder, lit },
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" },
+                        Location = ch.Location,
+                        Parent = null
+                    };
+                    objNode = new MemberAccessExp
+                    {
+                        Annotations = new Dictionary<string, object>(),
+                        LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = ch.Location },
+                        RHS = createLiteralCall,
+                        Location = ch.Location
                     };
                 }
                 else if (asrt.Assertion?.ObjectExp is BooleanLiteralExp bl)

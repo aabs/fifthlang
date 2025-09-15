@@ -124,6 +124,18 @@ public static class KG
     }
 
     /// <summary>
+    /// Creates a typed literal node for a 64-bit integer value.
+    /// </summary>
+    /// <param name="g">the graph to which the literal node belongs.</param>
+    /// <param name="value">the long value.</param>
+    /// <returns>a typed literal node with xsd:long datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteral(this IGraph g, long value)
+    {
+        return g.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#long"));
+    }
+
+    /// <summary>
     /// Creates a typed literal node for a 64-bit floating point value.
     /// </summary>
     /// <param name="g">the graph to which the literal node belongs.</param>
@@ -145,6 +157,102 @@ public static class KG
     public static ILiteralNode CreateLiteral(this IGraph g, float value)
     {
         return g.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#float"));
+    }
+
+    /// <summary>
+    /// Creates a typed literal node for a 16-bit integer value.
+    /// </summary>
+    /// <param name="g">the graph to which the literal node belongs.</param>
+    /// <param name="value">the short value.</param>
+    /// <returns>a typed literal node with xsd:short datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteral(this IGraph g, short value)
+    {
+        return g.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#short"));
+    }
+
+    /// <summary>
+    /// Creates a typed literal node for an 8-bit signed integer value.
+    /// </summary>
+    /// <param name="g">the graph to which the literal node belongs.</param>
+    /// <param name="value">the sbyte value.</param>
+    /// <returns>a typed literal node with xsd:byte datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteral(this IGraph g, sbyte value)
+    {
+        return g.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#byte"));
+    }
+
+    /// <summary>
+    /// Creates a typed literal node for an 8-bit unsigned integer value.
+    /// </summary>
+    /// <param name="g">the graph to which the literal node belongs.</param>
+    /// <param name="value">the byte value.</param>
+    /// <returns>a typed literal node with xsd:unsignedByte datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteral(this IGraph g, byte value)
+    {
+        return g.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#unsignedByte"));
+    }
+
+    /// <summary>
+    /// Creates a typed literal node for a 16-bit unsigned integer value.
+    /// </summary>
+    /// <param name="g">the graph to which the literal node belongs.</param>
+    /// <param name="value">the ushort value.</param>
+    /// <returns>a typed literal node with xsd:unsignedShort datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteral(this IGraph g, ushort value)
+    {
+        return g.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#unsignedShort"));
+    }
+
+    /// <summary>
+    /// Creates a typed literal node for a 32-bit unsigned integer value.
+    /// </summary>
+    /// <param name="g">the graph to which the literal node belongs.</param>
+    /// <param name="value">the uint value.</param>
+    /// <returns>a typed literal node with xsd:unsignedInt datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteral(this IGraph g, uint value)
+    {
+        return g.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#unsignedInt"));
+    }
+
+    /// <summary>
+    /// Creates a typed literal node for a 64-bit unsigned integer value.
+    /// </summary>
+    /// <param name="g">the graph to which the literal node belongs.</param>
+    /// <param name="value">the ulong value.</param>
+    /// <returns>a typed literal node with xsd:unsignedLong datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteral(this IGraph g, ulong value)
+    {
+        return g.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#unsignedLong"));
+    }
+
+    /// <summary>
+    /// Creates a typed literal node for a decimal value.
+    /// </summary>
+    /// <param name="g">the graph to which the literal node belongs.</param>
+    /// <param name="value">the decimal value.</param>
+    /// <returns>a typed literal node with xsd:decimal datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteral(this IGraph g, decimal value)
+    {
+        return g.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#decimal"));
+    }
+
+    /// <summary>
+    /// Creates a literal node for a char value (as a string literal).
+    /// </summary>
+    /// <param name="g">the graph to which the literal node belongs.</param>
+    /// <param name="value">the char value.</param>
+    /// <returns>a literal node with the specified char value.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteral(this IGraph g, char value)
+    {
+        return g.CreateLiteralNode(value.ToString());
     }
 
     /// <summary>
@@ -207,6 +315,17 @@ public static class KG
     {
         target.Merge(source);
         return target;
+    }
+
+    /// <summary>
+    /// Returns the number of triples in the given graph.
+    /// </summary>
+    /// <param name="g">the graph to inspect.</param>
+    /// <returns>the triple count.</returns>
+    [BuiltinFunction]
+    public static int CountTriples(this IGraph g)
+    {
+        return g.Triples.Count;
     }
 
     /// <summary>
