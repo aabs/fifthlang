@@ -1101,7 +1101,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             CollectionType = CollectionType.SingleInstance,
             Name = name,
             Visibility = Visibility.Public,
-            TypeName = TypeName.From("IUpdateableStorage")
+            TypeName = TypeName.From("IStorageProvider")
         };
 
         return new VarDeclStatement

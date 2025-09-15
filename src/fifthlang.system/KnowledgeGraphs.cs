@@ -20,10 +20,21 @@ public static class KG
     }
 
     [BuiltinFunction]
-    public static SparqlHttpProtocolConnector ConnectToRemoteStore(string endpointUri)
+    public static IStorageProvider ConnectToRemoteStore(string endpointUri)
     {
         SparqlHttpProtocolConnector sparql = new SparqlHttpProtocolConnector(new Uri(endpointUri));
         return sparql;
+    }
+
+    /// <summary>
+    /// Alias for connecting to a remote SPARQL store; mirrors the Fifth keyword usage.
+    /// </summary>
+    /// <param name="endpointUri">the SPARQL endpoint URI.</param>
+    /// <returns>an updateable storage provider connected to the given endpoint.</returns>
+    [BuiltinFunction]
+    public static IStorageProvider sparql_store(string endpointUri)
+    {
+        return ConnectToRemoteStore(endpointUri);
     }
 
     /// <summary>

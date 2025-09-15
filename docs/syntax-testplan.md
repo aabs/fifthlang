@@ -156,3 +156,13 @@ This document enumerates a comprehensive set of syntax test cases derived from `
 - Slice syntax: `a[1:2]`, `a[:2]`, `a[1:2:3]` (unreachable rule).
 - Return outside function scope.
 - Assignment to literal `1 = x;` (syntactically may pass, semantically invalid).
+
+## Knowledge Graphs
+- Canonical store declarations:
+	- `name : store = sparql_store(<http://example.org/store>);`
+	- `store default = sparql_store(<http://example.org/store>);`
+- Graph assertion blocks:
+	- Statement-form `<{ ... }>;` requires a default store and saves the constructed graph.
+	- Expression-form `<{ ... }>` yields an `IGraph` value.
+- Literal coverage in object position: strings, bools, chars, signed/unsigned integers, float, double, decimal.
+- Lowering strategy: graph blocks lower to `Fifth.System.KG` helpers (`CreateGraph`, `CreateUri`, `CreateLiteral`, `CreateTriple`, `Assert`, `SaveGraph`).
