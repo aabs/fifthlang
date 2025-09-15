@@ -7,6 +7,7 @@ using ast;
 using ast_generated;
 using ast_model.TypeSystem;
 using Operator = ast.Operator;
+using Fifth;
 
 namespace compiler.LangProcessingPhases;
 
@@ -16,9 +17,9 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     // Track function-scoped variable and parameter names to decide on '+=' desugaring
     private readonly Stack<HashSet<string>> _functionLocals = new();
-    private HashSet<string>? CurrentFunctionLocals => _functionLocals.Count > 0 ? _functionLocals.Peek() : null;
-    private bool IsNameInCurrentFunctionScope(string? name)
-        => !string.IsNullOrEmpty(name) && CurrentFunctionLocals != null && CurrentFunctionLocals.Contains(name!);
+    private HashSet<string> CurrentFunctionLocals => _functionLocals.Count > 0 ? _functionLocals.Peek() : null;
+    private bool IsNameInCurrentFunctionScope(string name)
+        => !string.IsNullOrEmpty(name) && CurrentFunctionLocals != null && CurrentFunctionLocals.Contains(name);
 
     private static bool DebugEnabled =>
         (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("1", StringComparison.Ordinal) ||
@@ -635,23 +636,11 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             module = module with { Annotations = new Dictionary<string, object>() };
         }
 
-        // Collect both legacy and colon-form store declarations; colon form is canonical.
+        // Collect colon-form store declarations; colon form is canonical.
         try
         {
             var stores = new Dictionary<string, string>(StringComparer.Ordinal);
             string defaultStore = null;
-
-            // Legacy keyword-first form (will be phased out but still parsed if present)
-            foreach (var s in context.store_decl())
-            {
-                var name = s.store_name?.Text ?? string.Empty;
-                var uri = s.iri()?.GetText() ?? string.Empty;
-                if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(uri))
-                {
-                    stores[name] = uri;
-                    defaultStore ??= name;
-                }
-            }
 
             // Colon form: IDENTIFIER ':' STORE '=' SPARQL '(' iri ')' ';'
             foreach (var s in context.colon_store_decl())
@@ -660,7 +649,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 var uri = s.iri()?.GetText() ?? string.Empty;
                 if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(uri))
                 {
-                    stores[name] = uri; // overrides legacy if duplicated
+                    stores[name] = uri;
                     defaultStore ??= name;
                 }
             }
@@ -1073,13 +1062,26 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     public override IAstThing VisitColon_store_decl(FifthParser.Colon_store_declContext context)
     {
         var name = context.store_name?.Text ?? string.Empty;
-        // Build call: KG.CreateStore() (prefer well-tested local store path)
+        // Build call: KG.ConnectToRemoteStore("<uri>") to honor declared endpoint
+        var uriText = context.iri()?.GetText() ?? string.Empty; // e.g., "<http://host>"
+        if (uriText.StartsWith("<") && uriText.EndsWith(">"))
+        {
+            uriText = uriText.Substring(1, uriText.Length - 2);
+        }
+        var uriLiteral = new StringLiteralExp
+        {
+            Annotations = [],
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.TDotnetType(typeof(string)) { Name = TypeName.From(typeof(string).FullName) },
+            Value = uriText
+        };
         var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
         var func = new FuncCallExp
         {
             FunctionDef = null,
-            InvocationArguments = [],
-            Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateStore" },
+            InvocationArguments = [uriLiteral],
+            Annotations = new Dictionary<string, object> { ["FunctionName"] = "ConnectToRemoteStore" },
             Location = GetLocationDetails(context),
             Parent = null,
             Type = null

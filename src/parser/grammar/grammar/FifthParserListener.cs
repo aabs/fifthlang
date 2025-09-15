@@ -833,16 +833,6 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitAlias_scope_ref([NotNull] FifthParser.Alias_scope_refContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.store_decl"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterStore_decl([NotNull] FifthParser.Store_declContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.store_decl"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitStore_decl([NotNull] FifthParser.Store_declContext context);
-	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.colon_store_decl"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

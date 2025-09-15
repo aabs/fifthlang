@@ -508,12 +508,6 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitAlias_scope_ref([NotNull] FifthParser.Alias_scope_refContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.store_decl"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitStore_decl([NotNull] FifthParser.Store_declContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.colon_store_decl"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

@@ -6,7 +6,7 @@ options {
 }
 
 fifth:
-	module_import* alias* (store_decl | colon_store_decl)* (
+	module_import* alias* (colon_store_decl)* (
 		functions += function_declaration
 		| classes += class_definition
 	)*;
@@ -242,9 +242,6 @@ colon_graph_decl:
 
 // Prefer simple identifier first to avoid mispredicting IRI when both are viable
 alias_scope_ref: IDENTIFIER | iri;
-
-store_decl:
-	STORE store_name = (IDENTIFIER | DEFAULT) ASSIGN SPARQL L_PAREN iri R_PAREN SEMI;
 
 // Colon-form variant: name : store = sparql_store(<iri>);
 colon_store_decl:

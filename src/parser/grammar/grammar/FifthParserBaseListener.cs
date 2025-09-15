@@ -988,18 +988,6 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitAlias_scope_ref([NotNull] FifthParser.Alias_scope_refContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.store_decl"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterStore_decl([NotNull] FifthParser.Store_declContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.store_decl"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitStore_decl([NotNull] FifthParser.Store_declContext context) { }
-	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.colon_store_decl"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
