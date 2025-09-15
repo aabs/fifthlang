@@ -10,14 +10,14 @@ namespace runtime_integration_tests;
 public class ComprehensiveSyntaxTests : RuntimeTestBase
 {
     #region Alias Tests
-    
+
     [Test]
     public async Task alias_basic_ShouldCompileAndReturnZero()
     {
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "alias_basic.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -28,7 +28,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "alias_domain_dots.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -39,7 +39,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "alias_fragment_empty.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -50,7 +50,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "alias_fragment_named.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -61,7 +61,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "alias_path_segments.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -72,7 +72,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "alias_trailing_slash.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -87,7 +87,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "block_empty.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -98,7 +98,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "block_multiple_statements.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -109,7 +109,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "block_nested.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -120,7 +120,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "blocks_and_statements.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -135,7 +135,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "call_multi_arg.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -146,7 +146,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "call_nested.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -157,7 +157,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "call_no_arg.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -168,7 +168,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "call_one_arg.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -183,7 +183,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "class_empty.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -194,7 +194,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "class_methods_duplicate_names.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -205,7 +205,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "class_methods_only.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -216,7 +216,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "class_mixed_members.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -227,7 +227,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "class_props_only.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -242,7 +242,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "constraint_complex_expr.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -253,7 +253,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "constraint_simple.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -268,7 +268,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "destructure_binding_constraint.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -279,7 +279,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "destructure_nested_with_constraints.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -294,7 +294,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "empty_program.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "empty program should compile and run successfully");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -305,7 +305,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "expressions_precedence.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -320,7 +320,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "func_destructure_binding_constraint.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -331,7 +331,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "func_multi_params.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -342,7 +342,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "func_no_params.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -353,7 +353,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "func_param_constraint.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -364,7 +364,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "func_param_destructure.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -375,7 +375,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "func_param_nested_destructure.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -386,7 +386,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "func_single_param.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -397,7 +397,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "function_params_constraints_destructuring.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -412,7 +412,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "import_multiple.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -423,7 +423,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "import_single.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -434,7 +434,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "import_with_underscore.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -445,7 +445,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "imports_aliases_mixed.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -460,7 +460,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "list_comprehension_simple.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -471,7 +471,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "list_comprehension_with_constraint.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -482,7 +482,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "list_literal_multiple.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -493,7 +493,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "list_literal_nested.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -504,7 +504,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "list_literal_single.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -515,7 +515,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "list_literal_with_exprs.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -526,7 +526,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "lists_and_comprehensions.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -541,7 +541,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "lit_bools.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -552,7 +552,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "lit_imaginary.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -563,7 +563,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "lit_ints.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -574,7 +574,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "lit_reals.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -585,7 +585,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "lit_strings.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -596,7 +596,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "literals_all.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -611,7 +611,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "member_and_index.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -626,7 +626,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "new_args_and_property_init.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -637,7 +637,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "new_bare.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -648,7 +648,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "new_empty_args.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -659,7 +659,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "new_paramdecl_args.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -670,7 +670,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "new_property_init.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -681,7 +681,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "object_instantiation.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -696,7 +696,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "op_additive.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -707,7 +707,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "op_call_then_access_index.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -718,7 +718,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "op_indexing.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -729,7 +729,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "op_logical.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -740,7 +740,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "op_member_access.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -751,7 +751,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "op_mixed_access_index.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -762,7 +762,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "op_multiplicative.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -773,7 +773,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "op_parentheses_alter_precedence.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -784,7 +784,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "op_power_right_assoc.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -795,7 +795,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "op_precedence_chain.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -806,7 +806,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "op_relational.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -821,7 +821,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "program_mixed_interleaved.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -836,7 +836,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_array_typed_var.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -847,7 +847,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_assignment.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -858,7 +858,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_else_if_chain.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -869,7 +869,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_empty_expr_stmt.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -880,7 +880,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_expr_stmt.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -891,7 +891,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_if_no_else.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -902,7 +902,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_if_with_else.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -913,7 +913,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_list_typed_var.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -924,7 +924,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_return.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -935,7 +935,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_var_decl.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -946,7 +946,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_var_init.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -957,7 +957,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_while.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -968,7 +968,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_with_block.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -979,7 +979,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "stmt_with_single.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -994,7 +994,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "trivia_comments_whitespace.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -1005,7 +1005,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "trivia_semicolons_required.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -1016,7 +1016,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "type_array_sized.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -1027,7 +1027,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "type_array_unsized.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -1038,7 +1038,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "type_list_signature.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -1049,7 +1049,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "type_typename.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -1064,7 +1064,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "unary_and_calls.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -1075,7 +1075,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "unary_postfix.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -1086,7 +1086,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "unary_prefix.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
@@ -1101,9 +1101,21 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "with_and_comments.5th");
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
-        
+
         result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
+    }
+
+    [Test]
+    public async Task knowledge_management_declare_graph_ShouldCompileAndReturnZero()
+    {
+        // Validates augmented assignment 'store += graph;' desugars to KG.SaveGraph(store, graph)
+        var sourceFile = Path.Combine("TestPrograms", "KnowledgeManagement", "declare-a-graph.5th");
+        var executablePath = await CompileFileAsync(sourceFile);
+        var result = await ExecuteAsync(executablePath);
+
+        result.ExitCode.Should().Be(0, "program should compile and run successfully with graph save");
+        result.StandardError.Should().BeEmpty("No runtime errors expected for graph declaration example");
     }
 
     #endregion

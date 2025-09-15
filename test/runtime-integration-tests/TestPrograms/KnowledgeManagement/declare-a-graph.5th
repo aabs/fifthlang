@@ -1,6 +1,6 @@
 alias x as <http://example.com/blah#>;
 
-store home = sparql_store(<http://localhost:8080/graphdb>);
+home : store = sparql_store(<http://localhost:8080/graphdb>);
 
 class Person in <x:>
 {
@@ -15,8 +15,8 @@ calculate_age(val : datetime): TimeSpan
 
 foo(a : int, n : string): void
 {
-    Person eric = new Person();
-    graph ericKnowledge in <x:people> = <{
+    eric : Person = new Person();
+    ericKnowledge : graph in <x:people> = <{
         d: datetime = new datetime(1926, 5, 14);
         eric.dob = d;
         eric.age = calculate_age(d);
