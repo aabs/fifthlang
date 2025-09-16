@@ -90,7 +90,7 @@ FR-029: When a diagnostic concerns multiple overloads, emit one primary diagnost
 FR-032: Reserve a future compiler flag (e.g., `--strict-guards`) that escalates GUARD_UNREACHABLE (W1002) to an error and optionally treats UNKNOWN analysis cases as errors. The current implementation MUST NOT yet implement the flag but MUST structure code to allow this escalation with minimal change.
 FR-033: Overload grouping MUST be determined solely by function identifier plus the ordered sequence of parameter types (arity + types). Parameter names, default values, or annotations MUST NOT create separate groups; guards across such syntactically different but type-equivalent signatures are validated together.
 FR-034: Emitting more than one unguarded (base) overload in a single overload group MUST produce error GUARD_MULTIPLE_BASE (E1005).
-FR-035: Declaring any further overload after the base (unguarded) overload MUST produce error GUARD_BASE_NOT_LAST (E1004) and those subsequent overloads MUST NOT participate in dispatch.
+FR-035: Declaring any further overload after the first base-like (unguarded or tautology) overload MUST produce error GUARD_BASE_NOT_LAST (E1004) and those subsequent overloads MUST NOT participate in dispatch. Dispatch evaluation for a group HALTS logically at the first base-like overload (later base-like overloads are never considered for execution).
 FR-036: Secondary diagnostics MUST follow a consistent wording template: "note: <reason> due to <primary overload ref>" where the reference includes function name, arity, and source span (file:line:col). Each secondary attaches to the related overload's signature span.
 FR-037: All diagnostics MUST provide dual highlighting: (a) primary location highlighting the guard expression (or entire signature if no guard) and (b) related location(s) for every other overload participating in the diagnostic (case (c) combined style). Related spans use secondary notes per the format section.
 FR-038: A guard is classified ANALYZABLE only if it can be normalized to a conjunction (AND-only) of atomic predicates, each atomic predicate matching one of: (a) equality `Ident == Literal`, (b) unary comparison `Ident <|<=|>|>= Literal`, (c) bounded interval `Literal <|<= Ident <|<= Literal` or `Ident <|<= Literal && Ident >|>= Literal` forms on the same identifier, (d) recognized destructuring field binding with no additional boolean operators, (e) a single identifier presence check produced by destructuring. All other forms are UNKNOWN.
@@ -111,17 +111,19 @@ FR-052: A base overload whose guard expression is a tautology (`true`, or reduci
 FR-053: Conflict resolution priority: report GUARD_MULTIPLE_BASE (E1005) before GUARD_BASE_NOT_LAST (E1004); only emit E1004 for overloads trailing after the FIRST recognized base when no additional base conflicts supersede.
 FR-054: The validator MUST NOT emit any GUARD_UNKNOWN_MEMBER diagnostic; unknown members should have been resolved earlier; absence indicates prior phase failure, not a validator concern.
 FR-055: Tautology detection is limited to the literal `true`, parenthesized `true`, or a compile-time constant boolean symbol resolved to true; no deeper expression simplification (e.g., `!(false)`) is performed.
-FR-056: Duplicate guard expressions (syntactically identical after whitespace-insensitive comparison) MUST mark the later overload as unreachable (GUARD_UNREACHABLE) independent of interval logic.
+FR-056: Duplicate guard expressions (after normalization that strips ASCII whitespace and redundant outer parentheses) MUST mark the later overload as unreachable (GUARD_UNREACHABLE) independent of interval logic. Identifier case sensitivity follows language identifier rules; no semantic simplification beyond parenthesis stripping is applied.
 FR-057: Cross-identifier equality (`x == y`) MUST classify the guard as UNKNOWN (aligning with FR-043) even without arithmetic offset.
 FR-058: Equality or comparison involving a generic type parameter (e.g., `t == 5`, `t > 0`) MUST classify the guard as UNKNOWN (FR-046 extension) unless the generic is already concretely bound to a fully enumerated domain (future capability, not in this version).
 FR-059: Interval representation MUST track inclusivity flags explicitly: Interval {lower?, lowerInclusive, upper?, upperInclusive}. An interval is EMPTY if (a) lower > upper, or (b) lower == upper and not (lowerInclusive && upperInclusive).
 FR-060: Empty (inverted) interval detection executes before general subsumption; such guards are immediately treated as unreachable without contributing to coverage or later altering union state.
 FR-061: Overload count warning (W1101) MUST emit exactly once per overload group, attached to the first overload's signature span.
 FR-062: UNKNOWN explosion warning (W1102) MUST emit exactly once per group, attached to the first overload's signature span, and only if no base overload (unguarded or tautology) is present.
-FR-063: UNKNOWN explosion percentage computation: unknownPercent = (unknownCount * 100.0) / totalCount; trigger when unknownPercent > 50.0 (strict greater than) AND totalCount >= 8.
-FR-064: Presence of a base overload (unguarded or tautology) suppresses emission of GUARD_UNKNOWN_EXPLOSION regardless of UNKNOWN percentage.
+FR-063: UNKNOWN explosion percentage computation: unknownPercent = floor((unknownCount * 100.0) / totalCount); trigger when unknownPercent > 50 (strict greater than 50 as integer) AND totalCount >= 8.
+FR-064: Presence of a base overload (unguarded or tautology) suppresses computation and emission of GUARD_UNKNOWN_EXPLOSION entirely; explosion analysis only executes for groups with NO base-like overload.
 FR-065: Complexity target refined: overall algorithm MUST operate within O(n^2 + n*k) where n = overload count and k = average atomic predicates per analyzable guard; normalization per guard MUST be O(k).
 FR-066: Multiple base-like overloads (unguarded or tautology) produce a single primary GUARD_MULTIPLE_BASE diagnostic on the first duplicate; additional duplicates receive only secondary notes and MUST NOT trigger GUARD_BASE_NOT_LAST (E1004) separately.
+FR-067: If conditions for both GUARD_INCOMPLETE (E1001) and GUARD_UNKNOWN_EXPLOSION (W1102) are satisfied (no base, >50% UNKNOWN, size >=8), BOTH diagnostics MUST be emitted (E1001 as primary for completeness failure, W1102 as advisory) unless a base-like overload is later introduced (which would negate E1001 beforehand).
+FR-068: GUARD_OVERLOAD_COUNT (W1101) emission is independent of base presence; it MAY appear alongside any other diagnostics including E1001, E1004, E1005, or W1102.
 
 ---
 
@@ -290,6 +292,10 @@ AC-028: Guard `x == y` (same parameter types) classified UNKNOWN.
 AC-029: Guard involving generic `T` equality or comparison classified UNKNOWN.
 AC-030: One unguarded base plus one tautology base triggers single GUARD_MULTIPLE_BASE; no separate GUARD_BASE_NOT_LAST for tautology if already covered by multiple-base diagnostic.
 AC-031: UNKNOWN explosion percentage strictly greater than 50% (not >=) required to emit W1102.
+AC-032: Group with a base and 33 total overloads emits GUARD_OVERLOAD_COUNT (W1101) once (no suppression by base).
+AC-033: Group with no base, 40 overloads, 60% UNKNOWN emits both GUARD_INCOMPLETE (E1001) and GUARD_UNKNOWN_EXPLOSION (W1102).
+AC-034: Group with base and all other guards UNKNOWN emits neither GUARD_INCOMPLETE nor GUARD_UNKNOWN_EXPLOSION.
+AC-035: Normalized duplicate `( ( x == 5 ) )` followed later by `x==5` triggers GUARD_UNREACHABLE on the later overload.
 
 ---
 
