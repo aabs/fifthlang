@@ -47,7 +47,7 @@ OUT OF SCOPE (for this feature):
 
 ## Definitions
 - Guarded Overload: A function definition variant distinguished by a boolean guard expression (arbitrary boolean logic allowed) or destructuring pattern preceding its body. A destructuring pattern alone (without an explicit boolean condition) does NOT make the overload guarded for completeness purposes if no guard expression is supplied.
-- Base Case: An overload for a function with the same name + arity that has no guard expression. It MAY include a destructuring pattern; absence of an explicit guard expression makes it the catch-all candidate. Only one base (unguarded) overload is permitted per group.
+- Base Case: An overload for a function with the same name + arity that has no guard expression. It MAY include a destructuring pattern; absence of an explicit guard expression makes it the catch-all candidate. Exactly one base (unguarded) overload is permitted per group AND it MUST be the final declared overload in the group; any declarations after a base overload are a compile-time error (see diagnostics TBD) or ignored by later phases (preferred: emit error).
 - Coverage Set: Union of input domains for which at least one guard (or base) succeeds.
 - Exhaustive: Coverage Set equals the full cartesian domain of parameter types.
 - Ambiguous Overlaps: Two or more guards may succeed on the same input (absent defined precedence) where semantics require uniqueness.
@@ -79,7 +79,9 @@ FR-021: Guard expressions MAY use arbitrary boolean logic; the validator MUST tr
 FR-022: Accessing a missing (null) field/property within a guard expression follows normal runtime null reference semantics; the validator MUST NOT attempt to statically force presence.
 FR-023: Analysis is purely compile-time and MUST NOT depend on dynamic presence/absence of fields; missing fields at runtime are outside the scope of this phase.
 FR-024: Calls invoked inside guard expressions are ASSUMED PURE for analysis simplification; side effects are allowed but the validator treats them as opaque and does not reorder or eliminate them.
-FR-025: Primitive domains: boolean is fully enumerable (true/false); numeric types (integral & floating) are treated as infinite (cannot be proven exhaustive without a base). Exhaustiveness proof is only attempted for boolean domains (or future finite domains).
+FR-025: Primitive domains: boolean is fully enumerable (true/false). Numeric types (integral & floating) are considered infinite for value-based equality guards; a set of discrete numeric value guards is NEVER treated as exhaustive. Numeric ranges (e.g., `<`, `<=`, `>`, `>=`, interval comparisons) MAY participate in subsumption and partial coverage analysis but are not considered fully exhaustive unless a final base overload exists.
+FR-030: A guard comprised purely of a numeric range that wholly lies within an earlier numeric range guard is considered subsumed (UNREACHABLE). Subsumption detection for numeric ranges is limited to simple interval comparisons on the same parameter (e.g., `x > 0 && x < 10` within earlier `x > -100 && x < 100`).
+FR-031: If a chain of numeric range guards cumulatively covers all numeric values (e.g., `x < 0`, `x == 0`, `x > 0`), this is NOT considered exhaustive without a trailing base overload; coverage still requires explicit base for numeric domains.
 FR-026: Prefer emitting only UNREACHABLE_GUARD_OVERLOAD when a later guard is fully covered by earlier guards; do not emit an additional ambiguity/overlap diagnostic for the same case.
 FR-027: Diagnostic naming convention MUST adopt prefix GUARD_ with numeric codes (see Diagnostics section) and stable message formats.
 FR-028: Destructuring creates a stable binding context for the duration of guard evaluation so repeated field access within the same guard need not re-evaluate or re-destructure.
@@ -116,8 +118,8 @@ For each function group G (name + arity):
    a. Build abstract domain approximation per parameter: if primitive (int/float/string/bool) treat domain as TOP; if enum-like or union (future) capture discrete set; for destructured record/class treat presence of field constraints as narrowing predicate.
    b. For each guard Gi produce a symbolic predicate descriptor (set of equality tests, type tests, field match constraints). If predicate not structurally parsable, mark UNKNOWN and exclude from completeness proof.
    c. Attempt coverage: iterative union of predicate descriptors; if after all guards union != TOP → emit INCOMPLETE_GUARDED_OVERLOAD_SET.
-5. Overlap detection: pairwise intersections MAY exist and are permitted; no diagnostic produced solely for overlap.
-6. Unreachable detection: for each Gi, test if union of all earlier predicates completely covers Gi → if yes emit UNREACHABLE_GUARD_OVERLOAD (primary on first earlier overload, secondary notes on the unreachable one).
+5. Overlap detection: pairwise intersections MAY exist and are permitted; no diagnostic produced solely for overlap. Numeric range overlaps follow same rule unless one interval is fully contained by earlier intervals (then treated in unreachable detection).
+6. Unreachable detection: for each Gi, test if union of all earlier predicates completely covers Gi (including containment of numeric intervals) → if yes emit UNREACHABLE_GUARD_OVERLOAD (primary on first earlier overload, secondary notes on the unreachable one).
 7. Destructuring integrity: verify referenced members exist and adjust predicate descriptor.
 8. Emit diagnostics.
 
@@ -185,7 +187,9 @@ Marking with [NEEDS CLARIFICATION] if additional answers are required before imp
 ## Acceptance Criteria
 AC-001: Incomplete guard set program yields GUARD_INCOMPLETE (E1001).
 AC-002: Overlapping (but not subsuming) guards compile without diagnostic; runtime picks first matching guard.
-AC-003: Fully subsumed guard yields single GUARD_UNREACHABLE (W1002) with secondary note on the later overload.
+AC-003: Fully subsumed guard (including numeric range containment) yields single GUARD_UNREACHABLE (W1002) with secondary note on the later overload.
+AC-009: Declaring any overload after the base (unguarded) overload produces an error (code to be defined, e.g., GUARD_BASE_NOT_LAST) or prevents compilation.
+AC-010: Discrete numeric value guards alone are never reported as exhaustive; a missing base results in GUARD_INCOMPLETE.
 AC-004: Failing test `destructuring_example_ShouldReturn6000` passes (ExitCode 6000) after changes.
 AC-005: No new failures introduced in existing passing tests.
 AC-006: Compilation time increase <5% (manual measurement acceptable initially).
