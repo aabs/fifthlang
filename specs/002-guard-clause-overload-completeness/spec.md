@@ -89,6 +89,8 @@ FR-028: Destructuring creates a stable binding context for the duration of guard
 FR-029: When a diagnostic concerns multiple overloads, emit one primary diagnostic attached to the first implicated overload and secondary notes referencing the others.
 FR-032: Reserve a future compiler flag (e.g., `--strict-guards`) that escalates GUARD_UNREACHABLE (W1002) to an error and optionally treats UNKNOWN analysis cases as errors. The current implementation MUST NOT yet implement the flag but MUST structure code to allow this escalation with minimal change.
 FR-033: Overload grouping MUST be determined solely by function identifier plus the ordered sequence of parameter types (arity + types). Parameter names, default values, or annotations MUST NOT create separate groups; guards across such syntactically different but type-equivalent signatures are validated together.
+FR-034: Emitting more than one unguarded (base) overload in a single overload group MUST produce error GUARD_MULTIPLE_BASE (E1005).
+FR-035: Declaring any further overload after the base (unguarded) overload MUST produce error GUARD_BASE_NOT_LAST (E1004) and those subsequent overloads MUST NOT participate in dispatch.
 
 ---
 
@@ -142,10 +144,12 @@ NOTE: Heuristic domain approximation deliberately conservative: if UNKNOWN eleme
 - GUARD_INCOMPLETE (E1001): "Function '{name}/{arity}' has guarded overloads but no base case and guards are not exhaustive." (+ first uncovered example hint if derivable)
 - GUARD_UNREACHABLE (W1002): "Overload #{i} for function '{name}/{arity}' is unreachable (covered by previous guards)." (Primary attached to first earlier overload; secondary note on unreachable overload.)
 - GUARD_UNKNOWN_MEMBER (E1003): "Member '{m}' in destructuring for overload #{i} does not exist on type '{T}'."
+- GUARD_BASE_NOT_LAST (E1004): "Base (unguarded) overload for function '{name}/{arity}' must be the final overload; subsequent overload at #{i} is invalid." (Secondary notes on invalid trailing overloads.)
+- GUARD_MULTIPLE_BASE (E1005): "Multiple unguarded base overloads detected for function '{name}/{arity}'. Only one final base overload is permitted." (Primary on first duplicate, secondary notes on others.)
 - (Removed) INCOMPLETE_DESTRUCTURE: No longer emitted; destructuring omissions are permitted.
 
 Severity:
-- Errors: GUARD_INCOMPLETE, GUARD_UNKNOWN_MEMBER
+- Errors: GUARD_INCOMPLETE, GUARD_UNKNOWN_MEMBER, GUARD_BASE_NOT_LAST, GUARD_MULTIPLE_BASE
 - Warnings: GUARD_UNREACHABLE (reserved for escalation to error under future `--strict-guards` mode)
 
 ---
@@ -193,6 +197,7 @@ AC-002: Overlapping (but not subsuming) guards compile without diagnostic; runti
 AC-003: Fully subsumed guard (including numeric range containment) yields single GUARD_UNREACHABLE (W1002) with secondary note on the later overload.
 AC-009: Declaring any overload after the base (unguarded) overload produces an error (code to be defined, e.g., GUARD_BASE_NOT_LAST) or prevents compilation.
 AC-010: Discrete numeric value guards alone are never reported as exhaustive; a missing base results in GUARD_INCOMPLETE.
+AC-011: Multiple unguarded overloads for the same function produce GUARD_MULTIPLE_BASE (E1005).
 AC-004: Failing test `destructuring_example_ShouldReturn6000` passes (ExitCode 6000) after changes.
 AC-005: No new failures introduced in existing passing tests.
 AC-006: Compilation time increase <5% (manual measurement acceptable initially).
