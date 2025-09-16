@@ -8,6 +8,8 @@ Coverage: CI collects cross-platform coverage via XPlat Code Coverage; HTML and 
 
 A compiler and language tooling for the Fifth programming language.
 
+👉 [Latest Announcement: Graph Assertion Blocks](https://github.com/aabs/fifthlang/discussions/74)
+
 ## Quickstart
 ```csharp
 alias x as <http://example.com/blah#>;
