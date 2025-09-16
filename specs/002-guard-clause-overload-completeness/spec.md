@@ -51,6 +51,7 @@ OUT OF SCOPE (for this feature):
 - Coverage Set: Union of input domains for which at least one guard (or base) succeeds.
 - Exhaustive: Coverage Set equals the full cartesian domain of parameter types.
 - Ambiguous Overlaps: Two or more guards may succeed on the same input (absent defined precedence) where semantics require uniqueness.
+- Overload Grouping: Overloads are grouped strictly by (function name, ordered list of parameter types). Parameter identifiers (names) are irrelevant for grouping; two overloads whose parameter name differs but whose parameter type sequence matches are part of the same group. Default values, attributes, or parameter names DO NOT distinguish overload groups.
 
 ---
 
@@ -87,6 +88,7 @@ FR-027: Diagnostic naming convention MUST adopt prefix GUARD_ with numeric codes
 FR-028: Destructuring creates a stable binding context for the duration of guard evaluation so repeated field access within the same guard need not re-evaluate or re-destructure.
 FR-029: When a diagnostic concerns multiple overloads, emit one primary diagnostic attached to the first implicated overload and secondary notes referencing the others.
 FR-032: Reserve a future compiler flag (e.g., `--strict-guards`) that escalates GUARD_UNREACHABLE (W1002) to an error and optionally treats UNKNOWN analysis cases as errors. The current implementation MUST NOT yet implement the flag but MUST structure code to allow this escalation with minimal change.
+FR-033: Overload grouping MUST be determined solely by function identifier plus the ordered sequence of parameter types (arity + types). Parameter names, default values, or annotations MUST NOT create separate groups; guards across such syntactically different but type-equivalent signatures are validated together.
 
 ---
 
