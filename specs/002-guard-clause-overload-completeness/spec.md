@@ -86,6 +86,7 @@ FR-026: Prefer emitting only UNREACHABLE_GUARD_OVERLOAD when a later guard is fu
 FR-027: Diagnostic naming convention MUST adopt prefix GUARD_ with numeric codes (see Diagnostics section) and stable message formats.
 FR-028: Destructuring creates a stable binding context for the duration of guard evaluation so repeated field access within the same guard need not re-evaluate or re-destructure.
 FR-029: When a diagnostic concerns multiple overloads, emit one primary diagnostic attached to the first implicated overload and secondary notes referencing the others.
+FR-032: Reserve a future compiler flag (e.g., `--strict-guards`) that escalates GUARD_UNREACHABLE (W1002) to an error and optionally treats UNKNOWN analysis cases as errors. The current implementation MUST NOT yet implement the flag but MUST structure code to allow this escalation with minimal change.
 
 ---
 
@@ -143,7 +144,7 @@ NOTE: Heuristic domain approximation deliberately conservative: if UNKNOWN eleme
 
 Severity:
 - Errors: GUARD_INCOMPLETE, GUARD_UNKNOWN_MEMBER
-- Warnings: GUARD_UNREACHABLE (could be escalated in strict mode future)
+- Warnings: GUARD_UNREACHABLE (reserved for escalation to error under future `--strict-guards` mode)
 
 ---
 
