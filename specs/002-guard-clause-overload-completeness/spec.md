@@ -169,9 +169,9 @@ Test Artifacts:
 ---
 
 ## Open Questions / Clarifications
-- Do we have existing attribute system to mark intentional partiality? (Assumed no; future FR placeholder.)
+There is currently NO attribute system to mark intentional partiality; any partial guarded overload set without a base case is an error (future enhancement may introduce an `@partial` attribute to relax this).
 
-Marking with [NEEDS CLARIFICATION] if answers required before implementation.
+Marking with [NEEDS CLARIFICATION] if additional answers are required before implementation.
 
 ---
 
