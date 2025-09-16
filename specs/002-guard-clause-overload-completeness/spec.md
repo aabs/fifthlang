@@ -8,7 +8,7 @@
 ---
 
 ## Problem Overview (WHAT & WHY)
-Guarded function overloading allows multiple function bodies distinguished by guard predicates (boolean conditions / pattern matches / destructuring predicates). Today the compiler apparently accepts sets of guarded overloads that do not include an unconditional ("base") case nor a total set of mutually covering guards. This leads to:
+Guarded function overloading allows multiple function bodies distinguished by guard predicates (arbitrary boolean expressions / pattern matches / destructuring predicates). Guard expressions may contain full boolean logic (&&, ||, !, parenthesised expressions, comparisons, equality tests, calls to pure boolean-returning functions, etc.). Today the compiler apparently accepts sets of guarded overloads that do not include an unconditional ("base") case nor a total set of mutually covering guards. This leads to:
 - Runtime selection ambiguity or falling through to undefined behavior
 - Silent acceptance of logically partial definitions
 - Downstream transformation / IL generation producing incorrect logic (e.g., wrong exit code in `destructuring_example_ShouldReturn6000`)
@@ -46,8 +46,8 @@ OUT OF SCOPE (for this feature):
 ---
 
 ## Definitions
-- Guarded Overload: A function definition variant distinguished by a boolean guard expression or destructuring pattern preceding its body.
-- Base Case: An overload for a function with the same name + arity that has no guard (always matches) OR an explicit wildcard pattern.
+- Guarded Overload: A function definition variant distinguished by a boolean guard expression (arbitrary boolean logic allowed) or destructuring pattern preceding its body.
+- Base Case: An overload for a function with the same name + arity that has no guard (always matches) - there is no syntax for an explicit wildcard pattern.
 - Coverage Set: Union of input domains for which at least one guard (or base) succeeds.
 - Exhaustive: Coverage Set equals the full cartesian domain of parameter types.
 - Ambiguous Overlaps: Two or more guards may succeed on the same input (absent defined precedence) where semantics require uniqueness.
@@ -75,6 +75,7 @@ FR-017: The validator MUST integrate with existing diagnostic reporting infrastr
 FR-018: Performance: Validation SHOULD be O(n^2) worst-case in number of overloads per group (acceptable given typical small arity counts).
 FR-019: Guard expressions referencing unresolved identifiers MUST rely on earlier binding/type phases; if unavailable, emit a deferred diagnostic and skip overlap analysis for that guard.
 FR-020: Provide extension points in code (internal well-factored methods) to later plug in richer pattern coverage logic.
+FR-021: Guard expressions MAY use arbitrary boolean logic; the validator MUST treat any expression it cannot structurally analyse as UNKNOWN for completeness, while still using declaration order for reachability assessment.
 
 ---
 
@@ -168,7 +169,6 @@ Test Artifacts:
 
 ## Open Questions / Clarifications
 - Do we have existing attribute system to mark intentional partiality? (Assumed no; future FR placeholder.)
-- Are guard expressions restricted syntax enabling structural parsing (equality only) or arbitrary boolean logic? (Assume arbitrary; heuristic decomposes only simple conjunctions of equalities.)
 - Are destructured fields all mandatory? (Need language definition—if unspecified treat omissions as allowed unless variable read later triggers semantic error.)
 
 Marking with [NEEDS CLARIFICATION] if answers required before implementation.
