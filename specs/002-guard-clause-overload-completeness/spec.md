@@ -96,7 +96,7 @@ FR-037: All diagnostics MUST provide dual highlighting: (a) primary location hig
 FR-038: A guard is classified ANALYZABLE only if it can be normalized to a conjunction (AND-only) of atomic predicates, each atomic predicate matching one of: (a) equality `Ident == Literal`, (b) unary comparison `Ident <|<=|>|>= Literal`, (c) bounded interval `Literal <|<= Ident <|<= Literal` or `Ident <|<= Literal && Ident >|>= Literal` forms on the same identifier, (d) recognized destructuring field binding with no additional boolean operators, (e) a single identifier presence check produced by destructuring. All other forms are UNKNOWN.
 FR-039: UNKNOWN guards MUST: (a) still participate in order for reachability (only base/Always can render them unreachable directly), (b) never contribute positive coverage for completeness, (c) be candidates for escalation under `--strict-guards` (future) converting GUARD_INCOMPLETE from absence of analyzable coverage into an immediate error explanation tagging the first UNKNOWN guard.
 FR-040: Mixed inclusive/exclusive numeric interval bounds that invert (produce an empty set) MUST collapse to EMPTY and render that overload unreachable at definition time (eligible for GUARD_UNREACHABLE if referenced) e.g., `x > 5 && x <= 5`.
-FR-041: Equality predicates MUST normalize to degenerate closed intervals `[v,v]` for interval reasoning and subsumption.
+FR-041: Equality predicates MUST normalize to degenerate closed intervals `[v,v]` for interval reasoning and subsumption (EXCLUDING predicates whose left identifier is a generic type parameter per FR-058; those remain UNKNOWN).
 FR-042: Multiple interval predicates for the same identifier in one normalized conjunction MUST intersect cumulatively; EMPTY intersection yields an unreachable overload (GUARD_UNREACHABLE) without affecting completeness positively.
 FR-043: Cross-identifier relational coupling (e.g., `x < y`, `a == b + 1`, `x > y && x < z`) MUST classify the entire guard as UNKNOWN.
 FR-044: Destructuring in guards MUST be considered side-effect free for static analysis even if it could throw at runtime due to shape mismatch; potential runtime exceptions MUST NOT influence completeness reasoning.
@@ -122,7 +122,9 @@ FR-063: UNKNOWN explosion percentage computation: unknownPercent = floor((unknow
 FR-064: Presence of a base overload (unguarded or tautology) suppresses computation and emission of GUARD_UNKNOWN_EXPLOSION entirely; explosion analysis only executes for groups with NO base-like overload.
 FR-065: Complexity target refined: overall algorithm MUST operate within O(n^2 + n*k) where n = overload count and k = average atomic predicates per analyzable guard; normalization per guard MUST be O(k).
 FR-066: Multiple base-like overloads (unguarded or tautology) produce a single primary GUARD_MULTIPLE_BASE diagnostic on the first duplicate; additional duplicates receive only secondary notes and MUST NOT trigger GUARD_BASE_NOT_LAST (E1004) separately.
-FR-067: If conditions for both GUARD_INCOMPLETE (E1001) and GUARD_UNKNOWN_EXPLOSION (W1102) are satisfied (no base, >50% UNKNOWN, size >=8), BOTH diagnostics MUST be emitted (E1001 as primary for completeness failure, W1102 as advisory) unless a base-like overload is later introduced (which would negate E1001 beforehand).
+FR-067: If conditions for both GUARD_INCOMPLETE (E1001) and GUARD_UNKNOWN_EXPLOSION (W1102) are satisfied (no base, >50% UNKNOWN, size >=8), BOTH diagnostics MUST be emitted (E1001 primary, W1102 advisory). Warning emission is NOT suppressed by presence of the related error.
+FR-069: Trivial `true` conjuncts within a guard (e.g., `x==5 && true`, `(true) && x==5`) MUST be eliminated during normalization prior to duplicate detection and equality/interval reasoning; elimination MUST NOT alter line/column spans for primary guard diagnostics.
+FR-070: If a guard simultaneously qualifies as a duplicate (FR-056) and an empty/inverted interval (FR-040/060), emit a single GUARD_UNREACHABLE based on empty interval precedence; duplication rationale need not produce an additional note.
 FR-068: GUARD_OVERLOAD_COUNT (W1101) emission is independent of base presence; it MAY appear alongside any other diagnostics including E1001, E1004, E1005, or W1102.
 
 ---
@@ -296,6 +298,9 @@ AC-032: Group with a base and 33 total overloads emits GUARD_OVERLOAD_COUNT (W11
 AC-033: Group with no base, 40 overloads, 60% UNKNOWN emits both GUARD_INCOMPLETE (E1001) and GUARD_UNKNOWN_EXPLOSION (W1102).
 AC-034: Group with base and all other guards UNKNOWN emits neither GUARD_INCOMPLETE nor GUARD_UNKNOWN_EXPLOSION.
 AC-035: Normalized duplicate `( ( x == 5 ) )` followed later by `x==5` triggers GUARD_UNREACHABLE on the later overload.
+AC-036: Group meeting thresholds for both overload count and UNKNOWN explosion emits both W1101 and W1102 once each.
+AC-037: W1102 diagnostic displays unknownPercent as an integer with no decimal places (floor of computed percentage).
+AC-038: Guard `x==5 && true` is treated identically to `x==5` for subsumption and duplicate detection.
 
 ---
 
