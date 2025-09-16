@@ -91,6 +91,7 @@ FR-032: Reserve a future compiler flag (e.g., `--strict-guards`) that escalates 
 FR-033: Overload grouping MUST be determined solely by function identifier plus the ordered sequence of parameter types (arity + types). Parameter names, default values, or annotations MUST NOT create separate groups; guards across such syntactically different but type-equivalent signatures are validated together.
 FR-034: Emitting more than one unguarded (base) overload in a single overload group MUST produce error GUARD_MULTIPLE_BASE (E1005).
 FR-035: Declaring any further overload after the base (unguarded) overload MUST produce error GUARD_BASE_NOT_LAST (E1004) and those subsequent overloads MUST NOT participate in dispatch.
+FR-036: Secondary diagnostics MUST follow a consistent wording template: "note: <reason> due to <primary overload ref>" where the reference includes function name, arity, and source span (file:line:col). Each secondary attaches to the related overload's signature span.
 
 ---
 
@@ -151,6 +152,13 @@ NOTE: Heuristic domain approximation deliberately conservative: if UNKNOWN eleme
 Severity:
 - Errors: GUARD_INCOMPLETE, GUARD_UNKNOWN_MEMBER, GUARD_BASE_NOT_LAST, GUARD_MULTIPLE_BASE
 - Warnings: GUARD_UNREACHABLE (reserved for escalation to error under future `--strict-guards` mode)
+
+### Secondary Diagnostics Format
+Primary diagnostics list the core issue. Each related overload gets a secondary note entry using these templates:
+ - Unreachable: "note: overload #{i} unreachable due to earlier coverage by overload #{j} at {file}:{line}:{col}"
+ - Multiple base: "note: extra base overload at {file}:{line}:{col} ignored; base already declared at {baseFile}:{baseLine}:{baseCol}"
+ - Base not last: "note: overload #{i} invalid because base overload terminates overloading at #{baseIndex}"
+Placeholders {file}:{line}:{col} refer to 1-based coordinates of the overload signature token. Tooling consuming diagnostics can rely on a machine-readable structure (IDs E1001-E1005, primary=true/false flag) in the future, but textual form MUST match templates.
 
 ---
 
