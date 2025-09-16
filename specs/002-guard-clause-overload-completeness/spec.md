@@ -92,6 +92,7 @@ FR-033: Overload grouping MUST be determined solely by function identifier plus 
 FR-034: Emitting more than one unguarded (base) overload in a single overload group MUST produce error GUARD_MULTIPLE_BASE (E1005).
 FR-035: Declaring any further overload after the base (unguarded) overload MUST produce error GUARD_BASE_NOT_LAST (E1004) and those subsequent overloads MUST NOT participate in dispatch.
 FR-036: Secondary diagnostics MUST follow a consistent wording template: "note: <reason> due to <primary overload ref>" where the reference includes function name, arity, and source span (file:line:col). Each secondary attaches to the related overload's signature span.
+FR-037: All diagnostics MUST provide dual highlighting: (a) primary location highlighting the guard expression (or entire signature if no guard) and (b) related location(s) for every other overload participating in the diagnostic (case (c) combined style). Related spans use secondary notes per the format section.
 
 ---
 
@@ -160,6 +161,12 @@ Primary diagnostics list the core issue. Each related overload gets a secondary 
  - Base not last: "note: overload #{i} invalid because base overload terminates overloading at #{baseIndex}"
 Placeholders {file}:{line}:{col} refer to 1-based coordinates of the overload signature token. Tooling consuming diagnostics can rely on a machine-readable structure (IDs E1001-E1005, primary=true/false flag) in the future, but textual form MUST match templates.
 
+### Source Span Policy
+Each emitted diagnostic includes:
+ - Primary span: exact text range of the guard expression; if unguarded base overload, the span is the function signature identifier token range.
+ - Related spans: one per implicated overload (unreachable, duplicate base, trailing after base). These are attached as secondary diagnostics (notes) with the templates above.
+This enforces option (c): highlight both primary and related locations for clarity across tools.
+
 ---
 
 ## Test Plan
@@ -211,6 +218,7 @@ AC-005: No new failures introduced in existing passing tests.
 AC-006: Compilation time increase <5% (manual measurement acceptable initially).
 AC-007: Diagnostics display correct line/column spans.
 AC-008: No INCOMPLETE_DESTRUCTURE diagnostic appears anywhere (removed behavior).
+AC-012: Diagnostics show dual highlighting (primary + all related spans) consistent with Source Span Policy.
 
 ---
 
