@@ -46,8 +46,8 @@ OUT OF SCOPE (for this feature):
 ---
 
 ## Definitions
-- Guarded Overload: A function definition variant distinguished by a boolean guard expression (arbitrary boolean logic allowed) or destructuring pattern preceding its body.
-- Base Case: An overload for a function with the same name + arity that has no guard (always matches) - there is no syntax for an explicit wildcard pattern.
+- Guarded Overload: A function definition variant distinguished by a boolean guard expression (arbitrary boolean logic allowed) or destructuring pattern preceding its body. A destructuring pattern alone (without an explicit boolean condition) does NOT make the overload guarded for completeness purposes if no guard expression is supplied.
+- Base Case: An overload for a function with the same name + arity that has no guard expression. It MAY include a destructuring pattern; absence of an explicit guard expression makes it the catch-all candidate. Only one base (unguarded) overload is permitted per group.
 - Coverage Set: Union of input domains for which at least one guard (or base) succeeds.
 - Exhaustive: Coverage Set equals the full cartesian domain of parameter types.
 - Ambiguous Overlaps: Two or more guards may succeed on the same input (absent defined precedence) where semantics require uniqueness.
@@ -58,9 +58,9 @@ OUT OF SCOPE (for this feature):
 FR-001: The compiler MUST introduce a Guarded Overload Completeness Validation phase.
 FR-002: For every function group (same identifier + arity), if any overload uses a guard, the group MUST contain either (a) an unconditional/base overload OR (b) a set of guards proven (by syntactic + heuristic checks) to be exhaustive.
 FR-003: If neither condition in FR-002 is met, compilation MUST fail with a diagnostic: "INCOMPLETE_GUARDED_OVERLOAD_SET" referencing the function group and first missing coverage example (heuristic message).
-FR-004: The validator MUST flag overlapping guards with diagnostic: "AMBIGUOUS_GUARD_OVERLAPS" listing involved overload signatures and guard snippets.
-FR-005: The validator MUST flag any guarded overload whose guard is subsumed by a previous broader guard as: "UNREACHABLE_GUARD_OVERLOAD".
-FR-006: Destructuring patterns MUST NOT require listing all fields of the underlying type; omission of fields is permitted and MUST NOT produce an error. (Future explicit mandatory annotations, if introduced, would change this.)
+FR-004: Overlapping guards are permissible; runtime dispatch selects the first (declaration order). No overlap error is emitted solely for overlap.
+FR-005: The validator MUST flag any guarded overload whose guard is fully subsumed by all prior guards as: "UNREACHABLE_GUARD_OVERLOAD" (preferred over emitting an ambiguity diagnostic). If subsumed, no separate overlap diagnostic is produced.
+FR-006: Destructuring patterns MUST NOT require listing all fields of the underlying type; omission of fields is permitted and MUST NOT produce an error. Completeness of destructuring is not validated in this phase.
 FR-007: Destructuring bindings MUST map to correct underlying fields; mismatched or unknown member names produce: "UNKNOWN_DESTRUCTURED_MEMBER".
 FR-008: Validation MUST occur prior to code generation so no invalid set reaches IL emission.
 FR-009: The phase MUST not produce false positives for functions without any guards.
@@ -77,6 +77,13 @@ FR-019: Guard expressions referencing unresolved identifiers MUST rely on earlie
 FR-020: Provide extension points in code (internal well-factored methods) to later plug in richer pattern coverage logic.
 FR-021: Guard expressions MAY use arbitrary boolean logic; the validator MUST treat any expression it cannot structurally analyse as UNKNOWN for completeness, while still using declaration order for reachability assessment.
 FR-022: Accessing a missing (null) field/property within a guard expression follows normal runtime null reference semantics; the validator MUST NOT attempt to statically force presence.
+FR-023: Analysis is purely compile-time and MUST NOT depend on dynamic presence/absence of fields; missing fields at runtime are outside the scope of this phase.
+FR-024: Calls invoked inside guard expressions are ASSUMED PURE for analysis simplification; side effects are allowed but the validator treats them as opaque and does not reorder or eliminate them.
+FR-025: Primitive domains: boolean is fully enumerable (true/false); numeric types (integral & floating) are treated as infinite (cannot be proven exhaustive without a base). Exhaustiveness proof is only attempted for boolean domains (or future finite domains).
+FR-026: Prefer emitting only UNREACHABLE_GUARD_OVERLOAD when a later guard is fully covered by earlier guards; do not emit an additional ambiguity/overlap diagnostic for the same case.
+FR-027: Diagnostic naming convention MUST adopt prefix GUARD_ with numeric codes (see Diagnostics section) and stable message formats.
+FR-028: Destructuring creates a stable binding context for the duration of guard evaluation so repeated field access within the same guard need not re-evaluate or re-destructure.
+FR-029: When a diagnostic concerns multiple overloads, emit one primary diagnostic attached to the first implicated overload and secondary notes referencing the others.
 
 ---
 
@@ -109,8 +116,8 @@ For each function group G (name + arity):
    a. Build abstract domain approximation per parameter: if primitive (int/float/string/bool) treat domain as TOP; if enum-like or union (future) capture discrete set; for destructured record/class treat presence of field constraints as narrowing predicate.
    b. For each guard Gi produce a symbolic predicate descriptor (set of equality tests, type tests, field match constraints). If predicate not structurally parsable, mark UNKNOWN and exclude from completeness proof.
    c. Attempt coverage: iterative union of predicate descriptors; if after all guards union != TOP → emit INCOMPLETE_GUARDED_OVERLOAD_SET.
-5. Overlap detection: pairwise check Gi,Gj (i<j) whether intersection of descriptors non-empty → record ambiguous pair; after pass if any → AMBIGUOUS_GUARD_OVERLAPS.
-6. Unreachable detection: for each Gi, test if union of all earlier predicates completely covers Gi → if yes emit UNREACHABLE_GUARD_OVERLOAD for Gi.
+5. Overlap detection: pairwise intersections MAY exist and are permitted; no diagnostic produced solely for overlap.
+6. Unreachable detection: for each Gi, test if union of all earlier predicates completely covers Gi → if yes emit UNREACHABLE_GUARD_OVERLOAD (primary on first earlier overload, secondary notes on the unreachable one).
 7. Destructuring integrity: verify referenced members exist and adjust predicate descriptor.
 8. Emit diagnostics.
 
@@ -127,13 +134,14 @@ NOTE: Heuristic domain approximation deliberately conservative: if UNKNOWN eleme
 ---
 
 ## Diagnostics (codes & messages)
-- INCOMPLETE_GUARDED_OVERLOAD_SET: "Function '{name}/{arity}' has guarded overloads but no base case and guards are not exhaustive." (+ first uncovered example hint if derivable)
-- AMBIGUOUS_GUARD_OVERLAPS: "Function '{name}/{arity}' has overlapping guards between overloads {i} and {j}." (aggregate list)
-- UNREACHABLE_GUARD_OVERLOAD: "Guarded overload #{i} for function '{name}/{arity}' is unreachable (subsumed by previous guards)."
-- INCOMPLETE_DESTRUCTURE: "Destructuring in overload #{i} missing member(s): a,b,c."
-- UNKNOWN_DESTRUCTURED_MEMBER: "Member '{m}' in destructuring for overload #{i} does not exist on type '{T}'."
+- GUARD_INCOMPLETE (E1001): "Function '{name}/{arity}' has guarded overloads but no base case and guards are not exhaustive." (+ first uncovered example hint if derivable)
+- GUARD_UNREACHABLE (W1002): "Overload #{i} for function '{name}/{arity}' is unreachable (covered by previous guards)." (Primary attached to first earlier overload; secondary note on unreachable overload.)
+- GUARD_UNKNOWN_MEMBER (E1003): "Member '{m}' in destructuring for overload #{i} does not exist on type '{T}'."
+- (Removed) INCOMPLETE_DESTRUCTURE: No longer emitted; destructuring omissions are permitted.
 
-Severity: errors for first three; INCOMPLETE_DESTRUCTURE & UNKNOWN_DESTRUCTURED_MEMBER are errors; future partial tolerance may downgrade some to warnings.
+Severity:
+- Errors: GUARD_INCOMPLETE, GUARD_UNKNOWN_MEMBER
+- Warnings: GUARD_UNREACHABLE (could be escalated in strict mode future)
 
 ---
 
@@ -143,12 +151,11 @@ Categories:
    - Single base overload + additional guarded overloads (no errors)
    - Only guarded overloads with provably exhaustive simple domain (e.g., boolean parameter: guard `x == true` and `x == false`)
    - Destructuring with base case fallback
-2. Failure scenarios:
-   - Guarded overloads with no base and missing branch
-   - Overlapping numeric range guards (if ranges introduced) or duplicate equality guards
-   - Unreachable second guard identical to first
-   - Destructuring referencing nonexistent member
-   - Guard expression causing runtime null reference (integration test should surface exception)
+2. Failure / warning scenarios:
+   - Guarded overloads with no base and missing branch (GUARD_INCOMPLETE)
+   - Unreachable second guard identical to first (GUARD_UNREACHABLE warning)
+   - Destructuring referencing nonexistent member (GUARD_UNKNOWN_MEMBER)
+   - Guard expression causing runtime null reference (runtime exception; not a validator diagnostic)
 3. Real test fix:
    - `destructuring_example.5th` after corrections returns 6000; verify exit code.
 4. Regression integration:
@@ -176,13 +183,14 @@ Marking with [NEEDS CLARIFICATION] if additional answers are required before imp
 ---
 
 ## Acceptance Criteria
-AC-001: Adding an incomplete guard set program yields INCOMPLETE_GUARDED_OVERLOAD_SET error.
-AC-002: Overlapping guards produce AMBIGUOUS_GUARD_OVERLAPS listing all pairs.
-AC-003: Unreachable guard emits UNREACHABLE_GUARD_OVERLOAD.
+AC-001: Incomplete guard set program yields GUARD_INCOMPLETE (E1001).
+AC-002: Overlapping (but not subsuming) guards compile without diagnostic; runtime picks first matching guard.
+AC-003: Fully subsumed guard yields single GUARD_UNREACHABLE (W1002) with secondary note on the later overload.
 AC-004: Failing test `destructuring_example_ShouldReturn6000` passes (ExitCode 6000) after changes.
 AC-005: No new failures introduced in existing passing tests.
 AC-006: Compilation time increase <5% (manual measurement acceptable initially).
 AC-007: Diagnostics display correct line/column spans.
+AC-008: No INCOMPLETE_DESTRUCTURE diagnostic appears anywhere (removed behavior).
 
 ---
 
