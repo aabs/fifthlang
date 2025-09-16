@@ -62,7 +62,7 @@ FR-003: If neither condition in FR-002 is met, compilation MUST fail with a diag
 FR-004: Overlapping guards are permissible; runtime dispatch selects the first (declaration order). No overlap error is emitted solely for overlap.
 FR-005: The validator MUST flag any guarded overload whose guard is fully subsumed by all prior guards as: "UNREACHABLE_GUARD_OVERLOAD" (preferred over emitting an ambiguity diagnostic). If subsumed, no separate overlap diagnostic is produced.
 FR-006: Destructuring patterns MUST NOT require listing all fields of the underlying type; omission of fields is permitted and MUST NOT produce an error. Completeness of destructuring is not validated in this phase.
-FR-007: Destructuring bindings MUST map to correct underlying fields; mismatched or unknown member names produce: "UNKNOWN_DESTRUCTURED_MEMBER".
+FR-007: Destructuring bindings MUST map to correct underlying fields; mismatched or unknown member names are assumed already rejected by prior symbol/type resolution. This validator MUST NOT emit a separate unknown-member diagnostic.
 FR-008: Validation MUST occur prior to code generation so no invalid set reaches IL emission.
 FR-009: The phase MUST not produce false positives for functions without any guards.
 FR-010: The phase MUST allow explicitly intentional partiality only if an `@partial` (future) attribute is present (not implemented now—by default partiality is an error). (Mark for future extension.)
@@ -74,7 +74,7 @@ FR-015: The validator SHOULD gracefully degrade (emit a generic warning) when it
 FR-016: If both a base overload and guarded overloads exist, no completeness error; unreachable checks still run.
 FR-017: The validator MUST integrate with existing diagnostic reporting infrastructure used by other language phases.
 FR-018: Performance: Validation SHOULD be O(n^2) worst-case in number of overloads per group (acceptable given typical small arity counts).
-FR-019: Guard expressions referencing unresolved identifiers MUST rely on earlier binding/type phases; if unavailable, emit a deferred diagnostic and skip overlap analysis for that guard.
+FR-019: Guard expressions referencing unresolved identifiers SHOULD NOT occur (earlier phases guarantee resolution). If encountered exceptionally, classify the guard as UNKNOWN with no new diagnostic.
 FR-020: Provide extension points in code (internal well-factored methods) to later plug in richer pattern coverage logic.
 FR-021: Guard expressions MAY use arbitrary boolean logic; the validator MUST treat any expression it cannot structurally analyse as UNKNOWN for completeness, while still using declaration order for reachability assessment.
 FR-022: Accessing a missing (null) field/property within a guard expression follows normal runtime null reference semantics; the validator MUST NOT attempt to statically force presence.
@@ -95,6 +95,21 @@ FR-036: Secondary diagnostics MUST follow a consistent wording template: "note: 
 FR-037: All diagnostics MUST provide dual highlighting: (a) primary location highlighting the guard expression (or entire signature if no guard) and (b) related location(s) for every other overload participating in the diagnostic (case (c) combined style). Related spans use secondary notes per the format section.
 FR-038: A guard is classified ANALYZABLE only if it can be normalized to a conjunction (AND-only) of atomic predicates, each atomic predicate matching one of: (a) equality `Ident == Literal`, (b) unary comparison `Ident <|<=|>|>= Literal`, (c) bounded interval `Literal <|<= Ident <|<= Literal` or `Ident <|<= Literal && Ident >|>= Literal` forms on the same identifier, (d) recognized destructuring field binding with no additional boolean operators, (e) a single identifier presence check produced by destructuring. All other forms are UNKNOWN.
 FR-039: UNKNOWN guards MUST: (a) still participate in order for reachability (only base/Always can render them unreachable directly), (b) never contribute positive coverage for completeness, (c) be candidates for escalation under `--strict-guards` (future) converting GUARD_INCOMPLETE from absence of analyzable coverage into an immediate error explanation tagging the first UNKNOWN guard.
+FR-040: Mixed inclusive/exclusive numeric interval bounds that invert (produce an empty set) MUST collapse to EMPTY and render that overload unreachable at definition time (eligible for GUARD_UNREACHABLE if referenced) e.g., `x > 5 && x <= 5`.
+FR-041: Equality predicates MUST normalize to degenerate closed intervals `[v,v]` for interval reasoning and subsumption.
+FR-042: Multiple interval predicates for the same identifier in one normalized conjunction MUST intersect cumulatively; EMPTY intersection yields an unreachable overload (GUARD_UNREACHABLE) without affecting completeness positively.
+FR-043: Cross-identifier relational coupling (e.g., `x < y`, `a == b + 1`, `x > y && x < z`) MUST classify the entire guard as UNKNOWN.
+FR-044: Destructuring in guards MUST be considered side-effect free for static analysis even if it could throw at runtime due to shape mismatch; potential runtime exceptions MUST NOT influence completeness reasoning.
+FR-045: Overload ordering across compilation units MUST follow global parsing order (file processing order determined by the compiler) and within each file lexical order.
+FR-046: Generic type parameters in guard predicates MUST be treated as TOP domain (no interval narrowing or value enumeration permitted).
+FR-047: Diagnostic codes E1001–E1005 are STABLE; their meanings MUST remain backward compatible across versions.
+FR-048: Reserve a future contiguous diagnostic range for `@partial` related semantics (codes not yet assigned; do not allocate in this spec).
+FR-049: Diagnostic English message templates in this spec are FINAL; no localization or structural token changes in this version.
+FR-050: Emit advisory warning W1101 (GUARD_OVERLOAD_COUNT) when an overload group contains more than 32 overloads (threshold T=32; triggers at size >=33).
+FR-051: Emit advisory warning W1102 (GUARD_UNKNOWN_EXPLOSION) when group size >=8 and >50% of overloads are UNKNOWN-classified.
+FR-052: A base overload whose guard expression is a tautology (`true`, or reducible to always true) MUST be treated as an unguarded base for ordering/completeness.
+FR-053: Conflict resolution priority: report GUARD_MULTIPLE_BASE (E1005) before GUARD_BASE_NOT_LAST (E1004); only emit E1004 for overloads trailing after the FIRST recognized base when no additional base conflicts supersede.
+FR-054: The validator MUST NOT emit any GUARD_UNKNOWN_MEMBER diagnostic; unknown members should have been resolved earlier; absence indicates prior phase failure, not a validator concern.
 
 ---
 
@@ -145,16 +160,18 @@ NOTE: Heuristic domain approximation deliberately conservative: if UNKNOWN eleme
 ---
 
 ## Diagnostics (codes & messages)
-- GUARD_INCOMPLETE (E1001): "Function '{name}/{arity}' has guarded overloads but no base case and guards are not exhaustive." (+ first uncovered example hint if derivable)
-- GUARD_UNREACHABLE (W1002): "Overload #{i} for function '{name}/{arity}' is unreachable (covered by previous guards)." (Primary attached to first earlier overload; secondary note on unreachable overload.)
-- GUARD_UNKNOWN_MEMBER (E1003): "Member '{m}' in destructuring for overload #{i} does not exist on type '{T}'."
-- GUARD_BASE_NOT_LAST (E1004): "Base (unguarded) overload for function '{name}/{arity}' must be the final overload; subsequent overload at #{i} is invalid." (Secondary notes on invalid trailing overloads.)
-- GUARD_MULTIPLE_BASE (E1005): "Multiple unguarded base overloads detected for function '{name}/{arity}'. Only one final base overload is permitted." (Primary on first duplicate, secondary notes on others.)
+- GUARD_INCOMPLETE (E1001): "Function '{name}/{arity}' has guarded overloads but no base case and guards are not exhaustive." (+ uncovered example hint if derivable)
+- GUARD_UNREACHABLE (W1002): "Overload #{i} for function '{name}/{arity}' is unreachable (covered by previous guards)."
+- GUARD_BASE_NOT_LAST (E1004): "Base (unguarded) overload for function '{name}/{arity}' must be the final overload; subsequent overload at #{i} is invalid."
+- GUARD_MULTIPLE_BASE (E1005): "Multiple unguarded base overloads detected for function '{name}/{arity}'. Only one final base overload is permitted."
+- GUARD_OVERLOAD_COUNT (W1101): "Overload group for '{name}/{arity}' exceeds recommended maximum of 32 (found {count}). Analysis precision may degrade."
+- GUARD_UNKNOWN_EXPLOSION (W1102): "Overload group for '{name}/{arity}' has excessive UNKNOWN guards ({unknownPercent}%). Refactor or add base case for clarity."
 - (Removed) INCOMPLETE_DESTRUCTURE: No longer emitted; destructuring omissions are permitted.
+- (Removed) GUARD_UNKNOWN_MEMBER (former E1003) per FR-054.
 
 Severity:
-- Errors: GUARD_INCOMPLETE, GUARD_UNKNOWN_MEMBER, GUARD_BASE_NOT_LAST, GUARD_MULTIPLE_BASE
-- Warnings: GUARD_UNREACHABLE (reserved for escalation to error under future `--strict-guards` mode)
+- Errors: GUARD_INCOMPLETE, GUARD_BASE_NOT_LAST, GUARD_MULTIPLE_BASE
+- Warnings: GUARD_UNREACHABLE, GUARD_OVERLOAD_COUNT, GUARD_UNKNOWN_EXPLOSION (all eligible for escalation in future strict mode except count warning)
 
 ### Secondary Diagnostics Format
 Primary diagnostics list the core issue. Each related overload gets a secondary note entry using these templates:
@@ -193,8 +210,15 @@ Categories:
    - Destructuring with base case fallback
 2. Failure / warning scenarios:
    - Guarded overloads with no base and missing branch (GUARD_INCOMPLETE)
-   - Unreachable second guard identical to first (GUARD_UNREACHABLE warning)
-   - Destructuring referencing nonexistent member (GUARD_UNKNOWN_MEMBER)
+   - Unreachable guard via prior coverage or empty/inverted interval (GUARD_UNREACHABLE)
+   - Interval inversion / empty intersection (GUARD_UNREACHABLE)
+   - Excessive overload count (>=33) (GUARD_OVERLOAD_COUNT)
+   - UNKNOWN explosion (>50% UNKNOWN, size >=8) (GUARD_UNKNOWN_EXPLOSION)
+   - Base not last (GUARD_BASE_NOT_LAST)
+   - Multiple bases (GUARD_MULTIPLE_BASE with priority over NOT_LAST)
+   - Tautology guard recognized as base equivalence
+   - Cross-identifier relational predicate classified UNKNOWN
+   - Generic parameter predicates remain TOP (no false subsumption)
    - Guard expression causing runtime null reference (runtime exception; not a validator diagnostic)
 3. Real test fix:
    - `destructuring_example.5th` after corrections returns 6000; verify exit code.
@@ -236,6 +260,17 @@ AC-007: Diagnostics display correct line/column spans.
 AC-008: No INCOMPLETE_DESTRUCTURE diagnostic appears anywhere (removed behavior).
 AC-012: Diagnostics show dual highlighting (primary + all related spans) consistent with Source Span Policy.
 AC-013: Guards containing OR, function calls, arithmetic beyond simple literal comparisons, cross-parameter comparisons, or mixed identifiers in one conjunct are classified UNKNOWN per FR-038/039.
+AC-014: Inverted/mixed interval (e.g., `x > 5 && x <= 5`) collapses to EMPTY and yields GUARD_UNREACHABLE.
+AC-015: Equality guard normalized to `[v,v]` participates in subsumption decisions.
+AC-016: Multiple interval constraints intersect; empty intersection => GUARD_UNREACHABLE.
+AC-017: Cross-identifier relational guard classified UNKNOWN and counts toward UNKNOWN percentage.
+AC-018: Destructuring potential runtime throw does not alter completeness outcome.
+AC-019: Generic parameter predicate never considered exhaustive nor narrowed; no incorrect subsumption warnings introduced.
+AC-020: Group of 33 overloads produces single GUARD_OVERLOAD_COUNT warning.
+AC-021: Group size 12 with 7 UNKNOWN (58%) produces GUARD_UNKNOWN_EXPLOSION; size 12 with 6 UNKNOWN (50%) does not.
+AC-022: Tautology guard recognized as base; completeness satisfied provided ordering rules met.
+AC-023: Multiple base overloads produce GUARD_MULTIPLE_BASE; only overloads after first base (when unique) may get GUARD_BASE_NOT_LAST.
+AC-024: No GUARD_UNKNOWN_MEMBER diagnostic appears anywhere.
 
 ---
 
