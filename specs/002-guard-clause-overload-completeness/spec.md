@@ -93,6 +93,8 @@ FR-034: Emitting more than one unguarded (base) overload in a single overload gr
 FR-035: Declaring any further overload after the base (unguarded) overload MUST produce error GUARD_BASE_NOT_LAST (E1004) and those subsequent overloads MUST NOT participate in dispatch.
 FR-036: Secondary diagnostics MUST follow a consistent wording template: "note: <reason> due to <primary overload ref>" where the reference includes function name, arity, and source span (file:line:col). Each secondary attaches to the related overload's signature span.
 FR-037: All diagnostics MUST provide dual highlighting: (a) primary location highlighting the guard expression (or entire signature if no guard) and (b) related location(s) for every other overload participating in the diagnostic (case (c) combined style). Related spans use secondary notes per the format section.
+FR-038: A guard is classified ANALYZABLE only if it can be normalized to a conjunction (AND-only) of atomic predicates, each atomic predicate matching one of: (a) equality `Ident == Literal`, (b) unary comparison `Ident <|<=|>|>= Literal`, (c) bounded interval `Literal <|<= Ident <|<= Literal` or `Ident <|<= Literal && Ident >|>= Literal` forms on the same identifier, (d) recognized destructuring field binding with no additional boolean operators, (e) a single identifier presence check produced by destructuring. All other forms are UNKNOWN.
+FR-039: UNKNOWN guards MUST: (a) still participate in order for reachability (only base/Always can render them unreachable directly), (b) never contribute positive coverage for completeness, (c) be candidates for escalation under `--strict-guards` (future) converting GUARD_INCOMPLETE from absence of analyzable coverage into an immediate error explanation tagging the first UNKNOWN guard.
 
 ---
 
@@ -167,6 +169,20 @@ Each emitted diagnostic includes:
  - Related spans: one per implicated overload (unreachable, duplicate base, trailing after base). These are attached as secondary diagnostics (notes) with the templates above.
 This enforces option (c): highlight both primary and related locations for clarity across tools.
 
+### UNKNOWN Classification Rules
+Normalization pipeline:
+1. Parse guard expression AST.
+2. Distribute AND over parenthesized sub-expressions; abort normalization if any OR (||) or XOR-like construct appears → classify UNKNOWN.
+3. Inspect each conjunct:
+   - If matches atomic equality or comparison pattern on a single identifier vs literal → keep.
+   - If forms an interval via two comparisons on the same identifier with compatible bounds → merge to interval descriptor.
+   - If is a destructuring-produced presence predicate (implicit) → accept.
+   - Else classify WHOLE guard UNKNOWN (no partial mixing).
+4. If all conjuncts valid → guard ANALYZABLE; build PredicateDescriptor.
+5. If any step fails → mark UNKNOWN; predicate contributes zero to coverage union but remains for ordering.
+
+Rationale: Prevents unsound assumptions from complex boolean expressions while enabling precise handling of simple, common predicates.
+
 ---
 
 ## Test Plan
@@ -219,6 +235,7 @@ AC-006: Compilation time increase <5% (manual measurement acceptable initially).
 AC-007: Diagnostics display correct line/column spans.
 AC-008: No INCOMPLETE_DESTRUCTURE diagnostic appears anywhere (removed behavior).
 AC-012: Diagnostics show dual highlighting (primary + all related spans) consistent with Source Span Policy.
+AC-013: Guards containing OR, function calls, arithmetic beyond simple literal comparisons, cross-parameter comparisons, or mixed identifiers in one conjunct are classified UNKNOWN per FR-038/039.
 
 ---
 
