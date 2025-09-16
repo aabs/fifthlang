@@ -60,7 +60,7 @@ FR-002: For every function group (same identifier + arity), if any overload uses
 FR-003: If neither condition in FR-002 is met, compilation MUST fail with a diagnostic: "INCOMPLETE_GUARDED_OVERLOAD_SET" referencing the function group and first missing coverage example (heuristic message).
 FR-004: The validator MUST flag overlapping guards with diagnostic: "AMBIGUOUS_GUARD_OVERLAPS" listing involved overload signatures and guard snippets.
 FR-005: The validator MUST flag any guarded overload whose guard is subsumed by a previous broader guard as: "UNREACHABLE_GUARD_OVERLOAD".
-FR-006: Destructuring patterns MUST be checked for field/key completeness relative to the destructured type when language semantics require explicit listing; missing mandatory members emit: "INCOMPLETE_DESTRUCTURE".
+FR-006: Destructuring patterns MUST NOT require listing all fields of the underlying type; omission of fields is permitted and MUST NOT produce an error. (Future explicit mandatory annotations, if introduced, would change this.)
 FR-007: Destructuring bindings MUST map to correct underlying fields; mismatched or unknown member names produce: "UNKNOWN_DESTRUCTURED_MEMBER".
 FR-008: Validation MUST occur prior to code generation so no invalid set reaches IL emission.
 FR-009: The phase MUST not produce false positives for functions without any guards.
@@ -76,6 +76,7 @@ FR-018: Performance: Validation SHOULD be O(n^2) worst-case in number of overloa
 FR-019: Guard expressions referencing unresolved identifiers MUST rely on earlier binding/type phases; if unavailable, emit a deferred diagnostic and skip overlap analysis for that guard.
 FR-020: Provide extension points in code (internal well-factored methods) to later plug in richer pattern coverage logic.
 FR-021: Guard expressions MAY use arbitrary boolean logic; the validator MUST treat any expression it cannot structurally analyse as UNKNOWN for completeness, while still using declaration order for reachability assessment.
+FR-022: Accessing a missing (null) field/property within a guard expression follows normal runtime null reference semantics; the validator MUST NOT attempt to statically force presence.
 
 ---
 
@@ -147,7 +148,7 @@ Categories:
    - Overlapping numeric range guards (if ranges introduced) or duplicate equality guards
    - Unreachable second guard identical to first
    - Destructuring referencing nonexistent member
-   - Destructuring omitting required member (if required semantics defined)
+   - Guard expression causing runtime null reference (integration test should surface exception)
 3. Real test fix:
    - `destructuring_example.5th` after corrections returns 6000; verify exit code.
 4. Regression integration:
@@ -169,7 +170,6 @@ Test Artifacts:
 
 ## Open Questions / Clarifications
 - Do we have existing attribute system to mark intentional partiality? (Assumed no; future FR placeholder.)
-- Are destructured fields all mandatory? (Need language definition—if unspecified treat omissions as allowed unless variable read later triggers semantic error.)
 
 Marking with [NEEDS CLARIFICATION] if answers required before implementation.
 
