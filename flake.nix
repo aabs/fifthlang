@@ -49,26 +49,6 @@
           ];
 
           shellHook = ''
-            export XDG_CONFIG_HOME=$(mktemp -d)
-            export XDG_DATA_HOME=$(mktemp -d)
-            export XDG_CACHE_HOME=$(mktemp -d)
-
-            # Install GitHub CLI extensions (idempotent within this shell)
-            if ! gh extension list 2>/dev/null | grep -q 'dlvhdr/gh-dash'; then
-              gh extension install dlvhdr/gh-dash
-            fi
-            if ! gh extension list 2>/dev/null | grep -q 'github/spec-kit'; then
-              gh extension install github/spec-kit
-            fi
-
-            if ! gh extension list 2>/dev/null | grep -q 'HaywardMorihara/gh-tidy'; then
-              gh extension install HaywardMorihara/gh-tidy
-            fi
-
-            if ! gh extension list 2>/dev/null | grep -q 'antgrutta/gh-discussions'; then
-              gh extension install antgrutta/gh-discussions
-            fi
-
             echo "✅ Agentic .NET dev shell ready. Run 'nvim' or use 'gh dash' and 'gh spec' to explore."
           '';
         };
