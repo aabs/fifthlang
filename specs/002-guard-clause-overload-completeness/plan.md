@@ -282,7 +282,7 @@ Maintained in README subsection; initial entries:
 - [x] Phase 0: Research complete (/plan)
 - [x] Phase 1: Design complete (/plan)
 - [x] Phase 2: Task planning complete (approach defined)
-- [ ] Phase 3: Tasks generated (/tasks command)
+ - [x] Phase 3: Tasks generated (/tasks command) – artifacts present: `research.md`, `data-model.md`, `quickstart.md`, `contracts/validator-contract.md`, `tasks.md`
 - [ ] Phase 4: Implementation complete
 - [ ] Phase 5: Validation passed
 
