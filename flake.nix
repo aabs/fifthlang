@@ -13,20 +13,24 @@
           inherit system;
           config.allowUnfree = true;
         };
-
-        # GitHub CLI extensions
-        ghDash = pkgs.fetchFromGitHub {
-          owner = "winterschon";
-          repo = "gh-dash";
-          rev = "main";
-          sha256 = "sha256-PLACEHOLDER"; # Replace with actual hash
-        };
-
-        specKit = pkgs.fetchFromGitHub {
-          owner = "github";
-          repo = "spec-kit";
-          rev = "main";
-          sha256 = "sha256-PLACEHOLDER"; # Replace with actual hash
+        # Wrap Neovim with plugins so they are on runtimepath at startup
+        neovim-with-plugins = pkgs.neovim.override {
+          configure = {
+            packages.myPlugins = with pkgs.vimPlugins; {
+              start = [
+                nvim-lspconfig
+                nvim-cmp
+                nvim-dap
+                copilot-vim
+              ];
+              opt = [ ];
+            };
+            customRC = ''
+              lua << EOF
+              require('lspconfig').omnisharp.setup{}
+              EOF
+            '';
+          };
         };
       in rec {
         devShells.default = pkgs.mkShell {
@@ -37,24 +41,11 @@
             pkgs.omnisharp-roslyn
             pkgs.netcoredbg
             pkgs.nodejs_20
-            pkgs.neovim
+            neovim-with-plugins
             pkgs.git
             pkgs.gh
             pkgs.ripgrep
             pkgs.fd
-            pkgs.vimPlugins.nvim-lspconfig
-            pkgs.vimPlugins.nvim-cmp
-            pkgs.vimPlugins.nvim-dap
-            pkgs.vimUtils.buildVimPlugin {
-              pname = "copilot.vim";
-              version = "1.0";
-              src = pkgs.fetchFromGitHub {
-                owner = "github";
-                repo = "copilot.vim";
-                rev = "main";
-                sha256 = "sha256-0000000000000000000000000000000000000000000000000000"; # Replace with actual hash
-              };
-            }
           ];
 
           shellHook = ''
@@ -62,12 +53,21 @@
             export XDG_DATA_HOME=$(mktemp -d)
             export XDG_CACHE_HOME=$(mktemp -d)
 
-            mkdir -p $XDG_CONFIG_HOME/nvim
-            echo 'require("lspconfig").omnisharp.setup{}' > $XDG_CONFIG_HOME/nvim/init.lua
+            # Install GitHub CLI extensions (idempotent within this shell)
+            if ! gh extension list 2>/dev/null | grep -q 'dlvhdr/gh-dash'; then
+              gh extension install dlvhdr/gh-dash
+            fi
+            if ! gh extension list 2>/dev/null | grep -q 'github/spec-kit'; then
+              gh extension install github/spec-kit
+            fi
 
-            # Install GitHub CLI extensions
-            gh extension install ${ghDash}
-            gh extension install ${specKit}
+            if ! gh extension list 2>/dev/null | grep -q 'HaywardMorihara/gh-tidy'; then
+              gh extension install HaywardMorihara/gh-tidy
+            fi
+
+            if ! gh extension list 2>/dev/null | grep -q 'antgrutta/gh-discussions'; then
+              gh extension install antgrutta/gh-discussions
+            fi
 
             echo "✅ Agentic .NET dev shell ready. Run 'nvim' or use 'gh dash' and 'gh spec' to explore."
           '';
