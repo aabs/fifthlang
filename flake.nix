@@ -28,7 +28,7 @@
           rev = "main";
           sha256 = "sha256-PLACEHOLDER"; # Replace with actual hash
         };
-      in {
+      in rec {
         devShells.default = pkgs.mkShell {
           name = "dotnet-neovim-agentic-shell";
 
@@ -72,5 +72,9 @@
             echo "✅ Agentic .NET dev shell ready. Run 'nvim' or use 'gh dash' and 'gh spec' to explore."
           '';
         };
+
+        # Minimal default package so `nix build` succeeds
+        packages.default = pkgs.hello;
+        defaultPackage = packages.default;
       });
 }
