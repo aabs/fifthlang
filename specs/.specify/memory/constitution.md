@@ -1,4 +1,6 @@
-# Fifth Language Engin### I. Library-First, Contracts-First
+# Fifth Language Engine
+
+### I. Library-First, Contracts-First
 Every feature starts as a focused library under `src/` with a clear, documented purpose and public contract. Libraries must be self-contained, independently buildable, and testable with TUnit. Avoid organizational or "glue-only" libraries. Contracts are expressed through:
 - AST metamodels in `src/ast-model/AstMetamodel.cs`
 - IL metamodels in `src/ast-model/ILMetamodel.cs`
