@@ -920,20 +920,6 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                         // Use the System.String.Concat(string, string) overload to avoid boxing where possible
                         sequence.Add(new CallInstruction("call", "extcall:Asm=System.Runtime;Ns=System;Type=String;Method=Concat;Params=System.String,System.String;Return=System.String") { ArgCount = 2 });
                     }
-                    // Special handling for string equality comparison
-                    else if ((binaryExp.Operator == Operator.Equal || binaryExp.Operator == Operator.NotEqual) && 
-                             (lt == typeof(string) || rt == typeof(string)))
-                    {
-                        // Use System.String.Equals for proper string value comparison
-                        sequence.Add(new CallInstruction("call", "extcall:Asm=System.Runtime;Ns=System;Type=String;Method=Equals;Params=System.String,System.String;Return=System.Boolean") { ArgCount = 2 });
-                        
-                        // For NotEqual, negate the result
-                        if (binaryExp.Operator == Operator.NotEqual)
-                        {
-                            sequence.Add(new LoadInstruction("ldc.i4.0"));
-                            sequence.Add(new ArithmeticInstruction("ceq")); // Convert true to false, false to true
-                        }
-                    }
                     else
                     {
                         sequence.Add(new ArithmeticInstruction(GetBinaryOpCode(GetOperatorString(binaryExp.Operator))));
