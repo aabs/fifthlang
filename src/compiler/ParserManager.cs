@@ -57,6 +57,20 @@ public static class FifthParserManager
         // Gather overloads into grouped nodes now that constraints are present
         ast = new OverloadGatheringVisitor().Visit(ast);
 
+        // Validate guarded function overload completeness before transformation
+        var guardValidator = new GuardCompletenessValidator();
+        ast = guardValidator.Visit(ast);
+        
+        // Check for validation errors and report them
+        foreach (var diagnostic in guardValidator.Diagnostics)
+        {
+            // For now, just log them - in a full implementation we'd integrate with the diagnostic system
+            if (DebugEnabled)
+            {
+                Console.Error.WriteLine($"=== GUARD VALIDATION: {diagnostic.Level}: {diagnostic.Message} ===");
+            }
+        }
+
         // Generate guard and subclause functions using collected constraints on grouped overloads
         // Debug: Check main method before OverloadTransformingVisitor
         if (ast is AssemblyDef asmBefore)
