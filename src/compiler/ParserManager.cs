@@ -1,6 +1,7 @@
 ﻿using Antlr4.Runtime;
 using compiler.LangProcessingPhases;
 using compiler.LanguageTransformations;
+using compiler.Validation.GuardValidation;
 using Fifth;
 using Fifth.LangProcessingPhases;
 

@@ -2,7 +2,7 @@ using ast;
 using compiler;
 using System.Text;
 
-namespace Fifth.LangProcessingPhases;
+namespace compiler.Validation.GuardValidation;
 
 /// <summary>
 /// Validates completeness of guarded function overload sets according to specification
