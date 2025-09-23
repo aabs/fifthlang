@@ -91,14 +91,19 @@
             "tests": [
                 "PredicateNormalizerTests.AnalyzeOverload_ShouldCreateAnalyzedOverloadWithCorrectClassification",
                 "PredicateNormalizerTests.CreatePredicateDescriptor_WithBaseType_ShouldReturnAlways",
-                "PredicateNormalizerTests.CreatePredicateDescriptor_WithUnknownType_ShouldReturnUnknown"
+                "PredicateNormalizerTests.CreatePredicateDescriptor_WithUnknownType_ShouldReturnUnknown",
+                "IntervalFormationTests.Intersect_ClosedIntervals_ShouldReturnOverlap",
+                "EmptyIntervalTests.IsEmpty_InvertedBounds_ShouldBeTrue",
+                "EmptyIntervalTests.IsEmpty_OpenTouching_ShouldBeTrue"
             ]
         },
         "FR-015": {
             "description": "Perform subsumption analysis",
             "tests": [
                 "CompletenessAnalyzerTests.CheckForUnreachableOverloads_WithBaseFollowedByGuarded_ShouldDetectUnreachable",
-                "CompletenessAnalyzerTests.IsComplete_WithAnalyzableAndNoUnknown_ShouldReturnTrue"
+                "CompletenessAnalyzerTests.IsComplete_WithAnalyzableAndNoUnknown_ShouldReturnTrue",
+                "IntervalSubsumptionTests.Subsumes_ClosedWithinClosed_ShouldBeTrue",
+                "IntervalSubsumptionTests.Subsumes_PartialOverlap_ShouldBeFalse"
             ]
         }
     },
@@ -197,6 +202,9 @@
             "OverloadCollectorTests",
             "PredicateDescriptorTests",
             "PredicateNormalizerTests",
+            "IntervalFormationTests",
+            "EmptyIntervalTests",
+            "IntervalSubsumptionTests",
             "ValidationInstrumenterTests"
         ],
         "integrationTests": [

@@ -294,3 +294,8 @@ Maintained in README subsection; initial entries:
 
 ---
 *Based on Constitution v2.1.1 - See `/specs/.specify/memory/constitution.md`*
+
+## Recent Updates (2025-09-24)
+- [x] T015 IntervalEngine implemented (Intersect/IsEmpty/Subsumes) without LINQ and wired into `CompletenessAnalyzer`.
+- [x] T016 Normalization-related tests re-run; interval formation and emptiness tests now green.
+- [x] T019 Interval subsumption unit tests added and passing.

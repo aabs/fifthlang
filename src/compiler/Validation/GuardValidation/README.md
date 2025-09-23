@@ -83,3 +83,8 @@ This module implements a multi-pass validation system:
 5. **Instrumentation**: Record performance metrics
 
 The implementation prioritizes correctness over performance optimizations, with instrumentation providing visibility into validation costs.
+
+## Analysis Details
+
+- Interval-based subsumption: `Analysis/CompletenessAnalyzer` derives integer intervals from analyzable numeric comparisons (>, >=, <, <=, ==) over a single variable and uses `Analysis/IntervalEngine` to compute intersections and subsumption. This path avoids LINQ and minimizes allocations per the memory policy.
+- Fallback behavior: If predicates cannot be mapped to intervals (multi-variable constraints, unsupported operators, non-integer literals), the analyzer does not attempt subsumption for those cases and remains conservative.

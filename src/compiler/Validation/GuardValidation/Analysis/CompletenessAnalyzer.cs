@@ -1,4 +1,5 @@
 using compiler.Validation.GuardValidation.Infrastructure;
+using ast;
 
 namespace compiler.Validation.GuardValidation.Analysis;
 
@@ -9,6 +10,7 @@ namespace compiler.Validation.GuardValidation.Analysis;
 /// </summary>
 internal class CompletenessAnalyzer
 {
+    private readonly IntervalEngine _intervals = new();
     /// <summary>
     /// Checks for unreachable overloads due to subsumption by earlier overloads.
     /// Returns list of (unreachable_index, covering_index) pairs.
@@ -84,7 +86,116 @@ internal class CompletenessAnalyzer
             return true; // Base case subsumes everything after it
         }
 
-        // TODO: Implement detailed subsumption analysis for intervals, etc.
+        // Only attempt interval subsumption when both are analyzable
+        if (earlier.PredicateType != PredicateType.Analyzable || current.PredicateType != PredicateType.Analyzable)
+        {
+            return false;
+        }
+
+        // Try to derive intervals for a single variable from constraints
+        if (TryGetInterval(earlier.PredicateDescriptor, out var earlierInterval) &&
+            TryGetInterval(current.PredicateDescriptor, out var currentInterval))
+        {
+            return _intervals.Subsumes(earlierInterval, currentInterval);
+        }
+
+        // Fallback: unknown subsumption
+        return false;
+    }
+
+    private bool TryGetInterval(PredicateDescriptor descriptor, out Interval interval)
+    {
+        // Start as unbounded
+        interval = Interval.Unbounded();
+
+        // Collect atomic comparisons from descriptor constraints
+        // The descriptor may contain raw constraints or a single conjunction
+        var atoms = new List<BinaryExp>();
+
+        foreach (var expr in descriptor.Constraints)
+        {
+            if (!CollectAtoms(expr, atoms))
+            {
+                return false;
+            }
+        }
+
+        if (atoms.Count == 0)
+        {
+            return false;
+        }
+
+        // Ensure all atoms reference the same variable and use int literals
+        string? varName = null;
+        foreach (var be in atoms)
+        {
+            if (!(be.LHS is VarRefExp v) || !(be.RHS is Int32LiteralExp lit))
+            {
+                return false;
+            }
+
+            if (varName == null)
+            {
+                varName = v.VarName;
+            }
+            else if (varName != v.VarName)
+            {
+                return false; // multiple different variables not supported here
+            }
+
+            // Build half-interval from this atom and intersect
+            Interval atomInterval;
+            switch (be.Operator)
+            {
+                case Operator.GreaterThan:
+                    atomInterval = new Interval(lit.Value, false, null, false);
+                    break;
+                case Operator.GreaterThanOrEqual:
+                    atomInterval = new Interval(lit.Value, true, null, false);
+                    break;
+                case Operator.LessThan:
+                    atomInterval = new Interval(null, false, lit.Value, false);
+                    break;
+                case Operator.LessThanOrEqual:
+                    atomInterval = new Interval(null, false, lit.Value, true);
+                    break;
+                case Operator.Equal:
+                    atomInterval = Interval.Closed(lit.Value, lit.Value);
+                    break;
+                default:
+                    return false; // unsupported operator for interval mapping
+            }
+
+            interval = _intervals.Intersect(interval, atomInterval);
+        }
+
+        return true;
+    }
+
+    private bool CollectAtoms(Expression expr, List<BinaryExp> atoms)
+    {
+        if (expr is BinaryExp be)
+        {
+            if (be.Operator == Operator.LogicalAnd)
+            {
+                return CollectAtoms(be.LHS, atoms) && CollectAtoms(be.RHS, atoms);
+            }
+
+            // Supported comparison operators and equality
+            if (be.Operator == Operator.GreaterThan ||
+                be.Operator == Operator.GreaterThanOrEqual ||
+                be.Operator == Operator.LessThan ||
+                be.Operator == Operator.LessThanOrEqual ||
+                be.Operator == Operator.Equal)
+            {
+                atoms.Add(be);
+                return true;
+            }
+
+            return false;
+        }
+
+        // Non-binary expressions not supported for interval mapping here
         return false;
     }
 }
