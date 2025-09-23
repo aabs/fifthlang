@@ -1,0 +1,3 @@
+// Guard completeness test - incomplete set
+myFunc(x: int) when x > 0 => x * 2;
+// Missing guard for x <= 0 - should emit E1001

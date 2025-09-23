@@ -1,0 +1,4 @@
+// Guard completeness test - unreachable overload
+myFunc(x: int) when x > 0 => x * 2;
+myFunc(x: int) when true => 0;    // Base case
+myFunc(x: int) when x < 0 => x;   // Unreachable - should emit W1002
