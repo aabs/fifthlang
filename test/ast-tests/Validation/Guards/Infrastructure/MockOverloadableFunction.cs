@@ -8,7 +8,7 @@ namespace ast_tests.Validation.Guards.Infrastructure;
 /// </summary>
 public class MockOverloadableFunction : IOverloadableFunction
 {
-    public MemberName Name { get; set; } = MemberName.From("testFunc");
+    public MemberName Name => MemberName.From("testFunc");
     public List<ParamDef> Params { get; }
     public BlockStatement Body { get; set; } = new BlockStatement { Statements = [] };
     public FifthType ReturnType { get; set; } = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From("Int32") };
@@ -21,7 +21,7 @@ public class MockOverloadableFunction : IOverloadableFunction
         {
             var param = new ParamDef
             {
-                Name = Identifier.From($"param{i}"),
+                Name = $"param{i}",
                 TypeName = TypeName.From("int"),
                 ParameterConstraint = hasConstraints ? new BooleanLiteralExp { Value = true } : null,
                 Visibility = Visibility.Private,

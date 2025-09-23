@@ -4,7 +4,6 @@ using compiler.Validation.GuardValidation.Infrastructure;
 
 namespace ast_tests.Validation.Guards.Infrastructure;
 
-[TestClass]
 public class FunctionGroupTests
 {
     [Test]

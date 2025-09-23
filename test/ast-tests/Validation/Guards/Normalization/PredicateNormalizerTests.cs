@@ -1,6 +1,7 @@
 using FluentAssertions;
 using TUnit.Core;
 using ast;
+using ast_model.TypeSystem;
 using compiler.Validation.GuardValidation.Normalization;
 using compiler.Validation.GuardValidation.Infrastructure;
 using ast_tests.Validation.Guards.Infrastructure;
@@ -46,7 +47,7 @@ public class PredicateNormalizerTests
         var equalityConstraint = new BinaryExp
         {
             Operator = Operator.Equal,
-            LHS = new VarRefExp { Name = Identifier.From("x") },
+            LHS = new VarRefExp { VarName = "x" },
             RHS = new Int32LiteralExp { Value = 42 }
         };
         var mockFunction = new MockOverloadableFunction(hasConstraints: false)
@@ -64,11 +65,26 @@ public class PredicateNormalizerTests
     {
         // Arrange
         var normalizer = new PredicateNormalizer();
+
+        // Create a complex function call that can't be analyzed
+        var complexFunctionDef = new FunctionDef
+        {
+            Name = MemberName.From("complexFunction"),
+            Params = [],
+            Body = new BlockStatement { Statements = [] },
+            IsStatic = true,
+            IsConstructor = false,
+            Visibility = Visibility.Public,
+            ReturnType = new FifthType.TType() { Name = TypeName.From("bool") },
+            Annotations = []
+        };
+
         var unknownConstraint = new FuncCallExp
         {
-            FunctionDef = new VarRefExp { Name = Identifier.From("complexFunction") },
+            FunctionDef = complexFunctionDef,
             InvocationArguments = []
         };
+
         var mockFunction = new MockOverloadableFunction(hasConstraints: false)
             .WithConstraint(unknownConstraint);
 

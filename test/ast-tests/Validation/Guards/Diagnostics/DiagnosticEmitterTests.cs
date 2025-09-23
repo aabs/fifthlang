@@ -98,7 +98,7 @@ public class DiagnosticEmitterTests
         // Arrange
         var emitter = new DiagnosticEmitter();
         var group = new FunctionGroup("testFunc", 1);
-        var baseOverloads = new List<IOverloadableFunction>
+        var baseOverloads = new List<ast.IOverloadableFunction>
         {
             new MockOverloadableFunction(),
             new MockOverloadableFunction(),

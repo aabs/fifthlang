@@ -21,9 +21,9 @@ Legend: `[P]` task can execute in parallel with other `[P]` tasks (different fil
 ## Phase 3.1: Setup & Skeleton
 - [x] T001 Create validation folder structure `src/compiler/Validation/GuardValidation/{Infrastructure,Collection,Normalization,Analysis,Diagnostics,Instrumentation}`
 - [x] T002 Add phase entry `GuardOverloadValidationPhase` (public) + pipeline hook (temporarily no-op) in `src/compiler/ParserManager.cs` (or appropriate orchestrator) – ensure build passes
-- [ ] T003 Add README boundaries `src/compiler/Validation/GuardValidation/README.md` (namespace + layering + memory policy)
-- [ ] T004 Reflection boundary test `test/runtime-integration-tests/Validation/GuardValidation/PublicSurfaceTests.cs` (fail if extra public types)
-- [ ] T005 Add initial `traceability.json` with empty mappings `specs/002-guard-clause-overload-completeness/traceability.json`
+- [x] T003 Add README boundaries `src/compiler/Validation/GuardValidation/README.md` (namespace + layering + memory policy)
+- [x] T004 Reflection boundary test `test/runtime-integration-tests/Validation/GuardValidation/PublicSurfaceTests.cs` (fail if extra public types)
+- [x] T005 Add initial `traceability.json` with empty mappings `specs/002-guard-clause-overload-completeness/traceability.json`
 
 ## Phase 3.0: Infrastructure & CLI (Completed)
 - [x] T000 Add Makefile target `install-cli` for building compiler and creating symlink in `~/bin` as `fifth` CLI tool

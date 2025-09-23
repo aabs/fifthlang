@@ -1,8 +1,6 @@
 using FluentAssertions;
 using TUnit.Core;
 using compiler.Validation.GuardValidation.Instrumentation;
-using compiler.Validation.GuardValidation.Infrastructure;
-using ast_tests.Validation.Guards.Infrastructure;
 
 namespace ast_tests.Validation.Guards.Instrumentation;
 
@@ -13,113 +11,106 @@ public class ValidationInstrumenterTests
     {
         // Arrange
         var instrumenter = new ValidationInstrumenter();
-        var group = new FunctionGroup("testFunc", 1);
-        instrumenter.RecordGroupStart(group);
-        instrumenter.RecordGroupCompletion(group);
+        instrumenter.StartPhase("test");
+        instrumenter.EndPhase("test");
+        instrumenter.RecordFunctionGroupMetrics(5, 10);
 
         // Act
         instrumenter.Reset();
 
         // Assert
-        instrumenter.Metrics.Should().BeEmpty();
+        var metrics = instrumenter.GetMetrics();
+        metrics.TotalTime.Should().Be(TimeSpan.Zero);
+        metrics.FunctionGroupsProcessed.Should().Be(0);
+        metrics.OverloadsAnalyzed.Should().Be(0);
+        instrumenter.PhaseTimings.Should().BeEmpty();
     }
 
     [Test]
-    public void RecordGroupStart_ShouldCreateNewMetric()
+    public void StartPhase_ShouldBeginTiming()
     {
         // Arrange
         var instrumenter = new ValidationInstrumenter();
-        var group = new FunctionGroup("testFunc", 2);
 
         // Act
-        instrumenter.RecordGroupStart(group);
+        instrumenter.StartPhase("testPhase");
+        Thread.Sleep(10);
+        instrumenter.EndPhase("testPhase");
 
         // Assert
-        instrumenter.Metrics.Should().HaveCount(1);
-        var metric = instrumenter.Metrics[0];
-        metric.FunctionName.Should().Be("testFunc");
-        metric.Arity.Should().Be(2);
-        metric.OverloadCount.Should().Be(0); // Initially no overloads
-        metric.ElapsedMs.Should().BeNull(); // Not completed yet
+        var metrics = instrumenter.GetMetrics();
+        metrics.TotalTime.Should().BeGreaterThan(TimeSpan.Zero);
+        instrumenter.PhaseTimings.Should().ContainKey("testPhase");
+        instrumenter.PhaseTimings["testPhase"].Should().BeGreaterThan(TimeSpan.Zero);
     }
 
     [Test]
-    public void RecordGroupCompletion_ShouldUpdateElapsedTime()
+    public void EndPhase_ShouldRecordElapsedTime()
     {
         // Arrange
         var instrumenter = new ValidationInstrumenter();
-        var group = new FunctionGroup("testFunc", 1);
-        instrumenter.RecordGroupStart(group);
-
-        // Simulate some processing time
+        instrumenter.StartPhase("testPhase");
         Thread.Sleep(10);
 
         // Act
-        instrumenter.RecordGroupCompletion(group);
+        instrumenter.EndPhase("testPhase");
 
         // Assert
-        var metric = instrumenter.Metrics[0];
-        metric.ElapsedMs.Should().NotBeNull();
-        metric.ElapsedMs.Should().BeGreaterThan(0);
+        var metrics = instrumenter.GetMetrics();
+        metrics.TotalTime.Should().BeGreaterThan(TimeSpan.Zero);
+        instrumenter.PhaseTimings.Should().ContainKey("testPhase");
     }
 
     [Test]
-    public void RecordOverloadCollected_ShouldIncrementOverloadCount()
+    public void RecordFunctionGroupMetrics_ShouldUpdateCounts()
     {
         // Arrange
         var instrumenter = new ValidationInstrumenter();
-        var group = new FunctionGroup("testFunc", 1);
-        var overload = new MockOverloadableFunction();
-        instrumenter.RecordGroupStart(group);
 
         // Act
-        instrumenter.RecordOverloadCollected(group, overload);
-        instrumenter.RecordOverloadCollected(group, overload);
-        instrumenter.RecordOverloadCollected(group, overload);
+        instrumenter.RecordFunctionGroupMetrics(3, 7);
 
         // Assert
-        var metric = instrumenter.Metrics[0];
-        metric.OverloadCount.Should().Be(3);
+        var metrics = instrumenter.GetMetrics();
+        metrics.FunctionGroupsProcessed.Should().Be(3);
+        metrics.OverloadsAnalyzed.Should().Be(7);
     }
 
     [Test]
-    public void RecordGroupCompletion_WithoutStart_ShouldNotThrow()
+    public void EndPhase_WithoutStart_ShouldNotThrow()
     {
         // Arrange
         var instrumenter = new ValidationInstrumenter();
-        var group = new FunctionGroup("testFunc", 1);
 
         // Act & Assert
-        var act = () => instrumenter.RecordGroupCompletion(group);
+        var act = () => instrumenter.EndPhase("nonExistentPhase");
         act.Should().NotThrow();
     }
 
     [Test]
-    public void MultipleGroups_ShouldTrackSeparately()
+    public void MultiplePhases_ShouldTrackSeparately()
     {
         // Arrange
         var instrumenter = new ValidationInstrumenter();
-        var group1 = new FunctionGroup("func1", 1);
-        var group2 = new FunctionGroup("func2", 2);
 
         // Act
-        instrumenter.RecordGroupStart(group1);
-        instrumenter.RecordGroupStart(group2);
-        instrumenter.RecordOverloadCollected(group1, new MockOverloadableFunction());
-        instrumenter.RecordOverloadCollected(group2, new MockOverloadableFunction());
-        instrumenter.RecordOverloadCollected(group2, new MockOverloadableFunction());
-        instrumenter.RecordGroupCompletion(group1);
-        instrumenter.RecordGroupCompletion(group2);
+        instrumenter.StartPhase("phase1");
+        Thread.Sleep(5);
+        instrumenter.EndPhase("phase1");
+
+        instrumenter.StartPhase("phase2");
+        Thread.Sleep(5);
+        instrumenter.EndPhase("phase2");
+
+        instrumenter.RecordFunctionGroupMetrics(2, 4);
 
         // Assert
-        instrumenter.Metrics.Should().HaveCount(2);
-
-        var metric1 = instrumenter.Metrics.First(m => m.FunctionName == "func1");
-        metric1.OverloadCount.Should().Be(1);
-        metric1.ElapsedMs.Should().NotBeNull();
-
-        var metric2 = instrumenter.Metrics.First(m => m.FunctionName == "func2");
-        metric2.OverloadCount.Should().Be(2);
-        metric2.ElapsedMs.Should().NotBeNull();
+        var metrics = instrumenter.GetMetrics();
+        metrics.FunctionGroupsProcessed.Should().Be(2);
+        metrics.OverloadsAnalyzed.Should().Be(4);
+        instrumenter.PhaseTimings.Should().ContainKey("phase1");
+        instrumenter.PhaseTimings.Should().ContainKey("phase2");
+        metrics.PhaseTimings.Should().ContainKey("phase1");
+        metrics.PhaseTimings.Should().ContainKey("phase2");
     }
 }
