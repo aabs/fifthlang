@@ -9,7 +9,7 @@ namespace ast_tests;
 
 public class TripleLiteralExpansionTests
 {
-    private ParseResult ParseHarnessed(string code) => ParseHarness.ParseString(code, new ParseOptions(Phase: compiler.FifthParserManager.AnalysisPhase.TreeLink));
+    private ParseResult ParseHarnessed(string code) => ParseHarness.ParseString(code, new ParseOptions(Phase: compiler.FifthParserManager.AnalysisPhase.TripleExpansion));
 
     [Test]
     public void T010_01_List_Object_Expands_Into_Multiple_TripleLiterals()
@@ -18,8 +18,8 @@ public class TripleLiteralExpansionTests
         var result = ParseHarnessed(code);
         result.Diagnostics.Should().BeEmpty();
         result.Root.Should().NotBeNull();
-        // Expansion not yet implemented; currently expect 1 Triple with list object.
-        FindTriples(result.Root!).Should().HaveCount(1, "list expansion transformation not yet applied");
+        // After expansion we expect 3 distinct Triple nodes (object list of length 3)
+        FindTriples(result.Root!).Should().HaveCount(3);
     }
 
     [Test]
@@ -27,8 +27,9 @@ public class TripleLiteralExpansionTests
     {
         const string code = @"alias ex as <http://example.org/>;\nmain(): int { g: graph = <ex:s, ex:p, [[ex:o1, ex:o2], ex:o3]>; return 0; }";
         var result = ParseHarnessed(code);
-        // Diagnostic not yet wired; placeholder expectation: no crash.
+        // Should remain a single unexpanded triple due to nested list error (TRPL006 produced earlier phase)
         result.Root.Should().NotBeNull();
+        FindTriples(result.Root!).Should().HaveCount(1);
     }
 
     private static IList<Triple> FindTriples(AssemblyDef root)

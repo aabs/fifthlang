@@ -29,8 +29,10 @@ public static class FifthParserManager
         DestructuringLowering = 10,
         TreeRelink = 11,
         GraphAssertionLowering = 12,
-        SymbolTableFinal = 13,
-        TypeAnnotation = 14,
+        TripleDiagnostics = 13,
+        TripleExpansion = 14,
+        SymbolTableFinal = 15,
+        TypeAnnotation = 16,
         All = TypeAnnotation
     }
 
@@ -134,6 +136,17 @@ public static class FifthParserManager
 
         if (upTo >= AnalysisPhase.GraphAssertionLowering)
             ast = new GraphAssertionLoweringVisitor().Visit(ast);
+
+        if (upTo >= AnalysisPhase.TripleDiagnostics)
+        {
+            var tripleDiagVisitor = new TripleDiagnosticsVisitor(diagnostics);
+            ast = tripleDiagVisitor.Visit(ast);
+        }
+
+        if (upTo >= AnalysisPhase.TripleExpansion)
+        {
+            ast = new TripleExpansionVisitor().Visit(ast);
+        }
 
         if (upTo >= AnalysisPhase.SymbolTableFinal)
             ast = new SymbolTableBuilderVisitor().Visit(ast);
