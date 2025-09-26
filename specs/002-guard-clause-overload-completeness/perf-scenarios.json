@@ -1,0 +1,28 @@
+{
+    "scenarios": [
+        {
+            "id": "small",
+            "description": "Small groups (N=10, avgAtoms=3, unknown=0%)",
+            "groupCount": 10,
+            "overloadsPerGroup": 10,
+            "avgAtoms": 3,
+            "unknownPercent": 0
+        },
+        {
+            "id": "medium",
+            "description": "Medium groups (N=50, avgAtoms=5, unknown=10%)",
+            "groupCount": 50,
+            "overloadsPerGroup": 12,
+            "avgAtoms": 5,
+            "unknownPercent": 10
+        },
+        {
+            "id": "heavy",
+            "description": "Heavy groups (N=100, avgAtoms=8, unknown=30%)",
+            "groupCount": 100,
+            "overloadsPerGroup": 16,
+            "avgAtoms": 8,
+            "unknownPercent": 30
+        }
+    ]
+}
