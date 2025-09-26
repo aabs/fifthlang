@@ -953,6 +953,146 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         };
     }
 
+    // ===== Triple Literal Support (T017) =====
+    // Grammar: tripleLiteral: '<' tripleSubject ',' triplePredicate ',' tripleObject '>'
+    // Subjects & predicates: iri | var_name
+    // Object: iri | primitiveLiteral | var_name | list
+    // Current AST model defines record Triple with UriLiteralExp SubjectExp/PredicateExp and Expression ObjectExp.
+    // We will:
+    //   * Create placeholders (UriLiteralExp) when the grammar provides an iri
+    //   * Preserve VarRefExp when a variable is used (subject/predicate) so later phases can validate (FR-009)
+    //   * Accept object forms as raw Expression nodes
+    //   * Attach a lightweight annotation to mark origin for potential lowering/expansion passes
+    public override IAstThing VisitTripleLiteral(FifthParser.TripleLiteralContext context)
+    {
+        // Visit components
+        var subjCtx = context.tripleSubject();
+        var predCtx = context.triplePredicate();
+        var objCtx = context.tripleObject();
+
+        Expression subjectExp = BuildSubjectOrPredicate(subjCtx);
+        Expression predicateExp = BuildSubjectOrPredicate(predCtx);
+        Expression objectExp = BuildObject(objCtx);
+
+        // If subject/predicate resolved as VarRefExp, we still need UriLiteralExp for the Triple record per current model.
+        // Strategy: if not a UriLiteralExp, wrap in a synthetic UriLiteralExp with placeholder value capturing textual form.
+        // This keeps existing Triple shape; a later transformation can replace with proper variable-aware representation.
+        var subjectUri = subjectExp as UriLiteralExp ?? new UriLiteralExp
+        {
+            Annotations = new Dictionary<string, object> { { "SyntheticFrom", "VarRefSubject" } },
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.TDotnetType(typeof(Uri)) { Name = TypeName.From(typeof(Uri).FullName) },
+            Value = new Uri($"urn:synthetic:subject:{subjectExp switch { VarRefExp v => v.VarName, _ => subjectExp.GetType().Name }}")
+        };
+        var predicateUri = predicateExp as UriLiteralExp ?? new UriLiteralExp
+        {
+            Annotations = new Dictionary<string, object> { { "SyntheticFrom", "VarRefPredicate" } },
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.TDotnetType(typeof(Uri)) { Name = TypeName.From(typeof(Uri).FullName) },
+            Value = new Uri($"urn:synthetic:predicate:{predicateExp switch { VarRefExp v => v.VarName, _ => predicateExp.GetType().Name }}")
+        };
+
+        var triple = new Triple
+        {
+            Annotations = new Dictionary<string, object> { { "Origin", "TripleLiteral" } },
+            SubjectExp = subjectUri,
+            PredicateExp = predicateUri,
+            ObjectExp = objectExp,
+            Location = GetLocationDetails(context),
+            Type = Void // Placeholder; type inference phase may adjust
+        };
+        return triple;
+    }
+
+    private Expression BuildSubjectOrPredicate(ParserRuleContext ctx)
+    {
+        // The rule is either iri or var_name
+        // If it contains IRIREF token in text, treat as URI literal
+        var text = ctx.GetText();
+        if (text.StartsWith("<") && text.EndsWith(">"))
+        {
+            // Remove angle brackets
+            var inner = text.Substring(1, text.Length - 2);
+            Uri uri;
+            if (!Uri.TryCreate(inner, UriKind.Absolute, out uri))
+            {
+                // Fallback synthetic
+                uri = new Uri($"urn:invalid:{inner}");
+            }
+            return new UriLiteralExp
+            {
+                Annotations = [],
+                Location = GetLocationDetails(ctx),
+                Parent = null,
+                Type = new FifthType.TDotnetType(typeof(Uri)) { Name = TypeName.From(typeof(Uri).FullName) },
+                Value = uri
+            };
+        }
+        // Otherwise treat as variable reference
+        return new VarRefExp
+        {
+            Annotations = [],
+            Location = GetLocationDetails(ctx),
+            Parent = null,
+            Type = Void, // unresolved for now
+            VarName = text
+        };
+    }
+
+    private Expression BuildObject(FifthParser.TripleObjectContext ctx)
+    {
+        // Inspect children: could be iri, primitiveLiteral, var_name, list
+        var text = ctx.GetText();
+        if (text.StartsWith("<") && text.EndsWith(">"))
+        {
+            var inner = text.Substring(1, text.Length - 2);
+            if (!Uri.TryCreate(inner, UriKind.Absolute, out var uri))
+            {
+                uri = new Uri($"urn:invalid:{inner}");
+            }
+            return new UriLiteralExp
+            {
+                Annotations = [],
+                Location = GetLocationDetails(ctx),
+                Parent = null,
+                Type = new FifthType.TDotnetType(typeof(Uri)) { Name = TypeName.From(typeof(Uri).FullName) },
+                Value = uri
+            };
+        }
+        // Try list production
+        if (ctx.list() != null)
+        {
+            return (Expression)VisitList(ctx.list());
+        }
+        // Primitive literal? delegate to visitor where possible by peeking tokens.
+        // We can attempt to detect quotes or digits; else treat as var ref.
+        if (text.Length > 0 && (char.IsDigit(text[0]) || text[0] == '"' || text[0] == '\''))
+        {
+            // Create a string literal as a fallback for quoted; numeric path would need parse; reuse existing generic path
+            // Simplistic: delegate through a small shim by creating a fake string context not easily accessible here.
+            // For now treat all numeric/quoted as raw string literal (placeholder) until richer mapping added.
+            return new StringLiteralExp
+            {
+                Annotations = new Dictionary<string, object> { { "SyntheticFrom", "TripleObjectPrimitive" } },
+                Location = GetLocationDetails(ctx),
+                Parent = null,
+                Type = new FifthType.TDotnetType(typeof(string)) { Name = TypeName.From(typeof(string).FullName) },
+                Value = text
+            };
+        }
+        // Default variable
+        return new VarRefExp
+        {
+            Annotations = [],
+            Location = GetLocationDetails(ctx),
+            Parent = null,
+            Type = Void,
+            VarName = text
+        };
+    }
+
     public override IAstThing VisitParamdecl(FifthParser.ParamdeclContext context)
     {
         var b = new ParamDefBuilder()

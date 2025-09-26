@@ -596,64 +596,114 @@ public interface IFifthParserListener : IParseTreeListener {
 	void ExitSlice_([NotNull] FifthParser.Slice_Context context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>lit_nil</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void EnterLit_nil([NotNull] FifthParser.Lit_nilContext context);
 	/// <summary>
 	/// Exit a parse tree produced by the <c>lit_nil</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitLit_nil([NotNull] FifthParser.Lit_nilContext context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>lit_int</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void EnterLit_int([NotNull] FifthParser.Lit_intContext context);
 	/// <summary>
 	/// Exit a parse tree produced by the <c>lit_int</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitLit_int([NotNull] FifthParser.Lit_intContext context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>lit_bool</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void EnterLit_bool([NotNull] FifthParser.Lit_boolContext context);
 	/// <summary>
 	/// Exit a parse tree produced by the <c>lit_bool</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitLit_bool([NotNull] FifthParser.Lit_boolContext context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>lit_string</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void EnterLit_string([NotNull] FifthParser.Lit_stringContext context);
 	/// <summary>
 	/// Exit a parse tree produced by the <c>lit_string</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitLit_string([NotNull] FifthParser.Lit_stringContext context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>lit_float</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void EnterLit_float([NotNull] FifthParser.Lit_floatContext context);
 	/// <summary>
 	/// Exit a parse tree produced by the <c>lit_float</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitLit_float([NotNull] FifthParser.Lit_floatContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.tripleLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterTripleLiteral([NotNull] FifthParser.TripleLiteralContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.tripleLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitTripleLiteral([NotNull] FifthParser.TripleLiteralContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.tripleSubject"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterTripleSubject([NotNull] FifthParser.TripleSubjectContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.tripleSubject"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitTripleSubject([NotNull] FifthParser.TripleSubjectContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.triplePredicate"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterTriplePredicate([NotNull] FifthParser.TriplePredicateContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.triplePredicate"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitTriplePredicate([NotNull] FifthParser.TriplePredicateContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.tripleObject"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterTripleObject([NotNull] FifthParser.TripleObjectContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.tripleObject"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitTripleObject([NotNull] FifthParser.TripleObjectContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.literal"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterLiteral([NotNull] FifthParser.LiteralContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.literal"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitLiteral([NotNull] FifthParser.LiteralContext context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>str_plain</c>
 	/// labeled alternative in <see cref="FifthParser.string_"/>.

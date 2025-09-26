@@ -588,7 +588,7 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	public virtual Result VisitSlice_([NotNull] FifthParser.Slice_Context context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by the <c>lit_nil</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -599,7 +599,7 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	public virtual Result VisitLit_nil([NotNull] FifthParser.Lit_nilContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by the <c>lit_int</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -610,7 +610,7 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	public virtual Result VisitLit_int([NotNull] FifthParser.Lit_intContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by the <c>lit_bool</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -621,7 +621,7 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	public virtual Result VisitLit_bool([NotNull] FifthParser.Lit_boolContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by the <c>lit_string</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -632,7 +632,7 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	public virtual Result VisitLit_string([NotNull] FifthParser.Lit_stringContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by the <c>lit_float</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -641,6 +641,56 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	public virtual Result VisitLit_float([NotNull] FifthParser.Lit_floatContext context) { return VisitChildren(context); }
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.tripleLiteral"/>.
+	/// <para>
+	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
+	/// on <paramref name="context"/>.
+	/// </para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	public virtual Result VisitTripleLiteral([NotNull] FifthParser.TripleLiteralContext context) { return VisitChildren(context); }
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.tripleSubject"/>.
+	/// <para>
+	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
+	/// on <paramref name="context"/>.
+	/// </para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	public virtual Result VisitTripleSubject([NotNull] FifthParser.TripleSubjectContext context) { return VisitChildren(context); }
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.triplePredicate"/>.
+	/// <para>
+	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
+	/// on <paramref name="context"/>.
+	/// </para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	public virtual Result VisitTriplePredicate([NotNull] FifthParser.TriplePredicateContext context) { return VisitChildren(context); }
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.tripleObject"/>.
+	/// <para>
+	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
+	/// on <paramref name="context"/>.
+	/// </para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	public virtual Result VisitTripleObject([NotNull] FifthParser.TripleObjectContext context) { return VisitChildren(context); }
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.literal"/>.
+	/// <para>
+	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
+	/// on <paramref name="context"/>.
+	/// </para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	public virtual Result VisitLiteral([NotNull] FifthParser.LiteralContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by the <c>str_plain</c>
 	/// labeled alternative in <see cref="FifthParser.string_"/>.

@@ -14,13 +14,34 @@ public static class FifthParserManager
         (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("true", StringComparison.OrdinalIgnoreCase) ||
         (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("on", StringComparison.OrdinalIgnoreCase);
 
-    public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null)
+    public enum AnalysisPhase
+    {
+        None = 0,
+        TreeLink = 1,
+        Builtins = 2,
+        ClassCtors = 3,
+        SymbolTableInitial = 4,
+        PropertyToField = 5,
+        DestructurePatternFlatten = 6,
+        OverloadGroup = 7,
+        GuardValidation = 8,
+        OverloadTransform = 9,
+        DestructuringLowering = 10,
+        TreeRelink = 11,
+        GraphAssertionLowering = 12,
+        SymbolTableFinal = 13,
+        TypeAnnotation = 14,
+        All = TypeAnnotation
+    }
+
+    public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, AnalysisPhase upTo = AnalysisPhase.All)
     {
         ArgumentNullException.ThrowIfNull(ast);
 
         try
         {
-            ast = new TreeLinkageVisitor().Visit(ast);
+            if (upTo >= AnalysisPhase.TreeLink)
+                ast = new TreeLinkageVisitor().Visit(ast);
         }
         catch (System.Exception ex)
         {
@@ -32,15 +53,19 @@ public static class FifthParserManager
             throw;
         }
 
-        ast = new BuiltinInjectorVisitor().Visit(ast);
+        if (upTo >= AnalysisPhase.Builtins)
+            ast = new BuiltinInjectorVisitor().Visit(ast);
 
-        ast = new ClassCtorInserter().Visit(ast);
+        if (upTo >= AnalysisPhase.ClassCtors)
+            ast = new ClassCtorInserter().Visit(ast);
 
-        ast = new SymbolTableBuilderVisitor().Visit(ast);
+        if (upTo >= AnalysisPhase.SymbolTableInitial)
+            ast = new SymbolTableBuilderVisitor().Visit(ast);
 
         try
         {
-            ast = new PropertyToFieldExpander().Visit(ast);
+            if (upTo >= AnalysisPhase.PropertyToField)
+                ast = new PropertyToFieldExpander().Visit(ast);
         }
         catch (System.Exception ex)
         {
@@ -52,30 +77,26 @@ public static class FifthParserManager
             throw;
         }
 
-        // Collect parameter constraints from destructured bindings BEFORE grouping overloads
-        ast = new DestructuringPatternFlattenerVisitor().Visit(ast);
+        if (upTo >= AnalysisPhase.DestructurePatternFlatten)
+            ast = new DestructuringPatternFlattenerVisitor().Visit(ast);
 
-        // Gather overloads into grouped nodes now that constraints are present
-        ast = new OverloadGatheringVisitor().Visit(ast);
+        if (upTo >= AnalysisPhase.OverloadGroup)
+            ast = new OverloadGatheringVisitor().Visit(ast);
 
-        // Validate guarded function overload completeness before transformation
-        var guardValidator = new GuardCompletenessValidator();
-        ast = guardValidator.Visit(ast);
-
-        // Aggregate guard diagnostics into the provided diagnostics list so the compiler can act on them
-        if (diagnostics != null)
+        if (upTo >= AnalysisPhase.GuardValidation)
         {
-            foreach (var diagnostic in guardValidator.Diagnostics)
+            var guardValidator = new GuardCompletenessValidator();
+            ast = guardValidator.Visit(ast);
+            if (diagnostics != null)
             {
-                diagnostics.Add(diagnostic);
+                foreach (var diagnostic in guardValidator.Diagnostics)
+                {
+                    diagnostics.Add(diagnostic);
+                }
             }
-        }
-        else
-        {
-            // If no diagnostics list provided, optionally log when debug enabled
-            foreach (var diagnostic in guardValidator.Diagnostics)
+            else if (DebugEnabled)
             {
-                if (DebugEnabled)
+                foreach (var diagnostic in guardValidator.Diagnostics)
                 {
                     Console.Error.WriteLine($"=== GUARD VALIDATION: {diagnostic.Level}: {diagnostic.Message} ===");
                 }
@@ -95,7 +116,8 @@ public static class FifthParserManager
             // Return the AST anyway; caller will inspect diagnostics for errors and act accordingly
         }
 
-        ast = new OverloadTransformingVisitor().Visit(ast);
+        if (upTo >= AnalysisPhase.OverloadTransform)
+            ast = new OverloadTransformingVisitor().Visit(ast);
 
         // Debug: Check main method after OverloadTransformingVisitor
         if (ast is AssemblyDef asmAfter)
@@ -104,16 +126,20 @@ public static class FifthParserManager
         }
 
         // Now lower destructuring assignments
-        ast = new DestructuringVisitor().Visit(ast);  // Handle destructuring transformation
+        if (upTo >= AnalysisPhase.DestructuringLowering)
+            ast = new DestructuringVisitor().Visit(ast);  // Handle destructuring transformation
 
-        ast = new TreeLinkageVisitor().Visit(ast);
+        if (upTo >= AnalysisPhase.TreeRelink)
+            ast = new TreeLinkageVisitor().Visit(ast);
 
-        // Lower graph assertion blocks before symbol/type passes so rewrites can be resolved
-        ast = new GraphAssertionLoweringVisitor().Visit(ast);
+        if (upTo >= AnalysisPhase.GraphAssertionLowering)
+            ast = new GraphAssertionLoweringVisitor().Visit(ast);
 
-        ast = new SymbolTableBuilderVisitor().Visit(ast);
+        if (upTo >= AnalysisPhase.SymbolTableFinal)
+            ast = new SymbolTableBuilderVisitor().Visit(ast);
 
-        ast = new TypeAnnotationVisitor().Visit(ast);
+        if (upTo >= AnalysisPhase.TypeAnnotation)
+            ast = new TypeAnnotationVisitor().Visit(ast);
 
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);
         return ast;
@@ -140,6 +166,13 @@ public static class FifthParserManager
         var v = new AstBuilderVisitor();
         var ast = v.Visit(tree);
         return ast as AssemblyDef ?? throw new System.Exception("ParseFile did not produce an AssemblyDef AST");
+    }
+
+    public static (FifthParser parser, FifthParser.FifthContext tree) ParseFileToTree(string sourceFile)
+    {
+        var parser = GetParserForFile(sourceFile);
+        var tree = parser.fifth();
+        return (parser, tree);
     }
 
     // Parse only: lex + parse without building the AST. Used by syntax-only tests.
@@ -173,6 +206,13 @@ public static class FifthParserManager
         return ast as AssemblyDef ?? throw new System.Exception("ParseEmbeddedResource did not produce an AssemblyDef AST");
     }
 
+    public static (FifthParser parser, FifthParser.FifthContext tree) ParseEmbeddedResourceToTree(Stream sourceStream)
+    {
+        var parser = GetParserForEmbeddedResource(sourceStream);
+        var tree = parser.fifth();
+        return (parser, tree);
+    }
+
     private static FifthParser GetParserForEmbeddedResource(Stream sourceStream)
     {
         var s = CharStreams.fromStream(sourceStream);
@@ -190,6 +230,13 @@ public static class FifthParserManager
         var v = new AstBuilderVisitor();
         var ast = v.Visit(tree);
         return ast as AssemblyDef ?? throw new System.Exception("ParseString did not produce an AssemblyDef AST");
+    }
+
+    public static (FifthParser parser, FifthParser.FifthContext tree) ParseStringToTree(string source)
+    {
+        var parser = GetParserForString(source);
+        var tree = parser.fifth();
+        return (parser, tree);
     }
 
     private static FifthParser GetParserForString(string source)

@@ -1,41 +1,67 @@
 // T009: AST tests for triple literal (expected to fail before implementation)
 using System.Linq;
 using FluentAssertions;
-using Xunit;
-// Assuming existing helper namespaces (adjust if different in project):
-using parser; // if there's a parser namespace
+using TUnit; // Test framework
 using ast;    // core AST model
+using test_infra;
 
 namespace ast_tests;
 
 public class TripleLiteralAstTests
 {
-    private (object ast, string diagnostics) Parse(string code)
-    {
-        // TODO: Replace with real test harness parse method used in other AST tests.
-        // Intentionally throwing to ensure we wire correct harness later.
-        throw new System.NotImplementedException("Wire actual parser invocation for triple literal tests (T009).");
-    }
+    private ParseResult ParseHarnessed(string code) => ParseHarness.ParseString(code, new ParseOptions(Phase: compiler.FifthParserManager.AnalysisPhase.TreeLink));
 
-    [Fact(DisplayName = "T009_01 Simple triple literal produces TripleLiteralExp node")]
-    public void SimpleTripleLiteral()
+    [Test]
+    public void T009_01_SimpleTripleLiteral_Produces_TripleLiteralExp_Node()
     {
         const string code = @"alias ex as <http://example.org/>;\nmain(): int { t: triple = <ex:s, ex:p, ex:o>; return 0; }";
-        var (ast, diags) = Parse(code);
-        // Assertions (pseudo until real AST types known):
-        // 1. Find one TripleLiteralExp node
-        // 2. Subject & Predicate are IRIRefExp with prefixed name tokens
-        // 3. Object is IRIRefExp
-        ast.Should().NotBeNull();
-        diags.Should().BeEmpty("no diagnostics expected for a valid triple literal");
+        var result = ParseHarnessed(code);
+        result.Diagnostics.Should().BeEmpty();
+        result.Root.Should().NotBeNull();
+        var triples = FindTriples(result.Root!);
+        triples.Should().HaveCount(1);
     }
 
-    [Fact(DisplayName = "T009_02 Variable subject/predicate accepted when IRI-typed")]
-    public void VariableSubjectPredicate()
+    [Test]
+    public void T009_02_Variable_Subject_Predicate_Accepted_When_Iri_Typed()
     {
         const string code = @"alias ex as <http://example.org/>;\nmain(): int { s: iri = ex:s; p: iri = ex:p; t: triple = <s, p, ex:o>; return 0; }";
-        var (ast, diags) = Parse(code);
-        ast.Should().NotBeNull();
-        diags.Should().BeEmpty("variable subject/predicate with IRI type should be valid");
+        var result = ParseHarnessed(code);
+        result.Diagnostics.Should().BeEmpty();
+        var triples = FindTriples(result.Root!);
+        triples.Should().HaveCount(1);
+    }
+
+    private static IList<Triple> FindTriples(AssemblyDef root)
+    {
+        return root.Modules
+            .SelectMany(m => m.Functions.OfType<FunctionDef>())
+            .SelectMany(f => Descend(f.Body))
+            .OfType<Triple>()
+            .ToList();
+    }
+
+    private static IEnumerable<ast.Expression> Descend(object? node)
+    {
+        if (node is null) yield break;
+        switch (node)
+        {
+            case BlockStatement b:
+                foreach (var s in b.Statements) foreach (var e in Descend(s)) yield return e; break;
+            case ExpStatement es:
+                foreach (var e in Descend(es.RHS)) yield return e; break;
+            case VarDeclStatement vds:
+                if (vds.InitialValue != null) foreach (var e in Descend(vds.InitialValue)) yield return e; break;
+            case Triple t:
+                yield return t; break;
+            case BinaryExp be:
+                foreach (var e in Descend(be.LHS)) yield return e; foreach (var e in Descend(be.RHS)) yield return e; break;
+            case MemberAccessExp ma:
+                foreach (var e in Descend(ma.LHS)) yield return e; foreach (var e in Descend(ma.RHS)) yield return e; break;
+            case ListLiteral ll:
+                foreach (var el in ll.ElementExpressions) foreach (var e in Descend(el)) yield return e; break;
+            case FuncCallExp fc:
+                foreach (var arg in fc.InvocationArguments) foreach (var e in Descend(arg)) yield return e; break;
+        }
     }
 }
