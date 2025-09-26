@@ -141,3 +141,5 @@ Following this checklist prevents parser-time flakiness and keeps integration te
 CI notes:
 
 - This repository includes a CI step `Validate .5th samples (parser-check)` that runs the `src/tools/validate-examples` tool to ensure all `.5th` examples across `docs/`, `specs/`, `src/parser/grammar/test_samples/`, and `test/` parse with the current grammar. Agents should run `scripts/validate-examples.fish` locally before committing to catch parser-time regressions early.
+
+- The `validate-examples` tool now skips intentionally-invalid (negative) tests when validating samples. It uses directory- and content-based heuristics to exclude files under `*/Invalid/*`, files with `invalid` in the filename, or files that include an explicit negative-test comment marker. To force validation of negative tests (for debugging), run the tool with `--include-negatives`.

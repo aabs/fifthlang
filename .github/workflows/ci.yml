@@ -61,10 +61,28 @@ jobs:
       - name: Build
         run: dotnet build fifthlang.sln --configuration Release --no-restore
 
-      - name: Validate .5th samples (parser-check)
+      - name: Validate .5th samples (parser-check) (Unix)
+        if: matrix.os != 'windows-latest'
+        shell: bash
         run: |
           echo "Running parser-check across .5th sample files..."
-          dotnet run --project src/tools/validate-examples/validate-examples.csproj --configuration Release
+          LOGFILE="parser-check-$(uname -s | tr '[:upper:]' '[:lower:]').log"
+          set -o pipefail
+          dotnet run --project src/tools/validate-examples/validate-examples.csproj --configuration Release 2>&1 | tee "$LOGFILE"
+          rc=${PIPESTATUS[0]}
+          if [ $rc -ne 0 ]; then
+            echo "Parser-check failed; see $LOGFILE" >&2
+            exit $rc
+          fi
+
+      - name: Validate .5th samples (parser-check) (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          Write-Host 'Running parser-check across .5th sample files...'
+          $log = "parser-check-windows.log"
+          dotnet run --project src/tools/validate-examples/validate-examples.csproj --configuration Release 2>&1 | Tee-Object -FilePath $log
+          if ($LASTEXITCODE -ne 0) { Write-Error "Parser-check failed; see $log"; exit $LASTEXITCODE }
 
       - name: Run AST tests
         run: |
@@ -142,5 +160,14 @@ jobs:
           path: |
             CoverageReport/**
             **/coverage.cobertura.xml
+          if-no-files-found: warn
+
+      - name: Upload parser-check logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parser-check-logs-${{ matrix.os }}
+          path: |
+            parser-check-*.log
           if-no-files-found: warn
 

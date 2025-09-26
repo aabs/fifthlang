@@ -1,10 +1,10 @@
 // Missing base: two guarded overloads but missing case for zero
-myFunc(x: int | x > 0): int => x * 2;
-myFunc(x: int | x < 0): int => x * -1;
+myFunc(x: int | x > 0): int { return x * 2; }
+myFunc(x: int | x < 0): int { return x * -1; }
 // Missing case for x == 0 should trigger GUARD_INCOMPLETE (E1001)
 // -h(x: int): int when x % 2 == 0 => 0;
 // -h(x: int): int when x % 2 != 0 => 1;
-h(x: int | x % 2 == 0): int => 0;
-h(x: int | x % 2 != 0): int => 1;
+h(x: int | x % 2 == 0): int { return 0; }
+h(x: int | x % 2 != 0): int { return 1; }
 h(x: int | x % 2 == 0): int { return 0; }
 h(x: int | x % 2 != 0): int { return 1; }

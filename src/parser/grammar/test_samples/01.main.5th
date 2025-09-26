@@ -1,4 +1,4 @@
 use std;
 
-main() => myprint(5 + 6);
-myprint(int x, int y) => std.print(x + y);
+main(): void { myprint(5 + 6); }
+myprint(x: int, y: int): void { std.print(x + y); }
