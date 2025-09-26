@@ -31,7 +31,7 @@
 - Phase 3-4: Implementation execution (manual or via tools)
 
 ## Summary
-Add a new primitive type `triple` with literal syntax `<subject, predicate, object>` mapping directly to `VDS.RDF.Triple`, supporting composition with existing `graph` type via `+`/`-` (immutability, set semantics). Literal supports: IRIs (full or prefixed), variables of IRI type in subject/predicate, object forms (IRI, primitive literal, expression resolving to those, single-level list expansion). Nested lists disallowed. Triple literals can appear as standalone statements inside graph assertion blocks, asserting their triple(s). No new implicit prefix resolution; performance budget: ≤5% average parse time regression.
+Add a new primitive type `triple` with literal syntax `<subject, predicate, object>` mapping directly to `VDS.RDF.Triple`, supporting composition with existing `graph` type via `+`/`-` (immutability, structural set semantics). Literal supports: IRIs (full or prefixed), variables of IRI type in subject/predicate, object forms (IRI, primitive literal, expression resolving to those, single-level list expansion). Nested lists disallowed. Triple literals can appear as standalone statements inside graph assertion blocks, asserting their triple(s). No new implicit prefix resolution. Performance budget: ≤5% average parse time regression with variance guard (mean ≤5% AND mean ≤ 2σ). Canonical serialization adds escape handling for `>` and `,` in string object components.
 
 ## Technical Context
 **Language/Version**: C# / .NET 8.0 (pinned 8.0.118)
@@ -40,7 +40,7 @@ Add a new primitive type `triple` with literal syntax `<subject, predicate, obje
 **Testing**: TUnit + FluentAssertions (ast-tests, syntax-parser-tests, runtime-integration-tests)
 **Target Platform**: Cross-platform .NET 8 CLI
 **Project Type**: Single multi-project compiler toolchain (.NET solution)
-**Performance Goals**: ≤5% average parse time regression (NFR-002); no measurable impact on non-triple files beyond threshold
+**Performance Goals**: ≤5% average parse time regression (mean ≤5% and ≤2σ) per NFR-002; no measurable impact on non-triple files beyond threshold
 **Constraints**: Immutability of graphs under `+`/`-`; no implicit prefix resolution (FR-023); ordering implementation-defined; nested list expansion prohibited
 **Scale/Scope**: Feature localized to lexer, parser, AST visitor, transformations, type inference adjustments, tests
 
@@ -53,9 +53,9 @@ Add a new primitive type `triple` with literal syntax `<subject, predicate, obje
 | Generator-as-Source-of-Truth | PASS | No manual edits to `ast-generated/`; potential metamodel update if new AST node required for triple literal (if not reusing existing expression node) |
 | Test-First | PENDING | Will add parser + transformation + integration tests before implementation |
 | Multi-Pass Separation | PASS | Triple literal lowering handled in dedicated transformation (list expansion + graph operator lowering) |
-| Parser Integrity | PASS | Adds new literal production; ambiguity with `<{` resolved by early lookahead and comma pattern |
+| Parser Integrity | PASS | Adds new literal production; ambiguity with `<{` resolved by lexical lookahead: `<{` token sequence routed to graph assertion; `<` followed by IRI/prefixedName/computed expr plus two commas and closing `>` recognized as triple literal via gated predicate (comma-count + no `{`); fallback remains IRIREF otherwise. |
 | Observability/Diagnostics | PENDING | New diagnostic codes to be added (TRPL00x) |
-| Performance Budget | PENDING | Benchmark diff to enforce ≤5% parse time regression |
+| Performance Budget | PENDING | Benchmark diff to enforce ≤5% mean parse time regression with variance guard (≤2σ) |
 | No Implicit Prefix Policy | PASS | Explicit in FR-023 |
 | Immutability Enforcement | PASS | Graph operations produce new instances |
 
