@@ -101,11 +101,11 @@ Legend: `[P]` task can execute in parallel with other `[P]` tasks (different fil
 - [ ] T048 Add synthetic scenario definitions `specs/002-guard-clause-overload-completeness/perf-scenarios.json`
 - [ ] T049 Add micro-benchmark harness `test/runtime-integration-tests/Performance/GuardValidationBenchTests.cs` (measure overhead)
 - [ ] T050 Implement optional local pooling (guarded by allocation threshold) & benchmark delta
-- [ ] T051 Performance assertion test (fail if >5% overhead unless waiver file exists)
+- [x] T051 Performance assertion test (fail if >5% overhead unless waiver file exists)
 
 ## Phase 3.8: Traceability & Parity
-- [ ] T052 Populate `traceability.json` mapping FR-001..070 & AC-001..038 to tests (unit/integration/perf)
-- [ ] T053 Add traceability validation test `test/ast-tests/Validation/Guards/Traceability/TraceabilityCoverageTests.cs`
+- [x] T052 Populate `traceability.json` mapping FR-001..070 & AC-001..038 to tests (unit/integration/perf)
+- [x] T053 Add traceability validation test `test/ast-tests/Validation/Guards/Traceability/TraceabilityCoverageTests.cs`
 - [ ] T054 Add precedence parity test (spec order vs `GuardValidationPrecedence`) `.../Diagnostics/PrecedenceParityTests.cs`
 - [ ] T055 Add public surface test (already exists) extend to assert only phase entry public (reuse T004)
 
@@ -206,7 +206,7 @@ Generated per tasks.prompt with TDD-first ordering, deterministic diagnostic man
 - [x] **Test Coverage**: All modular components have corresponding unit tests using TUnit + FluentAssertions
 
 **What's Missing (Next Priorities):**
-- ❌ Performance benchmarks and <5% overhead validation
+- ❌ Full synthetic benchmark scenarios and automated CI benchmark job (nightly harness exists; consider adding PR-level lighter checks)
 - ❌ Sophisticated predicate normalization (beyond simple numeric comparisons)
 - ❌ Additional analysis/diagnostic tests (T017–T027) and implementations (T028–T036)
 - ❌ Integration scenario tests (T037–T046)

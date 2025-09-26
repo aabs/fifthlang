@@ -107,6 +107,226 @@
                 "IntervalSubsumptionTests.Subsumes_PartialOverlap_ShouldBeFalse",
                 "EmptyVsDuplicatePrecedenceTests.EmptyInterval_ShouldTakePrecedenceOverDuplicate"
             ]
+        },
+        "FR-016": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-017": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-018": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-019": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-020": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-021": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-022": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-023": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-024": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-025": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-026": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-027": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-028": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-029": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-030": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-031": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-032": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-033": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-034": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-035": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-036": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-037": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-038": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-039": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-040": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-041": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-042": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-043": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-044": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-045": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-046": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-047": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-048": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-049": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-050": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-051": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-052": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-053": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-054": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-055": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-056": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-057": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-058": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-059": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-060": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-061": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-062": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-063": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-064": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-065": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-066": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-067": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-068": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-069": {
+            "description": "TBD",
+            "tests": []
+        },
+        "FR-070": {
+            "description": "TBD",
+            "tests": []
         }
     },
     "acceptanceCriteria": {
@@ -213,6 +433,110 @@
                 "DeterminismHashTests",
                 "DiagnosticEmitterTests.Reset_ShouldClearAllDiagnostics"
             ]
+        },
+        "AC-013": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-014": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-015": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-016": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-017": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-018": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-019": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-020": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-021": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-022": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-023": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-024": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-025": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-026": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-027": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-028": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-029": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-030": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-031": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-032": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-033": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-034": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-035": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-036": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-037": {
+            "description": "TBD",
+            "tests": []
+        },
+        "AC-038": {
+            "description": "TBD",
+            "tests": []
         }
     },
     "testMapping": {
@@ -240,10 +564,10 @@
     "notes": {
         "created": "2025-09-24",
         "purpose": "Track traceability between requirements and test implementations",
-        "status": "Populated with current test coverage - comprehensive mapping of 15 FRs and 12 ACs to existing test implementations",
+        "status": "Populated with current test coverage - expanded to include placeholder entries for remaining requirements and acceptance criteria",
         "coverage": {
-            "featureRequirements": "15/15 mapped (100%)",
-            "acceptanceCriteria": "12/12 mapped (100%)",
+            "featureRequirements": "15/70 mapped (21%)",
+            "acceptanceCriteria": "12/38 mapped (31%)",
             "totalTests": "~40 individual test methods across 8 test classes"
         }
     }

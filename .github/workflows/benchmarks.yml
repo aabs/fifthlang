@@ -53,6 +53,15 @@ jobs:
           python3 scripts/perf/compare_benchmarks.py --baseline test/perf/baselines/guard_validation_baseline.json --threshold ${{ env.BENCHMARK_THRESHOLD_PCT }} $(if [ "${{ github.event.inputs.updateBaseline }}" = 'true' ]; then echo '--update-baseline'; fi)
         continue-on-error: false
 
+      - name: Build perf-assertions project
+        run: |
+          dotnet restore test/perf/perf-assertions/perf-assertions.csproj
+          dotnet build test/perf/perf-assertions/perf-assertions.csproj --configuration Release --no-restore
+
+      - name: Run perf assertions
+        run: |
+          dotnet test test/perf/perf-assertions/perf-assertions.csproj --configuration Release --no-build --verbosity normal
+
       - name: Upload current baseline (when requested)
         if: ${{ github.event.inputs.updateBaseline == 'true' }}
         uses: actions/upload-artifact@v4
