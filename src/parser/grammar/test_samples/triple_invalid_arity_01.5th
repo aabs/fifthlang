@@ -1,0 +1,8 @@
+// T006: invalid arity examples (TRPL001)
+alias ex as <http://example.org/>;
+
+main(): int {
+  a: triple = <ex:s, ex:p>;             // too few (TRPL001)
+  b: triple = <ex:s, ex:p, ex:o, ex:x>; // too many (TRPL001)
+  return 0;
+}
