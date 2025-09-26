@@ -201,12 +201,35 @@ slice_:
 		| expression? COLON expression COLON expression
 	) R_BRACKET;
 
-literal:
+// Primitive literals extracted to allow extension with tripleLiteral
+primitiveLiteral:
 	NIL_LIT			# lit_nil
 	| integer		# lit_int
 	| boolean		# lit_bool
 	| string_		# lit_string
 	| REAL_LITERAL	# lit_float;
+
+// Triple literal: <subject, predicate, object> Disambiguation rationale: * Existing IRIREF token
+// already matches a single < ... > form WITHOUT internal commas. * Introducing commas inside angle
+// brackets (<a:b, a:c, a:d>) prevents a match on IRIREF. * Therefore no semantic predicate is
+// required; the presence of two commas selects this rule. * Should a future extension allow commas
+// inside IRI tokens, revisit with a gated predicate. * Variable subjects/predicates are permitted
+// by grammar but AST currently expects concrete IRI nodes. A subsequent visitor phase may validate
+// type (FR-009) and/or adjust AST representation if needed.
+tripleLiteral:
+	LESS tripleSubject COMMA triplePredicate COMMA tripleObject GREATER;
+
+tripleSubject: iri | var_name;
+
+triplePredicate: iri | var_name;
+
+tripleObject:
+	iri
+	| primitiveLiteral
+	| var_name
+	| list; // list expansion handled in transformation pass
+
+literal: primitiveLiteral | tripleLiteral;
 
 string_:
 	INTERPRETED_STRING_LIT		# str_plain

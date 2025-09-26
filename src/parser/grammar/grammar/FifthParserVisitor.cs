@@ -369,39 +369,69 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	Result VisitSlice_([NotNull] FifthParser.Slice_Context context);
 	/// <summary>
 	/// Visit a parse tree produced by the <c>lit_nil</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitLit_nil([NotNull] FifthParser.Lit_nilContext context);
 	/// <summary>
 	/// Visit a parse tree produced by the <c>lit_int</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitLit_int([NotNull] FifthParser.Lit_intContext context);
 	/// <summary>
 	/// Visit a parse tree produced by the <c>lit_bool</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitLit_bool([NotNull] FifthParser.Lit_boolContext context);
 	/// <summary>
 	/// Visit a parse tree produced by the <c>lit_string</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitLit_string([NotNull] FifthParser.Lit_stringContext context);
 	/// <summary>
 	/// Visit a parse tree produced by the <c>lit_float</c>
-	/// labeled alternative in <see cref="FifthParser.literal"/>.
+	/// labeled alternative in <see cref="FifthParser.primitiveLiteral"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitLit_float([NotNull] FifthParser.Lit_floatContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.tripleLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitTripleLiteral([NotNull] FifthParser.TripleLiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.tripleSubject"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitTripleSubject([NotNull] FifthParser.TripleSubjectContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.triplePredicate"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitTriplePredicate([NotNull] FifthParser.TriplePredicateContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.tripleObject"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitTripleObject([NotNull] FifthParser.TripleObjectContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.literal"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLiteral([NotNull] FifthParser.LiteralContext context);
 	/// <summary>
 	/// Visit a parse tree produced by the <c>str_plain</c>
 	/// labeled alternative in <see cref="FifthParser.string_"/>.
