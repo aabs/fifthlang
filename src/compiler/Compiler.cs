@@ -274,7 +274,15 @@ Examples:
     {
         try
         {
-            return FifthParserManager.ApplyLanguageAnalysisPhases(ast);
+            var transformed = FifthParserManager.ApplyLanguageAnalysisPhases(ast, diagnostics);
+
+            // If any error-level diagnostics were produced during language analysis (e.g., guard validation), fail transform
+            if (diagnostics.Any(d => d.Level == DiagnosticLevel.Error))
+            {
+                return null;
+            }
+
+            return transformed;
         }
         catch (ast_model.CompilationException cex)
         {

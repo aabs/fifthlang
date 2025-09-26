@@ -2,7 +2,7 @@
 .PHONY: help build-all restore test run-generator clean rebuild ci setup-hooks \
 	build-ast-model build-ast-generator build-ast-generated build-parser build-compiler build-tests \
 	test-ast test-runtime test-syntax \
-	coverage coverage-report
+	coverage coverage-report install-cli
 
 help:
 	@echo "Available targets:"
@@ -26,6 +26,7 @@ help:
 	@echo "  test-runtime      - Run runtime integration tests only"
 	@echo "  test-syntax       - Run isolated syntax-only parser tests"
 	@echo "  setup-hooks       - Install git pre-commit and pre-push hooks"
+	@echo "  install-cli       - Build compiler and create symlink in ~/bin as 'fifth'"
 
 build-all: restore run-generator
 	dotnet build fifthlang.sln
@@ -88,7 +89,7 @@ build-parser:
 	dotnet build src/parser/parser.csproj
 
 build-compiler:
-	dotnet build src/compiler/compiler.csproj
+	dotnet build src/compiler/compiler.csproj --configuration Release
 
 build-tests:
 	dotnet build test/ast-tests/ast_tests.csproj
@@ -107,3 +108,12 @@ test-syntax:
 	dotnet clean test/syntax-parser-tests/syntax-parser-tests.csproj && \
 	  dotnet build test/syntax-parser-tests/syntax-parser-tests.csproj -v minimal && \
 	  dotnet test test/syntax-parser-tests/syntax-parser-tests.csproj -v minimal --no-build
+
+# Install compiler CLI tool
+install-cli: build-compiler
+	@echo "Creating symlink to compiler in ~/bin as 'fifth'..."
+	@mkdir -p ~/bin
+	@rm -f ~/bin/fifth
+	@ln -s "$(shell pwd)/src/compiler/bin/Release/net8.0/compiler" ~/bin/fifth
+	@echo "Fifth language compiler is now available as 'fifth' in your PATH"
+	@echo "Usage: fifth [options] <source-file>"

@@ -1,0 +1,3 @@
+// Boolean exhaustive pair - should be exhaustive for bool values
+boolCase(b: bool | b == true): int { return 1; }
+boolCase(b: bool | b == false): int { return 0; }

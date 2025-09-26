@@ -1,0 +1,5 @@
+// Multiple base overloads - two base overloads should trigger GUARD_MULTIPLE_BASE (E1005)
+myF(x: int | x < 0): int { return -1; }
+myF(x: int | x > 0): int { return 1; }
+myF(x: int): int { return 0; }
+myF(x: int): int { return 42; } // second base overload - should trigger E1005

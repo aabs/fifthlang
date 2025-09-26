@@ -1,0 +1,71 @@
+name: Benchmarks
+
+on:
+  workflow_dispatch:
+    inputs:
+      updateBaseline:
+        description: 'If true, upload current run as baseline artifact instead of comparing'
+        required: false
+        default: 'false'
+  schedule:
+    - cron: '0 4 * * *' # Run nightly at 04:00 UTC
+
+jobs:
+  guard-validation-bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      BENCHMARK_THRESHOLD_PCT: '5'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore test/perf/guard-validation-perf/guard-validation-perf.csproj
+
+      - name: Build
+        run: dotnet build test/perf/guard-validation-perf/guard-validation-perf.csproj --configuration Release --no-restore
+
+      - name: Run Guard Validation Benchmarks
+        run: |
+          dotnet run --project test/perf/guard-validation-perf/guard-validation-perf.csproj --configuration Release
+
+      - name: Upload Benchmark Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-artifacts
+          path: |
+            BenchmarkDotNet.Artifacts/**
+          if-no-files-found: warn
+
+      - name: Install Python
+        run: |
+          sudo apt-get update && sudo apt-get install -y python3 python3-pip
+
+      - name: Compare against baseline
+        id: compare
+        run: |
+          python3 scripts/perf/compare_benchmarks.py --baseline test/perf/baselines/guard_validation_baseline.json --threshold ${{ env.BENCHMARK_THRESHOLD_PCT }} $(if [ "${{ github.event.inputs.updateBaseline }}" = 'true' ]; then echo '--update-baseline'; fi)
+        continue-on-error: false
+
+      - name: Build perf-assertions project
+        run: |
+          dotnet restore test/perf/perf-assertions/perf-assertions.csproj
+          dotnet build test/perf/perf-assertions/perf-assertions.csproj --configuration Release --no-restore
+
+      - name: Run perf assertions
+        run: |
+          dotnet test test/perf/perf-assertions/perf-assertions.csproj --configuration Release --no-build --verbosity normal
+
+      - name: Upload current baseline (when requested)
+        if: ${{ github.event.inputs.updateBaseline == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: guard-validation-baseline
+          path: guard_validation_current_baseline.json
+          if-no-files-found: warn

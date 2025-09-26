@@ -126,6 +126,26 @@ Changes to either grammar file require:
 - Regeneration occurs automatically during build via ANTLR
 - Expected warnings (like `assoc` option location) can be ignored if documented as benign
 
++ Additional rule: Grammar compliance for example/source files
++
++- All example programs, quickstart snippets, test fixtures, and specification samples that are intended to be fed into the parser or compiler MUST conform to the current parser grammar. Samples that use legacy or non-grammar shorthand (for example older guard shorthand such as `when`) must be converted to the canonical grammar-supported form before being added to the repository or referenced by integration tests.
++
++- Canonical guard example (before → after):
++
++    // before (legacy shorthand — NOT VALID for parser-based tests)
++    myprint(int x) when x == 0 => std.print(x);
++
++    // after (grammar-compliant parameter constraint)
++    myprint(int x | x == 0) { std.print(x); }
++
++- Definition: "Grammar-compliant" means the sample can be successfully parsed by the current `FifthParser.g4` and successfully transformed to the high-level AST by `AstBuilderVisitor` without syntax errors.
++
++- Enforcement recommendation: Add a CI job (or a test target) that parses all `.5th` files under `docs/`, `specs/`, `src/parser/grammar/test_samples/`, and `test/` and fails the build if any sample does not parse. This CI job should be simple (build the solution and run the parser/syntax tests) and should be referenced in the PR checklist. Example enforcement points:
++  - A dedicated `validate-examples` CI step that runs `dotnet test test/syntax-parser-tests/` (or a targeted parser-check test) against the working tree
++  - A pre-commit hook that runs a lightweight parser-check script included in `scripts/` (e.g., `scripts/validate-examples.fish`) to catch regressions locally before pushing
++
++- Rationale: Ensures integration tests exercise the real compiler pipeline and prevents parser-time flakiness caused by deprecated surface forms.
+
 ### X. Observability & Diagnostics
 Text I/O is the primary observability mechanism. Emit clear, actionable diagnostics to stderr. Prefer structured messages (line/column, file paths) for parsers/compilers. When logging is needed, use standard .NET logging abstractions; avoid custom frameworks. Output must be deterministic and stable to support automated parsing by SpecKit.
 

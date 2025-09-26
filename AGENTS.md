@@ -111,20 +111,22 @@ make run-generator
 - Grammar changes: update both `FifthLexer.g4` AND `FifthParser.g4` as needed
 - Always update corresponding `AstBuilderVisitor.cs` for grammar changes
 
-### Testing Philosophy
-- Practice TDD: write/approve tests, see them fail, then implement
-- Use TUnit + FluentAssertions
-- Never mask failing tests with broad try/catch blocks
-- Let failures surface to properly reflect codebase state
+### Grammar Compliance Checklist for Agents
 
-### Multi-Pass Compilation Context
-When adding language features, prefer AST transformations over code generation complexity:
-1. Implement syntactic sugar in main AST model (`AstMetamodel.cs`)
-2. Use transformation visitors to lower to simpler forms
-3. Keep IL AST model (`ILMetamodel.cs`) simple and close to IL instructions
-4. Reserve IL-level transformations for optimizations
+When adding or updating example code, test programs, or documentation snippets that are intended to be parsed by the compiler or used as integration tests, follow this checklist:
 
-See constitution for complete transformation pipeline details.
+1. Validate parsing locally:
+   - Build the solution and run the parser/syntax tests (e.g., `dotnet test test/syntax-parser-tests/`) or a targeted parser-check. Ensure the sample parses without errors and the `AstBuilderVisitor` can build the high-level AST.
+2. Use grammar-supported forms only:
+   - Do NOT use legacy shorthand forms (for example, the older guard shorthand using `when`) in samples that will be parsed by the compiler. Use the parameter-constraint form `param: Type | <expr>` and block function bodies where the parser requires them.
+3. Ensure test integration:
+   - If a sample is referenced by integration tests, add `CopyToOutputDirectory` metadata in the test project's `.csproj` so the sample is available at test runtime (see `test/runtime-integration-tests/runtime-integration-tests.csproj`).
+4. Run integration-checks before committing:
+   - Run the relevant integration tests that consume the sample (e.g., `dotnet test test/runtime-integration-tests/ --filter GuardValidation`) to ensure the sample behaves as expected end-to-end.
+5. Update spec/constitution if intentionally introducing new surface syntax:
+   - If you believe a new surface syntax is required (instead of fixing the sample), update `src/parser/grammar/*` and `src/parser/AstBuilderVisitor.cs`, add parser tests, update the constitution's grammar rules, and include a rationale in the PR.
+
+Following this checklist prevents parser-time flakiness and keeps integration tests deterministic.
 
 ## Knowledge Graphs (Agent Notes)
 - Canonical store declarations only: `name : store = sparql_store(<iri>);` or `store default = sparql_store(<iri>);`
@@ -135,3 +137,9 @@ See constitution for complete transformation pipeline details.
    - `dotnet test test/kg-smoke-tests/kg-smoke-tests.csproj`
    - `dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj -v minimal --filter FullyQualifiedName~GraphAssertionBlock_`
 - Reference: `docs/knowledge-graphs.md`
+
+CI notes:
+
+- This repository includes a CI step `Validate .5th samples (parser-check)` that runs the `src/tools/validate-examples` tool to ensure all `.5th` examples across `docs/`, `specs/`, `src/parser/grammar/test_samples/`, and `test/` parse with the current grammar. Agents should run `scripts/validate-examples.fish` locally before committing to catch parser-time regressions early.
+
+- The `validate-examples` tool now skips intentionally-invalid (negative) tests when validating samples. It uses directory- and content-based heuristics to exclude files under `*/Invalid/*`, files with `invalid` in the filename, or files that include an explicit negative-test comment marker. To force validation of negative tests (for debugging), run the tool with `--include-negatives`.

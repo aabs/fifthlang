@@ -1,0 +1,4 @@
+// Guard completeness test - unreachable overload
+myFunc(x: int | x >= 0): int { return 0; }    // Broad guard
+myFunc(x: int | x > 0): int { return x * 2; }     // Unreachable - covered by previous
+myFunc(x: int): int { return x; }   // Unreachable - should emit W1002

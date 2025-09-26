@@ -1,0 +1,14 @@
+// Explosion + incomplete: mix of analyzable (simple equalities) and UNKNOWN (true || false) to trigger unknown explosion
+// 12 overloads: 5 analyzable, 7 UNKNOWN (should trigger GUARD_UNKNOWN_EXPLOSION (W1102))
+
+// analyzable
+ex(x: int | x == 0): int { return 0; }
+ex(x: int | x == 1): int { return 1; }
+ex(x: int | x == 2): int { return 2; }
+ex(x: int | x == 3): int { return 3; }
+ex(x: int | x == 4): int { return 4; }
+
+// UNKNOWN (use boolean OR to make normalizer classify as UNKNOWN)
+ex(x: int | is_unknown(x)): int { return 1; }
+ex(x: int | (is_unknown(x) || x == 0)): int { return 2; }
+// Note: no base provided here to trigger GUARD_INCOMPLETE (E1001)

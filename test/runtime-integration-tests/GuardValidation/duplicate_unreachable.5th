@@ -1,0 +1,4 @@
+// Duplicate guards - second duplicate should be unreachable
+g(x: int | x == 5): int { return 5; }
+g(x: int | x == 5): int { return 6; } // duplicate - should be reported as GUARD_UNREACHABLE (W1002)
+g(x: int): int { return 0; }

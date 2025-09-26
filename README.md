@@ -11,6 +11,17 @@ A compiler and language tooling for the Fifth programming language.
 👉 [Latest Announcement: Graph Assertion Blocks](https://github.com/aabs/fifthlang/discussions/74)
 
 ## Quickstart
+
+If you wish to work on 5th from Neovim, and you have Nix installed, you can create a development shell session like this:
+
+```fish
+$ nix develop
+
+# or . . 
+
+$ nix develop -c fish
+```
+
 ```csharp
 alias x as <http://example.com/blah#>;
 

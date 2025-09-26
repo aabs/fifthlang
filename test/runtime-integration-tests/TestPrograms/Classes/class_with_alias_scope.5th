@@ -1,4 +1,4 @@
-alias x in <http://example.com/people>
+alias x as <http://example.com/people>;
 class Person in x
 {
     blah: int;
