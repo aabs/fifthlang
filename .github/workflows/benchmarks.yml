@@ -19,6 +19,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
@@ -47,10 +50,89 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y python3 python3-pip
 
+      - name: Determine baseline family
+        id: baseline-family
+        run: |
+          echo "Determining baseline family (stable OS-major-arch)..."
+          FAMILY="unknown"
+          OS_NAME="${{ runner.os }}"
+          ARCH="$(uname -m)"
+          # normalize arch
+          case "$ARCH" in
+            x86_64) ARCH="amd64" ;;
+            aarch64|arm64) ARCH="arm64" ;;
+            *) ARCH="$(echo $ARCH | tr '[:upper:]' '[:lower:]')" ;;
+          esac
+
+          if [ "$OS_NAME" = 'Linux' ]; then
+            # Prefer lsb_release or /etc/os-release for distro version
+            if command -v lsb_release >/dev/null 2>&1; then
+              DIST_VER=$(lsb_release -rs 2>/dev/null || true)
+            else
+              DIST_VER=$(grep '^VERSION_ID=' /etc/os-release 2>/dev/null | cut -d'=' -f2 | tr -d '"' || true)
+            fi
+            # Use only major version number (e.g. 24)
+            if [ -n "$DIST_VER" ]; then
+              MAJOR=$(echo "$DIST_VER" | cut -d. -f1)
+              FAMILY=$(echo "linux${MAJOR}-${ARCH}" | tr '[:upper:]' '[:lower:]')
+            else
+              FAMILY=$(echo "linux-${ARCH}" | tr '[:upper:]' '[:lower:]')
+            fi
+          elif [ "$OS_NAME" = 'macOS' ]; then
+            if command -v sw_vers >/dev/null 2>&1; then
+              MAC_VER=$(sw_vers -productVersion 2>/dev/null || true)
+            else
+              MAC_VER=""
+            fi
+            if [ -n "$MAC_VER" ]; then
+              MAJOR=$(echo "$MAC_VER" | cut -d. -f1)
+              FAMILY=$(echo "macos${MAJOR}-${ARCH}" | tr '[:upper:]' '[:lower:]')
+            else
+              FAMILY=$(echo "macos-${ARCH}" | tr '[:upper:]' '[:lower:]')
+            fi
+          else
+            # fallback
+            FAMILY=$(echo "${{ runner.os }}-${ARCH}" | tr '[:upper:]' '[:lower:]')
+          fi
+          # sanitize
+          FAMILY=$(echo "$FAMILY" | sed -E 's/[^a-z0-9]+/-/g' | sed -E 's/^-+|-+$//g')
+          echo "BASELINE_FAMILY=$FAMILY" >> $GITHUB_ENV
+          echo "family=$FAMILY" >> $GITHUB_OUTPUT
+          echo "Computed baseline family: $FAMILY"
+
+      - name: Check family baseline exists
+        id: check-family-baseline
+        run: |
+          FAMILY=${{ steps.baseline-family.outputs.family }}
+          echo "Checking for family baseline for: $FAMILY"
+          FAMILY_BASE=test/perf/baselines/guard_validation_baseline.$FAMILY.json
+          if [ -f "$FAMILY_BASE" ]; then
+            echo "baseline_path=$FAMILY_BASE" >> $GITHUB_OUTPUT
+            echo "baseline_exists=true" >> $GITHUB_OUTPUT
+            echo "Found family baseline: $FAMILY_BASE"
+          else
+            # fall back to canonical baseline
+            FALLBACK=test/perf/baselines/guard_validation_baseline.json
+            if [ -f "$FALLBACK" ]; then
+              echo "baseline_path=$FALLBACK" >> $GITHUB_OUTPUT
+            else
+              echo "baseline_path=" >> $GITHUB_OUTPUT
+            fi
+            echo "baseline_exists=false" >> $GITHUB_OUTPUT
+            echo "No family baseline found; will fall back to generic baseline if present"
+          fi
+
       - name: Compare against baseline
         id: compare
         run: |
-          python3 scripts/perf/compare_benchmarks.py --baseline test/perf/baselines/guard_validation_baseline.json --threshold ${{ env.BENCHMARK_THRESHOLD_PCT }} $(if [ "${{ github.event.inputs.updateBaseline }}" = 'true' ]; then echo '--update-baseline'; fi)
+          BASELINE_PATH="${{ steps.check-family-baseline.outputs.baseline_path }}"
+          if [ -z "$BASELINE_PATH" ]; then
+            echo "No baseline file found (family and generic); compare will run but perf assertions will be skipped on hosted runners unless updateBaseline is true."
+            # Still call compare; script can handle missing baseline by printing suggestion
+            python3 scripts/perf/compare_benchmarks.py --baseline /dev/null --baseline-family "${{ steps.baseline-family.outputs.family }}" --threshold ${{ env.BENCHMARK_THRESHOLD_PCT }} $(if [ "${{ github.event.inputs.updateBaseline }}" = 'true' ]; then echo '--update-baseline'; fi)
+          else
+            python3 scripts/perf/compare_benchmarks.py --baseline "$BASELINE_PATH" --baseline-family "${{ steps.baseline-family.outputs.family }}" --threshold ${{ env.BENCHMARK_THRESHOLD_PCT }} $(if [ "${{ github.event.inputs.updateBaseline }}" = 'true' ]; then echo '--update-baseline'; fi)
+          fi
         continue-on-error: false
 
       - name: Build perf-assertions project
@@ -59,13 +141,69 @@ jobs:
           dotnet build test/perf/perf-assertions/perf-assertions.csproj --configuration Release --no-restore
 
       - name: Run perf assertions
+        if: ${{ github.event.inputs.updateBaseline == 'true' || steps.check-family-baseline.outputs.baseline_exists == 'true' }}
         run: |
           dotnet test test/perf/perf-assertions/perf-assertions.csproj --configuration Release --no-build --verbosity normal
+
+      - name: Skip perf assertions (no family baseline present)
+        if: ${{ github.event.inputs.updateBaseline != 'true' && steps.check-family-baseline.outputs.baseline_exists == 'false' }}
+        run: |
+          echo "No family baseline available and updateBaseline not requested. Skipping strict perf assertions to avoid noisy CI failures."
 
       - name: Upload current baseline (when requested)
         if: ${{ github.event.inputs.updateBaseline == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: guard-validation-baseline
-          path: guard_validation_current_baseline.json
+          name: guard-validation-baseline-${{ steps.baseline-family.outputs.family }}
+          path: |
+            guard_validation_current_baseline.${{ steps.baseline-family.outputs.family }}.json
           if-no-files-found: warn
+
+      - name: Prepare baseline PR (when requested)
+        if: ${{ github.event.inputs.updateBaseline == 'true' }}
+        run: |
+          echo "Preparing baseline PR for family: ${{ steps.baseline-family.outputs.family }}"
+          if [ -f "guard_validation_current_baseline.${{ steps.baseline-family.outputs.family }}.json" ]; then
+            mkdir -p test/perf/baselines
+            cp guard_validation_current_baseline.${{ steps.baseline-family.outputs.family }}.json test/perf/baselines/guard_validation_baseline.${{ steps.baseline-family.outputs.family }}.json
+            git add test/perf/baselines/guard_validation_baseline.${{ steps.baseline-family.outputs.family }}.json
+          else
+            echo "guard_validation_current_baseline.${{ steps.baseline-family.outputs.family }}.json not found; aborting PR preparation"
+            exit 0
+          fi
+
+      - name: Generate baseline PR body
+        if: ${{ github.event.inputs.updateBaseline == 'true' }}
+        run: |
+          FAMILY=${{ steps.baseline-family.outputs.family }}
+          BASEFILE=guard_validation_current_baseline.${FAMILY}.json
+          PRBODY=pr_body.${FAMILY}.md
+          echo "Generating PR body at $PRBODY from $BASEFILE"
+          python3 scripts/perf/generate_pr_body.py "${FAMILY}" "$BASEFILE" "$PRBODY"
+
+      - name: Load PR body into step output
+        if: ${{ github.event.inputs.updateBaseline == 'true' }}
+        id: pr-body
+        run: |
+          FAMILY=${{ steps.baseline-family.outputs.family }}
+          PRBODY=pr_body.${FAMILY}.md
+          if [ -f "$PRBODY" ]; then
+            echo "body<<EOF" >> $GITHUB_OUTPUT
+            cat "$PRBODY" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "body=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create baseline PR (when requested)
+        if: ${{ github.event.inputs.updateBaseline == 'true' }}
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'perf(baseline): update guard_validation_baseline.${{ steps.baseline-family.outputs.family }}.json from Benchmarks run ${{ github.run_id }}'
+          title: 'perf(baseline): update guard validation baseline (family ${{ steps.baseline-family.outputs.family }}, run ${{ github.run_id }})'
+          body: ${{ steps.pr-body.outputs.body }}
+          branch: 'auto/update-guard-validation-baseline-${{ steps.baseline-family.outputs.family }}-${{ github.run_id }}'
+          labels: perf, baseline
+          base: master
+          delete-branch: true
