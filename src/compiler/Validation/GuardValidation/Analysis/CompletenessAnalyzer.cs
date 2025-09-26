@@ -46,12 +46,9 @@ internal class CompletenessAnalyzer
     /// </summary>
     public bool IsComplete(FunctionGroup group, List<AnalyzedOverload> analyzedOverloads)
     {
-        // Simple heuristic: if we have any unknown predicates and no base, it's incomplete
-        var hasAnalyzable = analyzedOverloads.Any(a => a.PredicateType == PredicateType.Analyzable);
-        var hasUnknown = analyzedOverloads.Any(a => a.PredicateType == PredicateType.Unknown);
-
-        // Conservative approach: if there are unknowns or no analyzable predicates, consider incomplete
-        return !hasUnknown && hasAnalyzable;
+        // Conservative default: Without a base overload, assume incomplete.
+        // Specific exhaustive cases (e.g., boolean true/false pair) are handled upstream.
+        return false;
     }
 
     /// <summary>

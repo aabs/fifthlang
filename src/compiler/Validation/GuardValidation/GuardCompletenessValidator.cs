@@ -25,8 +25,20 @@ public class GuardCompletenessValidator : DefaultRecursiveDescentVisitor
     private readonly OverloadCollector _collector = new();
     private readonly PredicateNormalizer _normalizer = new();
     private readonly CompletenessAnalyzer _analyzer = new();
+    private readonly UnreachableAnalyzer _unreachable = new();
+    private readonly DuplicateDetector _duplicates = new();
+    private readonly CoverageEvaluator _coverage = new();
+    private readonly ExplosionAnalyzer _explosion = new();
     private readonly DiagnosticEmitter _emitter = new();
+    private readonly GuardValidationReporter _reporter;
+    private readonly BaseOrderingRules _baseRules = new();
+    private readonly CountAnalyzer _count = new();
     private readonly ValidationInstrumenter _instrumenter = new();
+
+    public GuardCompletenessValidator()
+    {
+        _reporter = new GuardValidationReporter(_emitter);
+    }
 
     public IReadOnlyList<Diagnostic> Diagnostics => _emitter.Diagnostics;
 
@@ -93,37 +105,26 @@ public class GuardCompletenessValidator : DefaultRecursiveDescentVisitor
 
     private void ValidateFunctionGroup(FunctionGroup group)
     {
+        // FR-050/061: Emit overload count warning for groups >= 33 overloads (applies regardless of guards)
+        if (_count.ShouldWarn(group.Overloads.Count))
+        {
+            _emitter.EmitOverloadCountWarning(group);
+        }
+
         // Skip validation for groups with no guards
         if (!group.HasAnyGuards())
         {
             return;
         }
 
-        // FR-050/061: Emit overload count warning for groups >= 33 overloads
-        if (group.Overloads.Count >= 33)
-        {
-            _emitter.EmitOverloadCountWarning(group);
-        }
-
-        // Check for multiple base overloads (FR-034/066)
+        // Apply base ordering/multiple base rules
         var baseOverloads = group.GetBaseOverloads();
         if (baseOverloads.Count > 1)
         {
             _emitter.EmitMultipleBaseError(group, baseOverloads);
-            return; // Priority over other diagnostics per FR-053
+            return; // precedence: multiple base suppresses completeness
         }
-
-        // Check base overload ordering (FR-035)
-        var firstBase = baseOverloads.FirstOrDefault();
-        if (firstBase != null)
-        {
-            var invalidIndex = _analyzer.ValidateBaseOrdering(group, firstBase);
-            if (invalidIndex.HasValue)
-            {
-                var baseIndex = group.Overloads.IndexOf(firstBase);
-                _emitter.EmitBaseNotLastError(group, baseIndex, invalidIndex.Value);
-            }
-        }
+        _baseRules.Apply(group, _emitter);
 
         // Analyze predicate coverage and reachability
         AnalyzePredicateCoverage(group);
@@ -134,35 +135,77 @@ public class GuardCompletenessValidator : DefaultRecursiveDescentVisitor
         _instrumenter.StartPhase("PredicateAnalysis");
 
         var analyzedOverloads = new List<AnalyzedOverload>();
+        var emptyIntervalUnreachables = new List<(int unreachableIndex, int coveringIndex, AnalyzedOverload unreachable, AnalyzedOverload covering)>();
+        var unreachableAlready = new HashSet<int>();
 
         // Step 1: Analyze each overload's predicate
-        foreach (var overload in group.Overloads)
+        for (int idx = 0; idx < group.Overloads.Count; idx++)
         {
+            var overload = group.Overloads[idx];
             var analyzed = _normalizer.AnalyzeOverload(overload);
             analyzedOverloads.Add(analyzed);
+
+            // FR-040/060: Detect empty/inverted intervals early and report as unreachable
+            if (analyzed.PredicateType == PredicateType.Analyzable)
+            {
+                if (TryGetInterval(analyzed.PredicateDescriptor, out var interval))
+                {
+                    var ie = new IntervalEngine();
+                    if (ie.IsEmpty(interval))
+                    {
+                        // Report empty interval as unreachable only for non-first overloads
+                        if (idx > 0)
+                        {
+                            var oneBased = idx + 1;
+                            emptyIntervalUnreachables.Add((oneBased, 0, analyzed, analyzed));
+                            unreachableAlready.Add(oneBased);
+                        }
+                    }
+                }
+            }
         }
 
-        // Step 2: Check for unreachable overloads (FR-026)
-        var unreachableOverloads = _analyzer.CheckForUnreachableOverloads(analyzedOverloads);
-        foreach (var (unreachableIndex, coveringIndex, unreachable, covering) in unreachableOverloads)
+        // Step 2a: Detect exact-duplicate analyzable predicates and report as unreachable
+        var dupePairs = _duplicates.DetectDuplicates(analyzedOverloads);
+        if (dupePairs.Count > 0)
         {
-            _emitter.EmitUnreachableWarning(group, unreachable.Overload, covering.Overload, unreachableIndex, coveringIndex);
+            var dupesAsUnreachable = new List<(int, int, AnalyzedOverload, AnalyzedOverload)>();
+            foreach (var (firstIndex, duplicateIndex, first, duplicate) in dupePairs)
+            {
+                // Later duplicate is unreachable due to earlier identical guard
+                if (!unreachableAlready.Contains(duplicateIndex))
+                {
+                    dupesAsUnreachable.Add((duplicateIndex, firstIndex, duplicate, first));
+                    unreachableAlready.Add(duplicateIndex);
+                }
+            }
+            _reporter.ReportUnreachable(group, dupesAsUnreachable);
         }
+
+        // Step 2b: Check for unreachable overloads via subsumption (FR-026)
+        var unreachableOverloads = _unreachable.Analyze(analyzedOverloads)
+            .Where(t => !unreachableAlready.Contains(t.unreachableIndex))
+            .ToList();
+        foreach (var t in unreachableOverloads) unreachableAlready.Add(t.unreachableIndex);
+        // Report empty-interval precedences first (coveringIndex=0 to suppress note), then subsumption
+        if (emptyIntervalUnreachables.Count > 0)
+        {
+            _reporter.ReportUnreachable(group, emptyIntervalUnreachables);
+        }
+        _reporter.ReportUnreachable(group, unreachableOverloads);
 
         // Step 3: Check completeness (only if no base case)
         var hasBase = group.GetBaseOverloads().Any();
-        if (!hasBase)
+        var booleanComplete = _coverage.IsBooleanComplete(analyzedOverloads);
+        if (!hasBase && !booleanComplete && !_analyzer.IsComplete(group, analyzedOverloads))
         {
-            if (!_analyzer.IsComplete(group, analyzedOverloads))
-            {
-                _emitter.EmitIncompleteError(group);
-            }
+            _emitter.EmitIncompleteError(group);
         }
 
         // Step 4: Check for UNKNOWN explosion (FR-051/062/064)
         if (!hasBase && group.Overloads.Count >= 8)
         {
-            var unknownPercent = _analyzer.CalculateUnknownPercentage(analyzedOverloads);
+            var unknownPercent = _explosion.CalculateUnknownPercent(analyzedOverloads);
             if (unknownPercent > 50)
             {
                 _emitter.EmitUnknownExplosionWarning(group, unknownPercent);
@@ -170,6 +213,58 @@ public class GuardCompletenessValidator : DefaultRecursiveDescentVisitor
         }
 
         _instrumenter.EndPhase("PredicateAnalysis");
+    }
+
+    // Local helper mirrors analyzer mapping for quick interval check
+    private static bool TryGetInterval(PredicateDescriptor descriptor, out Analysis.Interval interval)
+    {
+        interval = Analysis.Interval.Unbounded();
+        var atoms = new List<ast.BinaryExp>();
+        foreach (var expr in descriptor.Constraints)
+        {
+            if (!CollectAtoms(expr, atoms)) return false;
+        }
+        if (atoms.Count == 0) return false;
+        string? varName = null;
+        var ie = new Analysis.IntervalEngine();
+        foreach (var be in atoms)
+        {
+            if (be.LHS is ast.VarRefExp v && be.RHS is ast.Int32LiteralExp lit)
+            {
+                if (varName == null) varName = v.VarName; else if (varName != v.VarName) return false;
+                Analysis.Interval atomInterval = be.Operator switch
+                {
+                    ast.Operator.GreaterThan => new Analysis.Interval(lit.Value, false, null, false),
+                    ast.Operator.GreaterThanOrEqual => new Analysis.Interval(lit.Value, true, null, false),
+                    ast.Operator.LessThan => new Analysis.Interval(null, false, lit.Value, false),
+                    ast.Operator.LessThanOrEqual => new Analysis.Interval(null, false, lit.Value, true),
+                    ast.Operator.Equal => Analysis.Interval.Closed(lit.Value, lit.Value),
+                    _ => default
+                };
+                if (Equals(atomInterval, default(Analysis.Interval))) return false;
+                interval = ie.Intersect(interval, atomInterval);
+            }
+            else return false;
+        }
+        return true;
+    }
+
+    private static bool CollectAtoms(ast.Expression expr, List<ast.BinaryExp> atoms)
+    {
+        if (expr is ast.BinaryExp be)
+        {
+            if (be.Operator == ast.Operator.LogicalAnd)
+                return CollectAtoms(be.LHS, atoms) && CollectAtoms(be.RHS, atoms);
+            if (be.Operator == ast.Operator.GreaterThan || be.Operator == ast.Operator.GreaterThanOrEqual ||
+                be.Operator == ast.Operator.LessThan || be.Operator == ast.Operator.LessThanOrEqual ||
+                be.Operator == ast.Operator.Equal)
+            {
+                atoms.Add(be);
+                return true;
+            }
+            return false;
+        }
+        return false;
     }
 
 }

@@ -42,12 +42,15 @@ internal class DiagnosticEmitter
         );
         _diagnostics.Add(diagnostic);
 
-        // Secondary note per FR-036
-        var note = new Diagnostic(
-            DiagnosticLevel.Info,
-            $"note: overload #{unreachableIndex} unreachable due to earlier coverage by overload #{coveringIndex}"
-        );
-        _diagnostics.Add(note);
+        // Secondary note per FR-036 (skip if no concrete covering index provided)
+        if (coveringIndex > 0)
+        {
+            var note = new Diagnostic(
+                DiagnosticLevel.Info,
+                $"note: overload #{unreachableIndex} unreachable due to earlier coverage by overload #{coveringIndex}"
+            );
+            _diagnostics.Add(note);
+        }
     }
 
     /// <summary>

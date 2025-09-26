@@ -296,6 +296,10 @@ Maintained in README subsection; initial entries:
 *Based on Constitution v2.1.1 - See `/specs/.specify/memory/constitution.md`*
 
 ## Recent Updates (2025-09-24)
-- [x] T015 IntervalEngine implemented (Intersect/IsEmpty/Subsumes) without LINQ and wired into `CompletenessAnalyzer`.
+- [x] T015 IntervalEngine implemented (Intersect/IsEmpty/Subsumes) without LINQ and wired into analyzers.
 - [x] T016 Normalization-related tests re-run; interval formation and emptiness tests now green.
 - [x] T019 Interval subsumption unit tests added and passing.
+- [x] T026 Overload count warning W1101 emits regardless of guards; tests passing.
+- [x] T025 Unknown explosion W1102 thresholds enforced (>50%, size>=8, no base); tests passing.
+- [x] T017 Duplicate detection implemented; later duplicate unreachable W1002; test passing.
+- [x] T018 Empty-interval precedence over duplicate (FR-070) implemented; single W1002; test passing.

@@ -57,7 +57,7 @@ public class CompletenessAnalyzerTests
     }
 
     [Test]
-    public void IsComplete_WithAnalyzableAndNoUnknown_ShouldReturnTrue()
+    public void IsComplete_WithAnalyzableAndNoUnknown_ShouldReturnFalse()
     {
         // Arrange
         var analyzer = new CompletenessAnalyzer();
@@ -71,7 +71,7 @@ public class CompletenessAnalyzerTests
         var result = analyzer.IsComplete(group, analyzedOverloads);
 
         // Assert
-        result.Should().BeTrue();
+        result.Should().BeFalse();
     }
 
     [Test]

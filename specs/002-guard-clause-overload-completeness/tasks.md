@@ -53,28 +53,27 @@ Legend: `[P]` task can execute in parallel with other `[P]` tasks (different fil
 - [x] T016 Update normalization tests to pass (re-run; all previous failing tests now green)
 
 ## Phase 3.4: Tests First (Analysis & Diagnostics) ⚠️ ADD BEFORE IMPLEMENTATION
-- [ ] T017 [P] Unit test: duplicate detection → later guard unreachable `.../Analysis/DuplicateDetectionTests.cs`
-- [ ] T018 [P] Unit test: empty precedence over duplicate (FR-070) `.../Analysis/EmptyVsDuplicatePrecedenceTests.cs`
-- [ ] T019 [P] Unit test: interval subsumption unreachable `.../Analysis/IntervalSubsumptionTests.cs`
-- [x] T019 [P] Unit test: interval subsumption unreachable `.../Analysis/IntervalSubsumptionTests.cs`
-- [ ] T020 [P] Unit test: boolean exhaustive pair (no base) completeness success `.../Analysis/BooleanExhaustiveTests.cs`
-- [ ] T021 [P] Unit test: incomplete guards (no base) → E1001 `.../Analysis/IncompletenessTests.cs`
-- [ ] T022 [P] Unit test: multiple base precedence (E1005 suppresses E1001) `.../Diagnostics/MultipleBasePrecedenceTests.cs`
-- [ ] T023 [P] Unit test: base-not-last still allows E1001 `.../Diagnostics/BaseNotLastCoverageTests.cs`
-- [ ] T024 [P] Unit test: unreachable after base (should still warn if analyzable) `.../Diagnostics/UnreachableAfterBaseTests.cs`
-- [ ] T025 [P] Unit test: explosion warning thresholds (just below / above) `.../Diagnostics/ExplosionThresholdTests.cs`
-- [ ] T026 [P] Unit test: overload count warning threshold (32 vs 33) `.../Diagnostics/OverloadCountWarningTests.cs`
-- [ ] T027 [P] Unit test: deterministic ordering & hash stability `.../Determinism/DeterminismHashTests.cs`
+ [x] T017 [P] Unit test: duplicate detection → later guard unreachable `.../Analysis/DuplicateDetectionTests.cs`
+ [x] T018 [P] Unit test: empty precedence over duplicate (FR-070) `.../Analysis/EmptyVsDuplicatePrecedenceTests.cs`
+ [x] T019 [P] Unit test: interval subsumption unreachable `.../Analysis/IntervalSubsumptionTests.cs`
+ [x] T020 [P] Unit test: boolean exhaustive pair (no base) completeness success `.../Analysis/BooleanExhaustiveTests.cs`
+ [x] T021 [P] Unit test: incomplete guards (no base) → E1001 `.../Analysis/IncompletenessTests.cs`
+ [ ] T022 [P] Unit test: multiple base precedence (E1005 suppresses E1001) `.../Diagnostics/MultipleBasePrecedenceTests.cs`
+ [ ] T023 [P] Unit test: base-not-last still allows E1001 `.../Diagnostics/BaseNotLastCoverageTests.cs`
+ [ ] T024 [P] Unit test: unreachable after base (should still warn if analyzable) `.../Diagnostics/UnreachableAfterBaseTests.cs`
+ [x] T025 [P] Unit test: explosion warning thresholds (just below / above) `.../Diagnostics/ExplosionThresholdTests.cs`
+ [x] T026 [P] Unit test: overload count warning threshold (32 vs 33) `.../Diagnostics/OverloadCountWarningTests.cs`
+ [ ] T027 [P] Unit test: deterministic ordering & hash stability `.../Determinism/DeterminismHashTests.cs`
 
 ## Phase 3.5: Analysis & Diagnostic Implementations
-- [ ] T028 Implement `Collection/OverloadCollector.cs` (grouping logic) & integrate into phase
-- [ ] T029 Implement `Analysis/DuplicateDetector.cs`
-- [ ] T030 Implement `Analysis/CoverageEvaluator.cs` (boolean completeness + analyzable union tracking)
-- [ ] T031 Implement `Analysis/UnreachableAnalyzer.cs` (uses IntervalEngine + duplicate & empty info)
-- [ ] T032 Implement `Diagnostics/GuardValidationReporter.cs` (emission helpers + precedence application)
-- [ ] T033 Implement `Diagnostics/BaseOrderingRules.cs` (E1004/E1005 logic + gating)
-- [ ] T034 Implement `Analysis/ExplosionAnalyzer.cs` (unknownPercent) & `Analysis/CountAnalyzer.cs`
-- [ ] T035 Integrate analyses in phase run sequence (collector → normalizer → analyzers → reporter)
+- [x] T028 Implement `Collection/OverloadCollector.cs` (grouping logic) & integrate into phase
+- [x] T029 Implement `Analysis/DuplicateDetector.cs`
+- [x] T030 Implement `Analysis/CoverageEvaluator.cs` (boolean completeness + analyzable union tracking)
+- [x] T031 Implement `Analysis/UnreachableAnalyzer.cs` (uses IntervalEngine + duplicate & empty info)
+- [x] T032 Implement `Diagnostics/GuardValidationReporter.cs` (emission helpers + precedence application)
+- [x] T033 Implement `Diagnostics/BaseOrderingRules.cs` (E1004/E1005 logic + gating)
+- [x] T034 Implement `Analysis/ExplosionAnalyzer.cs` (unknownPercent) & `Analysis/CountAnalyzer.cs`
+- [x] T035 Integrate analyses in phase run sequence (collector → normalizer → analyzers → reporter)
 - [ ] T036 Make previously added analysis/diagnostic tests pass
 
 ## Phase 3.6: Integration Tests (Quickstart Scenarios) ⚠️ ADD BEFORE RUNNING

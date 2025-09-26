@@ -18,7 +18,8 @@
             "description": "Detect unreachable overloads",
             "tests": [
                 "CompletenessAnalyzerTests.CheckForUnreachableOverloads_WithBaseFollowedByGuarded_ShouldDetectUnreachable",
-                "CompletenessAnalyzerTests.CheckForUnreachableOverloads_WithOnlyGuardedOverloads_ShouldNotDetectUnreachable"
+                "CompletenessAnalyzerTests.CheckForUnreachableOverloads_WithOnlyGuardedOverloads_ShouldNotDetectUnreachable",
+                "DuplicateDetectionTests.DuplicateGuards_ShouldBeDetectedAsUnreachable"
             ]
         },
         "FR-004": {
@@ -103,7 +104,8 @@
                 "CompletenessAnalyzerTests.CheckForUnreachableOverloads_WithBaseFollowedByGuarded_ShouldDetectUnreachable",
                 "CompletenessAnalyzerTests.IsComplete_WithAnalyzableAndNoUnknown_ShouldReturnTrue",
                 "IntervalSubsumptionTests.Subsumes_ClosedWithinClosed_ShouldBeTrue",
-                "IntervalSubsumptionTests.Subsumes_PartialOverlap_ShouldBeFalse"
+                "IntervalSubsumptionTests.Subsumes_PartialOverlap_ShouldBeFalse",
+                "EmptyVsDuplicatePrecedenceTests.EmptyInterval_ShouldTakePrecedenceOverDuplicate"
             ]
         }
     },
@@ -111,21 +113,24 @@
         "AC-001": {
             "description": "Complete guard sets compile without errors",
             "tests": [
-                "GuardValidationIntegrationTests.CompleteGuards_ShouldCompileWithoutErrors"
+                "GuardValidationIntegrationTests.CompleteGuards_ShouldCompileWithoutErrors",
+                "BooleanExhaustiveTests.BooleanPair_ShouldBeConsideredCompleteWithoutBase"
             ]
         },
         "AC-002": {
             "description": "Incomplete guard sets emit E1001",
             "tests": [
                 "DiagnosticEmitterTests.EmitIncompleteError_ShouldEmitE1001Error",
-                "GuardValidationIntegrationTests.IncompleteGuards_ShouldFailCompilation"
+                "GuardValidationIntegrationTests.IncompleteGuards_ShouldFailCompilation",
+                "IncompletenessTests.IncompleteWithoutBase_ShouldEmitE1001"
             ]
         },
         "AC-003": {
             "description": "Unreachable overloads emit W1002",
             "tests": [
                 "DiagnosticEmitterTests.EmitUnreachableWarning_ShouldEmitW1002WarningWithNote",
-                "GuardValidationIntegrationTests.UnreachableGuards_ShouldCompileWithWarnings"
+                "GuardValidationIntegrationTests.UnreachableGuards_ShouldCompileWithWarnings",
+                "UnreachableAfterBaseTests.AfterBase_AnalyzableStillWarnsUnreachable"
             ]
         },
         "AC-004": {
@@ -137,19 +142,24 @@
         "AC-005": {
             "description": "Base not last emits E1004",
             "tests": [
-                "DiagnosticEmitterTests.EmitBaseNotLastError_ShouldEmitE1004ErrorWithNote"
+                "DiagnosticEmitterTests.EmitBaseNotLastError_ShouldEmitE1004ErrorWithNote",
+                "BaseNotLastCoverageTests.BaseNotLast_ShouldStillAllowE1001"
             ]
         },
         "AC-006": {
             "description": "Excessive overloads emit W1101",
             "tests": [
-                "DiagnosticEmitterTests.EmitOverloadCountWarning_ShouldEmitW1101Warning"
+                "DiagnosticEmitterTests.EmitOverloadCountWarning_ShouldEmitW1101Warning",
+                "OverloadCountWarningTests.CountAt32_ShouldNotWarn",
+                "OverloadCountWarningTests.CountAt33_ShouldWarn"
             ]
         },
         "AC-007": {
             "description": "Unknown explosion emits W1102",
             "tests": [
-                "DiagnosticEmitterTests.EmitUnknownExplosionWarning_ShouldEmitW1102Warning"
+                "DiagnosticEmitterTests.EmitUnknownExplosionWarning_ShouldEmitW1102Warning",
+                "ExplosionThresholdTests.UnknownPercent_JustBelowThreshold_ShouldNotWarn",
+                "ExplosionThresholdTests.UnknownPercent_JustAboveThreshold_ShouldWarn"
             ]
         },
         "AC-008": {
@@ -175,7 +185,8 @@
                 "DiagnosticEmitterTests.EmitIncompleteError_ShouldEmitE1001Error",
                 "DiagnosticEmitterTests.EmitUnreachableWarning_ShouldEmitW1002WarningWithNote",
                 "DiagnosticEmitterTests.EmitBaseNotLastError_ShouldEmitE1004ErrorWithNote",
-                "DiagnosticEmitterTests.EmitMultipleBaseError_ShouldEmitE1005ErrorWithNotes"
+                "DiagnosticEmitterTests.EmitMultipleBaseError_ShouldEmitE1005ErrorWithNotes",
+                "DeterminismHashTests.DiagnosticsSignature_ShouldBeDeterministicAcrossTwoRuns"
             ]
         },
         "AC-011": {
@@ -190,6 +201,16 @@
                 "ValidationInstrumenterTests.Reset_ShouldClearAllMetrics",
                 "ValidationInstrumenterTests.RecordFunctionGroupMetrics_ShouldUpdateCounts",
                 "OverloadCollectorTests.Reset_ShouldClearAllFunctionGroups",
+                "DuplicateDetectionTests",
+                "EmptyVsDuplicatePrecedenceTests",
+                "BooleanExhaustiveTests",
+                "IncompletenessTests",
+                "MultipleBasePrecedenceTests",
+                "BaseNotLastCoverageTests",
+                "UnreachableAfterBaseTests",
+                "ExplosionThresholdTests",
+                "OverloadCountWarningTests",
+                "DeterminismHashTests",
                 "DiagnosticEmitterTests.Reset_ShouldClearAllDiagnostics"
             ]
         }
