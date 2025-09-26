@@ -1,29 +1,33 @@
-// Pre-grammar-change disambiguation tests (will fail or throw until tripleLiteral rule exists).
-using System;
+// Disambiguation tests ensuring triple literal tokens & shape distinct from single IRIREF
+using System.Linq;
 using FluentAssertions;
 using TUnit;
+using test_infra;
 
 namespace syntax_parser_tests;
 
 public class TripleLiteralDisambiguationTests
 {
-    private (object ast, string[] diagnostics) Parse(string code)
-    {
-        throw new NotImplementedException("Parser not yet updated with tripleLiteral (disambiguation pre-check).");
-    }
+    private ParseResult ParseWithTokens(string code) => ParseHarness.ParseString(code, new ParseOptions(Phase: compiler.FifthParserManager.AnalysisPhase.None, CollectTokens: true));
 
     [Test]
-    public void DISAMBIG_01_IriRef_Alone_Remains_Valid()
-    {
-        const string code = "// Expect existing IRI usage unaffected once triple literal added\n// Placeholder program if needed later";
-        var (_, _) = Parse(code);
-    }
-
-    [Test]
-    public void DISAMBIG_02_Triple_Pattern_Shape_Distinguishable()
+    public void DISAMBIG_01_Simple_Triple_Token_Sequence_Contains_Commas()
     {
         const string code = "alias ex as <http://example.org/>;\nmain(): int { t: triple = <ex:s, ex:p, ex:o>; return 0; }";
-        var (_, _) = Parse(code);
-        // After grammar introduction this should parse as triple literal not single IRIREF token.
+        var result = ParseWithTokens(code);
+        result.Root.Should().NotBeNull();
+        // Assert that inside angle brackets we saw exactly two commas (structural disambiguation)
+        var text = string.Join("", result.Tokens!.Select(t => t.Text));
+        text.Should().Contain(",,", "raw token text should include two commas inside triple literal (order-insensitive check is coarse)");
+    }
+
+    [Test]
+    public void DISAMBIG_02_Triple_Not_Single_IriRef_Token()
+    {
+        const string code = "alias ex as <http://example.org/>;\nmain(): int { t: triple = <ex:s, ex:p, ex:o>; return 0; }";
+        var result = ParseWithTokens(code);
+        // We expect at least two COMMA tokens among collected tokens of the triple literal
+        var commaCount = result.Tokens!.Count(t => t.Text == ",");
+        commaCount.Should().Be(2);
     }
 }

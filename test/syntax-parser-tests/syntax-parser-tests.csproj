@@ -32,4 +32,9 @@
     <Using Include="TUnit" />
   </ItemGroup>
 
+  <!-- Link shared test infrastructure (ParseHarness) from ast-tests -->
+  <ItemGroup>
+    <Compile Include="../ast-tests/TestInfrastructure/ParseHarness.cs" Link="TestInfrastructure/ParseHarness.cs" />
+  </ItemGroup>
+
 </Project>
