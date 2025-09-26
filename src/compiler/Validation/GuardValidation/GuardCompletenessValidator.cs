@@ -194,16 +194,26 @@ public class GuardCompletenessValidator : DefaultRecursiveDescentVisitor
         }
         _reporter.ReportUnreachable(group, unreachableOverloads);
 
-        // Step 3: Check completeness (only if no base case)
-        var hasBase = group.GetBaseOverloads().Any();
+        // Step 3: Check completeness 
+        var baseOverloads = group.GetBaseOverloads();
+        var hasValidBase = false;
+
+        // Base is valid for completeness only if it exists and is properly positioned (last)
+        if (baseOverloads.Count == 1)
+        {
+            var baseOverload = baseOverloads.First();
+            var invalidIndex = _analyzer.ValidateBaseOrdering(group, baseOverload);
+            hasValidBase = !invalidIndex.HasValue; // base is last = no invalid subsequent index
+        }
+
         var booleanComplete = _coverage.IsBooleanComplete(analyzedOverloads);
-        if (!hasBase && !booleanComplete && !_analyzer.IsComplete(group, analyzedOverloads))
+        if (!hasValidBase && !booleanComplete && !_analyzer.IsComplete(group, analyzedOverloads))
         {
             _emitter.EmitIncompleteError(group);
         }
 
         // Step 4: Check for UNKNOWN explosion (FR-051/062/064)
-        if (!hasBase && group.Overloads.Count >= 8)
+        if (!hasValidBase && group.Overloads.Count >= 8)
         {
             var unknownPercent = _explosion.CalculateUnknownPercent(analyzedOverloads);
             if (unknownPercent > 50)

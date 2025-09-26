@@ -58,12 +58,12 @@ Legend: `[P]` task can execute in parallel with other `[P]` tasks (different fil
  [x] T019 [P] Unit test: interval subsumption unreachable `.../Analysis/IntervalSubsumptionTests.cs`
  [x] T020 [P] Unit test: boolean exhaustive pair (no base) completeness success `.../Analysis/BooleanExhaustiveTests.cs`
  [x] T021 [P] Unit test: incomplete guards (no base) → E1001 `.../Analysis/IncompletenessTests.cs`
- [ ] T022 [P] Unit test: multiple base precedence (E1005 suppresses E1001) `.../Diagnostics/MultipleBasePrecedenceTests.cs`
- [ ] T023 [P] Unit test: base-not-last still allows E1001 `.../Diagnostics/BaseNotLastCoverageTests.cs`
- [ ] T024 [P] Unit test: unreachable after base (should still warn if analyzable) `.../Diagnostics/UnreachableAfterBaseTests.cs`
+ [x] T022 [P] Unit test: multiple base precedence (E1005 suppresses E1001) `.../Diagnostics/MultipleBasePrecedenceTests.cs`
+ [x] T023 [P] Unit test: base-not-last still allows E1001 `.../Diagnostics/BaseNotLastCoverageTests.cs`
+ [x] T024 [P] Unit test: unreachable after base (should still warn if analyzable) `.../Diagnostics/UnreachableAfterBaseTests.cs`
  [x] T025 [P] Unit test: explosion warning thresholds (just below / above) `.../Diagnostics/ExplosionThresholdTests.cs`
  [x] T026 [P] Unit test: overload count warning threshold (32 vs 33) `.../Diagnostics/OverloadCountWarningTests.cs`
- [ ] T027 [P] Unit test: deterministic ordering & hash stability `.../Determinism/DeterminismHashTests.cs`
+ [x] T027 [P] Unit test: deterministic ordering & hash stability `.../Determinism/DeterminismHashTests.cs`
 
 ## Phase 3.5: Analysis & Diagnostic Implementations
 - [x] T028 Implement `Collection/OverloadCollector.cs` (grouping logic) & integrate into phase
