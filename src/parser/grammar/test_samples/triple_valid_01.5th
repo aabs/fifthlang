@@ -1,0 +1,7 @@
+// T003: simple triple literal with IRIs
+alias ex as <http://example.org/>;
+
+main(): int {
+	t: triple = <ex:s, ex:p, ex:o>;
+	return 0;
+}

@@ -1,0 +1,7 @@
+// T007: trailing comma invalid (TRPL001)
+alias ex as <http://example.org/>;
+
+main(): int {
+	a: triple = <ex:s, ex:p, ex:o,>; // trailing comma (TRPL001)
+	return 0;
+}
