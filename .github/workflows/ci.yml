@@ -61,6 +61,11 @@ jobs:
       - name: Build
         run: dotnet build fifthlang.sln --configuration Release --no-restore
 
+      - name: Validate .5th samples (parser-check)
+        run: |
+          echo "Running parser-check across .5th sample files..."
+          dotnet run --project src/tools/validate-examples/validate-examples.csproj --configuration Release
+
       - name: Run AST tests
         run: |
           dotnet test test/ast-tests/ast_tests.csproj \

@@ -137,3 +137,7 @@ Following this checklist prevents parser-time flakiness and keeps integration te
    - `dotnet test test/kg-smoke-tests/kg-smoke-tests.csproj`
    - `dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj -v minimal --filter FullyQualifiedName~GraphAssertionBlock_`
 - Reference: `docs/knowledge-graphs.md`
+
+CI notes:
+
+- This repository includes a CI step `Validate .5th samples (parser-check)` that runs the `src/tools/validate-examples` tool to ensure all `.5th` examples across `docs/`, `specs/`, `src/parser/grammar/test_samples/`, and `test/` parse with the current grammar. Agents should run `scripts/validate-examples.fish` locally before committing to catch parser-time regressions early.
