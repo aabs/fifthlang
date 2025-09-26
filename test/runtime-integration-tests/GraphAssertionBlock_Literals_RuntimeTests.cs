@@ -32,7 +32,20 @@ public class GraphAssertionBlock_Literals_RuntimeTests : RuntimeTestBase
                     p.active = true;
                     p.grade = 'X';
                 }>;
-                // This should create a graph with assertions from property assignments
+                
+                // Verify the graph contains the expected triples from property assignments
+                var tripleCount: int = KG.CountTriples(g);
+                if (tripleCount != 7) { return tripleCount; } // Should have 7 triples from 7 property assignments
+                
+                // Verify that the runtime object retains its assigned values
+                // This tests that assignments work in both directions:
+                // 1. Values are assigned to the object (normal assignment behavior)
+                // 2. Triples are generated for the graph (GAB-specific behavior)
+                
+                // Note: In a full GAB implementation, we'd need to access the Person object
+                // created inside the GAB to verify it retained values. For now, we verify
+                // the graph side-effect which indicates the assignments were processed.
+                
                 return 0;
             }
             """;
@@ -44,7 +57,7 @@ public class GraphAssertionBlock_Literals_RuntimeTests : RuntimeTestBase
     }
 
     [Test]
-    public async Task GraphBlock_ExpressionForm_ShouldSupportUriAndNegativeLiterals()
+    public async Task GraphBlock_ExpressionForm_ShouldRetainObjectValuesAndGenerateTriples()
     {
         var src = """
             store default = sparql_store(<http://example.org/store>);
@@ -58,14 +71,27 @@ public class GraphAssertionBlock_Literals_RuntimeTests : RuntimeTestBase
             }
 
             main(): int {
+                var r: Resource = new Resource();
+                
                 var g: graph = <{
-                    r: Resource = new Resource();
                     r.uri = <http://example.org/o>;
                     r.value = -7;
                     r.size = -9L;
                     r.enabled = false;
                     r.code = 'Z';
                 }>;
+                
+                // Verify the graph contains triples from the assignments
+                var tripleCount: int = KG.CountTriples(g);
+                if (tripleCount != 5) { return tripleCount; }
+                
+                // Verify that the runtime object 'r' retains the assigned values
+                // This is critical: GAB should assign to the object AND generate triples
+                if (r.value != -7) { return 100; }       // Object should retain assigned value
+                if (r.size != -9L) { return 101; }       // Object should retain assigned value  
+                if (r.enabled != false) { return 102; }  // Object should retain assigned value
+                if (r.code != 'Z') { return 103; }       // Object should retain assigned value
+                
                 return 0;
             }
             """;
@@ -228,6 +254,58 @@ public class GraphAssertionBlock_Literals_RuntimeTests : RuntimeTestBase
             """;
 
         var exe = await CompileSourceAsync(src, "gab_literals_stmt_decimal");
+        File.Exists(exe).Should().BeTrue();
+        var result = await ExecuteAsync(exe);
+        result.ExitCode.Should().Be(0);
+    }
+
+    [Test]  
+    public async Task GraphBlock_ShouldDemonstrateFullGABBehavior()
+    {
+        var src = """
+            store default = sparql_store(<http://example.org/store>);
+
+            class Person in <http://example.org/people> {
+                name: string;
+                age: int;
+                active: bool;
+            }
+
+            main(): int {
+                // Create person object outside GAB to verify it exists before and after
+                var person: Person = new Person();
+                person.name = "Initial";
+                person.age = 0;
+                person.active = false;
+                
+                // Use GAB to assign properties - this should:
+                // 1. Assign values to the person object (normal assignment behavior)  
+                // 2. Generate triples in the graph representing these assignments
+                var knowledgeGraph: graph = <{
+                    person.name = "Alice";
+                    person.age = 30;
+                    person.active = true;
+                }>;
+                
+                // Verify object state: GAB assignments should have modified the person object
+                if (person.name != "Alice") { return 1; }
+                if (person.age != 30) { return 2; }
+                if (person.active != true) { return 3; }
+                
+                // Verify graph state: GAB should have generated triples for the assignments
+                var tripleCount: int = KG.CountTriples(knowledgeGraph);
+                if (tripleCount != 3) { return tripleCount + 10; } // Return count + offset for debugging
+                
+                // This demonstrates the core GAB behavior:
+                // - Properties are assigned to objects (enabling normal programming)
+                // - Triples are generated for the graph (enabling knowledge management)
+                // - Both happen transparently within the <{ ... }> block
+                
+                return 0;
+            }
+            """;
+
+        var exe = await CompileSourceAsync(src, "gab_full_behavior_demo");
         File.Exists(exe).Should().BeTrue();
         var result = await ExecuteAsync(exe);
         result.ExitCode.Should().Be(0);
