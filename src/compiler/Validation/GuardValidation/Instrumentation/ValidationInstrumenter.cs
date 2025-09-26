@@ -13,6 +13,9 @@ internal class ValidationInstrumenter
     private readonly Dictionary<string, TimeSpan> _phaseTimings = new();
     private int _totalOverloadsAnalyzed;
     private int _totalFunctionGroupsProcessed;
+    private readonly Stopwatch _groupStopwatch = new();
+    private int _currentGroupOverloads;
+    private string? _currentGroupName;
 
     /// <summary>
     /// Starts timing for a named phase of validation.
@@ -20,6 +23,31 @@ internal class ValidationInstrumenter
     public void StartPhase(string phaseName)
     {
         _stopwatch.Restart();
+    }
+
+    /// <summary>
+    /// Begin timing work for a function/group. Must be paired with RecordGroupMetrics.
+    /// </summary>
+    public void StartGroup(string? functionName = null, int overloadCount = 0)
+    {
+        _currentGroupName = functionName;
+        _currentGroupOverloads = overloadCount;
+        _groupStopwatch.Restart();
+    }
+
+    /// <summary>
+    /// Record per-function/group metrics and emit instrumentation if enabled.
+    /// </summary>
+    public void RecordGroupMetrics(FunctionGroup group, double unknownPercent, int unknownCount)
+    {
+        _groupStopwatch.Stop();
+        var elapsedMicros = (long)(_groupStopwatch.Elapsed.TotalMilliseconds * 1000.0);
+        Instrumentation.InstrumentationLogger.LogGroupMetrics(
+            group.Name + "/" + group.Arity,
+            group.Overloads.Count,
+            unknownCount,
+            unknownPercent,
+            elapsedMicros);
     }
 
     /// <summary>

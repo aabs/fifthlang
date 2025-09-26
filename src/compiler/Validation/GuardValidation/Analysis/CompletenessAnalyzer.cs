@@ -105,68 +105,125 @@ internal class CompletenessAnalyzer
         // Start as unbounded
         interval = Interval.Unbounded();
 
-        // Collect atomic comparisons from descriptor constraints
-        // The descriptor may contain raw constraints or a single conjunction
-        var atoms = new List<BinaryExp>();
-
-        foreach (var expr in descriptor.Constraints)
+        var usePool = (Environment.GetEnvironmentVariable("FIFTH_GUARD_VALIDATION_POOL") ?? string.Empty) == "1";
+        if (usePool)
         {
-            if (!CollectAtoms(expr, atoms))
+            using var atoms = new Infrastructure.PooledList<BinaryExp>();
+            foreach (var expr in descriptor.Constraints)
+            {
+                if (!CollectAtoms(expr, atoms)) return false;
+            }
+            if (atoms.Count == 0) return false;
+
+            string? varName = null;
+            foreach (var be in atoms)
+            {
+                if (!(be.LHS is VarRefExp v) || !(be.RHS is Int32LiteralExp lit)) return false;
+                if (varName == null) varName = v.VarName; else if (varName != v.VarName) return false;
+
+                Interval atomInterval = be.Operator switch
+                {
+                    Operator.GreaterThan => new Interval(lit.Value, false, null, false),
+                    Operator.GreaterThanOrEqual => new Interval(lit.Value, true, null, false),
+                    Operator.LessThan => new Interval(null, false, lit.Value, false),
+                    Operator.LessThanOrEqual => new Interval(null, false, lit.Value, true),
+                    Operator.Equal => Interval.Closed(lit.Value, lit.Value),
+                    _ => default
+                };
+                if (Equals(atomInterval, default(Interval))) return false;
+                interval = _intervals.Intersect(interval, atomInterval);
+            }
+            return true;
+        }
+        else
+        {
+            // Collect atomic comparisons from descriptor constraints
+            // The descriptor may contain raw constraints or a single conjunction
+            var atoms = new List<BinaryExp>();
+            foreach (var expr in descriptor.Constraints)
+            {
+                if (!CollectAtoms(expr, atoms))
+                {
+                    return false;
+                }
+            }
+            if (atoms.Count == 0)
             {
                 return false;
             }
-        }
 
-        if (atoms.Count == 0)
+            // Ensure all atoms reference the same variable and use int literals
+            string? varName = null;
+            foreach (var be in atoms)
+            {
+                if (!(be.LHS is VarRefExp v) || !(be.RHS is Int32LiteralExp lit))
+                {
+                    return false;
+                }
+                if (varName == null)
+                {
+                    varName = v.VarName;
+                }
+                else if (varName != v.VarName)
+                {
+                    return false; // multiple different variables not supported here
+                }
+
+                // Build half-interval from this atom and intersect
+                Interval atomInterval;
+                switch (be.Operator)
+                {
+                    case Operator.GreaterThan:
+                        atomInterval = new Interval(lit.Value, false, null, false);
+                        break;
+                    case Operator.GreaterThanOrEqual:
+                        atomInterval = new Interval(lit.Value, true, null, false);
+                        break;
+                    case Operator.LessThan:
+                        atomInterval = new Interval(null, false, lit.Value, false);
+                        break;
+                    case Operator.LessThanOrEqual:
+                        atomInterval = new Interval(null, false, lit.Value, true);
+                        break;
+                    case Operator.Equal:
+                        atomInterval = Interval.Closed(lit.Value, lit.Value);
+                        break;
+                    default:
+                        return false; // unsupported operator for interval mapping
+                }
+
+                interval = _intervals.Intersect(interval, atomInterval);
+            }
+
+            return true;
+        }
+    }
+
+    private bool CollectAtoms(Expression expr, Infrastructure.PooledList<BinaryExp> atoms)
+    {
+        if (expr is BinaryExp be)
         {
+            if (be.Operator == Operator.LogicalAnd)
+            {
+                return CollectAtoms(be.LHS, atoms) && CollectAtoms(be.RHS, atoms);
+            }
+
+            // Supported comparison operators and equality
+            if (be.Operator == Operator.GreaterThan ||
+                be.Operator == Operator.GreaterThanOrEqual ||
+                be.Operator == Operator.LessThan ||
+                be.Operator == Operator.LessThanOrEqual ||
+                be.Operator == Operator.Equal)
+            {
+                atoms.Add(be);
+                return true;
+            }
+
             return false;
         }
 
-        // Ensure all atoms reference the same variable and use int literals
-        string? varName = null;
-        foreach (var be in atoms)
-        {
-            if (!(be.LHS is VarRefExp v) || !(be.RHS is Int32LiteralExp lit))
-            {
-                return false;
-            }
-
-            if (varName == null)
-            {
-                varName = v.VarName;
-            }
-            else if (varName != v.VarName)
-            {
-                return false; // multiple different variables not supported here
-            }
-
-            // Build half-interval from this atom and intersect
-            Interval atomInterval;
-            switch (be.Operator)
-            {
-                case Operator.GreaterThan:
-                    atomInterval = new Interval(lit.Value, false, null, false);
-                    break;
-                case Operator.GreaterThanOrEqual:
-                    atomInterval = new Interval(lit.Value, true, null, false);
-                    break;
-                case Operator.LessThan:
-                    atomInterval = new Interval(null, false, lit.Value, false);
-                    break;
-                case Operator.LessThanOrEqual:
-                    atomInterval = new Interval(null, false, lit.Value, true);
-                    break;
-                case Operator.Equal:
-                    atomInterval = Interval.Closed(lit.Value, lit.Value);
-                    break;
-                default:
-                    return false; // unsupported operator for interval mapping
-            }
-
-            interval = _intervals.Intersect(interval, atomInterval);
-        }
-
-        return true;
+        // Non-binary expressions not supported for interval mapping here
+        return false;
     }
 
     private bool CollectAtoms(Expression expr, List<BinaryExp> atoms)

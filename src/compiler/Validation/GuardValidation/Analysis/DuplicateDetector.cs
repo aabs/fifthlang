@@ -41,38 +41,96 @@ internal sealed class DuplicateDetector
     private bool TryGetInterval(PredicateDescriptor descriptor, out Interval interval)
     {
         interval = Interval.Unbounded();
-        var atoms = new List<BinaryExp>();
-
-        foreach (var expr in descriptor.Constraints)
+        var usePool = (Environment.GetEnvironmentVariable("FIFTH_GUARD_VALIDATION_POOL") ?? string.Empty) == "1";
+        if (usePool)
         {
-            if (!CollectAtoms(expr, atoms))
-                return false;
-        }
+            using var atoms = new Infrastructure.PooledList<BinaryExp>();
 
-        if (atoms.Count == 0) return false;
-
-        string? varName = null;
-        foreach (var be in atoms)
-        {
-            if (be.LHS is VarRefExp v && be.RHS is Int32LiteralExp lit)
+            foreach (var expr in descriptor.Constraints)
             {
-                if (varName == null) varName = v.VarName; else if (varName != v.VarName) return false;
-
-                Interval atomInterval = be.Operator switch
-                {
-                    Operator.GreaterThan => new Interval(lit.Value, false, null, false),
-                    Operator.GreaterThanOrEqual => new Interval(lit.Value, true, null, false),
-                    Operator.LessThan => new Interval(null, false, lit.Value, false),
-                    Operator.LessThanOrEqual => new Interval(null, false, lit.Value, true),
-                    Operator.Equal => Interval.Closed(lit.Value, lit.Value),
-                    _ => default
-                };
-                if (Equals(atomInterval, default(Interval))) return false;
-                interval = _intervals.Intersect(interval, atomInterval);
+                if (!CollectAtoms(expr, atoms))
+                    return false;
             }
-            else return false;
+
+            if (atoms.Count == 0) return false;
+
+            string? varName = null;
+            foreach (var be in atoms)
+            {
+                if (be.LHS is VarRefExp v && be.RHS is Int32LiteralExp lit)
+                {
+                    if (varName == null) varName = v.VarName; else if (varName != v.VarName) return false;
+
+                    Interval atomInterval = be.Operator switch
+                    {
+                        Operator.GreaterThan => new Interval(lit.Value, false, null, false),
+                        Operator.GreaterThanOrEqual => new Interval(lit.Value, true, null, false),
+                        Operator.LessThan => new Interval(null, false, lit.Value, false),
+                        Operator.LessThanOrEqual => new Interval(null, false, lit.Value, true),
+                        Operator.Equal => Interval.Closed(lit.Value, lit.Value),
+                        _ => default
+                    };
+                    if (Equals(atomInterval, default(Interval))) return false;
+                    interval = _intervals.Intersect(interval, atomInterval);
+                }
+                else return false;
+            }
+            return true;
         }
-        return true;
+        else
+        {
+            var atoms = new List<BinaryExp>();
+
+            foreach (var expr in descriptor.Constraints)
+            {
+                if (!CollectAtoms(expr, atoms))
+                    return false;
+            }
+
+            if (atoms.Count == 0) return false;
+
+            string? varName = null;
+            foreach (var be in atoms)
+            {
+                if (be.LHS is VarRefExp v && be.RHS is Int32LiteralExp lit)
+                {
+                    if (varName == null) varName = v.VarName; else if (varName != v.VarName) return false;
+
+                    Interval atomInterval = be.Operator switch
+                    {
+                        Operator.GreaterThan => new Interval(lit.Value, false, null, false),
+                        Operator.GreaterThanOrEqual => new Interval(lit.Value, true, null, false),
+                        Operator.LessThan => new Interval(null, false, lit.Value, false),
+                        Operator.LessThanOrEqual => new Interval(null, false, lit.Value, true),
+                        Operator.Equal => Interval.Closed(lit.Value, lit.Value),
+                        _ => default
+                    };
+                    if (Equals(atomInterval, default(Interval))) return false;
+                    interval = _intervals.Intersect(interval, atomInterval);
+                }
+                else return false;
+            }
+            return true;
+        }
+    }
+
+    private static bool CollectAtoms(Expression expr, Infrastructure.PooledList<BinaryExp> atoms)
+    {
+        if (expr is BinaryExp be)
+        {
+            if (be.Operator == Operator.LogicalAnd)
+                return CollectAtoms(be.LHS, atoms) && CollectAtoms(be.RHS, atoms);
+
+            if (be.Operator == Operator.GreaterThan || be.Operator == Operator.GreaterThanOrEqual ||
+                be.Operator == Operator.LessThan || be.Operator == Operator.LessThanOrEqual ||
+                be.Operator == Operator.Equal)
+            {
+                atoms.Add(be);
+                return true;
+            }
+            return false;
+        }
+        return false;
     }
 
     private static bool CollectAtoms(Expression expr, List<BinaryExp> atoms)
