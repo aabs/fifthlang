@@ -17,9 +17,10 @@ Represents semantic triple instance (post-lowering). Structural equality on (Sub
 Collection (set) of Triple values. No ordering guarantee. Duplicate insert suppressed.
 
 ## Relationships
-- TripleLiteralExp → produces one or more Triple nodes (after expansion transformation)
-- Graph operations `+` / `-` consume Triple(s) and produce new Graph
-- Mutating forms (`+=`, `-=`) rewrite to Assert/Retract (or Graph construction) operations
+- TripleLiteralExp → after list-expansion pass either (a) remains a single TripleLiteralExp (no list object) or (b) is replaced by N sibling TripleLiteralExp nodes (one per list element) each flagged `IsExpanded=true` (no intermediate synthetic grouping node).
+- Expanded TripleLiteralExp nodes then lower to semantic Triple instances.
+- Graph operations `+` / `-` consume Triple(s) and produce new Graph values (immutability preserved).
+- Mutating forms (`+=`, `-=`) rewrite to Assert/Retract (or Graph construction) operations.
 
 ## Invariants
 | Invariant | Enforcement Stage |
@@ -39,15 +40,15 @@ Collection (set) of Triple values. No ordering guarantee. Duplicate insert suppr
 | Graph += Triple | MutationDesugar (same lowering visitor) | Expression equivalent to re-assignment via KG.Assert sequence |
 
 ## Type Inference Notes
-- `triple` primitive maps to `VDS.RDF.Triple`
-- Triple literal expression type: `triple`
-- Triple literal with list object: When used standalone: yields `graph` (union of expanded triples) or sequence lowered to graph-building expression (decision: expansion yields intermediate synthetic Graph-building node, then type = graph)
+- `triple` primitive maps to `VDS.RDF.Triple`.
+- Triple literal (non-list object) expression type: `triple`.
+- Triple literal with list object: expansion occurs before type inference finalization; the original node is replaced by multiple TripleLiteralExp siblings (each of type `triple`). Contexts expecting a value of type `graph` (e.g. `g + <s,p,[o1,o2]>`) observe subsequent lowering that materializes a graph union over the expanded triples. There is NO transient intermediate graph AST node for the expansion stage itself.
 - Operators:
   - `graph + triple` → `graph`
   - `triple + triple` → `graph`
   - `triple + graph` → `graph`
   - `graph - triple` → `graph`
-  - Mutating forms evaluate to `graph` but are not expressions returning value unless allowed in assignment context (desugared to assignment expression).
+  - Mutating forms evaluate to `graph` (return value available for chaining after desugaring to helper calls / assignment).
 
 ## Diagnostics (Identifiers)
 | Code | Condition | Message Sketch |

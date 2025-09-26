@@ -1,114 +1,139 @@
-# Tasks: Feature 001 New Primitive Type `triple`
+## Tasks: New Primitive Type `triple`
 
-## Legend
-- [ ] = open
-- [P] = parallelizable after dependencies
-- (R) = requires regeneration (ast generator)
-- (B) = benchmark/performance related
-- (D) = diagnostics related
+**Input**: Design documents from `/specs/001-new-primitive-type/`
+**Prerequisites**: `plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md`
 
-## Phase Ordering Overview
-1. Grammar & AST tests (fail first)
-2. Lexer/Parser changes + AstBuilderVisitor
-3. AST node/metamodel adjustments (if needed) + regenerate
-4. Transformation passes (expansion, lowering)
-5. Diagnostics & type inference updates
-6. Mutating operators support (+=, -=)
-7. Integration & property-based tests
-8. Performance benchmark & validation (≤5% parse delta)
-9. Documentation & quickstart validation
+## Phase 3.1: Setup / Environment
+- [ ] T001 Ensure ANTLR & .NET toolchain available (verify `dotnet --version`, Java 17+) (no code change)
+- [ ] T002 Create benchmark fixture placeholder `test/perf/TripleParseBaseline.cs` (will remain failing until populated)
 
----
+## Phase 3.2: Tests First (Grammar & AST) ⚠️ MUST FAIL INITIALLY
+- [ ] T003 Add valid triple literal samples in `src/parser/grammar/test_samples/triple_valid_01.5th` (simple IRIs)
+- [ ] T004 [P] Add valid list expansion sample `triple_valid_list_01.5th`
+- [ ] T005 [P] Add invalid nested list sample `triple_invalid_nested_01.5th` expecting TRPL006
+- [ ] T006 [P] Add invalid arity samples `<s,p>` and `<s,p,o,x>` `triple_invalid_arity_01.5th` expecting TRPL001
+- [ ] T007 [P] Add invalid trailing comma sample `triple_invalid_trailing_01.5th` expecting parse error → TRPL001
+- [ ] T008 [P] Add ambiguous `<{` vs `<s,p,o>` separation sample to ensure graph assertion unaffected
+- [ ] T009 Create AST test `test/ast-tests/TripleLiteralAstTests.cs` (assert node kinds, subject/predicate variable acceptance)
+- [ ] T010 [P] Add AST test for list expansion placeholder (will fail until expansion pass) `TripleLiteralExpansionTests.cs`
+- [ ] T011 Add diagnostic test skeletons for TRPL001–TRPL006 in `test/syntax-parser-tests/TripleDiagnosticsTests.cs`
+- [ ] T011 Add diagnostic test skeletons for TRPL001–TRPL006 in `test/syntax-parser-tests/TripleDiagnosticsTests.cs`
+- [ ] T011A Add unresolved prefix negative test sample `triple_invalid_prefix_01.5th` asserting existing unresolved-prefix diagnostic (FR-023)
 
-### 1. Grammar & Lexer
-1. [ ] Add `TRIPLE` keyword to `FifthLexer.g4` (ensure reserved) (D)
-2. [ ] Add `MINUS_ASSIGN : '-=';` token to lexer (if not present) (grammar search showed only PLUS_ASSIGN) (D)
-3. [ ] Integrate `tripleLiteral` production into `FifthParser.g4` under `literal` or operand rule
-4. [ ] Ensure lookahead disambiguation between `<{` graph assertion block vs `<s, p, o>` triple literal (unit tests)
-5. [ ] Add parser validation for exactly two commas (arity) or rely on rule; confirm TRPL001 emission path (D)
-6. [ ] Add negative grammar samples: nested list `<s,p,[[o]]>`; trailing comma `<s,p,o,>`; wrong arity `<s,p>`; `<s,p,o,x>`
+## Phase 3.3: Lexer & Parser Implementation
+- [ ] T012 Add `TRIPLE : 'triple';` to `src/parser/grammar/FifthLexer.g4`
+- [ ] T013 Add `MINUS_ASSIGN : '-=';` token to lexer (if absent) & integrate into tokens ordering
+- [ ] T014 Integrate `tripleLiteral` rule into `FifthParser.g4` (`literal` alt) with two comma structure
+- [ ] T015 Adjust lookahead / predicates to disambiguate `<{` vs triple (ensure no regression in existing tests)
+- [ ] T016 Run full build to regenerate ANTLR outputs (expect failing new tests now partly satisfied)
+- [ ] T017 Implement parse-tree visit logic in `src/parser/AstBuilderVisitor.cs` constructing `TripleLiteralExp`
 
-### 2. AST & Metamodel
-7. [ ] Confirm `TripleLiteralExp` exists in `AstMetamodel.cs`; if missing add with fields Subject, Predicate, Object and regenerate (R)
-8. [ ] Add `IsExpanded` flag or metadata if needed; else record via transformation tracking (decide minimal change) (R)
-9. [ ] Regenerate AST builders/visitors (`make run-generator`) (R)
+## Phase 3.4: AST / Metamodel Adjustments
+- [ ] T018 Confirm `TripleLiteralExp` exists in `src/ast-model/AstMetamodel.cs` (no change expected) else add and regenerate
+- [ ] T019 [P] Regenerate AST (`make run-generator`) and commit generated artifacts (do NOT hand-edit)
 
-### 3. Parser → AST Integration
-10. [ ] Update `AstBuilderVisitor.cs` to construct `TripleLiteralExp`
-11. [ ] Add tests in `test/ast-tests/` verifying AST shape for sample triple literals
-12. [ ] Add test verifying variables allowed in subject/predicate only when IRI typed; produce TRPL002 otherwise (D)
+## Phase 3.5: Transformation Passes (Design Tests First)
+- [ ] T020 Add failing test `test/ast-tests/TripleExpansionVisitorTests.cs` for list -> multiple triples
+- [ ] T021 [P] Add failing test `test/ast-tests/TripleLoweringVisitorTests.cs` for `graph + triple` & `triple + triple`
+- [ ] T022 Implement `TripleLiteralExpansionVisitor.cs` under `src/compiler/LanguageTransformations/`
+- [ ] T023 Implement empty list warning TRPL004 emission in expansion visitor
+- [ ] T024 Implement nested list TRPL006 error detection in expansion visitor
+- [ ] T025 Implement `GraphTripleOperatorLoweringVisitor.cs` handling +,- between graphs/triples (non-mutating)
+- [ ] T026 Add structural dedupe logic (or rely on KG helpers) ensuring single instance after union
+- [ ] T026A Add operator invalid-combination tests (`triple - graph`, `triple * 2`, `!<...>`) asserting type errors (covers FR-012/013)
 
-### 4. Transformation Passes
-13. [ ] Implement `TripleLiteralExpansionVisitor` (list object → multiple TripleLiteralExp) (no nested lists) (D)
-14. [ ] Emit TRPL004 warning for empty list object (D)
-15. [ ] Emit TRPL006 error for nested list detection (scan list elements) (D)
-16. [ ] Implement `GraphTripleOperatorLoweringVisitor` handling: graph+triple, triple+graph, triple+triple, graph-triple, plus compound assignments
-17. [ ] Ensure structural equality reliance delegates to KG helpers (avoid reimplementing)
-18. [ ] Add visitor tests for expansion (list size >1, empty list, nested list error)
-19. [ ] Add visitor tests for lowering (each operator form)
+## Phase 3.6: Mutating Operators & KG Helpers
+- [ ] T027 Add failing tests `test/runtime-integration-tests/TripleMutatingOperatorsTests.cs` for `+=` / `-=` forms
+- [ ] T028 Implement parser assignment rule extension (if needed) for MINUS_ASSIGN handling `graph -= triple`
+- [ ] T029 Implement lowering for `g += <...>` and `g -= <...>` in lowering visitor (desugar to assignment)
+- [ ] T030 Review `fifthlang.system/KnowledgeGraphs.cs` (or similar) for `Assert`, `Retract`, `CreateTriple`; add `Retract` / `CopyGraph` if absent
+- [ ] T031 [P] Add unit tests for newly added KG helper methods
 
-### 5. KG Helper Enhancements
-20. [ ] Review `KnowledgeGraphs.cs` (or equivalent) for existing methods: CreateTriple, Assert, Retract, CopyGraph / union patterns
-21. [ ] Add `Retract` if missing
-22. [ ] Add safe copy/clone helper if graph mutation semantics require defensive copy
-23. [ ] Add unit tests for new KG helpers
+## Phase 3.7: Type Inference & Diagnostics
+- [ ] T032 Extend type inference (likely in generated type inference file or manual visitor) to map triple literal to primitive `triple`
+- [ ] T033 [P] Add type inference test verifying operator result types (graph + triple → graph, triple + triple → graph)
+- [ ] T034 Add diagnostic emission points mapping (wire TRPL001–TRPL006) to existing diagnostic framework
+- [ ] T035 [P] Add tests asserting diagnostics appear with correct codes/messages
+- [ ] T035A Add canonical serialization / round-trip test (construct triple then serialize then parse; covers FR-018 & FR-018A escaping of `>` and `,`)
 
-### 6. Type Inference & Diagnostics
-24. [ ] Map triple literal to primitive type `triple` in type inference generator or manual logic
-25. [ ] Ensure list expansion context yields `graph` when folding via operator; verify in type tests
-26. [ ] Introduce diagnostic codes TRPL001–TRPL006 in diagnostic subsystem
-27. [ ] Add tests for each diagnostic condition
+## Phase 3.8: Property-Based & Integration Tests
+- [ ] T036 Implement property-based duplicate suppression test (adding same triple N times size stable)
+- [ ] T037 [P] Implement property-based list expansion associativity test
+- [ ] T038 Integration test: triple literal in graph assertion block `<{ <s,p,o>; }>` asserts triple (FR-021)
+- [ ] T039 [P] Integration test: nested list rejected with TRPL006
+- [ ] T040 Integration test: performance harness baseline capture (pre-feature parse timing reference)
+- [ ] T040A Property-based ordering invariance test: ensure adding same set of triples via different `+` association yields graphs structurally equal disregarding order (FR-008B)
 
-### 7. Mutating Operators (+=, -=)
-28. [ ] Extend parser assignment rule to accept MINUS_ASSIGN if absent
-29. [ ] Lower `g += <...>` to `g = g + <...>`; same for `g -= <...>`
-30. [ ] Tests for mutating forms (including list expansion in RHS)
+## Phase 3.9: Performance & Benchmark
+- [ ] T041 Create large sample file `test/perf/triple_heavy_01.5th` (1000 triple literals)
+- [ ] T042 Implement benchmark runner (if not existing) measuring parse time vs baseline
+- [ ] T043 Enforce ≤5% regression check (fail test if exceeded)
+- [ ] T043A Enforce variance guard (mean ≤5% AND mean ≤ 2σ) in benchmark assertion harness
 
-### 8. Property-Based & Integration Tests
-31. [ ] Property-based test: adding duplicate triple does not change graph size
-32. [ ] Property-based test: list expansion equivalence `<s,p,[o1,o2]> == (<s,p,o1> + <s,p,o2>)` folded result
-33. [ ] Runtime integration test: triple literal inside graph assertion block asserts content (FR-021)
-34. [ ] Integration test: nested list rejected with TRPL006
-35. [ ] Integration test: performance of parse unaffected by >5% (baseline harness)
+## Phase 3.10: Documentation & Validation
+- [ ] T044 Validate `quickstart.md` samples parse with `scripts/validate-examples.fish`
+- [ ] T045 [P] Update docs/knowledge-graphs.md (add triple literal section)
+- [ ] T046 [P] Add diagnostics section to docs (TRPL001–TRPL006 table)
+- [ ] T047 Update spec FR section if implementation details uncovered (remove any stale assumptions)
+- [ ] T047A Add docs snippet demonstrating escaped serialization for a string object containing `,` and `>` (FR-018A)
 
-### 9. Performance Benchmark (B)
-36. [ ] Add benchmark sample file with many triple literals
-37. [ ] Run baseline parse timing pre-change, record
-38. [ ] Run post-change parse timing; compute delta; assert ≤5%
+## Phase 3.11: Finalization / Gates
+- [ ] T048 Constitution re-check (no manual generated edits, tests precede impl)
+- [ ] T049 Ensure all new tests green; re-run full solution tests
+- [ ] T050 Prepare PR summary: performance data, diagnostics list, transformation overview
+- [ ] T050A Generated-code integrity check: run generator twice and diff `src/ast-generated` to ensure idempotence (guards against hidden state in templates)
 
-### 10. Documentation & Quickstart
-39. [ ] Validate quickstart examples parse (scripts/validate-examples.fish)
-40. [ ] Add new examples to docs syntax samples
-41. [ ] Update spec if any discovered edge-case adjustments required
+## Dependencies & Ordering
+- T003–T011 must precede lexer/parser implementation tasks (T012–T017) (TDD)
+- T012–T017 precede transformation tests (T020–T021) & passes (T022–T026)
+- Mutating operator tests (T027) before implementation (T028–T030)
+- Type inference tasks (T032–T035) after lowering visitors exist
+- Property/integration tests (T036–T040) after core lowering passes
+- Performance tasks (T041–T043) after feature implementation but before finalization
+- Documentation (T044–T047) after core correctness verified
 
-### 11. Cleanup & Review
-42. [ ] Constitution re-check: ensure no manual generated edits, tests present first
-43. [ ] Ensure all new diagnostics documented
-44. [ ] Final plan status update & mark phases complete
-
-## Parallelization Notes
-- Grammar negative/positive samples (1–6) can be written in parallel with metamodel confirmation (7).
-- Transformation tests (18–19) depend on expansion/lowering code but can scaffold with expected failure earlier.
-- Property-based tests (31–32) can be introduced after lowering passes compile.
-
-## Risk Mitigations Mapping
-- Ambiguity risk → tasks 3–4–6 (tests)
-- Performance risk → tasks 36–38
-- Nested list complexity → tasks 13–15–34
-- Duplicate semantics correctness → tasks 31–32
+## Parallelizable [P] Tasks
+Group A (early grammar tests): T004 T005 T006 T007 T008
+Group B (AST/testing scaffolds): T010 T011
+Group C (Lowering test scaffolds): T021 T033 T035
+Group D (Property/integration): T037 T039
+Group E (Docs): T045 T046
 
 ## Acceptance Criteria Mapping
-| FR/NFR | Tasks |
-|--------|-------|
-| FR-003/004 | 3,4,6 |
-| FR-005 | 10,12 |
-| FR-006 | 13,15,18 |
-| FR-008–010 | 16,19,31–32 |
-| FR-019–021 | 13,16,18,19,33 |
-| FR-023 | 3,12,26 |
-| NFR-002 | 36–38 |
-| Diagnostics TRPL001–TRPL006 | 5,12–15,26–27 |
+| Requirement | Tasks |
+|-------------|-------|
+| FR-003/004 (syntax form) | T012–T015, T003–T008 |
+| FR-005 (IRI forms / vars) | T009, T012, T017, T032 |
+| FR-006 (single-level list) | T005, T020, T022–T024, T034 |
+| FR-008–FR-010 (operators) | T021, T025–T026, T026A, T033, T036–T038, T040A |
+| FR-008A (structural equality set semantics) | T026, T036, T040A |
+| FR-008B (ordering non-observable) | T026, T040A |
+| FR-019–FR-021 (list expansion & assertion block) | T020–T024, T038 |
+| FR-018A (canonical escaping) | T035A, T047A |
+| FR-023 (no implicit prefixes) | T012–T015, T011A, T034, T045 |
+| Mutating ops (spec extension) | T027–T030 |
+| Diagnostics TRPL001–006 | T005–T007, T011, T022–T024, T034–T035 |
+| NFR-002 (performance) | T041–T043 |
 
-## Open Follow-Ups (Post-merge)
-- Potential future optimization: caching of structural equality checks for large graphs
-- Consider adding graph literal syntax synergy in future
+## Parallel Execution Example
+```
+# Example: run early grammar tests in parallel (after creating sample files):
+Task: T004 Add valid list expansion sample
+Task: T005 Add invalid nested list sample
+Task: T006 Add invalid arity samples
+Task: T007 Add invalid trailing comma sample
+Task: T008 Add ambiguity separation sample
+```
+
+## Validation Checklist
+- [ ] All diagnostics tested
+- [ ] All operator combinations tested
+- [ ] Performance regression check in place
+- [ ] No nested list accepted
+- [ ] Empty list warning emitted
+- [ ] Mutating operators desugar correctly
+- [ ] Documentation updated (quickstart + knowledge graphs + diagnostics)
+
+## Post-Merge Follow-Ups
+- Consider graph literal synergy & potential triple pattern matching
+- Optional optimization: memoize structural equality for large graphs

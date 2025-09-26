@@ -77,35 +77,38 @@ As a Fifth language developer working with RDF / knowledge graphs, I want a conc
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
-- **FR-001**: Language MUST reserve the keyword `triple` so it cannot be used as an identifier.
-- **FR-002**: Language MUST allow variable declarations of the form `<name>: triple = <subject, predicate, object>;`.
-- **FR-003**: Grammar MUST introduce a triple literal construct syntactically distinct from IRIREF and graph assertion blocks.
-- **FR-004**: A triple literal MUST consist of exactly three components separated by commas and enclosed in `<` and `>` with no leading `{` after `<`.
-- **FR-005**: Subject and predicate components MUST be IRIs written either as a full IRIREF or a prefixed name per existing IRI grammar; alternatively they MAY be identifiers referencing in-scope variables whose static type is IRI (fails type check otherwise). When the object position (cases (a) or (c) of FR-006) provides an IRI it MAY likewise be written as full IRIREF or prefixed name.
- - **FR-006**: Object component MUST accept: (a) an IRI, (b) a primitive literal (string, number, boolean), (c) an identifier/expression evaluating to those, or (d) a single-level (non-nested) list literal whose elements each satisfy (a) or (b); such a list literal triggers expansion into one triple per element. Nested list literals (any list element that is itself a list) MUST be rejected (compile-time error; no triples emitted).
-- **FR-007**: A triple literal MUST evaluate to a value of primitive type `triple` whose underlying representation maps 1:1 onto `VDS.RDF.Triple`.
-- **FR-008**: The `+` operator applied to `graph + triple` MUST return a new `graph` containing the set union of existing triples and the added triple (ignoring the addition if an identical triple already exists; original graph not mutated).
-- **FR-009**: The `+` operator applied to `triple + triple` MUST return a `graph` containing both triples; if they are identical only one instance appears (set semantics). Relative ordering is implementation-defined and not part of the semantic contract.
-- **FR-010**: The `+` operator applied as `triple + graph` MUST produce a `graph` whose triple set is the union; iteration/serialization order is implementation-defined and MUST NOT be relied upon.
-- **FR-011**: The `-` operator applied to `graph - triple` MUST return a new `graph` excluding any triple(s) structurally equal in subject, predicate, and object node value (including literal value+datatype). (Structural equality)
-- **FR-012**: Attempting `triple - graph` MUST be rejected by the type system.
-- **FR-013**: Attempting unsupported arithmetic or logical operations (e.g. `triple * 2`, `!triple`) MUST produce type errors.
-- **FR-014**: Triple literals MUST be allowed anywhere an expression is permitted (e.g. inside list literals, function arguments).
-- **FR-015**: Error diagnostics MUST clearly distinguish triple literal syntax errors (wrong arity, invalid component) from IRI parsing errors.
-- **FR-016**: Removing a triple not present in a graph via `graph - triple` MUST succeed and yield the original graph (immutability preserved).
-- **FR-017**: Evaluation MUST not mutate existing graph instances when performing `+` or `-` with a triple.
-- **FR-018**: Triple literals MUST be serializable/printable in a canonical textual form `<subject, predicate, object>`.
-- **FR-019**: A triple literal whose object is a list literal (e.g. `<s, p, [o1, o2, o3]>`) MUST expand into multiple triples `<s, p, o1>`, `<s, p, o2>`, `<s, p, o3>` in any context where an expression list of triples/graphs is acceptable; expansion order is implementation-defined.
-- **FR-020**: A triple literal with an empty list object (e.g. `<s, p, []>`) MUST result in zero emitted triples and SHOULD generate a non-fatal compiler warning describing the no-op expansion.
-- **FR-021**: A triple literal appearing as a standalone statement within a `graphAssertionBlock` MUST directly contribute (assert) that triple (or expanded list of triples) to the graph being constructed by the block.
-- **FR-022**: Ambiguity between a bare triple literal statement and other expression statements inside a graph assertion block MUST be resolved deterministically (no backtracking ambiguity); implementation MAY introduce a dedicated parser rule for clarity.
- - **FR-023**: Triple literals MUST NOT introduce any new implicit prefix resolution or fallback; only previously declared prefixes (and full IRIREFs) are valid. Unresolved prefixed names in triple literals MUST produce the existing unresolved-prefix diagnostic.
+**FR-001**: Language MUST reserve the keyword `triple` so it cannot be used as an identifier.
+**FR-002**: Language MUST allow variable declarations of the form `<name>: triple = <subject, predicate, object>;`.
+**FR-003**: Grammar MUST introduce a triple literal construct syntactically distinct from IRIREF and graph assertion blocks.
+**FR-004**: A triple literal MUST consist of exactly three components separated by commas and enclosed in `<` and `>` with no leading `{` after `<`.
+**FR-005**: Subject and predicate components MUST be IRIs written either as a full IRIREF or a prefixed name per existing IRI grammar; alternatively they MAY be identifiers referencing in-scope variables whose static type is IRI (fails type check otherwise). When the object position (cases (a) or (c) of FR-006) provides an IRI it MAY likewise be written as full IRIREF or prefixed name.
+**FR-006**: Object component MUST accept: (a) an IRI, (b) a primitive literal (string, number, boolean), (c) an identifier/expression evaluating to those, or (d) a single-level (non-nested) list literal whose elements each satisfy (a) or (b); such a list literal triggers expansion into one triple per element. Nested list literals (any list element that is itself a list) MUST be rejected (compile-time error; no triples emitted).
+**FR-007**: A triple literal MUST evaluate to a value of primitive type `triple` whose underlying representation maps 1:1 onto `VDS.RDF.Triple`.
+**FR-008**: The `+` operator applied to `graph + triple` MUST return a new `graph` containing the set union of existing triples and the added triple (ignoring the addition if an identical triple already exists; original graph not mutated).
+**FR-009**: The `+` operator applied to `triple + triple` MUST return a `graph` containing both triples; if they are identical only one instance appears (set semantics). Relative ordering is implementation-defined and not part of the semantic contract.
+**FR-010**: The `+` operator applied as `triple + graph` MUST produce a `graph` whose triple set is the union; iteration/serialization order is implementation-defined and MUST NOT be relied upon.
+**FR-008A**: Structural equality (subject, predicate, object including literal datatype+value) defines identity for all union operations in FR-008..FR-010; duplicates MUST be suppressed uniformly.
+**FR-008B**: Result ordering from any `+` combination (graph+triple, triple+triple, triple+graph) is implementation-defined and MUST NOT be asserted in tests.
+**FR-011**: The `-` operator applied to `graph - triple` MUST return a new `graph` excluding any triple(s) structurally equal in subject, predicate, and object node value (including literal value+datatype). (Structural equality)
+**FR-012**: Attempting `triple - graph` MUST be rejected by the type system.
+**FR-013**: Attempting unsupported arithmetic or logical operations (e.g. `triple * 2`, `!triple`) MUST produce type errors.
+**FR-014**: Triple literals MUST be allowed anywhere an expression is permitted (e.g. inside list literals, function arguments).
+**FR-015**: Error diagnostics MUST clearly distinguish triple literal layer errors (wrong arity, invalid subject/predicate form, invalid object form, nested list) using TRPL00x codes from lower-level IRI tokenization/prefix-resolution errors (existing IRI codes). Triple-layer diagnostics MUST NOT reuse IRI diagnostic codes.
+**FR-016**: Removing a triple not present in a graph via `graph - triple` MUST succeed and yield the original graph (immutability preserved).
+**FR-017**: Evaluation MUST not mutate existing graph instances when performing `+` or `-` with a triple.
+**FR-018**: Triple literals MUST be serializable/printable in a canonical textual form `<subject, predicate, object>`.
+**FR-018A**: Canonical serialization MUST escape any `>` or `,` characters appearing inside string literal object components with a preceding backslash and MUST emit exactly one space after each comma. IRIs retain their original lexical form (no re-prefixing heuristics). String literal quoting follows existing canonical rules.
+**FR-019**: A triple literal whose object is a list literal (e.g. `<s, p, [o1, o2, o3]>`) MUST expand into multiple triples `<s, p, o1>`, `<s, p, o2>`, `<s, p, o3>` in any context where an expression list of triples/graphs is acceptable; expansion order is implementation-defined.
+**FR-020**: A triple literal with an empty list object (e.g. `<s, p, []>`) MUST result in zero emitted triples and SHOULD generate a non-fatal compiler warning describing the no-op expansion.
+**FR-021**: A triple literal appearing as a standalone statement within a `graphAssertionBlock` MUST directly contribute (assert) that triple (or expanded list of triples) to the graph being constructed by the block.
+**FR-022**: Ambiguity between a bare triple literal statement and other expression statements inside a graph assertion block MUST be resolved deterministically (no backtracking ambiguity); implementation MAY introduce a dedicated parser rule for clarity.
+**FR-023**: Triple literals MUST NOT introduce any new implicit prefix resolution or fallback; only previously declared prefixes (and full IRIREFs) are valid. Unresolved prefixed names in triple literals MUST produce the existing unresolved-prefix diagnostic.
 
 ### Non-Functional / Constraints (optional but relevant)
-- **NFR-001**: Introducing the `triple` literal MUST NOT break existing parsing of IRIREF or graph assertion blocks (backward compatibility).
-- **NFR-002**: Parsing performance regression for existing files (no triple literals) MUST NOT exceed a ≤5% average parse time increase across the existing benchmark corpus (Option A). Measurements taken over >=5 runs; failure if mean delta >5%.
-- **NFR-003**: Clear, localized grammar changes SHOULD minimize ambiguity; no increase in global ANTLR ambiguity warnings beyond baseline.
-- **NFR-004**: Triple iteration/serialization ordering is implementation-defined; tests and user programs MUST NOT depend on order stability.
+**NFR-001**: Introducing the `triple` literal MUST NOT break existing parsing of IRIREF or graph assertion blocks (backward compatibility).
+**NFR-002**: Parsing performance regression for existing files (no triple literals) MUST NOT exceed a ≤5% average parse time increase across the existing benchmark corpus. Measurements: run ≥5 iterations; compute mean delta and standard deviation σ. PASS: mean_delta ≤ 5% AND mean_delta ≤ 2·σ. FAIL otherwise.
+**NFR-003**: Clear, localized grammar changes SHOULD minimize ambiguity; no increase in global ANTLR ambiguity warnings beyond baseline.
+**NFR-004**: Triple iteration/serialization ordering is implementation-defined; tests and user programs MUST NOT depend on order stability.
 
 ### Open Questions / Clarifications Needed
 6. Must triple literals support whitespace/newline flexibility (e.g. `<ex:s,\n ex:p,\n 42>`)? (Assumed yes following general tokenization.)
@@ -126,6 +129,11 @@ As a Fifth language developer working with RDF / knowledge graphs, I want a conc
 - Q: Acceptable parse performance regression threshold? → A: ≤5% average increase over baseline (Option A, NFR-002).
 - Q: Are nested list literals in triple object position allowed? → A: No; only single-level lists (nested lists rejected; will update FR-006 accordingly).
 - Q: Do triple literals add implicit prefix resolution beyond existing declarations? → A: No; only declared prefixes / full IRIs (Option A, FR-023).
+ - Q: Do triple literals add implicit prefix resolution beyond existing declarations? → A: No; only declared prefixes / full IRIs (Option A, FR-023).
+ - Q: How are special characters serialized in canonical triple output? → A: `>` and `,` inside string literal objects are escaped with a preceding backslash; exactly one space after each comma.
+ - Q: What is the precise expansion path for list object forms? → A: Single-level list traversed left→right producing sibling triple literal expressions prior to lowering; no intermediate graph node; nested lists rejected earlier.
+ - Q: How is performance variance handled in regression checks? → A: Pass only if mean delta ≤5% AND mean delta ≤ 2σ across ≥5 timed runs (NFR-002).
+ - Q: How are diagnostics differentiated between triple syntax and IRI parsing? → A: Triple-level issues use TRPL00x codes; IRI token/prefix errors keep existing codes.
 
 ### Key Entities *(include if feature involves data)*
 - **Triple (primitive)**: Represents exactly three RDF nodes: subject (IRI), predicate (IRI), object (IRI or literal/value). Immutable.
