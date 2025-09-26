@@ -1,0 +1,6 @@
+// Base not last: guarded overload, base, then guarded after base
+f(x: int): int { return -1; } // base appears early - invalid
+f(x: int | x == 0): int { return 0; }
+f(x: int | x == 1): int { return 1; }
+// Another non-last guarded overload to ensure base not last detection
+f(x: int | x == 2): int { return 2; }

@@ -85,7 +85,11 @@ public abstract class RuntimeTestBase : IDisposable
 
         var result = await compiler.CompileAsync(options);
 
-        result.Success.Should().BeTrue($"Compilation should succeed for file: {sourceFilePath}\n\nDiagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
+        if (!result.Success)
+        {
+            var diagnosticsText = string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"));
+            throw new InvalidOperationException($"Compilation failed for file: {sourceFilePath}\n\nDiagnostics:\n{diagnosticsText}");
+        }
         File.Exists(outputFile).Should().BeTrue("Executable should be created");
 
         // Generate runtime configuration file for .NET applications

@@ -119,6 +119,13 @@ public class GuardCompletenessValidator : DefaultRecursiveDescentVisitor
 
         // Apply base ordering/multiple base rules
         var baseOverloads = group.GetBaseOverloads();
+        // Consider tautology-typed constraints (e.g., 'true') as base-equivalent
+        var tautologyBases = group.Overloads
+            .Where(o => o.Params.Any(p => p.ParameterConstraint != null) && _normalizer.ClassifyPredicate(o) == PredicateType.Base)
+            .Where(o => !baseOverloads.Contains(o))
+            .ToList();
+        // Merge base-like tautology overloads into baseOverloads for precedence checks
+        baseOverloads.AddRange(tautologyBases);
         if (baseOverloads.Count > 1)
         {
             _emitter.EmitMultipleBaseError(group, baseOverloads);

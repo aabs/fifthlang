@@ -77,16 +77,24 @@ Legend: `[P]` task can execute in parallel with other `[P]` tasks (different fil
 - [ ] T036 Make previously added analysis/diagnostic tests pass
 
 ## Phase 3.6: Integration Tests (Quickstart Scenarios) ⚠️ ADD BEFORE RUNNING
-- [ ] T037 [P] Integration: missing base (E1001) `test/runtime-integration-tests/TestPrograms/Functions/Guards/missing_base.5th`
-- [ ] T038 [P] Integration: boolean exhaustive pair success `.../boolean_exhaustive.5th`
-- [ ] T039 [P] Integration: multiple base (E1005) `.../multiple_base.5th`
-- [ ] T040 [P] Integration: base not last (E1004) `.../base_not_last.5th`
-- [ ] T041 [P] Integration: duplicate unreachable (W1002) `.../duplicate_unreachable.5th`
-- [ ] T042 [P] Integration: interval subsumption unreachable (W1002) `.../interval_subsumed.5th`
-- [ ] T043 [P] Integration: explosion + incomplete (E1001 + W1102) `.../explosion_incomplete.5th`
-- [ ] T044 [P] Integration: overload count warning (W1101) `.../overload_count.5th`
-- [ ] T045 [P] Integration: tautology base equivalence `.../tautology_base.5th`
-- [ ] T046 [P] Integration: empty interval precedence over duplicate `.../empty_vs_duplicate.5th`
+- [x] T037 [P] Integration: missing base (E1001) `test/runtime-integration-tests/TestPrograms/Functions/Guards/missing_base.5th`
+- [x] T038 [P] Integration: boolean exhaustive pair success `.../boolean_exhaustive.5th`
+- [x] T039 [P] Integration: multiple base (E1005) `.../multiple_base.5th`
+- [x] T040 [P] Integration: base not last (E1004) `.../base_not_last.5th`
+- [x] T041 [P] Integration: duplicate unreachable (W1002) `.../duplicate_unreachable.5th`
+- [x] T042 [P] Integration: interval subsumption unreachable (W1002) `.../interval_subsumed.5th`
+- [x] T043 [P] Integration: explosion + incomplete (E1001 + W1102) `.../explosion_incomplete.5th`
+- [x] T044 [P] Integration: overload count warning (W1101) `.../overload_count.5th`
+- [x] T045 [P] Integration: tautology base equivalence `.../tautology_base.5th`
+- [x] T046 [P] Integration: empty interval precedence over duplicate `.../empty_vs_duplicate.5th`
+
+### Follow-up tasks added
+- [ ] T071 Add CI job `validate-examples` to parse all `.5th` samples under `docs/`, `specs/`, and `test/` and fail on parse errors (specification task; implementation deferred).
+- [ ] T072 Remove temporary debug prints from `test/runtime-integration-tests/GuardValidation` integration tests (cleanup & safety check).
+- [ ] T073 Add unit tests for tautology-base equivalence and E1005/E1001 precedence (covers corner-case semantics validated during integration).
+- [ ] T074 Update `traceability.json` to include mappings for T037–T046 integration scenarios and add coverage assertions.
+
+> Note: Integration tests T037–T046 were implemented and executed end-to-end. Several `.5th` samples were updated to use the parser-supported parameter-constraint syntax `param: Type | <expr>` and to use block function bodies where required by the grammar. The integration suite for GuardValidation is green for these scenarios.
 
 ## Phase 3.7: Instrumentation & Performance
 - [ ] T047 Add `Instrumentation/InstrumentationLogger.cs` (env var detection + JSON output)

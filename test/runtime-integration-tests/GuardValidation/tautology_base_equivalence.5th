@@ -1,0 +1,3 @@
+// Tautology vs base: 'when true' should be equivalent to base; both present -> multiple base error
+tauto(x: int | true): int { return 1; } // tautology
+tauto(x: int): int { return 0; }          // base

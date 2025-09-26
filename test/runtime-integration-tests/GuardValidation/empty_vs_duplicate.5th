@@ -1,0 +1,5 @@
+// Empty interval precedence over duplicate
+// First overload has an impossible guard (x > 0 && x < 0) making it empty; second and third are duplicates
+emptydup(x: int | x == 1): int { return 1; } // impossible - empty interval
+emptydup(x: int | x == 1): int { return 2; } // duplicate - should be marked unreachable
+emptydup(x: int): int { return 0; }

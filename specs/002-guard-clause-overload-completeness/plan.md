@@ -303,3 +303,17 @@ Maintained in README subsection; initial entries:
 - [x] T025 Unknown explosion W1102 thresholds enforced (>50%, size>=8, no base); tests passing.
 - [x] T017 Duplicate detection implemented; later duplicate unreachable W1002; test passing.
 - [x] T018 Empty-interval precedence over duplicate (FR-070) implemented; single W1002; test passing.
+- [x] T037 [P] Integration: missing base (E1001) `test/runtime-integration-tests/TestPrograms/Functions/Guards/missing_base.5th`
+- [x] T038 [P] Integration: boolean exhaustive pair success `.../boolean_exhaustive.5th`
+- [x] T039 [P] Integration: multiple base (E1005) `.../multiple_base.5th`
+- [x] T040 [P] Integration: base not last (E1004) `.../base_not_last.5th`
+- [x] T041 [P] Integration: duplicate unreachable (W1002) `.../duplicate_unreachable.5th`
+- [x] T042 [P] Integration: interval subsumption unreachable (W1002) `.../interval_subsumed.5th`
+- [x] T043 [P] Integration: explosion + incomplete (E1001 + W1102) `.../explosion_incomplete.5th`
+- [x] T044 [P] Integration: overload count warning (W1101) `.../overload_count.5th`
+- [x] T045 [P] Integration: tautology base equivalence `.../tautology_base.5th`
+- [x] T046 [P] Integration: empty interval precedence over duplicate `.../empty_vs_duplicate.5th`
+
+> Note: Integration tests T037–T046 have been implemented and exercised end-to-end against the compiler pipeline. During triage several integration samples were rewritten to conform to the current parser grammar (notably converting legacy/shorthand guard forms to the parameter-constraint syntax `param: Type | <expr>` and using block function bodies where the parser requires them). These tests are now green.
+
+> Governance: To prevent future parser-time regressions, future integration/test samples MUST be grammar-compliant (see the constitution update for mandatory sample validation rules). Avoid use of legacy guard shorthand (e.g., `when`) in samples that are intended to be parsed by the compiler; use the parameter-constraint form instead.

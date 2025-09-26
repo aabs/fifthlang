@@ -1,0 +1,4 @@
+// Interval subsumption: first guard covers x > 0, second guard x > 10 is subsumed and should be unreachable
+h(x: int | (x >= 0 && x <= 10)): int { return 1; }
+h(x: int | (x >= 3 && x <= 5)): int { return 2; } // unreachable due to prior guard
+h(x: int): int { return 0; }

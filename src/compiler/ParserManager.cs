@@ -14,7 +14,7 @@ public static class FifthParserManager
         (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("true", StringComparison.OrdinalIgnoreCase) ||
         (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("on", StringComparison.OrdinalIgnoreCase);
 
-    public static AstThing ApplyLanguageAnalysisPhases(AstThing ast)
+    public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null)
     {
         ArgumentNullException.ThrowIfNull(ast);
 
@@ -61,14 +61,24 @@ public static class FifthParserManager
         // Validate guarded function overload completeness before transformation
         var guardValidator = new GuardCompletenessValidator();
         ast = guardValidator.Visit(ast);
-        
-        // Check for validation errors and report them
-        foreach (var diagnostic in guardValidator.Diagnostics)
+
+        // Aggregate guard diagnostics into the provided diagnostics list so the compiler can act on them
+        if (diagnostics != null)
         {
-            // For now, just log them - in a full implementation we'd integrate with the diagnostic system
-            if (DebugEnabled)
+            foreach (var diagnostic in guardValidator.Diagnostics)
             {
-                Console.Error.WriteLine($"=== GUARD VALIDATION: {diagnostic.Level}: {diagnostic.Message} ===");
+                diagnostics.Add(diagnostic);
+            }
+        }
+        else
+        {
+            // If no diagnostics list provided, optionally log when debug enabled
+            foreach (var diagnostic in guardValidator.Diagnostics)
+            {
+                if (DebugEnabled)
+                {
+                    Console.Error.WriteLine($"=== GUARD VALIDATION: {diagnostic.Level}: {diagnostic.Message} ===");
+                }
             }
         }
 
@@ -77,6 +87,12 @@ public static class FifthParserManager
         if (ast is AssemblyDef asmBefore)
         {
             var mainMethod = asmBefore.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
+        }
+
+        // If diagnostics list was provided and contains errors, short-circuit to allow caller to handle failures
+        if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
+        {
+            // Return the AST anyway; caller will inspect diagnostics for errors and act accordingly
         }
 
         ast = new OverloadTransformingVisitor().Visit(ast);

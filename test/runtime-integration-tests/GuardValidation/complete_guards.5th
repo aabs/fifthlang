@@ -1,3 +1,8 @@
 // Guard completeness test - valid complete set
-myFunc(x: int) when x > 0 => x * 2;
-myFunc(x: int) when x <= 0 => 0;
+myprint(x: int | (x > 0)): int { std.print(x); return 0; }
+myprint(x: int | (x <= 0)): int { std.print(0); return 0; }
+myprint(x: int): int { std.print(x); return 0; } // base - final
+// myFunc examples
+myFunc(x: int | (x > 0)): int { return x * 2; }
+myFunc(x: int | (x <= 0)): int { return 0; }
+myFunc(x: int): int { return 0; } // base - final

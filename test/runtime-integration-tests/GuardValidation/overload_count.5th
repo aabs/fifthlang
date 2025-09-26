@@ -1,0 +1,38 @@
+// Overload count warning: generate 33 analyzable overloads to exceed the W1101 threshold
+// 33 overloads of function 'many' with simple equality guards
+
+// Create 33 guarded overloads (0..32) to exceed the CountAnalyzer threshold
+many(x: int | x == 0): int { return 0; }
+many(x: int | x == 1): int { return 1; }
+many(x: int | x == 2): int { return 2; }
+many(x: int | x == 3): int { return 3; }
+many(x: int | x == 4): int { return 4; }
+many(x: int | x == 5): int { return 5; }
+many(x: int | x == 6): int { return 6; }
+many(x: int | x == 7): int { return 7; }
+many(x: int | x == 8): int { return 8; }
+many(x: int | x == 9): int { return 9; }
+many(x: int | x == 10): int { return 10; }
+many(x: int | x == 11): int { return 11; }
+many(x: int | x == 12): int { return 12; }
+many(x: int | x == 13): int { return 13; }
+many(x: int | x == 14): int { return 14; }
+many(x: int | x == 15): int { return 15; }
+many(x: int | x == 16): int { return 16; }
+many(x: int | x == 17): int { return 17; }
+many(x: int | x == 18): int { return 18; }
+many(x: int | x == 19): int { return 19; }
+many(x: int | x == 20): int { return 20; }
+many(x: int | x == 21): int { return 21; }
+many(x: int | x == 22): int { return 22; }
+many(x: int | x == 23): int { return 23; }
+many(x: int | x == 24): int { return 24; }
+many(x: int | x == 25): int { return 25; }
+many(x: int | x == 26): int { return 26; }
+many(x: int | x == 27): int { return 27; }
+many(x: int | x == 28): int { return 28; }
+many(x: int | x == 29): int { return 29; }
+many(x: int | x == 30): int { return 30; }
+many(x: int | x == 31): int { return 31; }
+many(x: int | x == 32): int { return 32; }
+many(x: int): int { return 0; }

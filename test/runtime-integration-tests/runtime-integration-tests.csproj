@@ -25,6 +25,9 @@
     <None Include="TestPrograms\**\*.5th">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="GuardValidation\**\*.5th">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
