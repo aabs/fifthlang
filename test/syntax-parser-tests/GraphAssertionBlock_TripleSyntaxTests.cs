@@ -37,17 +37,20 @@ public class GraphAssertionBlock_TripleSyntaxTests
     }
 
     [Test]
-    public void GraphBlock_WithMultipleTriples_ShouldBeRejected()
+    public void GraphBlock_WithPropertyAssignments_ShouldParse()
     {
-        // Multiple triples should also be rejected
-        var input = """
-            <{
-                (:s, :p, "hello");
-                (:s, :p2, 42);
-                (:s, :p3, true);
-            }>;
-            """;
-        ParserTestUtils.AssertHasErrors(input, p => p.statement(),
-            "Multiple triple statements should be rejected in graph assertion blocks");
+        // This corrected GAB syntax with property assignments should work
+        var input = "<{ p: Person = new Person(); p.name = \"Alice\"; p.age = 30; }>;";
+        ParserTestUtils.AssertNoErrors(input, p => p.statement(),
+            "Property assignment syntax should parse correctly in graph assertion blocks");
+    }
+
+    [Test]
+    public void GraphBlock_WithSimpleVariableAssignments_ShouldParse()
+    {
+        // Simple variable assignments should also work
+        var input = "<{ name = \"Bob\"; age = 25; active = true; }>;";
+        ParserTestUtils.AssertNoErrors(input, p => p.statement(),
+            "Simple variable assignments should parse correctly in graph assertion blocks");
     }
 }
