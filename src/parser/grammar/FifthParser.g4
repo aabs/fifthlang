@@ -1,3 +1,4 @@
+// Restored baseline grammar with permissive tripleLiteral will be re-added below.
 parser grammar FifthParser;
 
 options {
@@ -136,7 +137,8 @@ expressionList:
 	expressions += expression (COMMA expressions += expression)*;
 
 expression:
-	lhs = expression DOT rhs = expression					# exp_member_access
+	tripleLiteral											# exp_triple
+	| lhs = expression DOT rhs = expression					# exp_member_access
 	| lhs = expression index								# exp_index
 	| <assoc = right> lhs = expression POW rhs = expression	# exp_exp
 	| lhs = expression mul_op = (
@@ -169,12 +171,13 @@ expression:
 	) expression										# exp_unary
 	| expression unary_op = (PLUS_PLUS | MINUS_MINUS)	# exp_unary_postfix
 	| operand											# exp_operand
-	| graphAssertionBlock								# exp_operand;
+	| operand											# exp_operand;
 
 function_call_expression:
 	un = function_name L_PAREN expressionList? R_PAREN;
 
 operand:
+	// Order matters: attempt triple literal before graph block when starting with '<'
 	literal
 	| list
 	| var_name
@@ -195,12 +198,6 @@ initialiser_property_assignment: var_name ASSIGN expression;
 
 index: L_BRACKET expression R_BRACKET;
 
-slice_:
-	L_BRACKET (
-		expression? COLON expression?
-		| expression? COLON expression COLON expression
-	) R_BRACKET;
-
 // Primitive literals extracted to allow extension with tripleLiteral
 primitiveLiteral:
 	NIL_LIT			# lit_nil
@@ -208,26 +205,33 @@ primitiveLiteral:
 	| boolean		# lit_bool
 	| string_		# lit_string
 	| REAL_LITERAL	# lit_float;
-
-// Triple literal: <subject, predicate, object> Disambiguation rationale: * Existing IRIREF token
-// already matches a single < ... > form WITHOUT internal commas. * Introducing commas inside angle
-// brackets (<a:b, a:c, a:d>) prevents a match on IRIREF. * Therefore no semantic predicate is
-// required; the presence of two commas selects this rule. * Should a future extension allow commas
-// inside IRI tokens, revisit with a gated predicate. * Variable subjects/predicates are permitted
-// by grammar but AST currently expects concrete IRI nodes. A subsequent visitor phase may validate
-// type (FR-009) and/or adjust AST representation if needed.
+// Unified triple literal rule (valid + malformed) for AST-level classification. Pattern accepted:
+// '<' subject ',' predicate (',' object (',' extra)*)? ','? '>' Cases identified in visitor:
+// MissingObject: <s,p> TooManyComponents: <s,p,o,x[,y]> TrailingComma: <s,p,o,> Valid: exactly
+// three components <s,p,o> (object may be list for expansion) Disambiguation strategy:
+// tripleLiteral appears only in 'literal'; graphAssertionBlock appears as operand and statement.
+// Since graphAssertionBlock starts with L_GRAPH token ('<{'), lexer should tokenize '<{'
+// distinctly, preventing ambiguity with '<'.
 tripleLiteral:
-	LESS tripleSubject COMMA triplePredicate COMMA tripleObject GREATER;
+	LESS tripleSubject COMMA triplePredicate (
+		COMMA tripleComponents
+	)? (COMMA)? GREATER;
 
-tripleSubject: iri | var_name;
+// One or more components (object + optional extras) with optional trailing comma
+tripleComponents:
+	tripleObject (COMMA (tripleObject | expression))* (COMMA)?;
 
-triplePredicate: iri | var_name;
+// Support alias-prefixed IRI segments IDENTIFIER ':' IDENTIFIER treated as a single IRI-like token sequence
+prefixedIri: IDENTIFIER COLON IDENTIFIER;
 
+tripleSubject: iri | prefixedIri | var_name;
+triplePredicate: iri | prefixedIri | var_name;
 tripleObject:
 	iri
+	| prefixedIri
 	| primitiveLiteral
 	| var_name
-	| list; // list expansion handled in transformation pass
+	| list;
 
 literal: primitiveLiteral | tripleLiteral;
 

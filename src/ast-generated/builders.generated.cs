@@ -2210,6 +2210,29 @@ public class TripleBuilder : IBuilder<ast.Triple>
     }
 
 }
+public class MalformedTripleExpBuilder : IBuilder<ast.MalformedTripleExp>
+{
+    private System.String _MalformedKind;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.MalformedTripleExp Build()
+    {
+        return new ast.MalformedTripleExp(){
+             MalformedKind = this._MalformedKind // from MalformedTripleExp
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public MalformedTripleExpBuilder WithMalformedKind(System.String value){
+        _MalformedKind = value;
+        return this;
+    }
+
+    public MalformedTripleExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class GraphBuilder : IBuilder<ast.Graph>
 {
     private Dictionary<System.String, System.Object> _Annotations;

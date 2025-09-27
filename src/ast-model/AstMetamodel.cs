@@ -885,6 +885,19 @@ public record Triple : Expression
     public Expression ObjectExp { get; set; }
 }
 
+/// <summary>
+/// Represents a syntactically recognized but malformed triple literal captured by the relaxed grammar
+/// so a later diagnostic phase can emit TRPL001 without the parser rejecting the input outright.
+/// Forms captured include: <s,p> (missing object), <s,p,o,> (trailing comma), and <s,p,o, extra ...> (too many components).
+/// </summary>
+public record MalformedTripleExp : Expression
+{
+    /// <summary>The raw textual components parsed (minimum 2).</summary>
+    public List<Expression> Components { get; set; }
+    /// <summary>Classification of malformed variant.</summary>
+    public required string MalformedKind { get; set; }
+}
+
 public record Graph : Expression
 {
     public UriLiteralExp GraphUri { get; set; }

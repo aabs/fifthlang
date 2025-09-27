@@ -152,6 +152,8 @@ public interface IAstVisitor
     public void LeaveAtom(Atom ctx);
     public void EnterTriple(Triple ctx);
     public void LeaveTriple(Triple ctx);
+    public void EnterMalformedTripleExp(MalformedTripleExp ctx);
+    public void LeaveMalformedTripleExp(MalformedTripleExp ctx);
     public void EnterGraph(Graph ctx);
     public void LeaveGraph(Graph ctx);
 }
@@ -306,6 +308,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveAtom(Atom ctx){}
     public virtual void EnterTriple(Triple ctx){}
     public virtual void LeaveTriple(Triple ctx){}
+    public virtual void EnterMalformedTripleExp(MalformedTripleExp ctx){}
+    public virtual void LeaveMalformedTripleExp(MalformedTripleExp ctx){}
     public virtual void EnterGraph(Graph ctx){}
     public virtual void LeaveGraph(Graph ctx){}
 }
@@ -388,6 +392,7 @@ public interface IAstRecursiveDescentVisitor
     public ListComprehension VisitListComprehension(ListComprehension ctx);
     public Atom VisitAtom(Atom ctx);
     public Triple VisitTriple(Triple ctx);
+    public MalformedTripleExp VisitMalformedTripleExp(MalformedTripleExp ctx);
     public Graph VisitGraph(Graph ctx);
 }
 
@@ -471,6 +476,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              ListComprehension node => VisitListComprehension(node),
              Atom node => VisitAtom(node),
              Triple node => VisitTriple(node),
+             MalformedTripleExp node => VisitMalformedTripleExp(node),
              Graph node => VisitGraph(node),
 
             { } node => null,
@@ -941,6 +947,14 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
          SubjectExp = (ast.UriLiteralExp)Visit((AstThing)ctx.SubjectExp)
         ,PredicateExp = (ast.UriLiteralExp)Visit((AstThing)ctx.PredicateExp)
         ,ObjectExp = (ast.Expression)Visit((AstThing)ctx.ObjectExp)
+        };
+    }
+    public virtual MalformedTripleExp VisitMalformedTripleExp(MalformedTripleExp ctx)
+    {
+        List<ast.Expression> tmpComponents = [];
+        tmpComponents.AddRange(ctx.Components.Select(x => (ast.Expression)Visit(x)));
+     return ctx with {
+         Components = tmpComponents
         };
     }
     public virtual Graph VisitGraph(Graph ctx)
