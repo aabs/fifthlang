@@ -79,6 +79,7 @@ public interface ITypeChecker
     public FifthType Infer(ScopeAstThing scope, ListComprehension node);
     public FifthType Infer(ScopeAstThing scope, Atom node);
     public FifthType Infer(ScopeAstThing scope, Triple node);
+    public FifthType Infer(ScopeAstThing scope, MalformedTripleExp node);
     public FifthType Infer(ScopeAstThing scope, Graph node);
 }
 
@@ -165,6 +166,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             ListComprehension node => Infer(scope, node),
             Atom node => Infer(scope, node),
             Triple node => Infer(scope, node),
+            MalformedTripleExp node => Infer(scope, node),
             Graph node => Infer(scope, node),
 
             { } node => throw new ast_model.TypeCheckingException("Unrecognised type")
@@ -245,6 +247,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, ListComprehension node);
     public abstract FifthType Infer(ScopeAstThing scope, Atom node);
     public abstract FifthType Infer(ScopeAstThing scope, Triple node);
+    public abstract FifthType Infer(ScopeAstThing scope, MalformedTripleExp node);
     public abstract FifthType Infer(ScopeAstThing scope, Graph node);
 
 }

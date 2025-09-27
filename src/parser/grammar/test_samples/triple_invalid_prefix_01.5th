@@ -1,0 +1,8 @@
+// T011A: unresolved prefix negative test (existing unresolved-prefix diagnostic expected)
+// NOTE: 'ux' prefix is not declared.
+alias ex as <http://example.org/>;
+
+main(): int {
+	t: triple = <ux:s, ex:p, ex:o>; // unresolved prefix expected
+	return 0;
+}

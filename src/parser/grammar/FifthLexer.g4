@@ -117,6 +117,10 @@ SUCH_THAT : '#';
 CONCAT    : '<>';
 
 // IRI Reference - must come after L_GRAPH, GEN, CONCAT for proper precedence
+// Triple feature keywords / operators
+TRIPLE       : 'triple';
+MINUS_ASSIGN : '-='; // added for graph -= triple support
+
 // Required fragments moved from IRIMode for IRIREF
 fragment PN_CHARS_BASE:
     'A' .. 'Z'

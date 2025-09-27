@@ -1,3 +1,4 @@
+// Restored baseline grammar with permissive tripleLiteral will be re-added below.
 parser grammar FifthParser;
 
 options {
@@ -168,19 +169,25 @@ expression:
 		| MINUS_MINUS
 	) expression										# exp_unary
 	| expression unary_op = (PLUS_PLUS | MINUS_MINUS)	# exp_unary_postfix
-	| operand											# exp_operand
-	| graphAssertionBlock								# exp_operand;
+	| operand											# exp_operand;
 
 function_call_expression:
 	un = function_name L_PAREN expressionList? R_PAREN;
 
 operand:
-	literal
+	tripleExpression
+	| literal
 	| list
 	| var_name
 	| L_PAREN expression R_PAREN
 	| graphAssertionBlock
 	| object_instantiation_expression;
+
+// Treat triples as primary (non-left-recursive) expressions Semantic predicate: ensure lookahead
+// matches '<' IDENTIFIER ':' IDENTIFIER ',' before treating as triple
+tripleExpression:
+	{ InputStream.LA(1) == LESS && InputStream.LA(2) == IDENTIFIER && InputStream.LA(3) == COLON && InputStream.LA(4) == IDENTIFIER && InputStream.LA(5) == COMMA 
+		}? (malformedTripleLiteral | tripleLiteral);
 
 object_instantiation_expression:
 	NEW type_name (
@@ -195,18 +202,38 @@ initialiser_property_assignment: var_name ASSIGN expression;
 
 index: L_BRACKET expression R_BRACKET;
 
-slice_:
-	L_BRACKET (
-		expression? COLON expression?
-		| expression? COLON expression COLON expression
-	) R_BRACKET;
-
-literal:
+// Primitive literals extracted to allow extension with tripleLiteral
+primitiveLiteral:
 	NIL_LIT			# lit_nil
 	| integer		# lit_int
 	| boolean		# lit_bool
 	| string_		# lit_string
 	| REAL_LITERAL	# lit_float;
+// ===[ TRIPLE LITERALS ]=== Valid triple literal (subject, predicate, object)
+tripleLiteral:
+	'<' tripleSubject = tripleIriRef COMMA triplePredicate = tripleIriRef COMMA tripleObject =
+		tripleObjectTerm '>' # triple_literal;
+
+// Malformed variants captured for structured diagnostics (TRPL001)
+malformedTripleLiteral:
+	// Order: shorter/specific malformed patterns first, greedy tooMany last Missing object: only
+	// two components
+	'<' tripleIriRef COMMA tripleIriRef '>' # triple_malformed_missingObject
+	// Trailing comma: has 3rd object component, then an extra comma before '>'
+	| '<' tripleIriRef COMMA tripleIriRef COMMA tripleObjectTerm COMMA '>' #
+		triple_malformed_trailingComma
+	| '<' tripleIriRef COMMA tripleIriRef COMMA tripleIriRef COMMA tripleIriRef (
+		COMMA tripleIriRef
+	)* '>' # triple_malformed_tooMany;
+
+tripleObjectTerm: tripleIriRef | primitiveLiteral | list;
+
+// Allow either full IRI, prefixed alias form, or bare var reference (alias prefix resolution later)
+prefixedIri: IDENTIFIER COLON IDENTIFIER;
+// Restrict triple components to prefixed forms for disambiguation (IRI & bare var forms can be reintroduced when precedence ladder lands)
+tripleIriRef: prefixedIri;
+
+literal: primitiveLiteral;
 
 string_:
 	INTERPRETED_STRING_LIT		# str_plain

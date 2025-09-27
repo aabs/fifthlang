@@ -1059,6 +1059,111 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         return result;
     }
 
+    #region Triple Literal Support
+    public override IAstThing VisitTriple_literal(FifthParser.Triple_literalContext context)
+    {
+        // Subject, predicate, object expressions each visitable via helper
+        var subj = ToUriLike((ParserRuleContext)context.tripleSubject);
+        var pred = ToUriLike((ParserRuleContext)context.triplePredicate);
+        var obj = (Expression)Visit(context.tripleObject);
+
+        var triple = new Triple
+        {
+            Annotations = new Dictionary<string, object> { ["Kind"] = "TripleLiteral" },
+            SubjectExp = subj,
+            PredicateExp = pred,
+            ObjectExp = obj,
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = null
+        };
+        return triple;
+    }
+
+    public override IAstThing VisitTriple_malformed_missingObject(FifthParser.Triple_malformed_missingObjectContext context)
+    {
+        return CreateMalformedTriple(context, "MissingObject");
+    }
+
+    public override IAstThing VisitTriple_malformed_trailingComma(FifthParser.Triple_malformed_trailingCommaContext context)
+    {
+        return CreateMalformedTriple(context, "TrailingComma");
+    }
+
+    public override IAstThing VisitTriple_malformed_tooMany(FifthParser.Triple_malformed_tooManyContext context)
+    {
+        return CreateMalformedTriple(context, "TooManyComponents");
+    }
+
+    private MalformedTripleExp CreateMalformedTriple(ParserRuleContext ctx, string kind)
+    {
+        // Collect any immediate children that look like triple components (IDENTIFIER, IRIREF, string literals)
+        var components = new List<Expression>();
+        foreach (var child in ctx.children ?? Array.Empty<IParseTree>())
+        {
+            if (child is ParserRuleContext prc)
+            {
+                // Heuristically try to wrap as UriLiteral if it looks like <...> or prefixed form a:b
+                var text = prc.GetText();
+                if (text.StartsWith("<") && text.EndsWith(">"))
+                {
+                    components.Add(new UriLiteralExp
+                    {
+                        Annotations = new Dictionary<string, object> { ["Source"] = "MalformedTripleComponent" },
+                        Location = GetLocationDetails(prc),
+                        Parent = null,
+                        Type = null,
+                        Value = TryMakeUri(text)
+                    });
+                }
+                else if (text.Contains(':') && !text.StartsWith("\""))
+                {
+                    // prefixed form; still treat as URI-like
+                    components.Add(new UriLiteralExp
+                    {
+                        Annotations = new Dictionary<string, object> { ["Source"] = "MalformedTripleComponent" },
+                        Location = GetLocationDetails(prc),
+                        Parent = null,
+                        Type = null,
+                        Value = TryMakeUri(text)
+                    });
+                }
+            }
+        }
+
+        return new MalformedTripleExp
+        {
+            Annotations = new Dictionary<string, object> { ["Kind"] = kind },
+            MalformedKind = kind,
+            Components = components, // ensure non-null to satisfy generated visitor enumeration
+            Location = GetLocationDetails(ctx),
+            Parent = null,
+            Type = null
+        };
+    }
+
+    private UriLiteralExp ToUriLike(ParserRuleContext ctx)
+    {
+        var text = ctx.GetText();
+        return new UriLiteralExp
+        {
+            Annotations = new Dictionary<string, object> { ["Source"] = "TripleComponent" },
+            Location = GetLocationDetails(ctx),
+            Parent = null,
+            Type = null,
+            Value = TryMakeUri(text)
+        };
+    }
+
+    private Uri TryMakeUri(string raw)
+    {
+        // Attempt absolute; if fails, fallback to a dummy urn to keep pipeline moving.
+        if (Uri.TryCreate(raw.Trim('<', '>'), UriKind.Absolute, out var abs)) return abs;
+        if (Uri.TryCreate("urn:prefixed:" + raw, UriKind.Absolute, out var fallback)) return fallback;
+        return new Uri("urn:invalid:triple-component");
+    }
+    #endregion Triple Literal Support
+
     public override IAstThing VisitColon_store_decl(FifthParser.Colon_store_declContext context)
     {
         var name = context.store_name?.Text ?? string.Empty;
