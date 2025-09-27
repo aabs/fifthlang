@@ -196,6 +196,107 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         };
     }
 
+    public override IAstThing VisitBlock(FifthParser.BlockContext context)
+    {
+        var b = new BlockStatementBuilder()
+            .WithAnnotations([]);
+
+        foreach (var stmt in context.statement())
+        {
+            b.AddingItemToStatements((Statement)Visit(stmt));
+        }
+
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
+
+    public override IAstThing VisitGraphAssertionBlock(FifthParser.GraphAssertionBlockContext context)
+    {
+        // Build a BlockStatement from inner statements
+        var inner = new List<Statement>();
+        foreach (var s in context.statement())
+        {
+            inner.Add((Statement)Visit(s));
+        }
+
+        var block = new BlockStatement
+        {
+            Annotations = [],
+            Statements = inner,
+            Location = GetLocationDetails(context),
+            Type = Void
+        };
+
+        var exp = new GraphAssertionBlockExp
+        {
+            Annotations = [],
+            Content = block,
+            Location = GetLocationDetails(context),
+            Type = null
+        };
+        return exp;
+    }
+
+    public override IAstThing VisitGraph_assertion_statement(FifthParser.Graph_assertion_statementContext context)
+    {
+        var exp = (GraphAssertionBlockExp)VisitGraphAssertionBlock(context.graphAssertionBlock());
+        var stmt = new GraphAssertionBlockStatement
+        {
+            Annotations = [],
+            Content = exp,
+            Location = GetLocationDetails(context),
+            Type = Void
+        };
+        return stmt;
+    }
+
+    public override IAstThing VisitClass_definition(FifthParser.Class_definitionContext context)
+    {
+        var b = new ClassDefBuilder();
+        foreach (var fctx in context._functions)
+        {
+            var f = (FunctionDef)Visit(fctx);
+            // Wrap the function as a MethodDef member
+            var methodMember = new MethodDef
+            {
+                Name = f.Name,
+                TypeName = f.ReturnType?.Name ?? TypeName.From("void"),
+                IsReadOnly = false,
+                Visibility = Visibility.Public,
+                Annotations = [],
+                FunctionDef = f
+            };
+            b.AddingItemToMemberDefs(methodMember);
+        }
+
+        foreach (var pctx in context._properties)
+        {
+            var prop = (PropertyDef)Visit(pctx);
+            b.AddingItemToMemberDefs(prop);
+        }
+
+        b.WithVisibility(Visibility.Public);
+        b.WithName(TypeName.From(context.name.Text));
+        b.WithAnnotations([]);
+        // Set optional features prior to building so they appear in the result
+        if (context.superClass is not null)
+        {
+            b.AddingItemToBaseClasses(context.superClass.GetText());
+        }
+
+        if (context.aliasScope is not null)
+        {
+            b.WithAliasScope(context.aliasScope.GetText());
+        }
+
+        var built = b.Build();
+        var result = built with
+        {
+            Location = GetLocationDetails(context),
+            Type = new FifthType.TType() { Name = TypeName.From(context.name.Text) }
+        };
+        return result;
+    }
 
     public override IAstThing VisitDeclaration([NotNull] FifthParser.DeclarationContext context)
     {
@@ -596,9 +697,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var returnType = ResolveTypeFromName(context.result_type.GetText());
 
         var b = new FunctionDefBuilder();
-        var block = (BlockStatement)VisitBlock(context.body.block());
         b.WithName(MemberName.From(context.name.GetText()))
-            .WithBody(block)
+            .WithBody((BlockStatement)VisitBlock(context.body.block()))
             .WithReturnType(returnType)
             .WithAnnotations([])
             .WithVisibility(Visibility.Public) // todo: grammar needs support for member visibility
@@ -850,229 +950,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             Parent = null,
             Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From(typeof(int).FullName) },
             Value = value
-        };
-    }
-
-    // ===== Triple Literal Support (T017) =====
-    // Grammar: tripleLiteral: '<' tripleSubject ',' triplePredicate ',' tripleObject '>'
-    // Subjects & predicates: iri | var_name
-    // Object: iri | primitiveLiteral | var_name | list
-    // Current AST model defines record Triple with UriLiteralExp SubjectExp/PredicateExp and Expression ObjectExp.
-    // We will:
-    //   * Create placeholders (UriLiteralExp) when the grammar provides an iri
-    //   * Preserve VarRefExp when a variable is used (subject/predicate) so later phases can validate (FR-009)
-    //   * Accept object forms as raw Expression nodes
-    //   * Attach a lightweight annotation to mark origin for potential lowering/expansion passes
-    public override IAstThing VisitTripleLiteral(FifthParser.TripleLiteralContext context)
-    {
-        DebugLog("TRACE: Entering VisitTripleLiteral with text: " + context.GetText());
-        // Unified rule classification.
-        var subjCtx = context.GetRuleContext<FifthParser.TripleSubjectContext>(0);
-        var predCtx = context.GetRuleContext<FifthParser.TriplePredicateContext>(0);
-        var subjectExpRaw = BuildSubjectOrPredicate(subjCtx);
-        var predicateExpRaw = BuildSubjectOrPredicate(predCtx);
-
-        // Collect tripleObject occurrences (first is candidate object)
-        var objCtxs = context.GetRuleContexts<FifthParser.TripleObjectContext>();
-        var exprCtxs = context.GetRuleContexts<FifthParser.ExpressionContext>();
-
-        bool hasObject = objCtxs.Length > 0;
-        var objectCtx = hasObject ? objCtxs[0] : null;
-
-        // Extra expressions beyond the first object (these come from expression() matches in tripleTailMore)
-        var extras = new List<Expression>();
-        if (hasObject && exprCtxs.Length > 0)
-        {
-            foreach (var ectx in exprCtxs)
-            {
-                // Skip if this expression context is the first object (already handled)
-                if (objectCtx != null && ectx.SourceInterval.Equals(objectCtx.SourceInterval)) continue;
-                if (Visit(ectx) is Expression ex) extras.Add(ex);
-            }
-        }
-
-        // Trailing comma detection: last child token text before '>' is a comma
-        bool trailingComma = false;
-        if (context.children is { Count: > 1 })
-        {
-            var penultimate = context.children[^2].GetText();
-            trailingComma = penultimate == ",";
-        }
-
-        string malformedKind = null;
-        if (!hasObject)
-            malformedKind = "MissingObject";
-        else if (trailingComma && extras.Count == 0)
-            malformedKind = "TrailingComma";
-        else if (extras.Count > 0)
-            malformedKind = "TooManyComponents";
-
-        if (malformedKind != null)
-        {
-            DebugLog($"TRACE: Malformed triple detected kind={malformedKind} comps={context.GetText()}");
-            var comps = new List<Expression> { subjectExpRaw, predicateExpRaw };
-            if (hasObject && objectCtx != null) comps.Add(BuildObject(objectCtx));
-            comps.AddRange(extras);
-            return new MalformedTripleExp
-            {
-                Annotations = new Dictionary<string, object> { { "Origin", "TripleLiteral" } },
-                Components = comps,
-                MalformedKind = malformedKind,
-                Location = GetLocationDetails(context),
-                Type = Void
-            };
-        }
-
-        var objectExp = BuildObject(objectCtx);
-
-        var subjectUri = subjectExpRaw as UriLiteralExp ?? new UriLiteralExp
-        {
-            Annotations = new Dictionary<string, object> { { "SyntheticFrom", "VarRefSubject" } },
-            Location = GetLocationDetails(context),
-            Parent = null,
-            Type = new FifthType.TDotnetType(typeof(Uri)) { Name = TypeName.From(typeof(Uri).FullName) },
-            Value = new Uri($"urn:synthetic:subject:{(subjectExpRaw is VarRefExp v ? v.VarName : subjectExpRaw.GetType().Name)}")
-        };
-        var predicateUri = predicateExpRaw as UriLiteralExp ?? new UriLiteralExp
-        {
-            Annotations = new Dictionary<string, object> { { "SyntheticFrom", "VarRefPredicate" } },
-            Location = GetLocationDetails(context),
-            Parent = null,
-            Type = new FifthType.TDotnetType(typeof(Uri)) { Name = TypeName.From(typeof(Uri).FullName) },
-            Value = new Uri($"urn:synthetic:predicate:{(predicateExpRaw is VarRefExp pv ? pv.VarName : predicateExpRaw.GetType().Name)}")
-        };
-        var triple = new Triple
-        {
-            Annotations = new Dictionary<string, object> { { "Origin", "TripleLiteral" } },
-            SubjectExp = subjectUri,
-            PredicateExp = predicateUri,
-            ObjectExp = objectExp,
-            Location = GetLocationDetails(context),
-            Type = Void
-        };
-        DebugLog("TRACE: Built Triple node");
-        return triple;
-    }
-
-
-    private Expression BuildSubjectOrPredicate(ParserRuleContext ctx)
-    {
-        // The rule is either iri or var_name
-        // If it contains IRIREF token in text, treat as URI literal
-        var text = ctx.GetText();
-        // Recognize prefixed IRI pattern IDENT:IDENT (produced by new prefixedIri rule)
-        if (!text.StartsWith("<") && text.Contains(":") && !text.EndsWith(">"))
-        {
-            // Synthesize a URI from prefix + local part; resolution to full IRI is a later phase concern
-            var parts = text.Split(':');
-            if (parts.Length == 2)
-            {
-                var uriSynth = new Uri($"urn:prefixed:{parts[0]}:{parts[1]}");
-                return new UriLiteralExp
-                {
-                    Annotations = new Dictionary<string, object> { { "Origin", "PrefixedIri" } },
-                    Location = GetLocationDetails(ctx),
-                    Parent = null,
-                    Type = new FifthType.TDotnetType(typeof(Uri)) { Name = TypeName.From(typeof(Uri).FullName) },
-                    Value = uriSynth
-                };
-            }
-        }
-        if (text.StartsWith("<") && text.EndsWith(">"))
-        {
-            // Remove angle brackets
-            var inner = text.Substring(1, text.Length - 2);
-            Uri uri;
-            if (!Uri.TryCreate(inner, UriKind.Absolute, out uri))
-            {
-                // Fallback synthetic
-                uri = new Uri($"urn:invalid:{inner}");
-            }
-            return new UriLiteralExp
-            {
-                Annotations = [],
-                Location = GetLocationDetails(ctx),
-                Parent = null,
-                Type = new FifthType.TDotnetType(typeof(Uri)) { Name = TypeName.From(typeof(Uri).FullName) },
-                Value = uri
-            };
-        }
-        // Otherwise treat as variable reference
-        return new VarRefExp
-        {
-            Annotations = [],
-            Location = GetLocationDetails(ctx),
-            Parent = null,
-            Type = Void, // unresolved for now
-            VarName = text
-        };
-    }
-
-    private Expression BuildObject(FifthParser.TripleObjectContext ctx)
-    {
-        // Inspect children: could be iri, primitiveLiteral, var_name, list
-        var text = ctx.GetText();
-        // Prefixed IRI detection (IDENT:IDENT without surrounding <>)
-        if (!text.StartsWith("<") && text.Contains(":") && !text.EndsWith(">") && ctx.list() is null)
-        {
-            var parts = text.Split(':');
-            if (parts.Length == 2)
-            {
-                return new UriLiteralExp
-                {
-                    Annotations = new Dictionary<string, object> { { "Origin", "PrefixedIri" } },
-                    Location = GetLocationDetails(ctx),
-                    Parent = null,
-                    Type = new FifthType.TDotnetType(typeof(Uri)) { Name = TypeName.From(typeof(Uri).FullName) },
-                    Value = new Uri($"urn:prefixed:{parts[0]}:{parts[1]}")
-                };
-            }
-        }
-        if (text.StartsWith("<") && text.EndsWith(">"))
-        {
-            var inner = text.Substring(1, text.Length - 2);
-            if (!Uri.TryCreate(inner, UriKind.Absolute, out var uri))
-            {
-                uri = new Uri($"urn:invalid:{inner}");
-            }
-            return new UriLiteralExp
-            {
-                Annotations = [],
-                Location = GetLocationDetails(ctx),
-                Parent = null,
-                Type = new FifthType.TDotnetType(typeof(Uri)) { Name = TypeName.From(typeof(Uri).FullName) },
-                Value = uri
-            };
-        }
-        // Try list production
-        if (ctx.list() != null)
-        {
-            return (Expression)VisitList(ctx.list());
-        }
-        // Primitive literal? delegate to visitor where possible by peeking tokens.
-        // We can attempt to detect quotes or digits; else treat as var ref.
-        if (text.Length > 0 && (char.IsDigit(text[0]) || text[0] == '"' || text[0] == '\''))
-        {
-            // Create a string literal as a fallback for quoted; numeric path would need parse; reuse existing generic path
-            // Simplistic: delegate through a small shim by creating a fake string context not easily accessible here.
-            // For now treat all numeric/quoted as raw string literal (placeholder) until richer mapping added.
-            return new StringLiteralExp
-            {
-                Annotations = new Dictionary<string, object> { { "SyntheticFrom", "TripleObjectPrimitive" } },
-                Location = GetLocationDetails(ctx),
-                Parent = null,
-                Type = new FifthType.TDotnetType(typeof(string)) { Name = TypeName.From(typeof(string).FullName) },
-                Value = text
-            };
-        }
-        // Default variable
-        return new VarRefExp
-        {
-            Annotations = [],
-            Location = GetLocationDetails(ctx),
-            Parent = null,
-            Type = Void,
-            VarName = text
         };
     }
 
@@ -1364,13 +1241,19 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                     DebugLog($"DEBUG: Processing property assignment for proper dispatch");
                     try
                     {
+                        // Use direct method call since it's working now
                         var propResult = VisitInitialiser_property_assignment(propAssignmentContext);
                         DebugLog($"DEBUG: VisitInitialiser_property_assignment returned: {propResult?.GetType().Name ?? "null"}");
+
                         var propInit = propResult as PropertyInitializerExp;
                         if (propInit != null)
                         {
                             propertyInitializers.Add(propInit);
                             DebugLog($"DEBUG: Added property initializer for: {propInit.PropertyToInitialize?.Property?.Name.Value ?? "unknown"}");
+                        }
+                        else
+                        {
+                            DebugLog($"DEBUG: Could not cast to PropertyInitializerExp. Actual type: {propResult?.GetType().Name ?? "null"}");
                         }
                     }
                     catch (Exception ex)
@@ -1416,7 +1299,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         return result;
     }
 
-    // Using base visitor's default (null) to allow explicit handling in overrides.
+    protected override IAstThing DefaultResult { get; }
 
     public override IAstThing VisitInitialiser_property_assignment([NotNull] FifthParser.Initialiser_property_assignmentContext context)
     {
@@ -1443,7 +1326,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 Setter = null,
                 CtorOnlySetter = false,
                 Visibility = Visibility.Public,
-                TypeName = TypeName.From("object")
+                TypeName = TypeName.From("object") // We'll resolve this later
             }
         };
 
@@ -1455,8 +1338,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             Location = GetLocationDetails(context),
             Type = expression?.Type ?? new FifthType.UnknownType() { Name = TypeName.From("unknown") }
         };
-
+        DebugLog($"DEBUG: VisitInitialiser_property_assignment created PropertyInitializerExp for {propertyName}");
+        DebugLog($"DEBUG: About to return result of type: {result.GetType().Name}");
         return result;
-
     }
 }
