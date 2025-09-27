@@ -30,4 +30,20 @@ public sealed class TripleDiagnosticsVisitor : NullSafeRecursiveDescentVisitor
         }
         return t;
     }
+
+    public override AstThing Visit(AstThing node)
+    {
+        if (node is MalformedTripleExp malformed)
+        {
+            string message = malformed.MalformedKind switch
+            {
+                "MissingObject" => "TRPL001: Triple literal must have exactly 3 components; object component missing.",
+                "TrailingComma" => "TRPL001: Trailing comma not allowed in triple literal.",
+                "TooManyComponents" => "TRPL001: Triple literal must have exactly 3 components; too many provided.",
+                _ => "TRPL001: Malformed triple literal."
+            };
+            _diagnostics?.Add(new compiler.Diagnostic(compiler.DiagnosticLevel.Error, message));
+        }
+        return base.Visit(node);
+    }
 }

@@ -23,6 +23,12 @@ public sealed class TripleExpansionVisitor : DefaultRecursiveDescentVisitor
                 case ExpStatement es when es.RHS is Triple t2:
                     es.RHS = ExpandTripleIfNeeded(t2);
                     break;
+                case VarDeclStatement vds2 when vds2.InitialValue is MalformedTripleExp:
+                    // Do not attempt expansion on malformed triples
+                    break;
+                case ExpStatement es2 when es2.RHS is MalformedTripleExp:
+                    // Do not attempt expansion on malformed triples
+                    break;
                 case BlockStatement inner:
                     // already visited; nothing extra
                     break;

@@ -14,7 +14,7 @@ public class TripleLiteralExpansionTests
     [Test]
     public void T010_01_List_Object_Expands_Into_Multiple_TripleLiterals()
     {
-        const string code = @"alias ex as <http://example.org/>;\nmain(): int { g: graph = <ex:s, ex:p, [ex:o1, ex:o2, ex:o3]>; return 0; }";
+        const string code = "alias ex as <http://example.org/>; main(): int { g: graph = <ex:s, ex:p, [ex:o1, ex:o2, ex:o3]>; return 0; }";
         var result = ParseHarnessed(code);
         result.Diagnostics.Should().BeEmpty();
         result.Root.Should().NotBeNull();
@@ -25,7 +25,7 @@ public class TripleLiteralExpansionTests
     [Test]
     public void T010_02_Nested_List_Rejected_With_TRPL006()
     {
-        const string code = @"alias ex as <http://example.org/>;\nmain(): int { g: graph = <ex:s, ex:p, [[ex:o1, ex:o2], ex:o3]>; return 0; }";
+        const string code = "alias ex as <http://example.org/>; main(): int { g: graph = <ex:s, ex:p, [[ex:o1, ex:o2], ex:o3]>; return 0; }";
         var result = ParseHarnessed(code);
         // Should remain a single unexpanded triple due to nested list error (TRPL006 produced earlier phase)
         result.Root.Should().NotBeNull();
