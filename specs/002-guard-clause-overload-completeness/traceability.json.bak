@@ -3,99 +3,109 @@
         "FR-001": {
             "description": "Detect incomplete guard coverage",
             "tests": [
-                "CompletenessAnalyzerTests",
-                "GuardValidationIntegrationTests"
+                "CompletenessAnalyzerTests.IsComplete_WithUnknownPredicates_ShouldReturnFalse",
+                "GuardValidationIntegrationTests.IncompleteGuards_ShouldFailCompilation"
             ]
         },
         "FR-002": {
             "description": "Emit E1001 diagnostic for incomplete coverage",
             "tests": [
-                "DiagnosticEmitterTests",
-                "GuardValidationIntegrationTests"
+                "DiagnosticEmitterTests.EmitIncompleteError_ShouldEmitE1001Error",
+                "GuardValidationIntegrationTests.IncompleteGuards_ShouldFailCompilation"
             ]
         },
         "FR-003": {
             "description": "Detect unreachable overloads",
             "tests": [
-                "CompletenessAnalyzerTests",
-                "DuplicateDetectionTests"
+                "CompletenessAnalyzerTests.CheckForUnreachableOverloads_WithBaseFollowedByGuarded_ShouldDetectUnreachable",
+                "CompletenessAnalyzerTests.CheckForUnreachableOverloads_WithOnlyGuardedOverloads_ShouldNotDetectUnreachable",
+                "DuplicateDetectionTests.DuplicateGuards_ShouldBeDetectedAsUnreachable"
             ]
         },
         "FR-004": {
             "description": "Emit W1002 diagnostic for unreachable overloads",
             "tests": [
-                "DiagnosticEmitterTests",
-                "GuardValidationIntegrationTests"
+                "DiagnosticEmitterTests.EmitUnreachableWarning_ShouldEmitW1002WarningWithNote",
+                "GuardValidationIntegrationTests.UnreachableGuards_ShouldCompileWithWarnings"
             ]
         },
         "FR-005": {
             "description": "Detect multiple base cases",
             "tests": [
-                "DiagnosticEmitterTests"
+                "DiagnosticEmitterTests.EmitMultipleBaseError_ShouldEmitE1005ErrorWithNotes"
             ]
         },
         "FR-006": {
             "description": "Emit E1005 diagnostic for multiple base cases",
             "tests": [
-                "DiagnosticEmitterTests"
+                "DiagnosticEmitterTests.EmitMultipleBaseError_ShouldEmitE1005ErrorWithNotes"
             ]
         },
         "FR-007": {
             "description": "Detect base case not in final position",
             "tests": [
-                "CompletenessAnalyzerTests"
+                "CompletenessAnalyzerTests.ValidateBaseOrdering_WithBaseNotLast_ShouldReturnInvalidIndex",
+                "CompletenessAnalyzerTests.ValidateBaseOrdering_WithBaseLast_ShouldReturnNull"
             ]
         },
         "FR-008": {
             "description": "Emit E1004 diagnostic for base not last",
             "tests": [
-                "DiagnosticEmitterTests"
+                "DiagnosticEmitterTests.EmitBaseNotLastError_ShouldEmitE1004ErrorWithNote"
             ]
         },
         "FR-009": {
             "description": "Detect excessive overload count",
             "tests": [
-                "DiagnosticEmitterTests"
+                "DiagnosticEmitterTests.EmitOverloadCountWarning_ShouldEmitW1101Warning"
             ]
         },
         "FR-010": {
             "description": "Emit W1101 diagnostic for overload count",
             "tests": [
-                "DiagnosticEmitterTests"
+                "DiagnosticEmitterTests.EmitOverloadCountWarning_ShouldEmitW1101Warning"
             ]
         },
         "FR-011": {
             "description": "Detect unknown predicate explosion",
             "tests": [
-                "CompletenessAnalyzerTests"
+                "CompletenessAnalyzerTests.CalculateUnknownPercentage_ShouldReturnCorrectPercentage"
             ]
         },
         "FR-012": {
             "description": "Emit W1102 diagnostic for unknown explosion",
             "tests": [
-                "DiagnosticEmitterTests"
+                "DiagnosticEmitterTests.EmitUnknownExplosionWarning_ShouldEmitW1102Warning"
             ]
         },
         "FR-013": {
             "description": "Classify predicates as Base, Analyzable, or Unknown",
             "tests": [
-                "PredicateNormalizerTests"
+                "PredicateNormalizerTests.ClassifyPredicate_WithNoConstraints_ShouldReturnBase",
+                "PredicateNormalizerTests.ClassifyPredicate_WithTautology_ShouldReturnBase",
+                "PredicateNormalizerTests.ClassifyPredicate_WithAnalyzableConstraint_ShouldReturnAnalyzable",
+                "PredicateNormalizerTests.ClassifyPredicate_WithUnknownConstraint_ShouldReturnUnknown"
             ]
         },
         "FR-014": {
             "description": "Normalize guard predicates for analysis",
             "tests": [
-                "PredicateNormalizerTests",
-                "IntervalFormationTests",
-                "EmptyIntervalTests"
+                "PredicateNormalizerTests.AnalyzeOverload_ShouldCreateAnalyzedOverloadWithCorrectClassification",
+                "PredicateNormalizerTests.CreatePredicateDescriptor_WithBaseType_ShouldReturnAlways",
+                "PredicateNormalizerTests.CreatePredicateDescriptor_WithUnknownType_ShouldReturnUnknown",
+                "IntervalFormationTests.Intersect_ClosedIntervals_ShouldReturnOverlap",
+                "EmptyIntervalTests.IsEmpty_InvertedBounds_ShouldBeTrue",
+                "EmptyIntervalTests.IsEmpty_OpenTouching_ShouldBeTrue"
             ]
         },
         "FR-015": {
             "description": "Perform subsumption analysis",
             "tests": [
-                "CompletenessAnalyzerTests",
-                "IntervalSubsumptionTests",
-                "EmptyVsDuplicatePrecedenceTests"
+                "CompletenessAnalyzerTests.CheckForUnreachableOverloads_WithBaseFollowedByGuarded_ShouldDetectUnreachable",
+                "CompletenessAnalyzerTests.IsComplete_WithAnalyzableAndNoUnknown_ShouldReturnTrue",
+                "IntervalSubsumptionTests.Subsumes_ClosedWithinClosed_ShouldBeTrue",
+                "IntervalSubsumptionTests.Subsumes_PartialOverlap_ShouldBeFalse",
+                "EmptyVsDuplicatePrecedenceTests.EmptyInterval_ShouldTakePrecedenceOverDuplicate"
             ]
         },
         "FR-016": {
@@ -323,84 +333,94 @@
         "AC-001": {
             "description": "Complete guard sets compile without errors",
             "tests": [
-                "GuardValidationIntegrationTests",
-                "BooleanExhaustiveTests"
+                "GuardValidationIntegrationTests.CompleteGuards_ShouldCompileWithoutErrors",
+                "BooleanExhaustiveTests.BooleanPair_ShouldBeConsideredCompleteWithoutBase"
             ]
         },
         "AC-002": {
             "description": "Incomplete guard sets emit E1001",
             "tests": [
-                "DiagnosticEmitterTests",
-                "GuardValidationIntegrationTests",
-                "IncompletenessTests"
+                "DiagnosticEmitterTests.EmitIncompleteError_ShouldEmitE1001Error",
+                "GuardValidationIntegrationTests.IncompleteGuards_ShouldFailCompilation",
+                "IncompletenessTests.IncompleteWithoutBase_ShouldEmitE1001"
             ]
         },
         "AC-003": {
             "description": "Unreachable overloads emit W1002",
             "tests": [
-                "DiagnosticEmitterTests",
-                "GuardValidationIntegrationTests",
-                "UnreachableAfterBaseTests"
+                "DiagnosticEmitterTests.EmitUnreachableWarning_ShouldEmitW1002WarningWithNote",
+                "GuardValidationIntegrationTests.UnreachableGuards_ShouldCompileWithWarnings",
+                "UnreachableAfterBaseTests.AfterBase_AnalyzableStillWarnsUnreachable"
             ]
         },
         "AC-004": {
             "description": "Multiple base cases emit E1005",
             "tests": [
-                "DiagnosticEmitterTests"
+                "DiagnosticEmitterTests.EmitMultipleBaseError_ShouldEmitE1005ErrorWithNotes"
             ]
         },
         "AC-005": {
             "description": "Base not last emits E1004",
             "tests": [
-                "DiagnosticEmitterTests",
-                "BaseNotLastCoverageTests"
+                "DiagnosticEmitterTests.EmitBaseNotLastError_ShouldEmitE1004ErrorWithNote",
+                "BaseNotLastCoverageTests.BaseNotLast_ShouldStillAllowE1001"
             ]
         },
         "AC-006": {
             "description": "Excessive overloads emit W1101",
             "tests": [
-                "DiagnosticEmitterTests",
-                "OverloadCountWarningTests"
+                "DiagnosticEmitterTests.EmitOverloadCountWarning_ShouldEmitW1101Warning",
+                "OverloadCountWarningTests.CountAt32_ShouldNotWarn",
+                "OverloadCountWarningTests.CountAt33_ShouldWarn"
             ]
         },
         "AC-007": {
             "description": "Unknown explosion emits W1102",
             "tests": [
-                "DiagnosticEmitterTests",
-                "ExplosionThresholdTests"
+                "DiagnosticEmitterTests.EmitUnknownExplosionWarning_ShouldEmitW1102Warning",
+                "ExplosionThresholdTests.UnknownPercent_JustBelowThreshold_ShouldNotWarn",
+                "ExplosionThresholdTests.UnknownPercent_JustAboveThreshold_ShouldWarn"
             ]
         },
         "AC-008": {
             "description": "Validation overhead ≤5% of compilation time",
             "tests": [
-                "ValidationInstrumenterTests",
-                "GuardValidationIntegrationTests"
+                "ValidationInstrumenterTests.StartPhase_ShouldBeginTiming",
+                "ValidationInstrumenterTests.EndPhase_ShouldRecordElapsedTime",
+                "ValidationInstrumenterTests.MultiplePhases_ShouldTrackSeparately",
+                "GuardValidationIntegrationTests.ValidatedFunction_ShouldHaveValidationMetrics"
             ]
         },
         "AC-009": {
             "description": "Only GuardCompletenessValidator is public",
             "tests": [
-                "PublicSurfaceTests"
+                "PublicSurfaceTests.GuardValidationModule_ShouldOnlyExposePhaseEntryPoint",
+                "PublicSurfaceTests.GuardValidationSubmodules_ShouldOnlyContainInternalTypes",
+                "PublicSurfaceTests.GuardValidationModule_ShouldContainExpectedInternalTypes"
             ]
         },
         "AC-010": {
             "description": "Deterministic diagnostic ordering",
             "tests": [
-                "DiagnosticEmitterTests",
-                "DeterminismHashTests"
+                "DiagnosticEmitterTests.EmitIncompleteError_ShouldEmitE1001Error",
+                "DiagnosticEmitterTests.EmitUnreachableWarning_ShouldEmitW1002WarningWithNote",
+                "DiagnosticEmitterTests.EmitBaseNotLastError_ShouldEmitE1004ErrorWithNote",
+                "DiagnosticEmitterTests.EmitMultipleBaseError_ShouldEmitE1005ErrorWithNotes",
+                "DeterminismHashTests.DiagnosticsSignature_ShouldBeDeterministicAcrossTwoRuns"
             ]
         },
         "AC-011": {
             "description": "Proper layering contract enforcement",
             "tests": [
-                "PublicSurfaceTests"
+                "PublicSurfaceTests.GuardValidationSubmodules_ShouldOnlyContainInternalTypes"
             ]
         },
         "AC-012": {
             "description": "Memory-efficient implementation",
             "tests": [
-                "ValidationInstrumenterTests",
-                "OverloadCollectorTests",
+                "ValidationInstrumenterTests.Reset_ShouldClearAllMetrics",
+                "ValidationInstrumenterTests.RecordFunctionGroupMetrics_ShouldUpdateCounts",
+                "OverloadCollectorTests.Reset_ShouldClearAllFunctionGroups",
                 "DuplicateDetectionTests",
                 "EmptyVsDuplicatePrecedenceTests",
                 "BooleanExhaustiveTests",
@@ -411,7 +431,7 @@
                 "ExplosionThresholdTests",
                 "OverloadCountWarningTests",
                 "DeterminismHashTests",
-                "DiagnosticEmitterTests"
+                "DiagnosticEmitterTests.Reset_ShouldClearAllDiagnostics"
             ]
         },
         "AC-013": {
@@ -536,7 +556,9 @@
             "GuardValidationIntegrationTests"
         ],
         "performanceTests": [
-            "ValidationInstrumenterTests"
+            "ValidationInstrumenterTests.StartPhase_ShouldBeginTiming",
+            "ValidationInstrumenterTests.EndPhase_ShouldRecordElapsedTime",
+            "ValidationInstrumenterTests.MultiplePhases_ShouldTrackSeparately"
         ]
     },
     "notes": {
