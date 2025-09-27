@@ -75,10 +75,14 @@ public static class ParseHarness
             // Map compiler diagnostics that are triple-related into harness diagnostics list
             foreach (var d in compDiags)
             {
-                if (d.Message.StartsWith("TRPL"))
+                var codeCandidate = d.Code ?? string.Empty;
+                if (string.IsNullOrEmpty(codeCandidate) && d.Message.StartsWith("TRPL"))
                 {
-                    var code = d.Message.Split(':')[0];
-                    diagnostics.Add(new TestDiagnostic(code, d.Level switch
+                    codeCandidate = d.Message.Split(':')[0];
+                }
+                if (codeCandidate.StartsWith("TRPL"))
+                {
+                    diagnostics.Add(new TestDiagnostic(codeCandidate, d.Level switch
                     {
                         compiler.DiagnosticLevel.Error => DiagnosticSeverity.Error,
                         compiler.DiagnosticLevel.Warning => DiagnosticSeverity.Warning,

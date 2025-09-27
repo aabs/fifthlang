@@ -6,7 +6,12 @@ namespace compiler;
 /// <param name="Level">The severity level of the diagnostic</param>
 /// <param name="Message">The diagnostic message</param>
 /// <param name="Source">Optional source information</param>
-public record Diagnostic(DiagnosticLevel Level, string Message, string? Source = null);
+/// <param name="Code">Optional stable diagnostic code (e.g., TRPL001)</param>
+public record Diagnostic(
+    DiagnosticLevel Level,
+    string Message,
+    string? Source = null,
+    string? Code = null);
 
 /// <summary>
 /// Diagnostic severity levels
@@ -56,7 +61,7 @@ public record CompilationResult(
     /// </summary>
     public static CompilationResult Failed(int exitCode, string errorMessage, string? source = null)
     {
-        var diagnostic = new Diagnostic(DiagnosticLevel.Error, errorMessage, source);
+        var diagnostic = new Diagnostic(DiagnosticLevel.Error, errorMessage, source, null);
         return new CompilationResult(false, exitCode, new[] { diagnostic });
     }
 

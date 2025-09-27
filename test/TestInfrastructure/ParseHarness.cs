@@ -91,10 +91,40 @@ public static class ParseHarness
         TimeSpan? phasesTime = null;
         if (ast != null && options.Phase != FifthParserManager.AnalysisPhase.None)
         {
+            var phaseDiagnostics = new List<compiler.Diagnostic>();
             var swPhases = Stopwatch.StartNew();
-            processed = FifthParserManager.ApplyLanguageAnalysisPhases(ast, diagnostics: null, upTo: options.Phase) as AssemblyDef;
+            processed = FifthParserManager.ApplyLanguageAnalysisPhases(ast, diagnostics: phaseDiagnostics, upTo: options.Phase) as AssemblyDef;
             swPhases.Stop();
             phasesTime = swPhases.Elapsed;
+            // Merge semantic/phase diagnostics, mapping to TestDiagnostic (preserve already collected syntax diags first)
+            foreach (var d in phaseDiagnostics)
+            {
+                var severity = d.Level switch
+                {
+                    compiler.DiagnosticLevel.Info => DiagnosticSeverity.Info,
+                    compiler.DiagnosticLevel.Warning => DiagnosticSeverity.Warning,
+                    compiler.DiagnosticLevel.Error => DiagnosticSeverity.Error,
+                    _ => DiagnosticSeverity.Info
+                };
+                var code = d.Code;
+                if (string.IsNullOrEmpty(code))
+                {
+                    // Fallback: extract leading CODE: pattern
+                    var msg = d.Message;
+                    if (!string.IsNullOrEmpty(msg))
+                    {
+                        // Pattern: UPPER+DIGITS (colon optional) e.g. TRPL001:
+                        var idx = msg.IndexOf(':');
+                        if (idx > 0 && idx <= 12)
+                        {
+                            var candidate = msg.Substring(0, idx).Trim();
+                            if (candidate.Length >= 5 && candidate.All(c => char.IsUpper(c) || char.IsDigit(c)))
+                                code = candidate;
+                        }
+                    }
+                }
+                diagnostics.Add(new TestDiagnostic(code ?? string.Empty, severity, d.Message, 0, 0, string.Empty));
+            }
         }
 
         return new ParseResult
@@ -106,5 +136,65 @@ public static class ParseHarness
             AstBuildTime = options.CollectTimings ? swAst.Elapsed : null,
             PhasesTime = options.CollectTimings ? phasesTime : null
         };
+    }
+
+    // --- Triple traversal helper utilities (merged from ast-tests harness) ---
+    public static IEnumerable<Triple> FindTriples(AssemblyDef? root)
+    {
+        if (root == null) yield break;
+        foreach (var module in root.Modules)
+        {
+            foreach (var f in module.Functions.OfType<FunctionDef>())
+            {
+                foreach (var t in FindTriplesInBlock(f.Body)) yield return t;
+            }
+        }
+    }
+
+    private static IEnumerable<Triple> FindTriplesInBlock(BlockStatement block)
+    {
+        foreach (var stmt in block.Statements)
+        {
+            foreach (var t in FindTriplesInStatement(stmt)) yield return t;
+        }
+    }
+
+    private static IEnumerable<Triple> FindTriplesInStatement(Statement stmt)
+    {
+        switch (stmt)
+        {
+            case VarDeclStatement vds when vds.InitialValue != null:
+                foreach (var t in FindTriplesInExpression(vds.InitialValue)) yield return t; break;
+            case ExpStatement es:
+                foreach (var t in FindTriplesInExpression(es.RHS)) yield return t; break;
+            case BlockStatement inner:
+                foreach (var t in FindTriplesInBlock(inner)) yield return t; break;
+        }
+    }
+
+    private static IEnumerable<Triple> FindTriplesInExpression(Expression expr)
+    {
+        if (expr is Triple tr) { yield return tr; yield break; }
+        switch (expr)
+        {
+            case BinaryExp be:
+                foreach (var t in FindTriplesInExpression(be.LHS)) yield return t;
+                foreach (var t in FindTriplesInExpression(be.RHS)) yield return t;
+                break;
+            case MemberAccessExp ma:
+                if (ma.LHS is Expression lhs)
+                    foreach (var t in FindTriplesInExpression(lhs)) yield return t;
+                if (ma.RHS is Expression rhs)
+                    foreach (var t in FindTriplesInExpression(rhs)) yield return t;
+                break;
+            case ListLiteral ll:
+                foreach (var e in ll.ElementExpressions)
+                    foreach (var t in FindTriplesInExpression(e)) yield return t;
+                break;
+            case FuncCallExp fc:
+                foreach (var arg in fc.InvocationArguments)
+                    foreach (var t in FindTriplesInExpression(arg)) yield return t;
+                break;
+        }
     }
 }

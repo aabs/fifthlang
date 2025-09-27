@@ -137,8 +137,7 @@ expressionList:
 	expressions += expression (COMMA expressions += expression)*;
 
 expression:
-	tripleLiteral											# exp_triple
-	| lhs = expression DOT rhs = expression					# exp_member_access
+	lhs = expression DOT rhs = expression					# exp_member_access
 	| lhs = expression index								# exp_index
 	| <assoc = right> lhs = expression POW rhs = expression	# exp_exp
 	| lhs = expression mul_op = (
@@ -170,20 +169,25 @@ expression:
 		| MINUS_MINUS
 	) expression										# exp_unary
 	| expression unary_op = (PLUS_PLUS | MINUS_MINUS)	# exp_unary_postfix
-	| operand											# exp_operand
 	| operand											# exp_operand;
 
 function_call_expression:
 	un = function_name L_PAREN expressionList? R_PAREN;
 
 operand:
-	// Order matters: attempt triple literal before graph block when starting with '<'
-	literal
+	tripleExpression
+	| literal
 	| list
 	| var_name
 	| L_PAREN expression R_PAREN
 	| graphAssertionBlock
 	| object_instantiation_expression;
+
+// Treat triples as primary (non-left-recursive) expressions Semantic predicate: ensure lookahead
+// matches '<' IDENTIFIER ':' IDENTIFIER ',' before treating as triple
+tripleExpression:
+	{ InputStream.LA(1) == LESS && InputStream.LA(2) == IDENTIFIER && InputStream.LA(3) == COLON && InputStream.LA(4) == IDENTIFIER && InputStream.LA(5) == COMMA 
+		}? (malformedTripleLiteral | tripleLiteral);
 
 object_instantiation_expression:
 	NEW type_name (
@@ -205,35 +209,31 @@ primitiveLiteral:
 	| boolean		# lit_bool
 	| string_		# lit_string
 	| REAL_LITERAL	# lit_float;
-// Unified triple literal rule (valid + malformed) for AST-level classification. Pattern accepted:
-// '<' subject ',' predicate (',' object (',' extra)*)? ','? '>' Cases identified in visitor:
-// MissingObject: <s,p> TooManyComponents: <s,p,o,x[,y]> TrailingComma: <s,p,o,> Valid: exactly
-// three components <s,p,o> (object may be list for expansion) Disambiguation strategy:
-// tripleLiteral appears only in 'literal'; graphAssertionBlock appears as operand and statement.
-// Since graphAssertionBlock starts with L_GRAPH token ('<{'), lexer should tokenize '<{'
-// distinctly, preventing ambiguity with '<'.
+// ===[ TRIPLE LITERALS ]=== Valid triple literal (subject, predicate, object)
 tripleLiteral:
-	LESS tripleSubject COMMA triplePredicate (
-		COMMA tripleComponents
-	)? (COMMA)? GREATER;
+	'<' tripleSubject = tripleIriRef COMMA triplePredicate = tripleIriRef COMMA tripleObject =
+		tripleObjectTerm '>' # triple_literal;
 
-// One or more components (object + optional extras) with optional trailing comma
-tripleComponents:
-	tripleObject (COMMA (tripleObject | expression))* (COMMA)?;
+// Malformed variants captured for structured diagnostics (TRPL001)
+malformedTripleLiteral:
+	// Order: shorter/specific malformed patterns first, greedy tooMany last Missing object: only
+	// two components
+	'<' tripleIriRef COMMA tripleIriRef '>' # triple_malformed_missingObject
+	// Trailing comma: has 3rd object component, then an extra comma before '>'
+	| '<' tripleIriRef COMMA tripleIriRef COMMA tripleObjectTerm COMMA '>' #
+		triple_malformed_trailingComma
+	| '<' tripleIriRef COMMA tripleIriRef COMMA tripleIriRef COMMA tripleIriRef (
+		COMMA tripleIriRef
+	)* '>' # triple_malformed_tooMany;
 
-// Support alias-prefixed IRI segments IDENTIFIER ':' IDENTIFIER treated as a single IRI-like token sequence
+tripleObjectTerm: tripleIriRef | primitiveLiteral | list;
+
+// Allow either full IRI, prefixed alias form, or bare var reference (alias prefix resolution later)
 prefixedIri: IDENTIFIER COLON IDENTIFIER;
+// Restrict triple components to prefixed forms for disambiguation (IRI & bare var forms can be reintroduced when precedence ladder lands)
+tripleIriRef: prefixedIri;
 
-tripleSubject: iri | prefixedIri | var_name;
-triplePredicate: iri | prefixedIri | var_name;
-tripleObject:
-	iri
-	| prefixedIri
-	| primitiveLiteral
-	| var_name
-	| list;
-
-literal: primitiveLiteral | tripleLiteral;
+literal: primitiveLiteral;
 
 string_:
 	INTERPRETED_STRING_LIT		# str_plain
