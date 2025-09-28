@@ -34,12 +34,16 @@
 ## Phase 3.5: Transformation Passes (Design Tests First)
 - [ ] T020 Add failing test `test/ast-tests/TripleExpansionVisitorTests.cs` for list -> multiple triples
 - [ ] T021 [P] Add failing test `test/ast-tests/TripleLoweringVisitorTests.cs` for `graph + triple` & `triple + triple`
-- [ ] T022 Implement `TripleLiteralExpansionVisitor.cs` under `src/compiler/LanguageTransformations/`
-- [ ] T023 Implement empty list warning TRPL004 emission in expansion visitor
-- [ ] T024 Implement nested list TRPL006 error detection in expansion visitor
+- [x] T022 Implement `TripleLiteralExpansionVisitor.cs` under `src/compiler/LanguageTransformations/`  # implemented: expansion visitor added and wired in ParserManager
+- [x] T023 Implement empty list warning TRPL004 emission in expansion visitor  # implemented: TRPL004 emitted for empty list objects
+- [x] T024 Implement nested list TRPL006 error detection in expansion visitor  # implemented: TRPL006 emitted for nested list objects
 - [ ] T025 Implement `GraphTripleOperatorLoweringVisitor.cs` handling +,- between graphs/triples (non-mutating)
 - [ ] T026 Add structural dedupe logic (or rely on KG helpers) ensuring single instance after union
 - [ ] T026A Add operator invalid-combination tests (`triple - graph`, `triple * 2`, `!<...>`) asserting type errors (covers FR-012/013)
+
+# Notes
+- The expansion and diagnostics work (T022–T024) has been implemented and covered by unit and AST-level tests (including `TripleDiagnosticsUnitTests.cs`, parser-level tests, and updates to `TripleLiteralExpansionTests.cs`).
+- Remaining Phase 3.5 items are lowering and dedupe work (T025–T026A) which are not yet implemented.
 
 ## Phase 3.6: Mutating Operators & KG Helpers
 - [ ] T027 Add failing tests `test/runtime-integration-tests/TripleMutatingOperatorsTests.cs` for `+=` / `-=` forms
