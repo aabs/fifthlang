@@ -1,6 +1,7 @@
 using ast;
 using il_ast;
 using il_ast_generated;
+using static Fifth.DebugHelpers;
 
 namespace code_generator;
 
@@ -10,15 +11,8 @@ namespace code_generator;
 /// </summary>
 public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 {
-    private static bool DebugEnabled =>
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("1", StringComparison.Ordinal) ||
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("true", StringComparison.OrdinalIgnoreCase) ||
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("on", StringComparison.OrdinalIgnoreCase);
+    // Debugging provided by shared DebugHelpers.
 
-    private static void DebugLog(string message)
-    {
-        if (DebugEnabled) Console.WriteLine(message);
-    }
     private readonly Dictionary<string, TypeReference> _typeMap = new();
     private AssemblyDeclaration? _currentAssembly;
     private ModuleDeclaration? _currentModule;

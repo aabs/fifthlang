@@ -210,17 +210,7 @@ public class IRITests
     [Test]
     public void DebugTokenization_PropertyVsIRI()
     {
-        // This test helps debug tokenization differences
-        var propertyInput = "Name: string;";
-        var iriInput = "<x:Person>";
-
-        Console.WriteLine("Property declaration tokens:");
-        Console.WriteLine(ParserTestUtils.PrintTokens(propertyInput));
-
-        Console.WriteLine("\nIRI tokens:");
-        Console.WriteLine(ParserTestUtils.PrintTokens(iriInput));
-
-        // Should always pass - this is just for debugging output
+        // Tokenization debug removed; no-op assertion retained
         true.Should().BeTrue();
     }
 }

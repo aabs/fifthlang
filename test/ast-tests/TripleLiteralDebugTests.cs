@@ -17,14 +17,10 @@ public class TripleLiteralDebugTests
         // Minimal program with a triple literal assignment
         const string code = "alias ex as <http://example.org/>; main(): int { t: triple = <ex:s, ex:p, ex:o>; return 0; }";
         var result = ParseHarnessed(code);
-        Console.WriteLine("Diagnostics:");
-        foreach (var d in result.Diagnostics)
-        {
-            Console.WriteLine($" - {d.Code} {d.Message} @({d.Line},{d.Column}) token='{d.Snippet}'");
-        }
+        // Debug output removed; tests assert on AST and diagnostics instead.
         result.Root.Should().NotBeNull();
         var triples = FindTriples(result.Root!);
-        Console.WriteLine($"Found {triples.Count} Triple nodes");
+        // Debug output removed; assertion below checks triple count when necessary.
     }
 
     private static IList<TripleLiteralExp> FindTriples(AssemblyDef root)

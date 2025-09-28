@@ -2,22 +2,14 @@
 
 using ast;
 using ast_model.Symbols;
+using static Fifth.DebugHelpers;
 
 namespace compiler.LanguageTransformations;
 
 public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
 {
     private readonly Stack<AstThing> parents = new();
-
-    private static bool DebugEnabled =>
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("1", StringComparison.Ordinal) ||
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("true", StringComparison.OrdinalIgnoreCase) ||
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("on", StringComparison.OrdinalIgnoreCase);
-
-    private static void DebugLog(string message)
-    {
-        if (DebugEnabled) Console.WriteLine(message);
-    }
+    // Debug helpers (DebugEnabled and DebugLog) are provided by the shared DebugHelpers class imported above.
 
     #region Helpers
     private void EnterNonTerminal(AstThing ctx)
