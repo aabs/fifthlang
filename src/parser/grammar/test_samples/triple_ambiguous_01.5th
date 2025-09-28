@@ -1,0 +1,18 @@
+// T008: Ambiguity separation sample ensuring graph assertion <{ ... }> is not parsed as triple
+// Purpose: Validate that a graph assertion block starting with <{ does not conflict with triple literal <s,p,o>
+// and that a following valid triple literal still parses.
+
+alias ex as <http://example.org/>;
+
+main(): int {
+    // Graph assertion block
+    <{ <http://example.org/s> <http://example.org/p> 42; }>;
+
+    // Valid triple literal immediately after
+    t1: triple = <ex:s, ex:p, ex:o>;
+
+    // Malformed triple (too few) to ensure TRPL001 still emitted in same file
+    t2: triple = <ex:s, ex:p>;
+
+    return 0;
+}

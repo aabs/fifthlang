@@ -39,6 +39,18 @@ public static class ParseHarness
             => _diags.Add(new TestDiagnostic("SYNTAX", DiagnosticSeverity.Error, msg, line, charPositionInLine, offendingSymbol?.Text ?? string.Empty));
     }
 
+    public static IEnumerable<Triple> FindTriples(AssemblyDef? root)
+    {
+        if (root == null) yield break;
+        foreach (var module in root.Modules)
+        {
+            foreach (var f in module.Functions.OfType<FunctionDef>())
+            {
+                foreach (var t in FindTriplesInBlock(f.Body)) yield return t;
+            }
+        }
+    }
+
     public static ParseResult ParseString(string source, ParseOptions? options = null)
     {
         options ??= new ParseOptions();

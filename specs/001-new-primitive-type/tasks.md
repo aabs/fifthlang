@@ -4,29 +4,28 @@
 **Prerequisites**: `plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md`
 
 ## Phase 3.1: Setup / Environment
-- [ ] T001 Ensure ANTLR & .NET toolchain available (verify `dotnet --version`, Java 17+) (no code change)
-- [ ] T002 Create benchmark fixture placeholder `test/perf/TripleParseBaseline.cs` (will remain failing until populated)
+- [x] T001 Ensure ANTLR & .NET toolchain available (verify `dotnet --version`, Java 17+) (no code change)
+- [x] T002 Create benchmark fixture placeholder `test/perf/TripleParseBaseline.cs` (will remain failing until populated)
 
 ## Phase 3.2: Tests First (Grammar & AST) ⚠️ MUST FAIL INITIALLY
-- [ ] T003 Add valid triple literal samples in `src/parser/grammar/test_samples/triple_valid_01.5th` (simple IRIs)
-- [ ] T004 [P] Add valid list expansion sample `triple_valid_list_01.5th`
-- [ ] T005 [P] Add invalid nested list sample `triple_invalid_nested_01.5th` expecting TRPL006
-- [ ] T006 [P] Add invalid arity samples `<s,p>` and `<s,p,o,x>` `triple_invalid_arity_01.5th` expecting TRPL001
-- [ ] T007 [P] Add invalid trailing comma sample `triple_invalid_trailing_01.5th` expecting parse error → TRPL001
-- [ ] T008 [P] Add ambiguous `<{` vs `<s,p,o>` separation sample to ensure graph assertion unaffected
-- [ ] T009 Create AST test `test/ast-tests/TripleLiteralAstTests.cs` (assert node kinds, subject/predicate variable acceptance)
-- [ ] T010 [P] Add AST test for list expansion placeholder (will fail until expansion pass) `TripleLiteralExpansionTests.cs`
-- [ ] T011 Add diagnostic test skeletons for TRPL001–TRPL006 in `test/syntax-parser-tests/TripleDiagnosticsTests.cs`
-- [ ] T011 Add diagnostic test skeletons for TRPL001–TRPL006 in `test/syntax-parser-tests/TripleDiagnosticsTests.cs`
-- [ ] T011A Add unresolved prefix negative test sample `triple_invalid_prefix_01.5th` asserting existing unresolved-prefix diagnostic (FR-023)
+- [x] T003 Add valid triple literal samples in `src/parser/grammar/test_samples/triple_valid_01.5th` (simple IRIs)
+- [x] T004 [P] Add valid list expansion sample `triple_valid_list_01.5th`
+- [x] T005 [P] Add invalid nested list sample `triple_invalid_nested_01.5th` expecting TRPL006
+- [x] T006 [P] Add invalid arity samples `<s,p>` and `<s,p,o,x>` `triple_invalid_arity_01.5th` expecting TRPL001
+- [x] T007 [P] Add invalid trailing comma sample `triple_invalid_trailing_01.5th` expecting parse error → TRPL001
+- [x] T008 [P] Add ambiguous `<{` vs `<s,p,o>` separation sample to ensure graph assertion unaffected
+- [x] T009 Create AST test `test/ast-tests/TripleLiteralAstTests.cs` (assert node kinds, subject/predicate variable acceptance)
+- [x] T010 [P] Add AST test for list expansion placeholder (will fail until expansion pass) `TripleLiteralExpansionTests.cs`
+- [x] T011 Add diagnostic test skeletons for TRPL001–TRPL006 in `test/syntax-parser-tests/TripleDiagnosticsTests.cs`
+- [x] T011A Add unresolved prefix negative test sample `triple_invalid_prefix_01.5th` asserting existing unresolved-prefix diagnostic (FR-023)
 
 ## Phase 3.3: Lexer & Parser Implementation
-- [ ] T012 Add `TRIPLE : 'triple';` to `src/parser/grammar/FifthLexer.g4`
-- [ ] T013 Add `MINUS_ASSIGN : '-=';` token to lexer (if absent) & integrate into tokens ordering
-- [ ] T014 Integrate `tripleLiteral` rule into `FifthParser.g4` (`literal` alt) with two comma structure
-- [ ] T015 Adjust lookahead / predicates to disambiguate `<{` vs triple (ensure no regression in existing tests)
-- [ ] T016 Run full build to regenerate ANTLR outputs (expect failing new tests now partly satisfied)
-- [ ] T017 Implement parse-tree visit logic in `src/parser/AstBuilderVisitor.cs` constructing `TripleLiteralExp`
+- [x] T012 Add `TRIPLE : 'triple';` to `src/parser/grammar/FifthLexer.g4`
+- [x] T013 Add `MINUS_ASSIGN : '-=';` token to lexer (if absent) & integrate into tokens ordering
+- [x] T014 Integrate `tripleLiteral` rule into `FifthParser.g4` (`literal` alt) with two comma structure
+- [x] T015 Adjust lookahead / predicates to disambiguate `<{` vs triple (ensure no regression in existing tests)
+- [x] T016 Run full build to regenerate ANTLR outputs (expect failing new tests now partly satisfied)
+- [x] T017 Implement parse-tree visit logic in `src/parser/AstBuilderVisitor.cs` constructing `TripleLiteralExp`
 
 ## Phase 3.4: AST / Metamodel Adjustments
 - [ ] T018 Confirm `TripleLiteralExp` exists in `src/ast-model/AstMetamodel.cs` (no change expected) else add and regenerate
