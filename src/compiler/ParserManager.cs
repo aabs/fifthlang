@@ -29,8 +29,9 @@ public static class FifthParserManager
         GraphAssertionLowering = 12,
         TripleDiagnostics = 13,
         TripleExpansion = 14,
-        SymbolTableFinal = 15,
-        TypeAnnotation = 16,
+        GraphTripleOperatorLowering = 15,
+        SymbolTableFinal = 16,
+        TypeAnnotation = 17,
         All = TypeAnnotation
     }
 
@@ -147,6 +148,9 @@ public static class FifthParserManager
         {
             ast = new TripleExpansionVisitor(diagnostics).Visit(ast);
         }
+
+        if (upTo >= AnalysisPhase.GraphTripleOperatorLowering)
+            ast = new GraphTripleOperatorLoweringVisitor().Visit(ast);
 
         if (upTo >= AnalysisPhase.SymbolTableFinal)
             ast = new SymbolTableBuilderVisitor().Visit(ast);

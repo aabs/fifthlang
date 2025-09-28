@@ -37,7 +37,7 @@
 - [x] T022 Implement `TripleLiteralExpansionVisitor.cs` under `src/compiler/LanguageTransformations/`  # implemented: expansion visitor added and wired in ParserManager
 - [x] T023 Implement empty list warning TRPL004 emission in expansion visitor  # implemented: TRPL004 emitted for empty list objects
 - [x] T024 Implement nested list TRPL006 error detection in expansion visitor  # implemented: TRPL006 emitted for nested list objects
-- [ ] T025 Implement `GraphTripleOperatorLoweringVisitor.cs` handling +,- between graphs/triples (non-mutating)
+- [x] T025 Implement `GraphTripleOperatorLoweringVisitor.cs` handling +,- between graphs/triples (non-mutating)
 - [ ] T026 Add structural dedupe logic (or rely on KG helpers) ensuring single instance after union
 - [ ] T026A Add operator invalid-combination tests (`triple - graph`, `triple * 2`, `!<...>`) asserting type errors (covers FR-012/013)
 

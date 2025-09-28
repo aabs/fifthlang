@@ -329,6 +329,21 @@ public static class KG
     }
 
     /// <summary>
+    /// Produce a non-mutating graph representing the difference between a and b (a \ b)
+    /// </summary>
+    [BuiltinFunction]
+    public static IGraph Difference(IGraph a, IGraph b)
+    {
+        var result = new Graph();
+        result.Merge(a);
+        foreach (var t in b.Triples)
+        {
+            result.Retract(t);
+        }
+        return result;
+    }
+
+    /// <summary>
     /// Returns the number of triples in the given graph.
     /// </summary>
     /// <param name="g">the graph to inspect.</param>
