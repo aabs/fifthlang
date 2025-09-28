@@ -1065,7 +1065,12 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         // Subject, predicate, object expressions each visitable via helper
         var subj = ToUriLike((ParserRuleContext)context.tripleSubject);
         var pred = ToUriLike((ParserRuleContext)context.triplePredicate);
-        var obj = (Expression)Visit(context.tripleObject);
+        Expression obj = Visit(context.tripleObject) as Expression;
+        if (obj == null && context.tripleObject is ParserRuleContext prc)
+        {
+            // Fallback: treat as URI-like if we failed to produce an expression (e.g. prefixed form)
+            obj = ToUriLike(prc);
+        }
 
         var triple = new Triple
         {
@@ -1153,6 +1158,20 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             Type = null,
             Value = TryMakeUri(text)
         };
+    }
+
+    public override IAstThing VisitTripleObjectTerm(FifthParser.TripleObjectTermContext context)
+    {
+        // If the object term is an IRI-like token (prefixed form) produce a UriLiteralExp directly.
+        if (context.ChildCount == 1 && context.GetChild(0) is ParserRuleContext prc)
+        {
+            var text = prc.GetText();
+            if ((text.StartsWith("<") && text.EndsWith(">")) || text.Contains(':'))
+            {
+                return ToUriLike(prc);
+            }
+        }
+        return base.VisitTripleObjectTerm(context);
     }
 
     private Uri TryMakeUri(string raw)
