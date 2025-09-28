@@ -29,6 +29,33 @@ public class TripleLiteralExpansionTests
     {
         const string code = "alias ex as <http://example.org/>;\nmain(): int { <ex:s, ex:p, []>; return 0; }";
         var result = ParseHarnessed(code);
+        // DEBUG: print diagnostics to help determine whether TRPL004 is emitted
+        Console.WriteLine("Diagnostics codes: " + string.Join(",", result.Diagnostics.Select(d => d.Code)));
+        // DEBUG: inspect main function RHS expression types
+        if (result.Root is AssemblyDef asm)
+        {
+            var main = asm.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
+            if (main?.Body != null)
+            {
+                foreach (var stmt in main.Body.Statements)
+                {
+                    if (stmt is ExpStatement es)
+                    {
+                        Console.WriteLine($"Main RHS expression type: {es.RHS?.GetType().Name}");
+                        if (es.RHS is TripleLiteralExp tle)
+                        {
+                            Console.WriteLine($" - Triple object type: {tle.ObjectExp?.GetType().Name}");
+                            if (tle.ObjectExp is ListLiteral ll)
+                                Console.WriteLine($" - List element count: {ll.ElementExpressions?.Count}");
+                        }
+                        if (es.RHS is MalformedTripleExp mte)
+                        {
+                            Console.WriteLine($" - Malformed triple kind: {mte.MalformedKind}; components: {mte.Components?.Count}");
+                        }
+                    }
+                }
+            }
+        }
         result.Diagnostics.Select(d => d.Code).Should().Contain("TRPL004", "empty list triple object should emit TRPL004 warning");
         var triples = FindTriples((AssemblyDef)result.Root!);
         triples.Count.Should().Be(0, "empty list object expands to zero triples");

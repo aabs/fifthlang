@@ -38,6 +38,11 @@ public static class FifthParserManager
 
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, AnalysisPhase upTo = AnalysisPhase.All)
     {
+        if (DebugEnabled)
+        {
+            Console.WriteLine($"DEBUG: ApplyLanguageAnalysisPhases called upTo={upTo}; diagnosticsProvided={(diagnostics != null)}");
+        }
+
         ArgumentNullException.ThrowIfNull(ast);
 
         try
@@ -145,7 +150,7 @@ public static class FifthParserManager
 
         if (upTo >= AnalysisPhase.TripleExpansion)
         {
-            ast = new TripleExpansionVisitor().Visit(ast);
+            ast = new TripleExpansionVisitor(diagnostics).Visit(ast);
         }
 
         if (upTo >= AnalysisPhase.SymbolTableFinal)
