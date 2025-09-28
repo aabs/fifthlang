@@ -1448,6 +1448,7 @@ public class GraphAssertionBlockStatementBuilder : IBuilder<ast.GraphAssertionBl
 }
 public class AssertionStatementBuilder : IBuilder<ast.AssertionStatement>
 {
+    private ast.TripleLiteralExp _Assertion;
     private ast.AssertionSubject _AssertionSubject;
     private ast.AssertionPredicate _AssertionPredicate;
     private ast.AssertionObject _AssertionObject;
@@ -1456,12 +1457,18 @@ public class AssertionStatementBuilder : IBuilder<ast.AssertionStatement>
     public ast.AssertionStatement Build()
     {
         return new ast.AssertionStatement(){
-             AssertionSubject = this._AssertionSubject // from AssertionStatement
+             Assertion = this._Assertion // from AssertionStatement
+           , AssertionSubject = this._AssertionSubject // from AssertionStatement
            , AssertionPredicate = this._AssertionPredicate // from AssertionStatement
            , AssertionObject = this._AssertionObject // from AssertionStatement
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
+    public AssertionStatementBuilder WithAssertion(ast.TripleLiteralExp value){
+        _Assertion = value;
+        return this;
+    }
+
     public AssertionStatementBuilder WithAssertionSubject(ast.AssertionSubject value){
         _AssertionSubject = value;
         return this;
@@ -2194,17 +2201,17 @@ public class AtomBuilder : IBuilder<ast.Atom>
     }
 
 }
-public class TripleBuilder : IBuilder<ast.Triple>
+public class TripleLiteralExpBuilder : IBuilder<ast.TripleLiteralExp>
 {
     private Dictionary<System.String, System.Object> _Annotations;
     
-    public ast.Triple Build()
+    public ast.TripleLiteralExp Build()
     {
-        return new ast.Triple(){
+        return new ast.TripleLiteralExp(){
              Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public TripleBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+    public TripleLiteralExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }

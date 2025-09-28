@@ -626,10 +626,10 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
         return result;
     }
 
-    public override Triple VisitTriple(Triple ctx)
+    public override TripleLiteralExp VisitTripleLiteralExp(TripleLiteralExp ctx)
     {
         EnterNonTerminal(ctx);
-        var result = base.VisitTriple(ctx);
+        var result = base.VisitTripleLiteralExp(ctx);
         LeaveNonTerminal(ctx);
         return result;
     }

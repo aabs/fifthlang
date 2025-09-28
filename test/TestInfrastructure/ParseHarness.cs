@@ -139,7 +139,7 @@ public static class ParseHarness
     }
 
     // --- Triple traversal helper utilities (merged from ast-tests harness) ---
-    public static IEnumerable<Triple> FindTriples(AssemblyDef? root)
+    public static IEnumerable<TripleLiteralExp> FindTriples(AssemblyDef? root)
     {
         if (root == null) yield break;
         foreach (var module in root.Modules)
@@ -151,7 +151,7 @@ public static class ParseHarness
         }
     }
 
-    private static IEnumerable<Triple> FindTriplesInBlock(BlockStatement block)
+    private static IEnumerable<TripleLiteralExp> FindTriplesInBlock(BlockStatement block)
     {
         foreach (var stmt in block.Statements)
         {
@@ -159,7 +159,7 @@ public static class ParseHarness
         }
     }
 
-    private static IEnumerable<Triple> FindTriplesInStatement(Statement stmt)
+    private static IEnumerable<TripleLiteralExp> FindTriplesInStatement(Statement stmt)
     {
         switch (stmt)
         {
@@ -172,9 +172,9 @@ public static class ParseHarness
         }
     }
 
-    private static IEnumerable<Triple> FindTriplesInExpression(Expression expr)
+    private static IEnumerable<TripleLiteralExp> FindTriplesInExpression(Expression expr)
     {
-        if (expr is Triple tr) { yield return tr; yield break; }
+        if (expr is TripleLiteralExp tr) { yield return tr; yield break; }
         switch (expr)
         {
             case BinaryExp be:

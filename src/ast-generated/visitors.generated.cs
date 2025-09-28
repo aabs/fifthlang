@@ -150,8 +150,8 @@ public interface IAstVisitor
     public void LeaveListComprehension(ListComprehension ctx);
     public void EnterAtom(Atom ctx);
     public void LeaveAtom(Atom ctx);
-    public void EnterTriple(Triple ctx);
-    public void LeaveTriple(Triple ctx);
+    public void EnterTripleLiteralExp(TripleLiteralExp ctx);
+    public void LeaveTripleLiteralExp(TripleLiteralExp ctx);
     public void EnterMalformedTripleExp(MalformedTripleExp ctx);
     public void LeaveMalformedTripleExp(MalformedTripleExp ctx);
     public void EnterGraph(Graph ctx);
@@ -306,8 +306,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveListComprehension(ListComprehension ctx){}
     public virtual void EnterAtom(Atom ctx){}
     public virtual void LeaveAtom(Atom ctx){}
-    public virtual void EnterTriple(Triple ctx){}
-    public virtual void LeaveTriple(Triple ctx){}
+    public virtual void EnterTripleLiteralExp(TripleLiteralExp ctx){}
+    public virtual void LeaveTripleLiteralExp(TripleLiteralExp ctx){}
     public virtual void EnterMalformedTripleExp(MalformedTripleExp ctx){}
     public virtual void LeaveMalformedTripleExp(MalformedTripleExp ctx){}
     public virtual void EnterGraph(Graph ctx){}
@@ -391,7 +391,7 @@ public interface IAstRecursiveDescentVisitor
     public ListLiteral VisitListLiteral(ListLiteral ctx);
     public ListComprehension VisitListComprehension(ListComprehension ctx);
     public Atom VisitAtom(Atom ctx);
-    public Triple VisitTriple(Triple ctx);
+    public TripleLiteralExp VisitTripleLiteralExp(TripleLiteralExp ctx);
     public MalformedTripleExp VisitMalformedTripleExp(MalformedTripleExp ctx);
     public Graph VisitGraph(Graph ctx);
 }
@@ -475,7 +475,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              ListLiteral node => VisitListLiteral(node),
              ListComprehension node => VisitListComprehension(node),
              Atom node => VisitAtom(node),
-             Triple node => VisitTriple(node),
+             TripleLiteralExp node => VisitTripleLiteralExp(node),
              MalformedTripleExp node => VisitMalformedTripleExp(node),
              Graph node => VisitGraph(node),
 
@@ -723,7 +723,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual AssertionStatement VisitAssertionStatement(AssertionStatement ctx)
     {
      return ctx with {
-         Assertion = (ast.Triple)Visit((AstThing)ctx.Assertion)
+         Assertion = (ast.TripleLiteralExp)Visit((AstThing)ctx.Assertion)
         ,AssertionSubject = (ast.AssertionSubject)Visit((AstThing)ctx.AssertionSubject)
         ,AssertionPredicate = (ast.AssertionPredicate)Visit((AstThing)ctx.AssertionPredicate)
         ,AssertionObject = (ast.AssertionObject)Visit((AstThing)ctx.AssertionObject)
@@ -941,7 +941,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
          AtomExp = (ast.AtomLiteralExp)Visit((AstThing)ctx.AtomExp)
         };
     }
-    public virtual Triple VisitTriple(Triple ctx)
+    public virtual TripleLiteralExp VisitTripleLiteralExp(TripleLiteralExp ctx)
     {
      return ctx with {
          SubjectExp = (ast.UriLiteralExp)Visit((AstThing)ctx.SubjectExp)
@@ -959,8 +959,8 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     }
     public virtual Graph VisitGraph(Graph ctx)
     {
-        List<ast.Triple> tmpTriples = [];
-        tmpTriples.AddRange(ctx.Triples.Select(x => (ast.Triple)Visit(x)));
+        List<ast.TripleLiteralExp> tmpTriples = [];
+        tmpTriples.AddRange(ctx.Triples.Select(x => (ast.TripleLiteralExp)Visit(x)));
      return ctx with {
          GraphUri = (ast.UriLiteralExp)Visit((AstThing)ctx.GraphUri)
         ,Triples = tmpTriples

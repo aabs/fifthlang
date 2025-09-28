@@ -631,7 +631,7 @@ public abstract record KnowledgeManagementStatement : Statement
 /// </summary>
 public record AssertionStatement : Statement
 {
-    public Triple Assertion { get; set; }
+    public required TripleLiteralExp Assertion { get; set; }
 
     // the use of a triple is one approach.  The division into separate objects, below, may be more powerful
 
@@ -878,7 +878,7 @@ public record Atom : Expression
     public AtomLiteralExp AtomExp { get; set; }
 }
 
-public record Triple : Expression
+public record TripleLiteralExp : Expression
 {
     public UriLiteralExp SubjectExp { get; set; }
     public UriLiteralExp PredicateExp { get; set; }
@@ -901,7 +901,7 @@ public record MalformedTripleExp : Expression
 public record Graph : Expression
 {
     public UriLiteralExp GraphUri { get; set; }
-    public List<Triple> Triples { get; set; }
+    public List<TripleLiteralExp> Triples { get; set; }
 }
 
 #endregion Expressions
