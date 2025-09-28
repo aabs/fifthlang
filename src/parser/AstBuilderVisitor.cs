@@ -779,9 +779,12 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var b = new ListLiteralBuilder()
             .WithAnnotations([]);
-        foreach (var exp in context.expressionList()._expressions)
+        if (context.expressionList() is not null)
         {
-            b.AddingItemToElementExpressions((Expression)Visit(exp));
+            foreach (var exp in context.expressionList()._expressions)
+            {
+                b.AddingItemToElementExpressions((Expression)Visit(exp));
+            }
         }
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
@@ -1082,6 +1085,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             Parent = null,
             Type = null
         };
+        // DEBUG: report object expression type during triple construction
+        Console.WriteLine($"DEBUG: AstBuilderVisitor constructed TripleLiteralExp with ObjectExp type={triple.ObjectExp?.GetType().Name}");
         return triple;
     }
 
@@ -1138,7 +1143,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
         return new MalformedTripleExp
         {
-            Annotations = new Dictionary<string, object> { ["Kind"] = kind },
+            Annotations = new Dictionary<string, object> { ["Kind"] = kind, ["OriginalText"] = ctx.GetText() },
             MalformedKind = kind,
             Components = components, // ensure non-null to satisfy generated visitor enumeration
             Location = GetLocationDetails(ctx),

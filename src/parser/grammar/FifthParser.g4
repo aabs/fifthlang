@@ -115,7 +115,7 @@ list: L_BRACKET body = list_body R_BRACKET;
 
 list_body: list_literal | list_comprehension;
 
-list_literal: expressionList;
+list_literal: expressionList?;
 
 list_comprehension:
 	varname = var_name IN source = expression (
@@ -187,7 +187,7 @@ operand:
 // matches '<' IDENTIFIER ':' IDENTIFIER ',' before treating as triple
 tripleExpression:
 	{ InputStream.LA(1) == LESS && InputStream.LA(2) == IDENTIFIER && InputStream.LA(3) == COLON && InputStream.LA(4) == IDENTIFIER && InputStream.LA(5) == COMMA 
-		}? (malformedTripleLiteral | tripleLiteral);
+		}? (tripleLiteral | malformedTripleLiteral);
 
 object_instantiation_expression:
 	NEW type_name (

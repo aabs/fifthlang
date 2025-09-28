@@ -8,6 +8,13 @@ namespace compiler.LanguageTransformations;
 /// </summary>
 public sealed class TripleExpansionVisitor : DefaultRecursiveDescentVisitor
 {
+    private readonly List<compiler.Diagnostic>? _diagnostics;
+
+    public TripleExpansionVisitor(List<compiler.Diagnostic>? diagnostics = null)
+    {
+        _diagnostics = diagnostics;
+    }
+
     public override BlockStatement VisitBlockStatement(BlockStatement ctx)
     {
         // First visit children normally
@@ -51,8 +58,25 @@ public sealed class TripleExpansionVisitor : DefaultRecursiveDescentVisitor
         }
         if (triple.ObjectExp is ListLiteral ll && ll.ElementExpressions.Count == 0)
         {
-            // Empty list -> becomes empty list literal (no triples)
+            // Empty list -> becomes empty list literal (no triples) and emit warning TRPL004
+            _diagnostics?.Add(new compiler.Diagnostic(
+                compiler.DiagnosticLevel.Warning,
+                "Empty list in triple object produces no triples.",
+                null,
+                "TRPL004"));
+            Console.WriteLine("DEBUG: Emitted TRPL004 from TripleExpansionVisitor");
             return new ListLiteral { ElementExpressions = new List<Expression>() };
+        }
+        if (triple.ObjectExp is ListLiteral ll2 && ll2.ElementExpressions.Any(e => e is ListLiteral))
+        {
+            // Nested list found -> emit error TRPL006 and leave triple unchanged for further handling
+            _diagnostics?.Add(new compiler.Diagnostic(
+                compiler.DiagnosticLevel.Error,
+                "Nested lists not allowed in triple object.",
+                null,
+                "TRPL006"));
+            Console.WriteLine("DEBUG: Emitted TRPL006 from TripleExpansionVisitor");
+            return triple;
         }
         return triple;
     }
