@@ -27,9 +27,9 @@ public class TripleLiteralDebugTests
         Console.WriteLine($"Found {triples.Count} Triple nodes");
     }
 
-    private static IList<Triple> FindTriples(AssemblyDef root)
+    private static IList<TripleLiteralExp> FindTriples(AssemblyDef root)
     {
-        var list = new List<Triple>();
+        var list = new List<TripleLiteralExp>();
         foreach (var m in root.Modules)
         {
             foreach (var f in m.Functions.OfType<FunctionDef>())
@@ -39,7 +39,7 @@ public class TripleLiteralDebugTests
                 {
                     foreach (var e in Descend(s))
                     {
-                        if (e is Triple t) list.Add(t);
+                        if (e is TripleLiteralExp t) list.Add(t);
                     }
                 }
             }
@@ -58,7 +58,7 @@ public class TripleLiteralDebugTests
                 foreach (var e in Descend(es.RHS)) yield return e; break;
             case VarDeclStatement vds:
                 if (vds.InitialValue != null) foreach (var e in Descend(vds.InitialValue)) yield return e; break;
-            case Triple t:
+            case TripleLiteralExp t:
                 yield return t; break;
             case BinaryExp be:
                 foreach (var e in Descend(be.LHS)) yield return e; foreach (var e in Descend(be.RHS)) yield return e; break;

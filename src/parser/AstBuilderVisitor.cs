@@ -1072,7 +1072,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             obj = ToUriLike(prc);
         }
 
-        var triple = new Triple
+        var triple = new TripleLiteralExp
         {
             Annotations = new Dictionary<string, object> { ["Kind"] = "TripleLiteral" },
             SubjectExp = subj,

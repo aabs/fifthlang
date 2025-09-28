@@ -16,32 +16,28 @@ public sealed class TripleDiagnosticsVisitor : NullSafeRecursiveDescentVisitor
         _diagnostics = diagnostics;
     }
 
-    public override Triple VisitTriple(Triple t)
-    {
-        // TRPL004: empty list object
-        if (t.ObjectExp is ListLiteral ll && ll.ElementExpressions.Count == 0)
-        {
-            _diagnostics?.Add(new compiler.Diagnostic(
-                compiler.DiagnosticLevel.Warning,
-                "Empty list in triple object produces no triples.",
-                null,
-                Code: "TRPL004"));
-        }
-        // TRPL006: nested list
-        if (t.ObjectExp is ListLiteral outer && outer.ElementExpressions.Any(e => e is ListLiteral))
-        {
-            _diagnostics?.Add(new compiler.Diagnostic(
-                compiler.DiagnosticLevel.Error,
-                "Nested lists not allowed in triple object.",
-                null,
-                Code: "TRPL006"));
-        }
-        return t;
-    }
-
     public override AstThing Visit(AstThing node)
     {
-        if (node is MalformedTripleExp malformed)
+        if (node is TripleLiteralExp t)
+        {
+            if (t.ObjectExp is ListLiteral ll && ll.ElementExpressions.Count == 0)
+            {
+                _diagnostics?.Add(new compiler.Diagnostic(
+                    compiler.DiagnosticLevel.Warning,
+                    "Empty list in triple object produces no triples.",
+                    null,
+                    Code: "TRPL004"));
+            }
+            if (t.ObjectExp is ListLiteral outer && outer.ElementExpressions.Any(e => e is ListLiteral))
+            {
+                _diagnostics?.Add(new compiler.Diagnostic(
+                    compiler.DiagnosticLevel.Error,
+                    "Nested lists not allowed in triple object.",
+                    null,
+                    Code: "TRPL006"));
+            }
+        }
+        else if (node is MalformedTripleExp malformed)
         {
             var (msg, code) = malformed.MalformedKind switch
             {

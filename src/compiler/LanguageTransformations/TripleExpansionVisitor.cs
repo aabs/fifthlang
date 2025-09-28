@@ -17,10 +17,10 @@ public sealed class TripleExpansionVisitor : DefaultRecursiveDescentVisitor
         {
             switch (visited.Statements[i])
             {
-                case VarDeclStatement vds when vds.InitialValue is Triple t:
+                case VarDeclStatement vds when vds.InitialValue is TripleLiteralExp t:
                     vds.InitialValue = ExpandTripleIfNeeded(t);
                     break;
-                case ExpStatement es when es.RHS is Triple t2:
+                case ExpStatement es when es.RHS is TripleLiteralExp t2:
                     es.RHS = ExpandTripleIfNeeded(t2);
                     break;
                 case VarDeclStatement vds2 when vds2.InitialValue is MalformedTripleExp:
@@ -37,11 +37,11 @@ public sealed class TripleExpansionVisitor : DefaultRecursiveDescentVisitor
         return visited;
     }
 
-    private Expression ExpandTripleIfNeeded(Triple triple)
+    private Expression ExpandTripleIfNeeded(TripleLiteralExp triple)
     {
         if (triple.ObjectExp is ListLiteral list && list.ElementExpressions.Count > 0 && !list.ElementExpressions.Any(e => e is ListLiteral))
         {
-            var expanded = list.ElementExpressions.Select(obj => new Triple
+            var expanded = list.ElementExpressions.Select(obj => new TripleLiteralExp
             {
                 SubjectExp = triple.SubjectExp,
                 PredicateExp = triple.PredicateExp,

@@ -34,12 +34,12 @@ public class TripleLiteralExpansionTests
         triples.Count.Should().Be(0, "empty list object expands to zero triples");
     }
 
-    private static IList<Triple> FindTriples(AssemblyDef root)
+    private static IList<TripleLiteralExp> FindTriples(AssemblyDef root)
     {
         return root.Modules
             .SelectMany(m => m.Functions.OfType<FunctionDef>())
             .SelectMany(DescendFunction)
-            .OfType<Triple>()
+            .OfType<TripleLiteralExp>()
             .ToList();
     }
 
@@ -77,7 +77,7 @@ public class TripleLiteralExpansionTests
 
     private static IEnumerable<ast.Expression> DescendExpression(Expression expr)
     {
-        if (expr is Triple t)
+        if (expr is TripleLiteralExp t)
         {
             yield return t;
             yield break;
