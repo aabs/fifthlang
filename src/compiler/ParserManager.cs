@@ -38,10 +38,7 @@ public static class FifthParserManager
 
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, AnalysisPhase upTo = AnalysisPhase.All)
     {
-        if (DebugEnabled)
-        {
-            Console.WriteLine($"DEBUG: ApplyLanguageAnalysisPhases called upTo={upTo}; diagnosticsProvided={(diagnostics != null)}");
-        }
+        // Apply language analysis phases (no debug console output)
 
         ArgumentNullException.ThrowIfNull(ast);
 
@@ -54,8 +51,8 @@ public static class FifthParserManager
         {
             if (DebugEnabled)
             {
-                Console.Error.WriteLine($"=== DEBUG: TreeLinkageVisitor failed with: {ex.Message} ===");
-                Console.Error.WriteLine($"=== DEBUG: Stack trace: {ex.StackTrace} ===");
+                Console.Error.WriteLine($"TreeLinkageVisitor failed with: {ex.Message}");
+                Console.Error.WriteLine($"Stack trace: {ex.StackTrace}");
             }
             throw;
         }
@@ -78,8 +75,8 @@ public static class FifthParserManager
         {
             if (DebugEnabled)
             {
-                Console.Error.WriteLine($"=== DEBUG: PropertyToFieldExpander failed with: {ex.Message} ===");
-                Console.Error.WriteLine($"=== DEBUG: Stack trace: {ex.StackTrace} ===");
+                Console.Error.WriteLine($"PropertyToFieldExpander failed with: {ex.Message}");
+                Console.Error.WriteLine($"Stack trace: {ex.StackTrace}");
             }
             throw;
         }

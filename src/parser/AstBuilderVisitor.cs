@@ -662,7 +662,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"DEBUG: Failed to capture store declarations: {ex.Message}");
+            Console.Error.WriteLine($"Failed to capture store declarations: {ex.Message}");
         }
 
         // Collect colon-form graph declarations by scanning function bodies (coarse approach for now)
@@ -681,7 +681,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"DEBUG: Failed (non-fatal) to collect graph declarations: {ex.Message}");
+            Console.Error.WriteLine($"Failed (non-fatal) to collect graph declarations: {ex.Message}");
         }
 
         b.AddingItemToModules(module);
@@ -1085,8 +1085,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             Parent = null,
             Type = null
         };
-        // DEBUG: report object expression type during triple construction
-        Console.WriteLine($"DEBUG: AstBuilderVisitor constructed TripleLiteralExp with ObjectExp type={triple.ObjectExp?.GetType().Name}");
+        // triple constructed; no debug console output in test runs
         return triple;
     }
 

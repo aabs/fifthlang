@@ -57,8 +57,6 @@ public static class ParseHarness
         var diagnostics = new List<TestDiagnostic>();
 
         var input = new AntlrInputStream(source);
-        // DEBUG: show truncated source for troubleshooting
-        Console.WriteLine($"DEBUG: ParseHarness parsing source (truncated): {source.Substring(0, Math.Min(120, source.Length)).Replace("\n", "\\n")}...");
         var lexer = new FifthLexer(input);
         lexer.RemoveErrorListeners();
         lexer.AddErrorListener(new CollectingErrorListener(diagnostics));
@@ -86,14 +84,7 @@ public static class ParseHarness
             swPhases.Stop();
             phasesTime = swPhases.Elapsed;
 
-            // DEBUG: report phase diagnostics count and codes to aid debugging
-            Console.WriteLine($"DEBUG: Phase diagnostics count: {compDiags.Count}");
-            if (compDiags.Count > 0)
-            {
-                Console.WriteLine("Phase diagnostics codes: " + string.Join(",", compDiags.Select(d => d.Code ?? string.Empty)));
-            }
-
-            // Map compiler diagnostics that are triple-related into harness diagnostics list
+            // Phase diagnostics are merged into harness result (no console logging)
             foreach (var d in compDiags)
             {
                 var codeCandidate = d.Code ?? string.Empty;

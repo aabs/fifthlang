@@ -18,8 +18,7 @@ public sealed class TripleDiagnosticsVisitor : NullSafeRecursiveDescentVisitor
 
     public override AstThing Visit(AstThing node)
     {
-        Console.WriteLine($"DEBUG: TripleDiagnosticsVisitor.Visit nodeType={node?.GetType().Name}");
-        var result = base.Visit(node);
+        var result = base.Visit(node) as AstThing;
         if (result is TripleLiteralExp t)
         {
             if (t.ObjectExp is ListLiteral ll && (ll.ElementExpressions == null || ll.ElementExpressions.Count == 0))
@@ -29,7 +28,7 @@ public sealed class TripleDiagnosticsVisitor : NullSafeRecursiveDescentVisitor
                     "Empty list in triple object produces no triples.",
                     null,
                     Code: "TRPL004"));
-                if (_diagnostics != null) Console.WriteLine("DEBUG: TripleDiagnosticsVisitor added TRPL004");
+                // Diagnostic(s) added to the shared diagnostics list (no console logging in tests)
             }
             if (t.ObjectExp is ListLiteral outer && outer.ElementExpressions != null && outer.ElementExpressions.Any(e => e is ListLiteral))
             {
@@ -38,7 +37,7 @@ public sealed class TripleDiagnosticsVisitor : NullSafeRecursiveDescentVisitor
                     "Nested lists not allowed in triple object.",
                     null,
                     Code: "TRPL006"));
-                if (_diagnostics != null) Console.WriteLine("DEBUG: TripleDiagnosticsVisitor added TRPL006");
+                // Diagnostic(s) added to the shared diagnostics list (no console logging in tests)
             }
         }
         else if (result is MalformedTripleExp malformed)
@@ -51,7 +50,7 @@ public sealed class TripleDiagnosticsVisitor : NullSafeRecursiveDescentVisitor
                     "Empty list in triple object produces no triples.",
                     null,
                     Code: "TRPL004"));
-                if (_diagnostics != null) Console.WriteLine("DEBUG: TripleDiagnosticsVisitor added TRPL004 (from malformed missingObject with [] text)");
+                // Diagnostic(s) added to the shared diagnostics list (no console logging in tests)
             }
             else
             {
@@ -67,7 +66,7 @@ public sealed class TripleDiagnosticsVisitor : NullSafeRecursiveDescentVisitor
                     msg,
                     null,
                     Code: code));
-                if (_diagnostics != null) Console.WriteLine($"DEBUG: TripleDiagnosticsVisitor added {code}");
+                // Diagnostic(s) added to the shared diagnostics list (no console logging in tests)
             }
         }
         return result;
