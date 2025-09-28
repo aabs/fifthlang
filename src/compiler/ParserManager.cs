@@ -4,15 +4,13 @@ using compiler.LanguageTransformations;
 using compiler.Validation.GuardValidation;
 using Fifth;
 using Fifth.LangProcessingPhases;
+using static Fifth.DebugHelpers;
 
 namespace compiler;
 
 public static class FifthParserManager
 {
-    private static bool DebugEnabled =>
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("1", StringComparison.Ordinal) ||
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("true", StringComparison.OrdinalIgnoreCase) ||
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("on", StringComparison.OrdinalIgnoreCase);
+    // DebugEnabled and DebugLog are provided by shared DebugHelpers (imported statically above)
 
     public enum AnalysisPhase
     {
@@ -49,10 +47,10 @@ public static class FifthParserManager
         }
         catch (System.Exception ex)
         {
-            if (DebugEnabled)
+            if (DebugHelpers.DebugEnabled)
             {
-                Console.Error.WriteLine($"TreeLinkageVisitor failed with: {ex.Message}");
-                Console.Error.WriteLine($"Stack trace: {ex.StackTrace}");
+                DebugHelpers.DebugLog($"TreeLinkageVisitor failed with: {ex.Message}");
+                DebugHelpers.DebugLog($"Stack trace: {ex.StackTrace}");
             }
             throw;
         }
@@ -73,10 +71,10 @@ public static class FifthParserManager
         }
         catch (System.Exception ex)
         {
-            if (DebugEnabled)
+            if (DebugHelpers.DebugEnabled)
             {
-                Console.Error.WriteLine($"PropertyToFieldExpander failed with: {ex.Message}");
-                Console.Error.WriteLine($"Stack trace: {ex.StackTrace}");
+                DebugHelpers.DebugLog($"PropertyToFieldExpander failed with: {ex.Message}");
+                DebugHelpers.DebugLog($"Stack trace: {ex.StackTrace}");
             }
             throw;
         }
@@ -98,11 +96,11 @@ public static class FifthParserManager
                     diagnostics.Add(diagnostic);
                 }
             }
-            else if (DebugEnabled)
+            else if (DebugHelpers.DebugEnabled)
             {
                 foreach (var diagnostic in guardValidator.Diagnostics)
                 {
-                    Console.Error.WriteLine($"=== GUARD VALIDATION: {diagnostic.Level}: {diagnostic.Message} ===");
+                    DebugHelpers.DebugLog($"=== GUARD VALIDATION: {diagnostic.Level}: {diagnostic.Message} ===");
                 }
             }
         }

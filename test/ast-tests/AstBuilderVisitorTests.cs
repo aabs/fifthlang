@@ -67,7 +67,7 @@ public class AstBuilderVisitorTests
     public void can_parse_double_literals(double d)
     {
         var nativeRepresentation = $"{d:0.000}d";
-        if (nativeRepresentation is "infinityd" or "-infinityd" or "Infinityd" or "-Infinityd" or 
+        if (nativeRepresentation is "infinityd" or "-infinityd" or "Infinityd" or "-Infinityd" or
             "infinity" or "-infinity" or "Infinity" or "-Infinity" or
             "NaNd" or "NaN" or "\u221ed" or "-\u221ed" or "\u221E" or "-\u221E")
         {
@@ -178,11 +178,11 @@ public class AstBuilderVisitorTests
         var p = GetParserFor("class-definition.5th");
         var x = p.fifth();
         var v = new AstBuilderVisitor();
-    var a = v.Visit(x);
-    a.Should().NotBeNull();
-    a.Should().BeOfType<AssemblyDef>();
-    var ad = a as AssemblyDef ?? throw new InvalidOperationException("Expected AssemblyDef");
-    var cd = ad.Modules[0].Classes[0];
+        var a = v.Visit(x);
+        a.Should().NotBeNull();
+        a.Should().BeOfType<AssemblyDef>();
+        var ad = a as AssemblyDef ?? throw new InvalidOperationException("Expected AssemblyDef");
+        var cd = ad.Modules[0].Classes[0];
         cd.MemberDefs.Should().NotBeEmpty();
         cd.MemberDefs.All(o => o is not null).Should().BeTrue();
         cd.Type.Should().BeOfType<FifthType.TType>();
@@ -222,8 +222,8 @@ public class AstBuilderVisitorTests
         mainFunc.Name.Value.Should().Be("main");
 
         // examine the function params
-    var f = m.Functions[0] as FunctionDef ?? throw new InvalidOperationException("Expected FunctionDef");
-    f.Params.Should().HaveCount(1);
+        var f = m.Functions[0] as FunctionDef ?? throw new InvalidOperationException("Expected FunctionDef");
+        f.Params.Should().HaveCount(1);
         var pa = f.Params[0];
         pa.Name.Should().Be("i");
         pa.TypeName.Value.Should().Be("int");
@@ -243,9 +243,9 @@ public class AstBuilderVisitorTests
         f.Body.Statements.Should().HaveCount(1);
         var stmt = f.Body.Statements[0];
         stmt.Should().BeOfType<ReturnStatement>();
-    var ret = stmt as ReturnStatement ?? throw new InvalidOperationException("Expected ReturnStatement");
-    ret.ReturnValue.Should().BeOfType<StringLiteralExp>();
-    var retv = ret.ReturnValue as StringLiteralExp ?? throw new InvalidOperationException("Expected StringLiteralExp");
+        var ret = stmt as ReturnStatement ?? throw new InvalidOperationException("Expected ReturnStatement");
+        ret.ReturnValue.Should().BeOfType<StringLiteralExp>();
+        var retv = ret.ReturnValue as StringLiteralExp ?? throw new InvalidOperationException("Expected StringLiteralExp");
         retv.Value.Should().Be("\"child\"");
     }
 
@@ -262,8 +262,8 @@ public class AstBuilderVisitorTests
         var s1 = ((FunctionDef)m.Functions[0]).Body.Statements[1];
         s1.Should().NotBeNull().And
             .Subject.Should().BeOfType<IfElseStatement>();
-    var ifstmt = s1 as IfElseStatement ?? throw new InvalidOperationException("Expected IfElseStatement");
-    ifstmt.Condition.Should().NotBeNull();
+        var ifstmt = s1 as IfElseStatement ?? throw new InvalidOperationException("Expected IfElseStatement");
+        ifstmt.Condition.Should().NotBeNull();
         ifstmt.ThenBlock.Should().NotBeNull();
         ifstmt.ElseBlock.Should().BeNull();
     }
@@ -281,8 +281,8 @@ public class AstBuilderVisitorTests
         var s1 = ((FunctionDef)m.Functions[0]).Body.Statements[1];
         s1.Should().NotBeNull().And
             .Subject.Should().BeOfType<IfElseStatement>();
-    var ifstmt = s1 as IfElseStatement ?? throw new InvalidOperationException("Expected IfElseStatement");
-    ifstmt.Condition.Should().NotBeNull();
+        var ifstmt = s1 as IfElseStatement ?? throw new InvalidOperationException("Expected IfElseStatement");
+        ifstmt.Condition.Should().NotBeNull();
         ifstmt.ThenBlock.Should().NotBeNull();
         ifstmt.ElseBlock.Should().NotBeNull();
     }
@@ -300,8 +300,8 @@ public class AstBuilderVisitorTests
         var s0 = ((FunctionDef)m.Functions[0]).Body.Statements[0];
         s0.Should().NotBeNull().And
             .Subject.Should().BeOfType<VarDeclStatement>();
-    var s0vd = s0 as VarDeclStatement ?? throw new InvalidOperationException("Expected VarDeclStatement");
-    s0vd.VariableDecl.Should().NotBeNull();
+        var s0vd = s0 as VarDeclStatement ?? throw new InvalidOperationException("Expected VarDeclStatement");
+        s0vd.VariableDecl.Should().NotBeNull();
         s0vd.VariableDecl.TypeName.Value.Should().Be("int");
         s0vd.VariableDecl.CollectionType.Should().Be(CollectionType.List);
         s0vd.InitialValue.Should().NotBeNull();
@@ -321,8 +321,8 @@ public class AstBuilderVisitorTests
         var s0 = ((FunctionDef)m.Functions[0]).Body.Statements[0];
         s0.Should().NotBeNull().And
             .Subject.Should().BeOfType<VarDeclStatement>();
-    var s0vd = s0 as VarDeclStatement ?? throw new InvalidOperationException("Expected VarDeclStatement");
-    s0vd.VariableDecl.Should().NotBeNull();
+        var s0vd = s0 as VarDeclStatement ?? throw new InvalidOperationException("Expected VarDeclStatement");
+        s0vd.VariableDecl.Should().NotBeNull();
         s0vd.VariableDecl.TypeName.Value.Should().Be("int");
         s0vd.VariableDecl.CollectionType.Should().Be(CollectionType.List);
         s0vd.InitialValue.Should().NotBeNull();
@@ -342,14 +342,14 @@ public class AstBuilderVisitorTests
         var s1 = ((FunctionDef)m.Functions[0]).Body.Statements[1];
         s1.Should().NotBeNull();
         s1.Should().BeOfType<AssignmentStatement>();
-    var s1as = s1 as AssignmentStatement ?? throw new InvalidOperationException("Expected AssignmentStatement");
-    s1as.LValue.Should().BeOfType<MemberAccessExp>();
-    var s1aslv = s1as.LValue as MemberAccessExp ?? throw new InvalidOperationException("Expected MemberAccessExp");
-    s1aslv.LHS.Should().NotBeNull();
+        var s1as = s1 as AssignmentStatement ?? throw new InvalidOperationException("Expected AssignmentStatement");
+        s1as.LValue.Should().BeOfType<MemberAccessExp>();
+        var s1aslv = s1as.LValue as MemberAccessExp ?? throw new InvalidOperationException("Expected MemberAccessExp");
+        s1aslv.LHS.Should().NotBeNull();
         s1aslv.LHS.Should().BeOfType<VarRefExp>();
-    var s1aslvl = s1aslv.LHS as VarRefExp ?? throw new InvalidOperationException("Expected VarRefExp");
+        var s1aslvl = s1aslv.LHS as VarRefExp ?? throw new InvalidOperationException("Expected VarRefExp");
         s1aslvl.VarName.Should().Be("p");
-    var s1aslvr = s1aslv.RHS as VarRefExp ?? throw new InvalidOperationException("Expected VarRefExp");
+        var s1aslvr = s1aslv.RHS as VarRefExp ?? throw new InvalidOperationException("Expected VarRefExp");
         s1aslvr.VarName.Should().Be("Weight");
     }
 
@@ -391,7 +391,7 @@ public class AstBuilderVisitorTests
         var a = v.VisitStatement(x);
         a.Should().NotBeNull();
         a.Should().BeOfType<VarDeclStatement>();
-    var vds = a as VarDeclStatement ?? throw new InvalidOperationException("Expected VarDeclStatement");
+        var vds = a as VarDeclStatement ?? throw new InvalidOperationException("Expected VarDeclStatement");
         vds.VariableDecl.Should().NotBeNull();
         vds.VariableDecl.TypeName.Should().NotBeNull();
         vds.VariableDecl.TypeName.Value.Should().Be("int");
@@ -490,28 +490,28 @@ public class AstBuilderVisitorTests
     [Test]
     public void function_with_int_return_type_should_have_correct_type_annotation()
     {
-    // Initialize TypeRegistry with primitive types
-    ast_model.TypeSystem.TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
-        
+        // Initialize TypeRegistry with primitive types
+        ast_model.TypeSystem.TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
+
         var funcdefsrc = "main():int{return 42;}";
         var s = CharStreams.fromString(funcdefsrc);
         var p = GetParserFor(s);
         var x = p.function_declaration();
         x.Should().NotBeNull();
-        
+
         var v = new AstBuilderVisitor();
         var a = v.Visit(x) as FunctionDef;
         a.Should().NotBeNull();
-        
+
         // The function should have the correct name
         a.Name.Value.Should().Be("main");
-        
+
         // The return type should NOT be UnknownType
         a.ReturnType.Should().NotBeOfType<FifthType.UnknownType>();
-        
+
         // The return type should be a TDotnetType wrapping int
         a.ReturnType.Should().BeOfType<FifthType.TDotnetType>();
-        
+
         if (a.ReturnType is FifthType.TDotnetType dotnetType)
         {
             dotnetType.TheType.Should().Be(typeof(int));
@@ -527,25 +527,25 @@ public class AstBuilderVisitorTests
     [Arguments("double", typeof(double), "Double")]
     public void function_return_type_mappings_should_work_correctly(string languageTypeName, Type expectedDotnetType, string expectedTypeName)
     {
-    // Initialize TypeRegistry with primitive types
-    ast_model.TypeSystem.TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
-        
+        // Initialize TypeRegistry with primitive types
+        ast_model.TypeSystem.TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
+
         var funcdefsrc = $"test():{languageTypeName}{{return null;}}";
         var s = CharStreams.fromString(funcdefsrc);
         var p = GetParserFor(s);
         var x = p.function_declaration();
         x.Should().NotBeNull();
-        
+
         var v = new AstBuilderVisitor();
         var a = v.Visit(x) as FunctionDef;
         a.Should().NotBeNull();
-        
+
         // The return type should NOT be UnknownType
         a.ReturnType.Should().NotBeOfType<FifthType.UnknownType>();
-        
+
         // The return type should be a TDotnetType wrapping the expected type
         a.ReturnType.Should().BeOfType<FifthType.TDotnetType>();
-        
+
         if (a.ReturnType is FifthType.TDotnetType dotnetType)
         {
             dotnetType.TheType.Should().Be(expectedDotnetType);
@@ -556,8 +556,7 @@ public class AstBuilderVisitorTests
     private static string ReadEmbeddedResource(string resourceName)
     {
         Type t = typeof(AstBuilderVisitorTests);
-        Console.WriteLine(string.Join('\n', t.Assembly.GetManifestResourceNames()));
-    using (Stream? stream = t.Assembly.GetManifestResourceStream(t.Namespace + ".CodeSamples." + resourceName))
+        using (Stream? stream = t.Assembly.GetManifestResourceStream(t.Namespace + ".CodeSamples." + resourceName))
         {
             if (stream == null)
             {

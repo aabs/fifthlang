@@ -3,6 +3,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using il_ast;
+using static Fifth.DebugHelpers;
 
 namespace code_generator;
 
@@ -12,15 +13,8 @@ namespace code_generator;
 /// </summary>
 public class PEEmitter
 {
-    private static bool DebugEnabled =>
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("1", StringComparison.Ordinal) ||
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("true", StringComparison.OrdinalIgnoreCase) ||
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("on", StringComparison.OrdinalIgnoreCase);
+    // Use shared DebugHelpers for debug logging.
 
-    private static void DebugLog(string message)
-    {
-        if (DebugEnabled) Console.WriteLine(message);
-    }
     // Maps for types, fields, and constructors defined in this assembly
     private readonly Dictionary<string, TypeDefinitionHandle> _typeHandles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, FieldDefinitionHandle> _fieldHandles = new(StringComparer.Ordinal);
@@ -600,7 +594,7 @@ public class PEEmitter
                 {
                     foreach (var instr in instructionSequence.Instructions)
                     {
-                        Console.WriteLine($"  - {instr.GetType().Name}: {instr}");
+                        DebugLog($"  - {instr.GetType().Name}: {instr}");
                     }
                 }
 

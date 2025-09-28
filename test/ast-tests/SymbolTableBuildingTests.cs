@@ -49,7 +49,6 @@ public class SymbolTableBuildingTests
     private static string ReadEmbeddedResource(string resourceName)
     {
         Type t = typeof(AstBuilderVisitorTests);
-        Console.WriteLine(string.Join('\n', t.Assembly.GetManifestResourceNames()));
         Stream? streamObj = t.Assembly.GetManifestResourceStream(t.Namespace + ".CodeSamples." + resourceName);
         if (streamObj == null)
         {

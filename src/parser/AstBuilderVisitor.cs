@@ -8,6 +8,7 @@ using ast_generated;
 using ast_model.TypeSystem;
 using Operator = ast.Operator;
 using Fifth;
+using static Fifth.DebugHelpers;
 
 namespace compiler.LangProcessingPhases;
 
@@ -20,16 +21,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     private HashSet<string> CurrentFunctionLocals => _functionLocals.Count > 0 ? _functionLocals.Peek() : null;
     private bool IsNameInCurrentFunctionScope(string name)
         => !string.IsNullOrEmpty(name) && CurrentFunctionLocals != null && CurrentFunctionLocals.Contains(name);
-
-    private static bool DebugEnabled =>
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("1", StringComparison.Ordinal) ||
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("true", StringComparison.OrdinalIgnoreCase) ||
-        (System.Environment.GetEnvironmentVariable("FIFTH_DEBUG") ?? string.Empty).Equals("on", StringComparison.OrdinalIgnoreCase);
-
-    private static void DebugLog(string message)
-    {
-        if (DebugEnabled) Console.WriteLine(message);
-    }
 
     #region Helper Functions
 

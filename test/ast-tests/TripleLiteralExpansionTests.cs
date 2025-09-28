@@ -30,7 +30,7 @@ public class TripleLiteralExpansionTests
         const string code = "alias ex as <http://example.org/>;\nmain(): int { <ex:s, ex:p, []>; return 0; }";
         var result = ParseHarnessed(code);
         // DEBUG: print diagnostics to help determine whether TRPL004 is emitted
-        Console.WriteLine("Diagnostics codes: " + string.Join(",", result.Diagnostics.Select(d => d.Code)));
+        // Console.WriteLine("Diagnostics codes: " + string.Join(",", result.Diagnostics.Select(d => d.Code)));
         // DEBUG: inspect main function RHS expression types
         if (result.Root is AssemblyDef asm)
         {
@@ -41,16 +41,18 @@ public class TripleLiteralExpansionTests
                 {
                     if (stmt is ExpStatement es)
                     {
-                        Console.WriteLine($"Main RHS expression type: {es.RHS?.GetType().Name}");
+                        // Console.WriteLine($"Main RHS expression type: {es.RHS?.GetType().Name}");
                         if (es.RHS is TripleLiteralExp tle)
                         {
-                            Console.WriteLine($" - Triple object type: {tle.ObjectExp?.GetType().Name}");
+                            // Console.WriteLine($" - Triple object type: {tle.ObjectExp?.GetType().Name}");
                             if (tle.ObjectExp is ListLiteral ll)
-                                Console.WriteLine($" - List element count: {ll.ElementExpressions?.Count}");
+                            {
+                                // Console.WriteLine($" - List element count: {ll.ElementExpressions?.Count}");
+                            }
                         }
                         if (es.RHS is MalformedTripleExp mte)
                         {
-                            Console.WriteLine($" - Malformed triple kind: {mte.MalformedKind}; components: {mte.Components?.Count}");
+                            // Console.WriteLine($" - Malformed triple kind: {mte.MalformedKind}; components: {mte.Components?.Count}");
                         }
                     }
                 }

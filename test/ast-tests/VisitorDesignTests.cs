@@ -47,11 +47,11 @@ public partial class SomeVisitor : IVisitor
 {
   public void OnEnter<T>(T ctx)
   {
-    Console.WriteLine("default OnEnter version");
+    // Default OnEnter behavior (no debug output)
   }
 
   public void OnLeave<T>(T ctx)
   {
-    Console.WriteLine("default OnLeave version");
+    // Default OnLeave behavior (no debug output)
   }
 }
