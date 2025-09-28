@@ -157,8 +157,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
     {
         var src = LoadSourceFromRepo("duplicate_unreachable.5th");
         var result = await CompileSourceToResultAsync(src);
-        // DEBUG: print diagnostics for investigation
-        Console.WriteLine("DEBUG: DuplicateUnreachable diagnostics:\n" + string.Join('\n', result.Diagnostics.Select(d => d.Message)));
+        // Diagnostics are asserted by the test; debug logging removed for cleaner output
         result.Should().NotBeNull();
         result.Success.Should().BeTrue("Should compile successfully despite warnings");
         result.Diagnostics.Should().Contain(d => d.Message.Contains("GUARD_UNREACHABLE (W1002)"));
@@ -199,16 +198,8 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
     {
         var src = LoadSourceFromRepo("tautology_base_equivalence.5th");
         var act = async () => await CompileSourceAsync(src);
-        // DEBUG: print diagnostics when compiling this source to inspect behavior
-        try
-        {
-            var res = await CompileSourceToResultAsync(src);
-            Console.WriteLine("DEBUG: Tautology diagnostics:\n" + string.Join('\n', res.Diagnostics.Select(d => d.Message)));
-        }
-        catch (InvalidOperationException ex)
-        {
-            Console.WriteLine("DEBUG: Tautology compile failed with message:\n" + ex.Message);
-        }
+        // Tautology diagnostics logging removed; test logic remains
+        // Tautology compile failure message suppressed in test output
         await act.Should().ThrowAsync<InvalidOperationException>()
             .Where(ex => ex.Message.Contains("GUARD_MULTIPLE_BASE (E1005)"));
     }

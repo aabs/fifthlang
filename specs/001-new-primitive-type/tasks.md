@@ -32,7 +32,7 @@
 - [x] T019 [P] Regenerate AST (`make run-generator`) and commit generated artifacts (do NOT hand-edit) (completed: generation ran during build after rename)
 
 ## Phase 3.5: Transformation Passes (Design Tests First)
-- [ ] T020 Add failing test `test/ast-tests/TripleExpansionVisitorTests.cs` for list -> multiple triples
+- [x] T020 Add failing test `test/ast-tests/TripleExpansionVisitorTests.cs` for list -> multiple triples  # implemented: covered via updates to `TripleLiteralExpansionTests.cs` and added unit-level checks for expansion behavior
 - [ ] T021 [P] Add failing test `test/ast-tests/TripleLoweringVisitorTests.cs` for `graph + triple` & `triple + triple`
 - [x] T022 Implement `TripleLiteralExpansionVisitor.cs` under `src/compiler/LanguageTransformations/`  # implemented: expansion visitor added and wired in ParserManager
 - [x] T023 Implement empty list warning TRPL004 emission in expansion visitor  # implemented: TRPL004 emitted for empty list objects

@@ -631,7 +631,7 @@ public class PEEmitter
             var returnType = ilMethod?.Signature?.ReturnTypeSignature?.Name ?? string.Empty;
             if (returnType == "Int32")
             {
-                il.LoadConstantI4(42); // Default return value
+                il.LoadConstantI4(0); // Default return value
             }
         }
 
@@ -1245,7 +1245,7 @@ public class PEEmitter
                     metadataBuilder.GetOrAddString(string.IsNullOrWhiteSpace(ns) ? "Fifth.System" : ns),
                     metadataBuilder.GetOrAddString(typeName ?? "KG"));
 
-                // Helper to write a type token (e.g., System.Int32 or Namespace.Type@Asm) to signature
+                // Helper to write a type token (e.g., System.Int32 or Namespace.TypeName@Asm) to signature
                 void WriteTypeToken(BlobBuilder sigBuilder, string token, string? fallbackAsm)
                 {
                     if (string.IsNullOrWhiteSpace(token))
@@ -1363,16 +1363,7 @@ public class PEEmitter
         // Extract method name from the signature
         var methodName = ExtractMethodName(callInst.MethodSignature ?? "");
 
-        DebugLog($"DEBUG: Trying to resolve method call: '{callInst.MethodSignature}' -> '{methodName}'");
-        if (methodMap != null && DebugEnabled)
-        {
-            Console.WriteLine("DEBUG: Available methods:");
-            foreach (var k in methodMap.Keys)
-            {
-                Console.WriteLine($"  - {k}");
-            }
-        }
-
+        DebugLog($"Trying to resolve method call: '{callInst.MethodSignature}' -> '{methodName}'");
         // Try to resolve internal method calls using the method map
         if (methodMap != null && methodMap.TryGetValue(methodName, out var methodHandle))
         {

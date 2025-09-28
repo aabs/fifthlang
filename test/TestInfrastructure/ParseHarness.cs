@@ -69,8 +69,6 @@ public static class ParseHarness
 
         // Configure lexer & parser manually to capture syntax diagnostics without throwing.
         var input = new AntlrInputStream(source);
-        // DEBUG: print truncated source to help validate harness input
-        Console.WriteLine($"DEBUG: ParseHarness parsing source (truncated): {source.Substring(0, Math.Min(120, source.Length)).Replace("\n", "\\n")}...");
         var lexer = new FifthLexer(input);
         lexer.RemoveErrorListeners();
         lexer.AddErrorListener(new CollectingErrorListener(diagnostics));
@@ -99,12 +97,6 @@ public static class ParseHarness
             swPhases.Stop();
             phasesTime = swPhases.Elapsed;
             // Merge semantic/phase diagnostics, mapping to TestDiagnostic (preserve already collected syntax diags first)
-            // DEBUG: always report how many diagnostics were added by phases to aid debugging
-            Console.WriteLine($"DEBUG: Phase diagnostics count: {phaseDiagnostics.Count}");
-            if (phaseDiagnostics.Count > 0)
-            {
-                Console.WriteLine("Phase diagnostics codes: " + string.Join(",", phaseDiagnostics.Select(d => d.Code ?? string.Empty)));
-            }
             foreach (var d in phaseDiagnostics)
             {
                 var severity = d.Level switch

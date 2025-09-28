@@ -64,7 +64,6 @@ public sealed class TripleExpansionVisitor : DefaultRecursiveDescentVisitor
                 "Empty list in triple object produces no triples.",
                 null,
                 "TRPL004"));
-            Console.WriteLine("DEBUG: Emitted TRPL004 from TripleExpansionVisitor");
             return new ListLiteral { ElementExpressions = new List<Expression>() };
         }
         if (triple.ObjectExp is ListLiteral ll2 && ll2.ElementExpressions.Any(e => e is ListLiteral))
@@ -75,7 +74,6 @@ public sealed class TripleExpansionVisitor : DefaultRecursiveDescentVisitor
                 "Nested lists not allowed in triple object.",
                 null,
                 "TRPL006"));
-            Console.WriteLine("DEBUG: Emitted TRPL006 from TripleExpansionVisitor");
             return triple;
         }
         return triple;
