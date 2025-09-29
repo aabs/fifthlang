@@ -301,6 +301,15 @@ public static class KG
     public static IGraph Assert(this IGraph g, Triple t)
     {
         g.Assert(t);
+        try
+        {
+            Console.WriteLine($"KG.DEBUG: Assert called. Graph baseUri={g.BaseUri?.AbsoluteUri ?? "(null)"}, triples={g.Triples.Count}");
+            if (t != null)
+            {
+                Console.WriteLine($"KG.DEBUG: Triple: subj={t.Subject}, pred={t.Predicate}, obj={t.Object}");
+            }
+        }
+        catch { /* best-effort debug logging */ }
         return g;
     }
     /// <summary>

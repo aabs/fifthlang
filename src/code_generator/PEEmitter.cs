@@ -39,6 +39,9 @@ public class PEEmitter
 
     // Cached type references for common system types used in emission
     private EntityHandle _systemInt32TypeRef;
+    // Cache assembly and typeref handles to avoid creating duplicate metadata rows
+    private readonly Dictionary<string, AssemblyReferenceHandle> _assemblyRefHandles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, TypeReferenceHandle> _typeRefHandlesCache = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Generate a PE assembly directly from IL metamodel
@@ -72,6 +75,7 @@ public class PEEmitter
                 default,
                 default,
                 default);
+            _assemblyRefHandles["system.runtime"] = systemRuntimeRef;
 
             var systemConsoleRef = metadataBuilder.AddAssemblyReference(
                 metadataBuilder.GetOrAddString("System.Console"),
@@ -80,6 +84,7 @@ public class PEEmitter
                 default,
                 default,
                 default);
+            _assemblyRefHandles["system.console"] = systemConsoleRef;
 
             // Add module
             var moduleHandle = metadataBuilder.AddModule(
@@ -124,17 +129,9 @@ public class PEEmitter
                 metadataBuilder.GetOrAddString("System"),
                 metadataBuilder.GetOrAddString("Int32"));
 
-            var writeLineSignatureBlob = new BlobBuilder();
-            writeLineSignatureBlob.WriteByte(0x00); // calling convention
-            writeLineSignatureBlob.WriteByte(0x01); // parameter count
-            writeLineSignatureBlob.WriteByte((byte)SignatureTypeCode.Void); // return type
-            // Use object overload to accept any printed value
-            writeLineSignatureBlob.WriteByte((byte)SignatureTypeCode.Object); // parameter type
-
-            var writeLineMethodRef = metadataBuilder.AddMemberReference(
-                consoleTypeRef,
-                metadataBuilder.GetOrAddString("WriteLine"),
-                metadataBuilder.GetOrAddBlob(writeLineSignatureBlob));
+            // Note: do not prebuild a single WriteLine MemberRef here. Instead create
+            // MemberRefs for Console.WriteLine per-call so the signature matches the
+            // actual overload (e.g., WriteLine(string) vs WriteLine(object)).
 
             // Add a reference to System.Object::.ctor for calling base constructor from our ctors
             var objectCtorSig = new BlobBuilder();
@@ -338,7 +335,7 @@ public class PEEmitter
                     var bodyOffsets = new Dictionary<string, int>(StringComparer.Ordinal);
                     foreach (var function in functionList)
                     {
-                        var (il, localVariables, localTypes) = GenerateMethodIL(function, metadataBuilder, writeLineMethodRef, methodMap);
+                        var (il, localVariables, localTypes) = GenerateMethodIL(function, metadataBuilder, methodMap);
 
                         StandaloneSignatureHandle localVarSigToken = default;
                         if (localVariables.Any())
@@ -523,7 +520,7 @@ public class PEEmitter
     /// <summary>
     /// Generate method body from IL metamodel method definition
     /// </summary>
-    private (InstructionEncoder il, List<string> localVariables, Dictionary<string, SignatureTypeCode> localTypes) GenerateMethodIL(il_ast.MethodDefinition ilMethod, MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle> methodMap)
+    private (InstructionEncoder il, List<string> localVariables, Dictionary<string, SignatureTypeCode> localTypes) GenerateMethodIL(il_ast.MethodDefinition ilMethod, MetadataBuilder metadataBuilder, Dictionary<string, MethodDefinitionHandle> methodMap)
     {
         var ilInstructions = new BlobBuilder();
         var controlFlow = new ControlFlowBuilder();
@@ -615,7 +612,7 @@ public class PEEmitter
                     }
                 }
 
-                EmitInstructionSequence(il, instructionSequence, metadataBuilder, writeLineMethodRef, methodMap, localVariables, paramIndexMap);
+                EmitInstructionSequence(il, instructionSequence, metadataBuilder, methodMap, localVariables, paramIndexMap);
             }
         }
         else
@@ -655,6 +652,13 @@ public class PEEmitter
                 il.OpCode(ILOpCode.Ret);
                 break;
         }
+        // Dump raw IL bytes produced for this method (for debug)
+        try
+        {
+            var arr = ilInstructions.ToArray();
+            Console.WriteLine($"TRACE: Generated IL bytes for method '{ilMethod?.Name}': {BitConverter.ToString(arr)}");
+        }
+        catch { }
         return (il, localVariables, _localVarTypeMap);
     }
 
@@ -696,7 +700,7 @@ public class PEEmitter
     /// Emit instruction sequence using InstructionEncoder
     /// </summary>
     private void EmitInstructionSequence(InstructionEncoder il, il_ast.InstructionSequence sequence,
-        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null, List<string>? orderedLocals = null, Dictionary<string, int>? paramIndexMap = null, Dictionary<string, EntityHandle>? methodMemberRefMap = null)
+        MetadataBuilder metadataBuilder, Dictionary<string, MethodDefinitionHandle>? methodMap = null, List<string>? orderedLocals = null, Dictionary<string, int>? paramIndexMap = null, Dictionary<string, EntityHandle>? methodMemberRefMap = null)
     {
         // Predefine labels present in this sequence so branches can target them
         var labelMap = new Dictionary<string, LabelHandle>(StringComparer.Ordinal);
@@ -735,7 +739,7 @@ public class PEEmitter
         {
             try
             {
-                EmitInstruction(il, instruction, metadataBuilder, writeLineMethodRef, localVarNames, methodMap, labelMap, paramIndexMap, methodMemberRefMap);
+                EmitInstruction(il, instruction, metadataBuilder, localVarNames, methodMap, labelMap, paramIndexMap, methodMemberRefMap);
             }
             catch (Exception ex)
             {
@@ -749,7 +753,7 @@ public class PEEmitter
     /// Emit a single instruction using InstructionEncoder
     /// </summary>
     private void EmitInstruction(InstructionEncoder il, il_ast.CilInstruction instruction,
-        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, List<string>? localVarNames = null, Dictionary<string, MethodDefinitionHandle>? methodMap = null, Dictionary<string, LabelHandle>? labelMap = null, Dictionary<string, int>? paramIndexMap = null, Dictionary<string, EntityHandle>? methodMemberRefMap = null)
+        MetadataBuilder metadataBuilder, List<string>? localVarNames = null, Dictionary<string, MethodDefinitionHandle>? methodMap = null, Dictionary<string, LabelHandle>? labelMap = null, Dictionary<string, int>? paramIndexMap = null, Dictionary<string, EntityHandle>? methodMemberRefMap = null)
     {
         switch (instruction)
         {
@@ -766,7 +770,7 @@ public class PEEmitter
                 break;
 
             case il_ast.CallInstruction callInst:
-                EmitCallInstruction(il, callInst, metadataBuilder, writeLineMethodRef, methodMap);
+                EmitCallInstruction(il, callInst, metadataBuilder, methodMap);
                 break;
 
             case il_ast.BranchInstruction branchInst:
@@ -1002,6 +1006,62 @@ public class PEEmitter
                 // Duplicate the top value on the stack
                 il.OpCode(ILOpCode.Dup);
                 break;
+            case "box":
+                if (loadInst.Value is string boxToken)
+                {
+                    DebugLog($"DEBUG: EmitLoadInstruction - box token='{boxToken}'");
+                    var bt = boxToken.Trim();
+                    // Recognize IL-friendly primitive alias or System.* form
+                    if (string.Equals(bt, "int32", StringComparison.OrdinalIgnoreCase) || string.Equals(bt, "System.Int32", StringComparison.Ordinal))
+                    {
+                        Console.WriteLine("TRACE: Emitting ILOpCode.Box for int32");
+                        il.OpCode(ILOpCode.Box);
+                        Console.WriteLine("TRACE: Emitted ILOpCode.Box, now emitting token");
+                        il.Token(_systemInt32TypeRef);
+                        Console.WriteLine("TRACE: Emitted token for box int32");
+                    }
+                    else
+                    {
+                        // Support "Full.Name@Asm" or "Full.Name" forms
+                        string fullName = bt;
+                        string asm = "Fifth.System";
+                        var atIdx = bt.LastIndexOf('@');
+                        if (atIdx > 0)
+                        {
+                            fullName = bt.Substring(0, atIdx);
+                            asm = bt.Substring(atIdx + 1);
+                        }
+                        var typeNs = string.Empty;
+                        var simpleName = fullName;
+                        var lastDot = fullName.LastIndexOf('.');
+                        if (lastDot > 0)
+                        {
+                            typeNs = fullName.Substring(0, lastDot);
+                            simpleName = fullName.Substring(lastDot + 1);
+                        }
+                        var asmKey = asm.ToLowerInvariant();
+                        if (!_assemblyRefHandles.TryGetValue(asmKey, out var asmRef))
+                        {
+                            asmRef = metadataBuilder.AddAssemblyReference(
+                                metadataBuilder.GetOrAddString(asm),
+                                new System.Version(1, 0, 0, 0),
+                                default, default, default, default);
+                            _assemblyRefHandles[asmKey] = asmRef;
+                        }
+                        var trKey = $"{asmKey}|{typeNs}|{simpleName}";
+                        if (!_typeRefHandlesCache.TryGetValue(trKey, out var paramTypeRef))
+                        {
+                            paramTypeRef = metadataBuilder.AddTypeReference(
+                                asmRef,
+                                metadataBuilder.GetOrAddString(typeNs),
+                                metadataBuilder.GetOrAddString(simpleName));
+                            _typeRefHandlesCache[trKey] = paramTypeRef;
+                        }
+                        il.OpCode(ILOpCode.Box);
+                        il.Token(paramTypeRef);
+                    }
+                }
+                break;
         }
     }
 
@@ -1198,7 +1258,7 @@ public class PEEmitter
     /// Emit call instruction
     /// </summary>
     private void EmitCallInstruction(InstructionEncoder il, il_ast.CallInstruction callInst,
-        MetadataBuilder metadataBuilder, EntityHandle writeLineMethodRef, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
+        MetadataBuilder metadataBuilder, Dictionary<string, MethodDefinitionHandle>? methodMap = null)
     {
         DebugLog($"DEBUG: EmitCallInstruction opcode='{callInst.Opcode}', sig='{callInst.MethodSignature}'");
         // Handle external static call signature produced by AstToIlTransformationVisitor
@@ -1229,15 +1289,29 @@ public class PEEmitter
                 }
 
                 var asmNameResolved = string.IsNullOrWhiteSpace(asmName) ? "Fifth.System" : asmName;
-                var asmRef = metadataBuilder.AddAssemblyReference(
-                    metadataBuilder.GetOrAddString(asmNameResolved!),
-                    ResolveAssemblyVersion(asmNameResolved), default, default, default, default);
+                var asmKey = asmNameResolved.ToLowerInvariant();
+                AssemblyReferenceHandle asmRef;
+                if (!_assemblyRefHandles.TryGetValue(asmKey, out asmRef))
+                {
+                    asmRef = metadataBuilder.AddAssemblyReference(
+                        metadataBuilder.GetOrAddString(asmNameResolved!),
+                        ResolveAssemblyVersion(asmNameResolved), default, default, default, default);
+                    _assemblyRefHandles[asmKey] = asmRef;
+                }
 
                 // Create a TypeRef for the external type
-                var typeRef = metadataBuilder.AddTypeReference(
-                    asmRef,
-                    metadataBuilder.GetOrAddString(string.IsNullOrWhiteSpace(ns) ? "Fifth.System" : ns),
-                    metadataBuilder.GetOrAddString(typeName ?? "KG"));
+                var ownerNs = string.IsNullOrWhiteSpace(ns) ? "Fifth.System" : ns;
+                var ownerName = typeName ?? "KG";
+                var ownerKey = $"{asmNameResolved.ToLowerInvariant()}|{ownerNs}|{ownerName}";
+                TypeReferenceHandle typeRef;
+                if (!_typeRefHandlesCache.TryGetValue(ownerKey, out typeRef))
+                {
+                    typeRef = metadataBuilder.AddTypeReference(
+                        asmRef,
+                        metadataBuilder.GetOrAddString(ownerNs),
+                        metadataBuilder.GetOrAddString(ownerName));
+                    _typeRefHandlesCache[ownerKey] = typeRef;
+                }
 
                 // Helper to write a type token (e.g., System.Int32 or Namespace.TypeName@Asm) to signature
                 void WriteTypeToken(BlobBuilder sigBuilder, string token, string? fallbackAsm)
@@ -1279,14 +1353,26 @@ public class PEEmitter
                         typeNs = fullName.Substring(0, lastDot);
                         simpleName = fullName.Substring(lastDot + 1);
                     }
-                    // Build AssemblyRef and TypeRef
-                    var paramAsmRef = metadataBuilder.AddAssemblyReference(
-                        metadataBuilder.GetOrAddString(asm),
-                        ResolveAssemblyVersion(asm), default, default, default, default);
-                    var paramTypeRef = metadataBuilder.AddTypeReference(
-                        paramAsmRef,
-                        metadataBuilder.GetOrAddString(typeNs),
-                        metadataBuilder.GetOrAddString(simpleName));
+                    // Build or reuse AssemblyRef and TypeRef via caches (normalize assembly name)
+                    var paramAsmKey = asm.ToLowerInvariant();
+                    AssemblyReferenceHandle paramAsmRef;
+                    if (!_assemblyRefHandles.TryGetValue(paramAsmKey, out paramAsmRef))
+                    {
+                        paramAsmRef = metadataBuilder.AddAssemblyReference(
+                            metadataBuilder.GetOrAddString(asm),
+                            ResolveAssemblyVersion(asm), default, default, default, default);
+                        _assemblyRefHandles[paramAsmKey] = paramAsmRef;
+                    }
+                    var paramTypeKey = $"{paramAsmKey}|{typeNs}|{simpleName}";
+                    TypeReferenceHandle paramTypeRef;
+                    if (!_typeRefHandlesCache.TryGetValue(paramTypeKey, out paramTypeRef))
+                    {
+                        paramTypeRef = metadataBuilder.AddTypeReference(
+                            paramAsmRef,
+                            metadataBuilder.GetOrAddString(typeNs),
+                            metadataBuilder.GetOrAddString(simpleName));
+                        _typeRefHandlesCache[paramTypeKey] = paramTypeRef;
+                    }
 
                     // Write CLASS + TypeDefOrRef coded index (TypeRef tag = 1)
                     sigBuilder.WriteByte(0x12);
@@ -1314,7 +1400,13 @@ public class PEEmitter
                     typeRef,
                     metadataBuilder.GetOrAddString(extMethodName ?? "Unknown"),
                     metadataBuilder.GetOrAddBlob(methodSig));
-
+                // Debug: log the produced MemberRef token row so we can trace verifier errors
+                try
+                {
+                    var mrRow = MetadataTokens.GetRowNumber((MemberReferenceHandle)memberRef);
+                    DebugLog($"DEBUG: Created MemberRef for '{extMethodName}' in asm='{asmNameResolved}' type='{ns}.{typeName}' -> MemberRef row={mrRow}");
+                }
+                catch { /* best-effort logging */ }
                 il.Call(memberRef);
                 return;
             }
@@ -1342,15 +1434,6 @@ public class PEEmitter
             il.OpCode(ILOpCode.Ldnull);
             _lastWasNewobj = true;
             _pendingNewobjTypeName = null;
-            return;
-        }
-
-        // For external calls, redirect print calls to Console.WriteLine
-        if (callInst.MethodSignature?.Contains("Console") == true ||
-            callInst.MethodSignature?.Contains("WriteLine") == true ||
-            callInst.MethodSignature?.Contains("print") == true)
-        {
-            il.Call(writeLineMethodRef);
             return;
         }
 

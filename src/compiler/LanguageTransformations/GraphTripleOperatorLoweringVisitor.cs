@@ -84,7 +84,18 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         var tripleExpr = new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = triple.Location }, RHS = createTripleCall, Location = triple.Location };
 
         // Assert: <createGraphExpr>.Assert(tripleExpr)
-        var assertCall = new FuncCallExp { InvocationArguments = new List<Expression> { tripleExpr }, Annotations = new Dictionary<string, object> { ["FunctionName"] = "Assert" }, Location = triple.Location, Parent = null };
+        var assertCall = new FuncCallExp
+        {
+            InvocationArguments = new List<Expression> { tripleExpr },
+            Annotations = new Dictionary<string, object>
+            {
+                ["FunctionName"] = "Assert",
+                ["ExternalType"] = typeof(Fifth.System.KG),
+                ["ExternalMethodName"] = "Assert"
+            },
+            Location = triple.Location,
+            Parent = null
+        };
         var asserted = new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = createGraphExpr, RHS = assertCall, Location = triple.Location };
         return asserted;
     }

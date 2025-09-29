@@ -1,0 +1,23 @@
+class Resource in <http://example.org/> {
+    uri: string;
+    value: int;
+}
+
+main(): int {
+    // Build two graphs inline and merge them; avoid using variable declarations to bypass parser ambiguity
+    std.print("DEBUG: START");
+
+    std.print("TRIPLE_COUNT:");
+    std.print(KG.CountTriples(
+        KG.Merge(
+            KG.CreateGraph()
+                .Assert(KG.CreateTriple(KG.CreateUri(KG.CreateGraph(), "http://example.org/s1"), KG.CreateUri(KG.CreateGraph(), "http://example.org/p"), KG.CreateLiteral(KG.CreateGraph(), 42)))
+                .Assert(KG.CreateTriple(KG.CreateUri(KG.CreateGraph(), "http://example.org/s2"), KG.CreateUri(KG.CreateGraph(), "http://example.org/p"), KG.CreateLiteral(KG.CreateGraph(), 43))),
+            KG.CreateGraph()
+                .Assert(KG.CreateTriple(KG.CreateUri(KG.CreateGraph(), "http://example.org/s1"), KG.CreateUri(KG.CreateGraph(), "http://example.org/p"), KG.CreateLiteral(KG.CreateGraph(), 42)))
+                .Assert(KG.CreateTriple(KG.CreateUri(KG.CreateGraph(), "http://example.org/s2"), KG.CreateUri(KG.CreateGraph(), "http://example.org/p"), KG.CreateLiteral(KG.CreateGraph(), 43)))
+        )
+    ));
+
+    return 0;
+}

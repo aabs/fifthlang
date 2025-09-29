@@ -494,6 +494,67 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
                     }
                 }
             }
+
+            // Additional detection: handle chained calls where qualifier is a MemberAccessExp whose leftmost
+            // qualifier is a VarRefExp (e.g., KG.CreateGraph().Assert(...)). Walk left side to find root VarRef.
+            if (result?.LHS is MemberAccessExp chainedLeft && result.RHS is FuncCallExp chainedCall)
+            {
+                // Walk to leftmost qualifier
+                ast.VarRefExp? rootVar = null;
+                ast.Expression walker = chainedLeft;
+                while (walker is MemberAccessExp ma)
+                {
+                    if (ma.LHS is VarRefExp vr)
+                    {
+                        rootVar = vr;
+                        break;
+                    }
+                    if (ma.LHS == null) break; // no further left side
+                    walker = ma.LHS;
+                }
+
+                if (rootVar != null)
+                {
+                    var qualifierName = rootVar.VarName;
+                    if (!string.IsNullOrWhiteSpace(qualifierName))
+                    {
+                        Type? resolvedType = null;
+                        if (ast_model.TypeSystem.TypeRegistry.DefaultRegistry.TryGetTypeByName(qualifierName, out var ft2)
+                            && ft2 is ast_model.TypeSystem.FifthType.TDotnetType dotType2)
+                        {
+                            resolvedType = dotType2.TheType;
+                        }
+                        else if (string.Equals(qualifierName, "KG", StringComparison.Ordinal))
+                        {
+                            resolvedType = typeof(Fifth.System.KG);
+                        }
+                        else if (string.Equals(qualifierName, "std", StringComparison.Ordinal))
+                        {
+                            if (chainedCall.Annotations.TryGetValue("FunctionName", out var fnObjStd2) && fnObjStd2 is string fnStd2 && string.Equals(fnStd2, "print", StringComparison.Ordinal))
+                            {
+                                resolvedType = typeof(System.Console);
+                            }
+                        }
+
+                        if (resolvedType != null)
+                        {
+                            chainedCall["ExternalType"] = resolvedType;
+                            if (chainedCall.Annotations.TryGetValue("FunctionName", out var nameObj2) && nameObj2 is string fn2)
+                            {
+                                if (resolvedType == typeof(System.Console) && string.Equals(fn2, "print", StringComparison.Ordinal))
+                                {
+                                    chainedCall["ExternalMethodName"] = "WriteLine";
+                                }
+                                else
+                                {
+                                    chainedCall["ExternalMethodName"] = fn2;
+                                }
+                            }
+                            DebugLog($"DEBUG: Chained external call detected: {resolvedType.FullName}::{(chainedCall.Annotations.TryGetValue("FunctionName", out var n2) ? n2 : "?")}");
+                        }
+                    }
+                }
+            }
         }
         catch (System.Exception ex)
         {
