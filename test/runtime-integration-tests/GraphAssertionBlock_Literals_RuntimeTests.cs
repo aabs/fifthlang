@@ -259,7 +259,7 @@ public class GraphAssertionBlock_Literals_RuntimeTests : RuntimeTestBase
         result.ExitCode.Should().Be(0);
     }
 
-    [Test]  
+    [Test]
     public async Task GraphBlock_ShouldDemonstrateFullGABBehavior()
     {
         var src = """
@@ -309,5 +309,27 @@ public class GraphAssertionBlock_Literals_RuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue();
         var result = await ExecuteAsync(exe);
         result.ExitCode.Should().Be(0);
+    }
+
+    [Test]
+    public async Task GraphMerge_ShouldDeduplicateStructuralTriples()
+    {
+        var sourcePath = Path.Combine("TestPrograms", "KnowledgeManagement", "merge_dedupe.5th");
+        var exe = await CompileFileAsync(sourcePath, "merge_dedupe_test");
+        File.Exists(exe).Should().BeTrue();
+        var result = await ExecuteAsync(exe);
+        // Program prints a prefixed string 'TRIPLE_COUNT:<n>' to stdout; parse and assert it
+        if (string.IsNullOrWhiteSpace(result.StandardOutput))
+        {
+            var exeDir = Path.GetDirectoryName(exe) ?? "<unknown>";
+            var files = Directory.Exists(exeDir) ? string.Join(", ", Directory.EnumerateFiles(exeDir).Select(Path.GetFileName)) : "<no-dir>";
+            var diag = $"No stdout from program. ExitCode={result.ExitCode}. Stderr='{result.StandardError}'. ExeDirFiles=[{files}]";
+            result.StandardOutput.Should().NotBeNullOrWhiteSpace(diag);
+        }
+        var printed = result.StandardOutput.Trim();
+        printed.Should().Contain("TRIPLE_COUNT:");
+        var suffix = printed.Substring(printed.IndexOf(':') + 1).Trim();
+        int.TryParse(suffix, out var count).Should().BeTrue("Program should print an integer triple count after the prefix");
+        count.Should().Be(2);
     }
 }

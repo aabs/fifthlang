@@ -379,6 +379,23 @@ Examples:
             // Transform AST to IL metamodel
             var ilAssembly = _ilCodeGenerator.TransformToILMetamodel(assemblyDef);
 
+            // When diagnostics are enabled, write the generated IL to disk for inspection
+            if (options.Diagnostics)
+            {
+                try
+                {
+                    var debugDir = Path.Combine(Directory.GetCurrentDirectory(), "build_debug_il");
+                    Directory.CreateDirectory(debugDir);
+                    var ilGen = new code_generator.ILCodeGenerator(new code_generator.ILCodeGeneratorConfiguration { OutputDirectory = debugDir });
+                    var ilPath = ilGen.GenerateCode(assemblyDef);
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated IL written to: {ilPath}"));
+                }
+                catch (System.Exception ex)
+                {
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to write IL file for diagnostics: {ex.Message}"));
+                }
+            }
+
             // Ensure output directory exists
             var outputDir = Path.GetDirectoryName(options.Output);
             if (!string.IsNullOrWhiteSpace(outputDir) && !Directory.Exists(outputDir))

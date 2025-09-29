@@ -15,6 +15,8 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
     private int _indentLevel = 0;
     private const string IndentString = "    ";
 
+    private Dictionary<string, string>? _currentLocalsMap = null;
+
     public string EmitAssembly(AssemblyDeclaration assembly)
     {
         _output.Clear();
@@ -83,8 +85,8 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
     private void EmitClass(ClassDefinition classDefinition)
     {
         var visibility = GetVisibilityString(classDefinition.Visibility);
-        var fullName = string.IsNullOrEmpty(classDefinition.Namespace) 
-            ? classDefinition.Name 
+        var fullName = string.IsNullOrEmpty(classDefinition.Namespace)
+            ? classDefinition.Name
             : $"{classDefinition.Namespace}.{classDefinition.Name}";
 
         EmitLine($".class {visibility} auto ansi beforefieldinit {fullName}");
@@ -122,7 +124,7 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
         var visibility = GetVisibilityString(method.Visibility);
         var staticModifier = method.IsStatic ? " static" : "";
         var returnType = GetTypeString(method.Signature.ReturnTypeSignature);
-        var parameters = string.Join(", ", method.Signature.ParameterSignatures.Select(p => 
+        var parameters = string.Join(", ", method.Signature.ParameterSignatures.Select(p =>
             $"{GetTypeString(p.TypeReference)} {p.Name}"));
 
         if (method.Header.IsEntrypoint)
@@ -150,21 +152,99 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
     private void EmitMethodBody(Block body)
     {
         EmitLine(".maxstack 8"); // Default stack size
-        
+
         // Use AstToIlTransformationVisitor to convert high-level statements to instruction sequences
         var transformer = new AstToIlTransformationVisitor();
-        
+
+        var allSequences = new List<InstructionSequence>();
         if (body.Statements.Any())
         {
             foreach (var statement in body.Statements)
             {
                 var instructionSequence = transformer.GenerateStatement(statement);
-                EmitInstructionSequence(instructionSequence);
+                allSequences.Add(instructionSequence);
             }
         }
-        
-        // Ensure method returns properly
-        EmitLine("ret");
+
+        // Collect local variable names used by ldloc/stloc so we can declare them and infer their types
+        var localNames = new List<string>();
+        var localTypes = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var seq in allSequences)
+        {
+            for (int i = 0; i < seq.Instructions.Count; i++)
+            {
+                var ins = seq.Instructions[i];
+                if (ins is StoreInstruction st && !string.IsNullOrEmpty(st.Target))
+                {
+                    if (!localNames.Contains(st.Target)) localNames.Add(st.Target);
+
+                    // Try to infer the local's type from immediately preceding call instruction's return signature
+                    if (i > 0 && seq.Instructions[i - 1] is CallInstruction prevCall && !string.IsNullOrEmpty(prevCall.MethodSignature) && prevCall.MethodSignature.StartsWith("extcall:", StringComparison.Ordinal))
+                    {
+                        try
+                        {
+                            // ParseExtCallSignature returns full IL call signature; return type is before first space
+                            var ilSig = ParseExtCallSignature(prevCall.MethodSignature);
+                            var firstSpace = ilSig.IndexOf(' ');
+                            var returnIlType = firstSpace > 0 ? ilSig.Substring(0, firstSpace) : "class [System.Runtime]System.Object";
+                            localTypes[st.Target] = returnIlType;
+                        }
+                        catch
+                        {
+                            // Fallback silently to object
+                            localTypes[st.Target] = "class [System.Runtime]System.Object";
+                        }
+                    }
+                }
+                else if (ins is LoadInstruction ld && ld.Value is string s && !string.IsNullOrEmpty(s))
+                {
+                    // ldloc usage may appear as a string value
+                    if (ld.Opcode.StartsWith("ldloc", StringComparison.OrdinalIgnoreCase) && !localNames.Contains(s))
+                    {
+                        localNames.Add(s);
+                    }
+                }
+            }
+        }
+
+        // Build map to IL local names V_0, V_1, ... and emit .locals init if any
+        _currentLocalsMap = null;
+        if (localNames.Count > 0)
+        {
+            _currentLocalsMap = new Dictionary<string, string>(StringComparer.Ordinal);
+            var localsDecls = new List<string>();
+            for (int i = 0; i < localNames.Count; i++)
+            {
+                var original = localNames[i];
+                var localId = "V_" + i;
+                _currentLocalsMap[original] = localId;
+                // Prefer inferred local type when available, otherwise fallback to System.Object
+                var ilLocalType = localTypes.TryGetValue(original, out var lt) ? lt : "class [System.Runtime]System.Object";
+                localsDecls.Add($"{ilLocalType} {localId}");
+            }
+
+            EmitLine($".locals init ({string.Join(", ", localsDecls)})");
+        }
+
+        // Emit instructions
+        foreach (var seq in allSequences)
+        {
+            EmitInstructionSequence(seq);
+        }
+
+        // Ensure method returns properly: only emit a trailing 'ret' if none of the
+        // generated instruction sequences already contain a ReturnInstruction.
+        // Emitting an unconditional 'ret' can create duplicate return instructions
+        // and produce invalid IL when a ReturnStatement already emitted one.
+        var hasExplicitReturn = allSequences
+            .SelectMany(s => s.Instructions)
+            .Any(i => i is il_ast.ReturnInstruction);
+        if (!hasExplicitReturn)
+        {
+            EmitLine("ret");
+        }
+
+        _currentLocalsMap = null;
     }
 
     private void EmitInstructionSequence(InstructionSequence sequence)
@@ -333,7 +413,7 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
     */
     /* Removed old expression handling methods - now using instruction sequences only */
 
-    
+
     /// <summary>
     /// Emits a single CIL instruction
     /// </summary>
@@ -344,41 +424,48 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
             case LoadInstruction loadInstr:
                 EmitLoadInstruction(loadInstr);
                 break;
-                
+
             case StoreInstruction storeInstr:
                 EmitStoreInstruction(storeInstr);
                 break;
-                
+
             case ArithmeticInstruction arithInstr:
                 EmitArithmeticInstruction(arithInstr);
                 break;
-                
+
             case BranchInstruction branchInstr:
                 EmitBranchInstruction(branchInstr);
                 break;
-                
+
             case CallInstruction callInstr:
                 EmitCallInstruction(callInstr);
                 break;
-                
+
             case StackInstruction stackInstr:
                 EmitStackInstruction(stackInstr);
                 break;
-                
+
             case ReturnInstruction:
                 EmitLine("ret");
                 break;
-                
+
             case LabelInstruction labelInstr:
                 EmitLine($"{labelInstr.Label}:");
                 break;
         }
     }
-    
+
     private void EmitLoadInstruction(LoadInstruction loadInstr)
     {
         if (loadInstr.Value != null)
         {
+            // If this is a local load and we have a mapping, rewrite the local name
+            if (_currentLocalsMap != null && loadInstr.Opcode.StartsWith("ldloc", StringComparison.OrdinalIgnoreCase) && loadInstr.Value is string name && _currentLocalsMap.TryGetValue(name, out var mapped))
+            {
+                EmitLine($"{loadInstr.Opcode} {mapped}");
+                return;
+            }
+
             EmitLine($"{loadInstr.Opcode} {loadInstr.Value}");
         }
         else
@@ -386,11 +473,16 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
             EmitLine(loadInstr.Opcode);
         }
     }
-    
+
     private void EmitStoreInstruction(StoreInstruction storeInstr)
     {
         if (storeInstr.Target != null)
         {
+            if (_currentLocalsMap != null && _currentLocalsMap.TryGetValue(storeInstr.Target, out var mapped))
+            {
+                EmitLine($"{storeInstr.Opcode} {mapped}");
+                return;
+            }
             EmitLine($"{storeInstr.Opcode} {storeInstr.Target}");
         }
         else
@@ -398,7 +490,7 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
             EmitLine(storeInstr.Opcode);
         }
     }
-    
+
     private void EmitArithmeticInstruction(ArithmeticInstruction arithInstr)
     {
         switch (arithInstr.Opcode)
@@ -427,7 +519,7 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
                 break;
         }
     }
-    
+
     private void EmitBranchInstruction(BranchInstruction branchInstr)
     {
         if (branchInstr.TargetLabel != null)
@@ -439,9 +531,16 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
             EmitLine(branchInstr.Opcode);
         }
     }
-    
+
     private void EmitCallInstruction(CallInstruction callInstr)
     {
+        if (!string.IsNullOrWhiteSpace(callInstr.MethodSignature) && callInstr.MethodSignature.StartsWith("extcall:", StringComparison.Ordinal))
+        {
+            var ilSig = ParseExtCallSignature(callInstr.MethodSignature);
+            EmitLine($"{callInstr.Opcode} {ilSig}");
+            return;
+        }
+
         if (callInstr.MethodSignature != null)
         {
             EmitLine($"{callInstr.Opcode} {callInstr.MethodSignature}");
@@ -451,12 +550,97 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
             EmitLine(callInstr.Opcode);
         }
     }
-    
+
+    // Parse an extcall token generated by AstToIlTransformationVisitor and produce a valid IL call signature
+    private string ParseExtCallSignature(string sig)
+    {
+        // sig format: extcall:Asm=Fifth.System;Ns=Fifth.System;Type=KG;Method=CreateGraph;Params=;Return=VDS.RDF.IGraph@dotNetRDF
+        var payload = sig.Substring("extcall:".Length);
+        var parts = payload.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var dict = parts.Select(p => p.Split('=', 2)).Where(a => a.Length == 2).ToDictionary(a => a[0], a => a[1]);
+
+        string asm = dict.TryGetValue("Asm", out var a) ? a : string.Empty;
+        string ns = dict.TryGetValue("Ns", out var n) ? n : string.Empty;
+        string type = dict.TryGetValue("Type", out var t) ? t : string.Empty;
+        string method = dict.TryGetValue("Method", out var m) ? m : string.Empty;
+        string @params = dict.TryGetValue("Params", out var p) ? p : string.Empty;
+        string @return = dict.TryGetValue("Return", out var r) ? r : "System.Void";
+
+        string MapTokenToIlType(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token)) return "void";
+            // Token can be 'Namespace.Type@Assembly' or 'System.Int32' etc.
+            var asmSplit = token.Split('@', 2);
+            var typeName = asmSplit[0];
+            var asmName = asmSplit.Length > 1 ? asmSplit[1] : string.Empty;
+
+            // Map common system types
+            switch (typeName)
+            {
+                case "System.Int32": return "int32";
+                case "System.String": return "string";
+                case "System.Single": return "float32";
+                case "System.Double": return "float64";
+                case "System.Boolean": return "bool";
+                case "System.Void": return "void";
+                case "System.Object": return "class [System.Runtime]System.Object";
+                case "System.Int64": return "int64";
+                case "System.Int16": return "int16";
+                case "System.SByte": return "int8";
+                case "System.Byte": return "uint8";
+                case "System.UInt16": return "uint16";
+                case "System.UInt32": return "uint32";
+                case "System.UInt64": return "uint64";
+                case "System.Decimal": return "valuetype [System.Runtime]System.Decimal"; // best-effort
+            }
+
+            // For non-system types, emit a class token with assembly first and no extra spaces:
+            // 'class [Assembly]Namespace.Type'
+            if (!string.IsNullOrEmpty(asmName))
+            {
+                return $"class [{asmName}]{typeName}";
+            }
+            return $"class {typeName}";
+        }
+
+        // Build IL param list
+        var paramList = "";
+        if (!string.IsNullOrWhiteSpace(@params))
+        {
+            var paramTokens = @params.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var mapped = paramTokens.Select(MapTokenToIlType).ToArray();
+            paramList = string.Join(", ", mapped);
+        }
+
+        var returnIl = MapTokenToIlType(@return);
+        // Normalize System.Object to reference the runtime assembly explicitly
+        if (string.Equals(returnIl, "class System.Object", StringComparison.OrdinalIgnoreCase) || string.Equals(returnIl, "System.Object", StringComparison.OrdinalIgnoreCase))
+        {
+            returnIl = "class [System.Runtime]System.Object";
+        }
+
+        // Construct owner token: [Asm]Ns.Type (no extra space after the assembly token)
+        var owner = string.Empty;
+        if (!string.IsNullOrEmpty(asm))
+        {
+            if (!string.IsNullOrEmpty(ns)) owner = $"[{asm}]{ns}.{type}";
+            else owner = $"[{asm}]{type}";
+        }
+        else
+        {
+            owner = !string.IsNullOrEmpty(ns) ? $"{ns}.{type}" : type;
+        }
+
+        // Compose final call signature
+        var paramSegment = string.IsNullOrEmpty(paramList) ? "" : paramList;
+        return $"{returnIl} {owner}::{method}({paramSegment})";
+    }
+
     private void EmitStackInstruction(StackInstruction stackInstr)
     {
         EmitLine(stackInstr.Opcode);
     }
-    
+
     // End of commented section - these methods need refactoring to work with new il_ast model */
 
     #region Helper Methods
@@ -512,6 +696,11 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
             "bool" or "Boolean" => "bool",
             "string" or "String" => "string",
             "void" => "void",
+            "sbyte" or "SByte" or "int8" or "Int8" => "int8",
+            "byte" or "Byte" => "uint8",
+            "uint" or "UInt32" or "uint32" => "uint32",
+            "ulong" or "UInt64" or "uint64" => "uint64",
+            "ushort" or "UInt16" or "uint16" => "uint16",
             _ => typeRef.Name.ToLowerInvariant()
         };
     }
