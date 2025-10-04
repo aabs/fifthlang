@@ -171,6 +171,10 @@ public class FunctionRuntimeTests : RuntimeTestBase
                 return 2;
             }
 
+            foo(i: int): int {
+                return 0; // fallback base case
+            }
+
             main(): int {
                 return foo(10) + foo(20);
             }
@@ -200,6 +204,10 @@ public class FunctionRuntimeTests : RuntimeTestBase
 
             categorize(age: int | age >= 65): int {
                 return 3; // senior
+            }
+
+            categorize(age: int): int {
+                return 0; // fallback base case
             }
 
             main(): int {

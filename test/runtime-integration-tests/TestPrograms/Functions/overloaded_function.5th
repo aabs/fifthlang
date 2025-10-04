@@ -6,6 +6,10 @@ foo(i: int | i > 15): int {
     return 2;
 }
 
+foo(i: int): int {
+    return 0;  // fallback base case
+}
+
 main(): int {
     return foo(10) + foo(20);
 }
