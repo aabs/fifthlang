@@ -243,7 +243,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
 
-        result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
+        result.ExitCode.Should().Be(2, "f(2) where f(x: int | (x & 1) == 0) { return x; } should return 2");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
@@ -254,7 +254,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
 
-        result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
+        result.ExitCode.Should().Be(1, "f(1) where f(x: int | x > 0) { return x; } should return 1");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
@@ -354,7 +354,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
 
-        result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
+        result.ExitCode.Should().Be(1, "f(1) where f(x: int | x > 0) { return x; } should return 1");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
