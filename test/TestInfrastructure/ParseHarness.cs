@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using Antlr4.Runtime;
 using compiler;
@@ -65,6 +66,11 @@ public static class ParseHarness
     public static ParseResult ParseString(string source, ParseOptions? options = null)
     {
         options ??= new ParseOptions();
+        if (source.Contains("\\n", StringComparison.Ordinal))
+        {
+            source = source.Replace("\\r\\n", "\n", StringComparison.Ordinal)
+                           .Replace("\\n", "\n", StringComparison.Ordinal);
+        }
         var diagnostics = new List<TestDiagnostic>();
 
         // Configure lexer & parser manually to capture syntax diagnostics without throwing.
@@ -96,6 +102,11 @@ public static class ParseHarness
             processed = FifthParserManager.ApplyLanguageAnalysisPhases(ast, diagnostics: phaseDiagnostics, upTo: options.Phase) as AssemblyDef;
             swPhases.Stop();
             phasesTime = swPhases.Elapsed;
+            if (processed == null)
+            {
+                // When analysis short-circuits due to diagnostics we still want tests to observe the partially-built AST.
+                processed = ast;
+            }
             // Merge semantic/phase diagnostics, mapping to TestDiagnostic (preserve already collected syntax diags first)
             foreach (var d in phaseDiagnostics)
             {
