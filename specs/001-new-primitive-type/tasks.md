@@ -46,11 +46,12 @@
 - Remaining Phase 3.5 items are lowering and dedupe work (T025–T026A) which are not yet implemented.
 
 ## Phase 3.6: Mutating Operators & KG Helpers
-- [ ] T027 Add failing tests `test/runtime-integration-tests/TripleMutatingOperatorsTests.cs` for `+=` / `-=` forms
-- [ ] T028 Implement parser assignment rule extension (if needed) for MINUS_ASSIGN handling `graph -= triple`
-- [ ] T029 Implement lowering for `g += <...>` and `g -= <...>` in lowering visitor (desugar to assignment)
-- [ ] T030 Review `fifthlang.system/KnowledgeGraphs.cs` (or similar) for `Assert`, `Retract`, `CreateTriple`; add `Retract` / `CopyGraph` if absent
-- [ ] T031 [P] Add unit tests for newly added KG helper methods
+- [x] T027 Add failing tests `test/runtime-integration-tests/TripleMutatingOperatorsTests.cs` for `+=` / `-=` forms
+- [x] T028 Implement parser assignment rule extension (if needed) for MINUS_ASSIGN handling `graph -= triple`
+- [x] T029 Implement lowering for `g += <...>` and `g -= <...>` in lowering visitor (desugar to assignment)
+- [x] T030 Review `fifthlang.system/KnowledgeGraphs.cs` (or similar) for `Assert`, `Retract`, `CreateTriple`; add `Retract` / `CopyGraph` if absent
+- [x] T031 [P] Add unit tests for newly added KG helper methods
+
 
 ## Phase 3.7: Type Inference & Diagnostics
 - [ ] T032 Extend type inference (likely in generated type inference file or manual visitor) to map triple literal to primitive `triple`
