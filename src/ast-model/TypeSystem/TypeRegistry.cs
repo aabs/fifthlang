@@ -43,6 +43,15 @@ public class TypeRegistry
         typeof(DateTime)
     ];
 
+    /// <summary>
+    /// Fifth language-specific primitive types (not backed by .NET types)
+    /// </summary>
+    public static string[] FifthPrimitives =
+    [
+        "triple",  // RDF triple literal (FR-003)
+        "graph"    // RDF graph (collection of triples)
+    ];
+
     public FifthType Register(FifthType type)
     {
         _registeredTypes[type.Name] = type;
@@ -55,6 +64,12 @@ public class TypeRegistry
         {
             var ft = Register(new FifthType.TDotnetType(t) { Name = TypeName.From(t.Name) });
             _dotnetTypes[t] = ft;
+        }
+        
+        // Register Fifth language-specific primitive types
+        foreach (var typeName in FifthPrimitives)
+        {
+            Register(new FifthType.TType() { Name = TypeName.From(typeName) });
         }
     }
 
