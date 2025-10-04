@@ -387,11 +387,6 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 
 
 
-    /// <summary>
-    /// Gets the label counter for generating unique labels
-    /// </summary>
-    private int _labelCounter = 0;
-
     private string GetOperatorString(Operator op)
     {
         return op switch
