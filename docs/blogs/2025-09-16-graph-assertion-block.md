@@ -46,7 +46,7 @@ These semantics align with the Feature Specification “Graph Assertion Block”
 - Expression-form (produce a graph value; no auto-persist):
 
 ```fifth
-graph g = <{ /* compute facts */ }>;  // in-memory graph value
+- g: graph = <{ /* compute facts */ }>;  // in-memory graph value
 store default = sparql_store(<http://example.org/store>);
 default += g;                         // explicit persist
 ```
@@ -58,7 +58,7 @@ alias x as <http://example.org/people#>;
 
 store default = sparql_store(<http://example.org/store>);
 
-graph ericKnowledge in <x:people> = <{
+ericKnowledge : graph in <x:people> = <{
    d: datetime = new datetime(1926, 5, 14);
    eric.dob = d;
    eric.age = calculate_age(d);
@@ -167,7 +167,7 @@ alias x as <http://example.org/people#>;
 store default = sparql_store(<http://example.org/store>);
 
 main(): int {
-   graph ericKnowledge in <x:people> = <{
+   ericKnowledge : graph in <x:people> = <{
       d: datetime = new datetime(1926, 5, 14);
       eric.dob = d;
       eric.age = calculate_age(d);

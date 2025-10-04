@@ -1,4 +1,5 @@
 using FluentAssertions;
+using System.Text.RegularExpressions;
 
 namespace runtime_integration_tests;
 
@@ -328,8 +329,16 @@ public class GraphAssertionBlock_Literals_RuntimeTests : RuntimeTestBase
         }
         var printed = result.StandardOutput.Trim();
         printed.Should().Contain("TRIPLE_COUNT:");
-        var suffix = printed.Substring(printed.IndexOf(':') + 1).Trim();
-        int.TryParse(suffix, out var count).Should().BeTrue("Program should print an integer triple count after the prefix");
+        var matches = Regex.Matches(printed, "\\d+");
+        if (matches.Count == 0)
+        {
+            throw new InvalidOperationException($"Failed to find any integer in program stdout:\n{result.StandardOutput}");
+        }
+        var lastMatch = matches[matches.Count - 1].Value;
+        if (!int.TryParse(lastMatch, out var count))
+        {
+            throw new InvalidOperationException($"Failed to parse the last integer match '{lastMatch}' from program stdout:\n{result.StandardOutput}");
+        }
         count.Should().Be(2);
     }
 }

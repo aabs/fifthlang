@@ -77,6 +77,54 @@ After making changes, always run in this order:
    // Should complete without errors
    ```
 
+### Documentation & Example Validation
+
+Before running parser or runtime tests, agents MUST ensure that all code samples and test programs in `docs/`, `specs/`, and `test/` use grammar-supported Fifth syntax. This prevents parser-time regressions caused by accidental non-Fifth idioms in documentation or ad-hoc probes.
+
+Checklist for agents (must run every time examples/docs are modified):
+
+1. Sweep for obviously non-Fifth declarations and shorthand forms:
+   - Look for `var <name> =` in examples (C#/JS-style). These must be converted to `name: type =` or the appropriate Fifth form.
+   - Look for type-first declarations like `graph g =` or `triple t =` in docs and examples. These are invalid in Fifth and must be rewritten as `g: graph =` or `t: triple =` respectively.
+
+   Quick grep examples (run from repo root; fish shell):
+
+   ```fish
+   # Find 'var' in .5th and docs
+   grep -R --line-number --exclude-dir=.git --include='*.5th' --include='*.md' "\bvar \" . || true
+
+   # Find 'graph <ident> =' patterns in markdown or examples
+   grep -R --line-number --exclude-dir=.git --include='*.md' --include='*.5th' "graph [A-Za-z_]\\+\s*=" || true
+   ```
+
+   If any hits are found, update the snippet to the correct Fifth syntax. If the snippet is intentionally invalid (used by a negative test), add an explicit negative-test marker comment in the file so the `validate-examples` tool will skip it (see the validator's heuristics).
+
+2. Run the project's example validator and parser-check tools
+
+   ```fish
+   # Validate all examples that should parse. This quick-check uses the project's tooling
+   scripts/validate-examples.fish
+
+   # If you need to force-include intentionally-invalid examples for debugging
+   scripts/validate-examples.fish --include-negatives
+   ```
+
+   Fix any parsing errors reported by the validator. If a snippet is intended to be invalid for a test, ensure the validator-skip markers are present.
+
+3. Re-run parser tests and relevant unit/integration tests
+
+   ```fish
+   # Parser-focused tests
+   dotnet test test/syntax-parser-tests/ -v minimal
+
+   # Then runtime-integration tests for the subset you plan to change
+   dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj --filter "FullyQualifiedName~YourTestName" -v minimal
+   ```
+
+Notes for agents
+- Always prefer updating documentation snippets to the current grammar rather than changing the validator or tests to accept legacy forms.
+- If you intentionally change the language surface syntax, update the grammar files under `src/parser/grammar/`, `AstBuilderVisitor`, and add new parser tests explaining the rationale. Also update the constitution/specs to record the change.
+
 ## Common Development Tasks
 
 ### AST Code Generation

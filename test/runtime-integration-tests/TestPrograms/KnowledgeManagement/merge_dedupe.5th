@@ -5,7 +5,7 @@ class Resource in <http://example.org/> {
 
 main(): int {
     // Build two graphs inline and merge them; avoid using variable declarations to bypass parser ambiguity
-    std.print("DEBUG: START");
+    std.print("DEBUG START");
 
     std.print("TRIPLE_COUNT:");
     std.print(KG.CountTriples(

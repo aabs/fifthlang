@@ -1,0 +1,9 @@
+// Minimal probe to create graph and print around it
+main() => myprobe();
+
+myprobe(): int {
+    std.print("BEFORE_CREATEGRAPH");
+    g: graph = KG.CreateGraph();
+    std.print("AFTER_CREATEGRAPH");
+    return 0;
+}

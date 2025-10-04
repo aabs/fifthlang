@@ -116,7 +116,8 @@ public static class FifthParserManager
         // If diagnostics list was provided and contains errors, short-circuit to allow caller to handle failures
         if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
         {
-            // Return the AST anyway; caller will inspect diagnostics for errors and act accordingly
+            // Return null so caller can observe the diagnostics and fail the build
+            return null;
         }
 
         if (upTo >= AnalysisPhase.OverloadTransform)
@@ -157,6 +158,17 @@ public static class FifthParserManager
 
         if (upTo >= AnalysisPhase.TypeAnnotation)
             ast = new TypeAnnotationVisitor().Visit(ast);
+
+        // Validate external qualified calls now that types have been annotated
+        if (diagnostics != null)
+        {
+            ast = new compiler.LanguageTransformations.ExternalCallValidationVisitor(diagnostics).Visit(ast);
+            if (diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
+            {
+                // Early exit - return null to indicate transform failure
+                return null;
+            }
+        }
 
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);
         return ast;

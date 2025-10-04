@@ -1,5 +1,5 @@
 // Generated IL for assembly: 
-// Generated at: 2025-09-29 09:58:48 UTC
+// Generated at: 2025-09-29 11:28:21 UTC
 
 .assembly extern System.Runtime
 {
@@ -42,19 +42,59 @@
 {
     .entrypoint
     .maxstack 8
-    .locals init (class [System.Runtime]System.Object V_0)
     ldstr "DEBUG: START"
     call void [System.Console]System.Console::WriteLine(string)
     ldstr "TRIPLE_COUNT:"
     call void [System.Console]System.Console::WriteLine(string)
-    ldloc V_0
-    ldloc V_0
-    call class [System.Runtime]System.Object [Fifth.System]Fifth.System.KG::Assert(class VDS.RDF.Triple)
-    call class [System.Runtime]System.Object [Fifth.System]Fifth.System.KG::Assert(class VDS.RDF.Triple)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    ldstr "http://example.org/s1"
+    call class [dotNetRdf]VDS.RDF.IUriNode [Fifth.System]Fifth.System.KG::CreateUri(class [dotNetRdf]VDS.RDF.IGraph, string)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    ldstr "http://example.org/p"
+    call class [dotNetRdf]VDS.RDF.IUriNode [Fifth.System]Fifth.System.KG::CreateUri(class [dotNetRdf]VDS.RDF.IGraph, string)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    ldc.i4 42
+    call class [dotNetRdf]VDS.RDF.ILiteralNode [Fifth.System]Fifth.System.KG::CreateLiteral(class [dotNetRdf]VDS.RDF.IGraph, int32)
+    call class [dotNetRdf]VDS.RDF.Triple [Fifth.System]Fifth.System.KG::CreateTriple(class [dotNetRdf]VDS.RDF.INode, class [dotNetRdf]VDS.RDF.INode, class [dotNetRdf]VDS.RDF.INode)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::Assert(class [dotNetRdf]VDS.RDF.IGraph, class [dotNetRdf]VDS.RDF.Triple)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    ldstr "http://example.org/s2"
+    call class [dotNetRdf]VDS.RDF.IUriNode [Fifth.System]Fifth.System.KG::CreateUri(class [dotNetRdf]VDS.RDF.IGraph, string)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    ldstr "http://example.org/p"
+    call class [dotNetRdf]VDS.RDF.IUriNode [Fifth.System]Fifth.System.KG::CreateUri(class [dotNetRdf]VDS.RDF.IGraph, string)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    ldc.i4 43
+    call class [dotNetRdf]VDS.RDF.ILiteralNode [Fifth.System]Fifth.System.KG::CreateLiteral(class [dotNetRdf]VDS.RDF.IGraph, int32)
+    call class [dotNetRdf]VDS.RDF.Triple [Fifth.System]Fifth.System.KG::CreateTriple(class [dotNetRdf]VDS.RDF.INode, class [dotNetRdf]VDS.RDF.INode, class [dotNetRdf]VDS.RDF.INode)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::Assert(class [dotNetRdf]VDS.RDF.IGraph, class [dotNetRdf]VDS.RDF.Triple)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    ldstr "http://example.org/s1"
+    call class [dotNetRdf]VDS.RDF.IUriNode [Fifth.System]Fifth.System.KG::CreateUri(class [dotNetRdf]VDS.RDF.IGraph, string)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    ldstr "http://example.org/p"
+    call class [dotNetRdf]VDS.RDF.IUriNode [Fifth.System]Fifth.System.KG::CreateUri(class [dotNetRdf]VDS.RDF.IGraph, string)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    ldc.i4 42
+    call class [dotNetRdf]VDS.RDF.ILiteralNode [Fifth.System]Fifth.System.KG::CreateLiteral(class [dotNetRdf]VDS.RDF.IGraph, int32)
+    call class [dotNetRdf]VDS.RDF.Triple [Fifth.System]Fifth.System.KG::CreateTriple(class [dotNetRdf]VDS.RDF.INode, class [dotNetRdf]VDS.RDF.INode, class [dotNetRdf]VDS.RDF.INode)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::Assert(class [dotNetRdf]VDS.RDF.IGraph, class [dotNetRdf]VDS.RDF.Triple)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    ldstr "http://example.org/s2"
+    call class [dotNetRdf]VDS.RDF.IUriNode [Fifth.System]Fifth.System.KG::CreateUri(class [dotNetRdf]VDS.RDF.IGraph, string)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    ldstr "http://example.org/p"
+    call class [dotNetRdf]VDS.RDF.IUriNode [Fifth.System]Fifth.System.KG::CreateUri(class [dotNetRdf]VDS.RDF.IGraph, string)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::CreateGraph()
+    ldc.i4 43
+    call class [dotNetRdf]VDS.RDF.ILiteralNode [Fifth.System]Fifth.System.KG::CreateLiteral(class [dotNetRdf]VDS.RDF.IGraph, int32)
+    call class [dotNetRdf]VDS.RDF.Triple [Fifth.System]Fifth.System.KG::CreateTriple(class [dotNetRdf]VDS.RDF.INode, class [dotNetRdf]VDS.RDF.INode, class [dotNetRdf]VDS.RDF.INode)
+    call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::Assert(class [dotNetRdf]VDS.RDF.IGraph, class [dotNetRdf]VDS.RDF.Triple)
     call class [dotNetRdf]VDS.RDF.IGraph [Fifth.System]Fifth.System.KG::Merge(class [dotNetRdf]VDS.RDF.IGraph, class [dotNetRdf]VDS.RDF.IGraph)
     call int32 [Fifth.System]Fifth.System.KG::CountTriples(class [dotNetRdf]VDS.RDF.IGraph)
-    box int32
-    call void [System.Console]System.Console::WriteLine(class [System.Runtime]System.Object)
+    call void [System.Console]System.Console::WriteLine(int32)
     ldc.i4 0
     ret
 }
