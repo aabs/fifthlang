@@ -1,9 +1,13 @@
-# PEEmitter Refactoring Summary
+# PEEmitter Refactoring Summary - COMPLETED
 
 ## Overview
-This refactoring modularized the monolithic `PEEmitter.cs` (originally 2342 lines) into focused, maintainable components following the Single Responsibility Principle.
+This refactoring successfully modularized the monolithic `PEEmitter.cs` (originally 2342 lines) into focused, maintainable components following the Single Responsibility Principle.
+
+**Final Result: PEEmitter.cs reduced from 2342 to 821 lines (65% reduction!)**
 
 ## Extracted Components
+
+### Infrastructure Components
 
 ### 1. MetadataManager.cs (145 lines)
 **Responsibility:** Manages all metadata lookups and registrations for types, fields, methods, and constructors.
@@ -87,6 +91,97 @@ private void EmitBranchInstruction(InstructionEncoder il, BranchInstruction bran
     _branchEmitter.Emit(il, branchInst, labelMap);
 }
 ```
+
+### Instruction Emitters (Partial Classes)
+
+### 6. PEEmitter.LoadInstructions.cs (354 lines)
+**Responsibility:** Handles emission of all load instructions.
+
+**Key Features:**
+- Load constant instructions (ldc.i4, ldc.r4, ldc.r8, ldstr)
+- Local variable loading (ldloc)
+- Argument loading (ldarg)
+- Field loading (ldfld, ldsfld)
+- Array element loading (ldelem.i4, newarr)
+- Stack manipulation (dup, ldnull)
+- Boxing operations
+
+**Key Methods:**
+- `EmitLoadInstruction()` - Main dispatcher
+- `EmitLoadLocal()` - Handles local variable loading with type inference
+- `EmitLoadArgument()` - Handles argument loading
+- `EmitLoadField()` - Resolves and loads instance fields
+- `EmitLoadStaticField()` - Loads static fields
+- `EmitBox()` - Boxing operations for primitives and custom types
+- `ResolveFieldToken()` - Complex field resolution logic
+- `PropagateFieldType()` - Type propagation for field loads
+
+### 7. PEEmitter.StoreInstructions.cs (186 lines)
+**Responsibility:** Handles emission of all store instructions.
+
+**Key Features:**
+- Local variable storage (stloc) with type tracking
+- Argument storage (starg)
+- Field storage (stfld, stsfld)
+- Array element storage (stelem.i4)
+- Type inference propagation on stores
+
+**Key Methods:**
+- `EmitStoreInstruction()` - Main dispatcher
+
+### 8. PEEmitter.CallInstructions.cs (595 lines)
+**Responsibility:** Handles emission of call instructions and method invocations.
+
+**Key Features:**
+- External method calls with complex signature resolution
+- Assembly reference management
+- Type reference creation
+- Method signature building
+- Runtime reflection-based parameter resolution
+- Support for both Fifth.System and external assemblies
+- Newobj instruction handling
+
+**Complexity Note:**
+This is the largest extracted component due to the complexity of:
+- Parsing extcall tokens
+- Resolving external assemblies and types
+- Building method signatures dynamically
+- Handling various calling conventions
+
+### 9. PEEmitter.MethodBodyEmission.cs (322 lines)
+**Responsibility:** Handles method body generation and IL instruction sequence emission.
+
+**Key Features:**
+- Method IL generation from IL metamodel
+- Local variable collection and ordering
+- Stack simulation and validation
+- Conservative fallback insertion for returns
+- Two-pass lowering/emission
+- Integration with AstToIlTransformationVisitor
+
+**Key Methods:**
+- `GenerateMethodIL()` - Main method body generation
+- Stack depth tracking and validation
+- Fallback value insertion for underspecified returns
+
+## File Size Summary
+
+### Before Refactoring
+- PEEmitter.cs: **2342 lines** (monolithic)
+
+### After Refactoring
+- **PEEmitter.cs: 821 lines** (main orchestration) - **65% reduction!**
+- PEEmitter.LoadInstructions.cs: 354 lines
+- PEEmitter.StoreInstructions.cs: 186 lines
+- PEEmitter.CallInstructions.cs: 595 lines
+- PEEmitter.MethodBodyEmission.cs: 322 lines
+- MetadataManager.cs: 145 lines
+- SignatureBuilder.cs: 106 lines
+- SignatureUtilities.cs: 91 lines
+- BranchInstructionEmitter.cs: 33 lines
+- ArithmeticInstructionEmitter.cs: 80 lines
+
+**Total: 2733 lines** across 10 files (manageable overhead for significantly better maintainability)
 
 ## Benefits
 
