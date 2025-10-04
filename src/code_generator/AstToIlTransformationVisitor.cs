@@ -708,8 +708,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
 
             case VarRefExp varRef:
-                // Debug instrumentation for VarRef lowering (embedded as ldstr so it is ignorable by emitter)
-                sequence.Add(new LoadInstruction("ldstr", $"//DEBUG VarRef load '{varRef.VarName}' param={(_currentParameterNames.Contains(varRef.VarName))}"));
+                if (DebugEnabled)
+                {
+                    DebugLog($"VarRef load '{varRef.VarName}' param={_currentParameterNames.Contains(varRef.VarName)}");
+                }
                 if (_currentParameterNames.Contains(varRef.VarName))
                     sequence.Add(new LoadInstruction("ldarg", varRef.VarName));
                 else
@@ -718,7 +720,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 
             case BinaryExp binaryExp:
                 var opStr = GetOperatorString(binaryExp.Operator);
-                sequence.Add(new LoadInstruction("ldstr", $"//DEBUG Binary start op='{opStr}' lhs={(binaryExp.LHS?.GetType().Name ?? "null")} rhs={(binaryExp.RHS?.GetType().Name ?? "null")}"));
+                if (DebugEnabled)
+                {
+                    DebugLog($"Binary start op='{opStr}' lhs={(binaryExp.LHS?.GetType().Name ?? "null")} rhs={(binaryExp.RHS?.GetType().Name ?? "null")}");
+                }
                 if (binaryExp.LHS != null) sequence.AddRange(GenerateExpression(binaryExp.LHS).Instructions);
                 if (binaryExp.RHS != null) sequence.AddRange(GenerateExpression(binaryExp.RHS).Instructions);
                 // Expand composite relational/equality ops explicitly so emitter sees real IL patterns
@@ -758,12 +763,18 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                         sequence.Add(new ArithmeticInstruction(GetBinaryOpCode(opStr)));
                         break;
                 }
-                sequence.Add(new LoadInstruction("ldstr", $"//DEBUG Binary end op='{opStr}'"));
+                if (DebugEnabled)
+                {
+                    DebugLog($"Binary end op='{opStr}'");
+                }
                 break;
 
             case UnaryExp unaryExp:
                 var uop = GetOperatorString(unaryExp.Operator);
-                sequence.Add(new LoadInstruction("ldstr", $"//DEBUG Unary start op='{uop}' operand={(unaryExp.Operand?.GetType().Name ?? "null")}"));
+                if (DebugEnabled)
+                {
+                    DebugLog($"Unary start op='{uop}' operand={(unaryExp.Operand?.GetType().Name ?? "null")}");
+                }
                 if (unaryExp.Operand != null) sequence.AddRange(GenerateExpression(unaryExp.Operand).Instructions);
                 if (uop == "!")
                 {
@@ -779,7 +790,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 {
                     sequence.Add(new ArithmeticInstruction("nop"));
                 }
-                sequence.Add(new LoadInstruction("ldstr", $"//DEBUG Unary end op='{uop}'"));
+                if (DebugEnabled)
+                {
+                    DebugLog($"Unary end op='{uop}'");
+                }
                 break;
 
             case ast.FuncCallExp funcCall:
@@ -798,7 +812,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 
             default:
                 // Unknown expression: record and emit a diagnostic debug marker so we can trace zero-lowerings
-                sequence.Add(new LoadInstruction("ldstr", $"//DEBUG Unknown expression kind '{expression?.GetType().Name}'"));
+                if (DebugEnabled)
+                {
+                    DebugLog($"Unknown expression kind '{expression?.GetType().Name}'");
+                }
                 SafeRecordZeroLowering(_currentMethodName ?? "<unknown>", "Expression", expression?.GetType().Name ?? "<null>");
                 break;
         }
