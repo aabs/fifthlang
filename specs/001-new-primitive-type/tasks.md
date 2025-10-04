@@ -43,7 +43,7 @@
 
 # Notes
 - The expansion and diagnostics work (T022–T024) has been implemented and covered by unit and AST-level tests (including `TripleDiagnosticsUnitTests.cs`, parser-level tests, and updates to `TripleLiteralExpansionTests.cs`).
-- Remaining Phase 3.5 items are lowering and dedupe work (T025–T026A) which are not yet implemented.
+- Lowering, dedupe, and invalid-operator diagnostics (T025–T026A) are implemented, validated by the new AST tests, and the PE emitter regression uncovered during verification has been fixed (all AST tests green).
 
 ## Phase 3.6: Mutating Operators & KG Helpers
 - [ ] T027 Add failing tests `test/runtime-integration-tests/TripleMutatingOperatorsTests.cs` for `+=` / `-=` forms
