@@ -98,6 +98,10 @@ public class ExpressionEmitter
                 GenerateListLiteral(sequence, listLiteral);
                 break;
 
+            case ListComprehension listComp:
+                GenerateListComprehension(sequence, listComp);
+                break;
+
             default:
                 if (DebugEnabled)
                 {
@@ -535,6 +539,23 @@ public class ExpressionEmitter
                 sequence.Add(new StoreInstruction("stelem.i4", null));
             }
         }
+        
+        // Array reference remains on stack
+    }
+
+    private void GenerateListComprehension(InstructionSequence sequence, ListComprehension listComp)
+    {
+        if (DebugEnabled)
+        {
+            DebugLog($"ListComprehension: {listComp.VarName} in {listComp.SourceName}");
+        }
+
+        // TODO: List comprehensions should be lowered to loops in an earlier transformation pass
+        // For now, create an empty array as a placeholder to avoid stack underflow
+        
+        // Create empty array
+        sequence.Add(new LoadInstruction("ldc.i4", 0));  // Size 0
+        sequence.Add(new LoadInstruction("newarr", "System.Int32"));
         
         // Array reference remains on stack
     }
