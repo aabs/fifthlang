@@ -1,10 +1,124 @@
+using System;
 using ast;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace compiler.LanguageTransformations;
 
 public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisitor
 {
+    private const string LoweredGraphAnnotation = "LoweredGraphExpr";
+    private const string TripleSignaturesAnnotation = "TripleSignatures";
+
+    private static void AppendSignaturesFromAnnotations(IDictionary<string, object>? annotations, HashSet<string> dedupe)
+    {
+        if (annotations == null)
+        {
+            return;
+        }
+
+        if (annotations.TryGetValue(TripleSignaturesAnnotation, out var value) && value is List<string> list)
+        {
+            foreach (var signature in list)
+            {
+                dedupe.Add(signature);
+            }
+        }
+    }
+
+    private static bool TryExtractLoweredGraph(Expression? operand, HashSet<string> dedupe, out Expression builder)
+    {
+        builder = default!;
+        if (operand is not BinaryExp binary || binary.Annotations == null || !binary.Annotations.ContainsKey(LoweredGraphAnnotation))
+        {
+            return false;
+        }
+
+        AppendSignaturesFromAnnotations(binary.Annotations, dedupe);
+        builder = binary.RHS ?? operand;
+        return true;
+    }
+
+    private static Expression AppendGraphOperand(Expression builder, Expression operand, SourceLocationMetadata loc, HashSet<string> dedupe)
+    {
+        Expression mergeArgument = operand;
+        if (operand is BinaryExp lowered && lowered.Annotations != null && lowered.Annotations.ContainsKey(LoweredGraphAnnotation))
+        {
+            AppendSignaturesFromAnnotations(lowered.Annotations, dedupe);
+            mergeArgument = lowered.RHS ?? operand;
+        }
+
+        var mergeCall = new FuncCallExp
+        {
+            InvocationArguments = new List<Expression> { mergeArgument },
+            Annotations = new Dictionary<string, object> { ["FunctionName"] = "Merge" },
+            Location = loc,
+            Parent = null
+        };
+        return new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = builder, RHS = mergeCall, Location = loc };
+    }
+
+    private static bool IsGraphLike(Expression? expr)
+    {
+        if (expr is null)
+        {
+            return false;
+        }
+
+        if (expr is GraphAssertionBlockExp || expr is VarRefExp)
+        {
+            return true;
+        }
+
+        if (expr is MemberAccessExp member && member.Annotations != null && member.Annotations.ContainsKey("GraphExpr"))
+        {
+            return true;
+        }
+
+        return expr is BinaryExp binary && binary.Annotations != null && binary.Annotations.ContainsKey(LoweredGraphAnnotation);
+    }
+
+    private static string? TryComputeTripleSignature(TripleLiteralExp triple)
+    {
+        if (triple.SubjectExp?.Value == null || triple.PredicateExp?.Value == null)
+        {
+            return null;
+        }
+
+        var subject = triple.SubjectExp.Value.AbsoluteUri;
+        var predicate = triple.PredicateExp.Value.AbsoluteUri;
+        var objSignature = EncodeTripleObject(triple.ObjectExp);
+        if (objSignature == null)
+        {
+            return null;
+        }
+
+        return string.Concat(subject, "|", predicate, "|", objSignature);
+    }
+
+    private static string? EncodeTripleObject(Expression expression)
+    {
+        switch (expression)
+        {
+            case UriLiteralExp uri when uri.Value != null:
+                return "uri:" + uri.Value.AbsoluteUri;
+            case StringLiteralExp str when str.Value != null:
+                return "str:" + str.Value;
+            case Int32LiteralExp i32:
+                return "i32:" + i32.Value.ToString(CultureInfo.InvariantCulture);
+            case Int64LiteralExp i64:
+                return "i64:" + i64.Value.ToString(CultureInfo.InvariantCulture);
+            case Float8LiteralExp f8:
+                return "f8:" + f8.Value.ToString(CultureInfo.InvariantCulture);
+            case Float4LiteralExp f4:
+                return "f4:" + f4.Value.ToString(CultureInfo.InvariantCulture);
+            case BooleanLiteralExp b:
+                return "bool:" + (b.Value ? "true" : "false");
+            default:
+                return null;
+        }
+    }
+
     private static MemberAccessExp MakeKgCreateGraphExpression(SourceLocationMetadata loc)
     {
         var kgVar = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = loc };
@@ -30,8 +144,14 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         return call;
     }
 
-    private Expression LowerTripleToAssertChain(Expression createGraphExpr, TripleLiteralExp triple)
+    private Expression LowerTripleToAssertChain(Expression createGraphExpr, TripleLiteralExp triple, HashSet<string> dedupe)
     {
+        var signature = TryComputeTripleSignature(triple);
+        if (signature != null && !dedupe.Add(signature))
+        {
+            return createGraphExpr;
+        }
+
         // This implements: KG.CreateGraph().Assert(KG.CreateTriple(KG.CreateUri(g, subj), KG.CreateUri(g, pred), objNode))
         // Build subject node creation: KG.CreateUri(g, subj)
         Expression subjNode;
@@ -96,8 +216,7 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
             Location = triple.Location,
             Parent = null
         };
-        var asserted = new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = createGraphExpr, RHS = assertCall, Location = triple.Location };
-        return asserted;
+        return new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = createGraphExpr, RHS = assertCall, Location = triple.Location };
     }
 
     public override BinaryExp VisitBinaryExp(BinaryExp ctx)
@@ -110,49 +229,82 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         // Addition semantics
         if (op == Operator.ArithmeticAdd)
         {
-            // If either side is a graph expression or triple literal, lower into a new graph builder chain
-            bool leftIsGraphLike = lhs is GraphAssertionBlockExp || lhs is VarRefExp || lhs is MemberAccessExp && lhs.Annotations != null && lhs.Annotations.ContainsKey("GraphExpr");
-            bool rightIsGraphLike = rhs is GraphAssertionBlockExp || rhs is VarRefExp || rhs is MemberAccessExp && rhs.Annotations != null && rhs.Annotations.ContainsKey("GraphExpr");
-
+            bool leftIsGraphLike = IsGraphLike(lhs);
+            bool rightIsGraphLike = IsGraphLike(rhs);
             bool leftIsTriple = lhs is TripleLiteralExp;
             bool rightIsTriple = rhs is TripleLiteralExp;
 
             if (leftIsGraphLike || rightIsGraphLike || leftIsTriple || rightIsTriple)
             {
-                // Start with a fresh graph
                 var loc = result.Location ?? new SourceLocationMetadata(0, string.Empty, 0, string.Empty);
-                var createGraphExpr = MakeKgCreateGraphExpression(loc);
-                Expression builder = createGraphExpr;
+                var dedupe = new HashSet<string>(StringComparer.Ordinal);
 
-                // Merge/asert left
-                if (leftIsGraphLike && lhs != null)
+                Expression builder;
+                if (TryExtractLoweredGraph(lhs, dedupe, out var reusedBuilder))
                 {
-                    var mergeCall = new FuncCallExp { InvocationArguments = new List<Expression> { lhs }, Annotations = new Dictionary<string, object> { ["FunctionName"] = "Merge" }, Location = result.Location, Parent = null };
-                    builder = new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = builder, RHS = mergeCall, Location = result.Location };
+                    builder = reusedBuilder;
                 }
-                else if (leftIsTriple && lhs is TripleLiteralExp tl)
+                else
                 {
-                    builder = LowerTripleToAssertChain(builder, tl);
-                }
-
-                // Merge/assert right
-                if (rightIsGraphLike && rhs != null)
-                {
-                    var mergeCall = new FuncCallExp { InvocationArguments = new List<Expression> { rhs }, Annotations = new Dictionary<string, object> { ["FunctionName"] = "Merge" }, Location = result.Location, Parent = null };
-                    builder = new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = builder, RHS = mergeCall, Location = result.Location };
-                }
-                else if (rightIsTriple && rhs is TripleLiteralExp tr)
-                {
-                    builder = LowerTripleToAssertChain(builder, tr);
+                    builder = MakeKgCreateGraphExpression(loc);
+                    if (leftIsGraphLike && lhs != null)
+                    {
+                        builder = AppendGraphOperand(builder, lhs, loc, dedupe);
+                    }
+                    else if (leftIsTriple && lhs is TripleLiteralExp leftTriple)
+                    {
+                        builder = LowerTripleToAssertChain(builder, leftTriple, dedupe);
+                    }
                 }
 
-                // Mark as graph expr for downstream consumers
-                if (builder is MemberAccessExp m) m.Annotations["GraphExpr"] = true;
+                if (rhs != null)
+                {
+                    if (rhs is BinaryExp rightLowered && rightLowered.Annotations != null && rightLowered.Annotations.ContainsKey(LoweredGraphAnnotation))
+                    {
+                        AppendSignaturesFromAnnotations(rightLowered.Annotations, dedupe);
+                        builder = AppendGraphOperand(builder, rightLowered.RHS ?? rhs, loc, dedupe);
+                    }
+                    else if (rightIsGraphLike)
+                    {
+                        builder = AppendGraphOperand(builder, rhs, loc, dedupe);
+                    }
+                    else if (rightIsTriple && rhs is TripleLiteralExp rightTriple)
+                    {
+                        builder = LowerTripleToAssertChain(builder, rightTriple, dedupe);
+                    }
+                }
 
-                // Return a BinaryExp that carries the lowered expression in RHS. Use a placeholder LHS literal to satisfy non-nullable constraints.
-                var placeholderLeft = new Int32LiteralExp { Annotations = new Dictionary<string, object>(), Location = loc, Value = 0, Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From("int") } };
-                var lowered = new BinaryExp { Annotations = result.Annotations ?? new Dictionary<string, object>(), Location = loc, LHS = placeholderLeft, RHS = builder, Operator = op };
-                lowered.Annotations["LoweredGraphExpr"] = true;
+                if (builder is MemberAccessExp member)
+                {
+                    var annotations = member.Annotations != null
+                        ? new Dictionary<string, object>(member.Annotations)
+                        : new Dictionary<string, object>();
+                    annotations["GraphExpr"] = true;
+                    builder = member with { Annotations = annotations };
+                }
+
+                var placeholderLeft = new Int32LiteralExp
+                {
+                    Annotations = new Dictionary<string, object>(),
+                    Location = loc,
+                    Value = 0,
+                    Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From("int") }
+                };
+
+                var loweredAnnotations = result.Annotations != null
+                    ? new Dictionary<string, object>(result.Annotations)
+                    : new Dictionary<string, object>();
+                loweredAnnotations[LoweredGraphAnnotation] = true;
+                loweredAnnotations[TripleSignaturesAnnotation] = new List<string>(dedupe);
+
+                var lowered = new BinaryExp
+                {
+                    Annotations = loweredAnnotations,
+                    Location = loc,
+                    LHS = placeholderLeft,
+                    RHS = builder,
+                    Operator = op
+                };
                 return lowered;
             }
         }

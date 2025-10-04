@@ -1,19 +1,50 @@
-﻿using System;
-using System.IO;
-using Antlr4.Runtime;
-using System;
-using System.IO;
-using Antlr4.Runtime;
-using Fifth;
+﻿using System.Collections.Generic;
+using ast;
+using compiler;
+using Fifth.LangProcessingPhases;
 
-// Simple harness to print parse tree for class-definition sample
-var baseDir = AppContext.BaseDirectory; // .../scripts/TempParseRun/bin/Debug/net8.0/
-var repoRoot = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", ".."));
-var text = File.ReadAllText(Path.Combine(repoRoot, "test", "ast-tests", "CodeSamples", "class-definition.5th"));
-var input = CharStreams.fromString(text);
-var lexer = new FifthLexer(input);
-var tokens = new CommonTokenStream(lexer);
-var parser = new FifthParser(tokens);
-parser.BuildParseTree = true;
-var tree = parser.fifth();
-Console.WriteLine(tree.ToStringTree(parser));
+if (args.Length == 0)
+{
+    Console.Error.WriteLine("Usage: TempParseRun <source-file>");
+    return 1;
+}
+
+var sourcePath = args[0];
+if (!File.Exists(sourcePath))
+{
+    Console.Error.WriteLine($"Source file not found: {sourcePath}");
+    return 1;
+}
+
+var source = await File.ReadAllTextAsync(sourcePath);
+
+AssemblyDef astRoot;
+try
+{
+    astRoot = (AssemblyDef)FifthParserManager.ParseString(source);
+}
+catch (Exception ex)
+{
+    Console.Error.WriteLine($"Parsing failed: {ex.Message}");
+    return 1;
+}
+
+var diagnostics = new List<compiler.Diagnostic>();
+var lowered = FifthParserManager.ApplyLanguageAnalysisPhases(
+                 astRoot,
+                 diagnostics,
+                 FifthParserManager.AnalysisPhase.GraphTripleOperatorLowering) as AssemblyDef ?? astRoot;
+
+if (diagnostics.Count > 0)
+{
+    Console.Error.WriteLine("Diagnostics:");
+    foreach (var diag in diagnostics)
+    {
+        Console.Error.WriteLine($"  [{diag.Level}] {diag.Code ?? ""} {diag.Message}");
+    }
+}
+
+var dumpVisitor = new DumpTreeVisitor(Console.Out);
+dumpVisitor.Visit(lowered);
+
+return 0;
