@@ -269,4 +269,38 @@ public class KGTests
         await Assert.That(lit.Value).IsEqualTo("hello");
         await Assert.That(string.IsNullOrEmpty(lit.Language)).IsTrue();
     }
+
+    [Test]
+    public async Task CopyGraph_CreatesIndependentCopy()
+    {
+        var g1 = KG.CreateGraph();
+        var s = g1.CreateUriNode(new Uri("http://ex/s"));
+        var p = g1.CreateUriNode(new Uri("http://ex/p"));
+        var o = g1.CreateLiteralNode("x");
+        var t = KG.CreateTriple(s, p, o);
+        g1.Assert(t);
+
+        var g2 = KG.CopyGraph(g1);
+        
+        await Assert.That(g2.Triples.Count).IsEqualTo(1);
+        await Assert.That(ReferenceEquals(g1, g2)).IsFalse();
+        
+        // Modify g1 and verify g2 is not affected
+        var s2 = g1.CreateUriNode(new Uri("http://ex/s2"));
+        var t2 = KG.CreateTriple(s2, p, o);
+        g1.Assert(t2);
+        
+        await Assert.That(g1.Triples.Count).IsEqualTo(2);
+        await Assert.That(g2.Triples.Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task CopyGraph_EmptyGraph_ReturnsEmptyGraph()
+    {
+        var g1 = KG.CreateGraph();
+        var g2 = KG.CopyGraph(g1);
+        
+        await Assert.That(g2.Triples.Count).IsEqualTo(0);
+        await Assert.That(ReferenceEquals(g1, g2)).IsFalse();
+    }
 }

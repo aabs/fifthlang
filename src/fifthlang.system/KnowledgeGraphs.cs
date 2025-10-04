@@ -338,6 +338,19 @@ public static class KG
     }
 
     /// <summary>
+    /// Creates a copy of the given graph.
+    /// </summary>
+    /// <param name="source">The source graph to copy.</param>
+    /// <returns>A new graph containing all triples from the source graph.</returns>
+    [BuiltinFunction]
+    public static IGraph CopyGraph(IGraph source)
+    {
+        var result = new Graph();
+        result.Merge(source);
+        return result;
+    }
+
+    /// <summary>
     /// Produce a non-mutating graph representing the difference between a and b (a \ b)
     /// </summary>
     [BuiltinFunction]

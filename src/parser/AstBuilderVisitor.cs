@@ -86,73 +86,127 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitAssignment_statement([NotNull] FifthParser.Assignment_statementContext context)
     {
-        // Support '+=' sugar by desugaring to KG.SaveGraph(lvalue, rvalue)
+        // Support '+=' sugar
         if (context.op != null && context.op.Type == FifthParser.PLUS_ASSIGN)
         {
-            // Prefer using an in-scope variable for the store if available; else fallback to KG.CreateStore()
             var lhsExpr = (Expression)Visit(context.lvalue);
+            var rhsExpr = (Expression)Visit(context.rvalue);
 
-            Expression storeArg;
-            if (lhsExpr is VarRefExp v && IsNameInCurrentFunctionScope(v.VarName))
+            // Determine operation type based on rhs:
+            // - If rhs is a TripleLiteralExp: graph += triple -> graph = graph + triple
+            // - Otherwise: store operation (KG.SaveGraph)
+            if (rhsExpr is TripleLiteralExp)
             {
-                storeArg = v;
+                // Graph operation: desugar to lvalue = lvalue + rvalue
+                var addExpr = new BinaryExp
+                {
+                    Annotations = [],
+                    LHS = lhsExpr,
+                    RHS = rhsExpr,
+                    Operator = Operator.ArithmeticAdd,
+                    Location = GetLocationDetails(context),
+                    Type = Void
+                };
+
+                var b = new AssignmentStatementBuilder()
+                    .WithAnnotations([])
+                    .WithLValue(lhsExpr)
+                    .WithRValue(addExpr);
+                var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+                return result;
             }
             else
             {
-                var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
-                storeArg = new MemberAccessExp
+                // Original store operation: desugar to KG.SaveGraph(lvalue, rvalue)
+                // Prefer using an in-scope variable for the store if available; else fallback to KG.CreateStore()
+                Expression storeArg;
+                if (lhsExpr is VarRefExp v && IsNameInCurrentFunctionScope(v.VarName))
+                {
+                    storeArg = v;
+                }
+                else
+                {
+                    var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
+                    storeArg = new MemberAccessExp
+                    {
+                        Annotations = [],
+                        LHS = kgVar,
+                        RHS = new FuncCallExp
+                        {
+                            FunctionDef = null,
+                            InvocationArguments = [],
+                            Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateStore" },
+                            Location = GetLocationDetails(context),
+                            Parent = null,
+                            Type = null
+                        },
+                        Location = GetLocationDetails(context),
+                        Type = Void
+                    };
+                }
+
+                var kgVar2 = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
+                var func = new FuncCallExp
+                {
+                    FunctionDef = null,
+                    InvocationArguments = [storeArg, rhsExpr],
+                    Annotations = new Dictionary<string, object> { ["FunctionName"] = "SaveGraph" },
+                    Location = GetLocationDetails(context),
+                    Parent = null,
+                    Type = null
+                };
+
+                var call = new MemberAccessExp
                 {
                     Annotations = [],
-                    LHS = kgVar,
-                    RHS = new FuncCallExp
-                    {
-                        FunctionDef = null,
-                        InvocationArguments = [],
-                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateStore" },
-                        Location = GetLocationDetails(context),
-                        Parent = null,
-                        Type = null
-                    },
+                    LHS = kgVar2,
+                    RHS = func,
+                    Location = GetLocationDetails(context),
+                    Type = Void
+                };
+
+                return new ExpStatement
+                {
+                    Annotations = [],
+                    RHS = call,
                     Location = GetLocationDetails(context),
                     Type = Void
                 };
             }
-
-            var kgVar2 = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
-            var func = new FuncCallExp
-            {
-                FunctionDef = null,
-                InvocationArguments = [storeArg, (Expression)Visit(context.rvalue)],
-                Annotations = new Dictionary<string, object> { ["FunctionName"] = "SaveGraph" },
-                Location = GetLocationDetails(context),
-                Parent = null,
-                Type = null
-            };
-
-            var call = new MemberAccessExp
-            {
-                Annotations = [],
-                LHS = kgVar2,
-                RHS = func,
-                Location = GetLocationDetails(context),
-                Type = Void
-            };
-
-            return new ExpStatement
-            {
-                Annotations = [],
-                RHS = call,
-                Location = GetLocationDetails(context),
-                Type = Void
-            };
         }
 
-        var b = new AssignmentStatementBuilder()
+        // Support '-=' by desugaring to: lvalue = lvalue - rvalue
+        if (context.op != null && context.op.Type == FifthParser.MINUS_ASSIGN)
+        {
+            var lhsExpr = (Expression)Visit(context.lvalue);
+            var rhsExpr = (Expression)Visit(context.rvalue);
+            
+            // Create binary expression: lvalue - rvalue
+            var subtractExpr = new BinaryExp
+            {
+                Annotations = [],
+                LHS = lhsExpr,
+                RHS = rhsExpr,
+                Operator = Operator.ArithmeticSubtract,
+                Location = GetLocationDetails(context),
+                Type = Void
+            };
+
+            // Create assignment: lvalue = (lvalue - rvalue)
+            var b = new AssignmentStatementBuilder()
+                .WithAnnotations([])
+                .WithLValue(lhsExpr)
+                .WithRValue(subtractExpr);
+            var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+            return result;
+        }
+
+        var b2 = new AssignmentStatementBuilder()
             .WithAnnotations([])
             .WithLValue((Expression)Visit(context.lvalue))
             .WithRValue((Expression)Visit(context.rvalue));
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result;
+        var result2 = b2.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result2;
     }
 
     public override IAstThing VisitExpression_statement([NotNull] FifthParser.Expression_statementContext context)
