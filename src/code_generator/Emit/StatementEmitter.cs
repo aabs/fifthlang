@@ -1,0 +1,135 @@
+using ast;
+using il_ast;
+
+namespace code_generator.Emit;
+
+/// <summary>
+/// Generates IL instruction sequences for Fifth AST statements.
+/// Handles variable declarations, assignments, returns, and control flow statements.
+/// </summary>
+public class StatementEmitter
+{
+    private readonly EmitContext _context;
+    private readonly ExpressionEmitter _expressionEmitter;
+    private readonly ControlFlowEmitter _controlFlowEmitter;
+
+    public StatementEmitter(
+        EmitContext context,
+        ExpressionEmitter expressionEmitter,
+        ControlFlowEmitter controlFlowEmitter)
+    {
+        _context = context;
+        _expressionEmitter = expressionEmitter;
+        _controlFlowEmitter = controlFlowEmitter;
+    }
+
+    /// <summary>
+    /// Generates instruction sequence for a single statement node
+    /// </summary>
+    public InstructionSequence GenerateStatement(Statement? statement)
+    {
+        var seq = new InstructionSequence();
+        
+        if (statement == null)
+        {
+            return seq;
+        }
+
+        switch (statement)
+        {
+            case VarDeclStatement varDeclStmt:
+                GenerateVarDecl(seq, varDeclStmt);
+                break;
+
+            case ExpStatement expStmt:
+                GenerateExpStatement(seq, expStmt);
+                break;
+
+            case AssignmentStatement assignStmt:
+                GenerateAssignment(seq, assignStmt);
+                break;
+
+            case ReturnStatement retStmt:
+                GenerateReturn(seq, retStmt);
+                break;
+
+            case IfElseStatement ifStmt:
+                seq.AddRange(_controlFlowEmitter.GenerateIfStatement(ifStmt).Instructions);
+                break;
+
+            case WhileStatement whileStmt:
+                seq.AddRange(_controlFlowEmitter.GenerateWhileStatement(whileStmt).Instructions);
+                break;
+
+            default:
+                // Unhandled statements are no-ops
+                break;
+        }
+
+        return seq;
+    }
+
+    private void GenerateVarDecl(InstructionSequence seq, VarDeclStatement varDeclStmt)
+    {
+        var varName = varDeclStmt.VariableDecl?.Name ?? "__var";
+        
+        if (varDeclStmt.InitialValue != null)
+        {
+            // Generate initialization expression
+            var initSeq = _expressionEmitter.GenerateExpression(varDeclStmt.InitialValue);
+            seq.AddRange(initSeq.Instructions);
+            
+            // Store to local variable
+            seq.Add(new StoreInstruction("stloc", varName));
+            
+            // Record type for later inference
+            var typeName = varDeclStmt.VariableDecl?.TypeName.ToString();
+            var mappedType = TypeMapper.MapBuiltinFifthTypeNameToSystem(typeName);
+            if (mappedType != null)
+            {
+                _context.LocalVariableTypes[varName] = mappedType;
+            }
+        }
+    }
+
+    private void GenerateExpStatement(InstructionSequence seq, ExpStatement expStmt)
+    {
+        if (expStmt.RHS != null)
+        {
+            var exprSeq = _expressionEmitter.GenerateExpression(expStmt.RHS);
+            seq.AddRange(exprSeq.Instructions);
+            
+            // Pop expression result to keep stack balanced
+            seq.Add(new StackInstruction("pop"));
+        }
+    }
+
+    private void GenerateAssignment(InstructionSequence seq, AssignmentStatement assignStmt)
+    {
+        // Generate RValue expression
+        if (assignStmt.RValue != null)
+        {
+            var rvalueSeq = _expressionEmitter.GenerateExpression(assignStmt.RValue);
+            seq.AddRange(rvalueSeq.Instructions);
+        }
+        
+        // Store to LValue
+        if (assignStmt.LValue is VarRefExp varRef)
+        {
+            seq.Add(new StoreInstruction("stloc", varRef.VarName));
+        }
+    }
+
+    private void GenerateReturn(InstructionSequence seq, ReturnStatement retStmt)
+    {
+        // Generate return value expression if present
+        if (retStmt.ReturnValue != null)
+        {
+            var returnSeq = _expressionEmitter.GenerateExpression(retStmt.ReturnValue);
+            seq.AddRange(returnSeq.Instructions);
+        }
+        
+        // Emit return instruction
+        seq.Add(new ReturnInstruction());
+    }
+}
