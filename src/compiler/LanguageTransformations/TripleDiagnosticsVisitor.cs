@@ -16,6 +16,36 @@ public sealed class TripleDiagnosticsVisitor : NullSafeRecursiveDescentVisitor
         _diagnostics = diagnostics;
     }
 
+    private static bool HasGraphAnnotation(Expression? expr)
+    {
+        if (expr is null)
+        {
+            return false;
+        }
+
+        if (expr is GraphAssertionBlockExp)
+        {
+            return true;
+        }
+
+        if (expr is MemberAccessExp member && member.Annotations != null && member.Annotations.ContainsKey("GraphExpr"))
+        {
+            return true;
+        }
+
+        return expr is BinaryExp binary && binary.Annotations != null && binary.Annotations.ContainsKey("LoweredGraphExpr");
+    }
+
+    private static bool IsUnsupportedTripleOperator(Operator op)
+    {
+        return op switch
+        {
+            Operator.ArithmeticAdd => false,
+            Operator.ArithmeticSubtract => false,
+            _ => true
+        };
+    }
+
     public override AstThing Visit(AstThing node)
     {
         var result = base.Visit(node) as AstThing;
@@ -69,6 +99,63 @@ public sealed class TripleDiagnosticsVisitor : NullSafeRecursiveDescentVisitor
                 // Diagnostic(s) added to the shared diagnostics list (no console logging in tests)
             }
         }
+        return result;
+    }
+
+    public override BinaryExp VisitBinaryExp(BinaryExp ctx)
+    {
+        var result = base.VisitBinaryExp(ctx);
+        if (_diagnostics == null)
+        {
+            return result;
+        }
+
+        var leftIsTriple = result.LHS is TripleLiteralExp;
+        var rightIsTriple = result.RHS is TripleLiteralExp;
+
+        if (result.Operator == Operator.ArithmeticSubtract && leftIsTriple)
+        {
+            if (rightIsTriple || HasGraphAnnotation(result.RHS))
+            {
+                _diagnostics.Add(new compiler.Diagnostic(
+                    compiler.DiagnosticLevel.Error,
+                    "Triple operands cannot appear on the left of '-' (only graph - triple is supported).",
+                    null,
+                    Code: "TRPL012"));
+            }
+            else if (result.RHS != null)
+            {
+                _diagnostics.Add(new compiler.Diagnostic(
+                    compiler.DiagnosticLevel.Error,
+                    "Unsupported '-' combination for triple operand.",
+                    null,
+                    Code: "TRPL013"));
+            }
+        }
+        else if (IsUnsupportedTripleOperator(result.Operator) && (leftIsTriple || rightIsTriple))
+        {
+            _diagnostics.Add(new compiler.Diagnostic(
+                compiler.DiagnosticLevel.Error,
+                "Unsupported operator for triple operand.",
+                null,
+                Code: "TRPL013"));
+        }
+
+        return result;
+    }
+
+    public override UnaryExp VisitUnaryExp(UnaryExp ctx)
+    {
+        var result = base.VisitUnaryExp(ctx);
+        if (_diagnostics != null && result.Operator == Operator.LogicalNot && result.Operand is TripleLiteralExp)
+        {
+            _diagnostics.Add(new compiler.Diagnostic(
+                compiler.DiagnosticLevel.Error,
+                "Unsupported operator for triple operand.",
+                null,
+                Code: "TRPL013"));
+        }
+
         return result;
     }
 }

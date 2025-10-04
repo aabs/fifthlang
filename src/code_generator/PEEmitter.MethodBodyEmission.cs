@@ -192,6 +192,7 @@ public partial class PEEmitter
         }
 
         // Write per-statement dump now so it exists even if final-stack validation fails
+        var hasStatements = instructionSequences.Count > 0;
         if (dumpInstructionsForMain && perStmtDumps != null)
         {
             try
@@ -204,7 +205,7 @@ public partial class PEEmitter
             }
             catch { /* best-effort */ }
         }
-        else
+        else if (!hasStatements)
         {
             // If no statements, add a simple return for the method to be valid
             // For int return type, load a constant first
@@ -213,6 +214,11 @@ public partial class PEEmitter
             {
                 il.LoadConstantI4(0); // Default return value
             }
+            else if (!string.Equals(returnType, "Void", StringComparison.Ordinal))
+            {
+                il.OpCode(ILOpCode.Ldnull);
+            }
+            il.OpCode(ILOpCode.Ret);
         }
 
         // After emitting all statements, validate final stack matches return expectation
