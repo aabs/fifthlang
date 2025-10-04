@@ -371,6 +371,10 @@ FodyWeavers.xsd
 test_*.5th
 test_*.exe
 test_*.runtimeconfig.json
+# Local scratch programs
+tmp_*.5th
+tmp_*.exe
+tmp_*/
 .idea/
 fifthlang.iml
 build_debug_il/

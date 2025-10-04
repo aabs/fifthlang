@@ -1,6 +1,0 @@
-main(): int {
-    std.print("BEFORE_CREATEGRAPH");
-    KG.CreateGraph();
-    std.print("AFTER_CREATEGRAPH");
-    return 0;
-}

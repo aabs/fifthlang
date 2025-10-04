@@ -352,6 +352,12 @@ This should complete without errors.
 - Validate inputs; clearly separate user inputs from internal templates
 - Do not introduce network calls or file system side-effects without explicit review
 
+### Temporary Tooling & Scratch Artifacts
+- Repository cleanliness is mandatory. Temporary debugging helpers, IL dumps, or scratch `.5th` programs must never be committed. Use local temp directories outside the repo when experimenting.
+- `scripts/` is reserved for durable automation only. Promote a helper into `src/tools/` (or the appropriate project) once it has docs, tests, and a CLI contract; otherwise delete it after use.
+- Prefer compiler flags such as `--keep-temp` to emit transient artifacts, but delete the generated `build_debug_il/` (or equivalent) output before committing. `.gitignore` covers common scratch patterns like `tmp_*.5th`, and those files must stay untracked.
+- Document any sanctioned debugging workflow in `docs/debugging.md`. Update this constitution if a temporary workflow becomes part of the supported toolchain to capture build/test expectations.
+
 ## Troubleshooting
 
 ### Common Issues

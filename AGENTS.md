@@ -159,6 +159,12 @@ make run-generator
 - Grammar changes: update both `FifthLexer.g4` AND `FifthParser.g4` as needed
 - Always update corresponding `AstBuilderVisitor.cs` for grammar changes
 
+### Scratch Assets & Temporary Tooling
+- Keep the repository free of ad-hoc debugging tools and scratch programs. Prefer local temp folders or throwaway branches for experiments.
+- Anything under `scripts/` must be a supported workflow with documentation. Promote long-lived utilities into `src/tools/` (or the relevant project) and document them in `docs/debugging.md`.
+- Never commit compiler/runner leftovers such as `tmp_*.5th`, `build_debug_il/`, `KEEP_FIFTH_TEMP`, or `--keep-temp` outputs. Clean them immediately and rely on `.gitignore` to keep them untracked.
+- When you need IL or AST dumps, follow the guidance in `docs/debugging.md` and remove the artifacts before pushing. Update the constitution if a new temporary workflow needs to become permanent.
+
 ### Grammar Compliance Checklist for Agents
 
 When adding or updating example code, test programs, or documentation snippets that are intended to be parsed by the compiler or used as integration tests, follow this checklist:
