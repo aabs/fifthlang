@@ -1,15 +1,41 @@
-# PEEmitter Refactoring Summary - COMPLETED
+# PEEmitter Refactoring Summary - PHASE 2 IN PROGRESS
 
 ## Overview
-This refactoring successfully modularized the monolithic `PEEmitter.cs` (originally 2342 lines) into focused, maintainable components following the Single Responsibility Principle.
+This refactoring is modularizing the monolithic `PEEmitter.cs` (originally 2342 lines) into focused, maintainable components following the Single Responsibility Principle and proper object-oriented design.
 
-**Final Result: PEEmitter.cs reduced from 2342 to 821 lines (65% reduction!)**
+**Phase 1 Result:** PEEmitter.cs reduced from 2342 to 821 lines (65% reduction using partial classes)  
+**Phase 2 Goal:** Proper class extraction with explicit state management and comprehensive unit tests
+
+## Refactoring Phases
+
+### Phase 1: Partial Class Extraction (COMPLETED)
+Split PEEmitter into partial classes for better organization. This reduced file size but didn't address core complexity issues.
+
+### Phase 2: Proper Separation of Concerns (IN PROGRESS)
+Convert partial classes to independent stateless classes with explicit state passing through context objects.
 
 ## Extracted Components
 
-### Infrastructure Components
+### Core Infrastructure
 
-### 1. MetadataManager.cs (145 lines)
+### 1. EmissionContext.cs (62 lines) - **NEW in Phase 2**
+**Responsibility:** Encapsulates all state needed during PE emission
+
+**Key Features:**
+- Holds MetadataBuilder and MetadataManager
+- Tracks per-method state (locals, parameters, labels)
+- Enables explicit state passing instead of shared mutable state
+- Uses init-only properties for immutability where possible
+
+**Public API:**
+- `MetadataBuilder` - The metadata builder for the assembly
+- `MetadataManager` - Metadata lookups and registrations
+- `CurrentLocalVarNames`, `CurrentParamIndexMap`, etc. - Per-method state
+- `ResetMethodState()` - Clears per-method state between methods
+
+**Design Pattern:** Context Object pattern for explicit state management
+
+### 2. MetadataManager.cs (145 lines)
 **Responsibility:** Manages all metadata lookups and registrations for types, fields, methods, and constructors.
 
 **Key Features:**
@@ -228,3 +254,100 @@ These extractions were deferred as they would require more extensive changes to 
 ## Conclusion
 
 This refactoring successfully modularized PEEmitter.cs while maintaining full backward compatibility and test coverage. The extracted components provide a solid foundation for future improvements and make the codebase more maintainable, testable, and understandable.
+
+## Phase 2 Improvements: Proper Class Extraction
+
+### New Stateless Instruction Emitters
+
+#### LoadInstructionEmitter.cs (487 lines)
+**Major Improvement:** Converted from partial class to independent stateless class
+
+**Key Changes:**
+- Accepts `EmissionContext` explicitly instead of accessing PEEmitter state
+- Completely testable in isolation
+- Clear dependencies visible in method signatures
+- Comprehensive unit test coverage (8 tests)
+
+**Unit Tests Added:**
+- `LoadInstructionEmitterTests.cs` with 8 tests
+- Tests cover: constants, strings, locals, arguments, fields, null, dup, box
+- All tests verify both instruction emission and state tracking
+
+#### StoreInstructionEmitter.cs (261 lines)
+**Major Improvement:** Converted from partial class to independent stateless class
+
+**Key Changes:**
+- Accepts `EmissionContext` explicitly for state
+- Proper type tracking for newobj and field loads
+- Handles unknown fields gracefully with stack balancing
+- Comprehensive unit test coverage (8 tests)
+
+**Unit Tests Added:**
+- `StoreInstructionEmitterTests.cs` with 8 tests
+- Tests cover: locals, fields, static fields, arguments, elements
+- Verifies state clearing after stores
+
+### Architectural Benefits
+
+**Before Phase 2:**
+```csharp
+// Partial class accessing shared state
+public partial class PEEmitter {
+    private string? _lastLoadedLocal;  // Shared mutable state
+    
+    private void EmitLoadInstruction(...) {
+        // Directly modifies _lastLoadedLocal
+        _lastLoadedLocal = varName;
+    }
+}
+```
+
+**After Phase 2:**
+```csharp
+// Independent stateless class with explicit state
+public class LoadInstructionEmitter {
+    public void Emit(InstructionEncoder il, LoadInstruction inst, EmissionContext context) {
+        // State passed explicitly
+        context.MetadataManager.LastLoadedLocal = varName;
+    }
+}
+```
+
+### Testing Impact
+
+**Phase 1 (Partial Classes):**
+- 0 unit tests for extracted components
+- Difficult to test in isolation
+- Hidden dependencies on PEEmitter state
+
+**Phase 2 (Proper Classes):**
+- 16 new unit tests (8 per emitter)
+- Easy to test with mock contexts
+- Clear dependencies and contracts
+- **Test Results:** 297/299 passing (up from 281)
+
+### Documentation
+
+All Phase 2 components include:
+- ✅ XML documentation for all public methods
+- ✅ Parameter descriptions
+- ✅ Responsibility statements in class docs
+- ✅ Usage examples in tests
+
+### Next Phase Recommendations
+
+1. **Convert Call & MethodBody partial classes** to proper stateless classes
+2. **Refactor PEEmitter** to use the new EmissionContext and emitters
+3. **Add integration tests** verifying end-to-end emission
+4. **Extract orchestration logic** from PEEmitter into a coordinator class
+5. **Document state machine** for method emission lifecycle
+
+## Conclusion
+
+Phase 2 represents a significant architectural improvement:
+- **Testability:** 16 new unit tests demonstrate improved testability
+- **Maintainability:** Clear separation of concerns with explicit dependencies  
+- **Reusability:** Stateless emitters can be used in other contexts
+- **Documentation:** Comprehensive XML docs and unit test examples
+
+The refactoring is progressing from simple file splitting (Phase 1) to proper object-oriented design with SOLID principles (Phase 2).
