@@ -94,6 +94,10 @@ public class ExpressionEmitter
                 GenerateObjectInitializer(sequence, objectInit);
                 break;
 
+            case ListLiteral listLiteral:
+                GenerateListLiteral(sequence, listLiteral);
+                break;
+
             default:
                 if (DebugEnabled)
                 {
@@ -494,5 +498,44 @@ public class ExpressionEmitter
         }
 
         // At this point, the object reference is on the stack
+    }
+
+    private void GenerateListLiteral(InstructionSequence sequence, ListLiteral listLiteral)
+    {
+        var elementCount = listLiteral.ElementExpressions?.Count ?? 0;
+        
+        if (DebugEnabled)
+        {
+            DebugLog($"ListLiteral with {elementCount} elements");
+        }
+
+        // Emit the array size
+        sequence.Add(new LoadInstruction("ldc.i4", elementCount));
+        
+        // Create the array - for now assume int32 array
+        // TODO: Infer actual element type
+        sequence.Add(new LoadInstruction("newarr", "System.Int32"));
+        
+        // Initialize each element
+        if (listLiteral.ElementExpressions != null)
+        {
+            for (int i = 0; i < listLiteral.ElementExpressions.Count; i++)
+            {
+                // Duplicate array reference (stelem will consume it)
+                sequence.Add(new LoadInstruction("dup", null));
+                
+                // Push index
+                sequence.Add(new LoadInstruction("ldc.i4", i));
+                
+                // Generate element value
+                var elemSeq = GenerateExpression(listLiteral.ElementExpressions[i]);
+                sequence.AddRange(elemSeq.Instructions);
+                
+                // Store element (consumes array ref, index, value)
+                sequence.Add(new StoreInstruction("stelem.i4", null));
+            }
+        }
+        
+        // Array reference remains on stack
     }
 }
