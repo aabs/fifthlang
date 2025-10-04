@@ -469,28 +469,30 @@ public class ExpressionEmitter
         var ctorSignature = $"instance void {typeNameStr}::.ctor()";
         sequence.Add(new CallInstruction("newobj", ctorSignature) { ArgCount = 0 });
 
-        // If there are property initializers, we need to:
-        // 1. Duplicate the object reference for each property assignment
-        // 2. Load the value
-        // 3. Store to the field
+        // If there are property initializers, we need to set each property
+        // The pattern for each property is:
+        //   dup           ; duplicate object reference (stfld will consume it)
+        //   <load value>  ; push the value to assign
+        //   stfld <name>  ; store value to field (consumes object ref + value)
+        // After all properties are set, the original object reference remains on stack
         if (objectInit.PropertyInitialisers != null && objectInit.PropertyInitialisers.Count > 0)
         {
             foreach (var propInit in objectInit.PropertyInitialisers)
             {
-                // Duplicate object reference on stack
-                sequence.Add(new StackInstruction("dup"));
-
+                // Duplicate object reference on stack (stfld will consume one copy)
+                // Use LoadInstruction for dup to match PEEmitter expectations
+                sequence.Add(new LoadInstruction("dup", null));
+                
                 // Generate the value to assign
                 var valueSeq = GenerateExpression(propInit.RHS);
                 sequence.AddRange(valueSeq.Instructions);
 
-                // Store to the field
+                // Store to the field (consumes object ref and value, leaving original object on stack)
                 var fieldName = propInit.PropertyToInitialize?.Property?.Name.Value ?? "unknown";
                 sequence.Add(new StoreInstruction("stfld", fieldName));
             }
         }
 
-        // At this point, the object reference is on the stack (consumed by stfld, but newobj produced it)
-        // If there are no property initializers, newobj leaves the object on the stack
+        // At this point, the object reference is on the stack
     }
 }
