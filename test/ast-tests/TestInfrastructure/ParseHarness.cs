@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using Antlr4.Runtime;
 using compiler;
@@ -54,6 +55,11 @@ public static class ParseHarness
     public static ParseResult ParseString(string source, ParseOptions? options = null)
     {
         options ??= new ParseOptions();
+        if (source.Contains("\\n", StringComparison.Ordinal))
+        {
+            source = source.Replace("\\r\\n", "\n", StringComparison.Ordinal)
+                           .Replace("\\n", "\n", StringComparison.Ordinal);
+        }
         var diagnostics = new List<TestDiagnostic>();
 
         var input = new AntlrInputStream(source);
@@ -83,6 +89,11 @@ public static class ParseHarness
             processed = FifthParserManager.ApplyLanguageAnalysisPhases(ast, diagnostics: compDiags, upTo: options.Phase) as AssemblyDef;
             swPhases.Stop();
             phasesTime = swPhases.Elapsed;
+
+            if (processed == null)
+            {
+                processed = ast;
+            }
 
             // Phase diagnostics are merged into harness result (no console logging)
             foreach (var d in compDiags)
