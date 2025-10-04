@@ -1,6 +1,7 @@
 using ast;
 using il_ast;
 using il_ast_generated;
+using code_generator.Emit;
 using static Fifth.DebugHelpers;
 
 namespace code_generator;
@@ -8,23 +9,22 @@ namespace code_generator;
 /// <summary>
 /// Transforms AST nodes from the Fifth language parser into IL metamodel representations.
 /// This visitor follows the transformation stage pattern used in FifthParserManager.ApplyLanguageAnalysisPhases.
+/// Now refactored to use modular components for type mapping, inference, and code emission.
 /// </summary>
 public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 {
-    // Debugging provided by shared DebugHelpers.
+    // Modular components for code generation
+    private readonly EmitContext _context;
+    private readonly TypeMapper _typeMapper;
+    private readonly TypeInference _typeInference;
+    private readonly ExternalMethodResolver _methodResolver;
+    private readonly ExpressionEmitter _expressionEmitter;
+    private readonly ControlFlowEmitter _controlFlowEmitter;
+    private readonly StatementEmitter _statementEmitter;
 
+    // Legacy fields kept for backward compatibility during transition
     private readonly Dictionary<string, TypeReference> _typeMap = new();
-    private AssemblyDeclaration? _currentAssembly;
-    private ModuleDeclaration? _currentModule;
-    private ClassDefinition? _currentClass;
-    private HashSet<string> _currentParameterNames = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, Type> _currentParameterTypes = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, Type> _localVariableTypes = new(StringComparer.Ordinal);
-    // Counter for generating unique temporary local variable names
-    private int _tempCounter = 0;
-    // Current method context for lowering diagnostics and return-type inference
-    private il_ast.TypeReference? _currentReturnType = null;
-    private string? _currentMethodName = null;
+    private int _labelCounter = 0;
 
     // Safe wrapper for zero-lowering recording; if core helper missing, silently ignore.
     private void SafeRecordZeroLowering(string method, string context, string nodeKind)
@@ -38,44 +38,38 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 
     public AstToIlTransformationVisitor()
     {
+        // Initialize modular components
+        _context = new EmitContext();
+        _typeMapper = new TypeMapper();
+        _typeInference = new TypeInference(_context);
+        _methodResolver = new ExternalMethodResolver();
+        _expressionEmitter = new ExpressionEmitter(_context, _typeInference, _methodResolver, _typeMapper);
+        _controlFlowEmitter = new ControlFlowEmitter(_context, _expressionEmitter);
+        _statementEmitter = new StatementEmitter(_context, _expressionEmitter, _controlFlowEmitter);
+
+        // Legacy initialization
         InitializeBuiltinTypes();
     }
 
     public void SetCurrentMethodName(string? methodName)
     {
-        _currentMethodName = methodName;
+        _context.CurrentMethodName = methodName;
         ResetMethodContext();
     }
 
     private void ResetMethodContext()
     {
-        _currentParameterNames.Clear();
-        _currentParameterTypes.Clear();
-        _localVariableTypes.Clear();
-        _tempCounter = 0;
+        _context.ResetMethodContext();
     }
 
     public void SetCurrentReturnType(il_ast.TypeReference? returnType)
     {
-        _currentReturnType = returnType;
+        _context.CurrentReturnType = returnType;
     }
 
     private static bool IsImplicitNumericWidening(Type src, Type dest)
     {
-        // Minimal widening support for common cases used in tests
-        if (src == typeof(int))
-        {
-            return dest == typeof(long) || dest == typeof(float) || dest == typeof(double) || dest == typeof(decimal);
-        }
-        if (src == typeof(float))
-        {
-            return dest == typeof(double);
-        }
-        if (src == typeof(long))
-        {
-            return dest == typeof(float) || dest == typeof(double) || dest == typeof(decimal);
-        }
-        return false;
+        return TypeInference.IsImplicitNumericWidening(src, dest);
     }
 
     private static int CompatibilityScore(Type? argType, Type paramType)
@@ -83,286 +77,33 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         if (argType == null) return 0;
         if (paramType == argType) return 100;
         if (paramType.IsAssignableFrom(argType)) return 50;
-        if (IsImplicitNumericWidening(argType, paramType)) return 10;
+        if (TypeInference.IsImplicitNumericWidening(argType, paramType)) return 10;
         return 0;
     }
 
     private static bool IsNumeric(Type t)
     {
-        return t == typeof(int) || t == typeof(long) || t == typeof(float) || t == typeof(double) || t == typeof(decimal);
+        return TypeInference.IsNumeric(t);
     }
 
     private static Type PromoteNumeric(Type a, Type b)
     {
-        if (a == typeof(double) || b == typeof(double)) return typeof(double);
-        if (a == typeof(float) || b == typeof(float)) return typeof(float);
-        if (a == typeof(long) || b == typeof(long)) return typeof(long);
-        if (a == typeof(decimal) || b == typeof(decimal)) return typeof(decimal);
-        return typeof(int);
+        return TypeInference.PromoteNumeric(a, b);
     }
 
     private static Type? MapBuiltinFifthTypeNameToSystem(string? name)
     {
-        return name switch
-        {
-            "int" or "System.Int32" or "Int32" => typeof(int),
-            "string" or "System.String" or "String" => typeof(string),
-            "float" or "System.Single" or "Single" => typeof(float),
-            "double" or "System.Double" or "Double" => typeof(double),
-            "bool" or "System.Boolean" or "Boolean" => typeof(bool),
-            "long" or "System.Int64" or "Int64" => typeof(long),
-            "short" or "System.Int16" or "Int16" => typeof(short),
-            "byte" or "System.Byte" or "Byte" => typeof(byte),
-            "char" or "System.Char" or "Char" => typeof(char),
-            "decimal" or "System.Decimal" or "Decimal" => typeof(decimal),
-            // New/supplementary primitive mappings
-            "sbyte" or "System.SByte" or "SByte" or "int8" or "Int8" => typeof(sbyte),
-            "uint" or "System.UInt32" or "UInt32" => typeof(uint),
-            "ushort" or "System.UInt16" or "UInt16" => typeof(ushort),
-            "ulong" or "System.UInt64" or "UInt64" => typeof(ulong),
-            _ => null
-        };
+        return TypeMapper.MapBuiltinFifthTypeNameToSystem(name);
     }
 
     private Type? InferExpressionType(ast.Expression expr)
     {
-        switch (expr)
-        {
-            case Int32LiteralExp:
-                return typeof(int);
-            case StringLiteralExp:
-                return typeof(string);
-            case BooleanLiteralExp:
-                return typeof(bool);
-            case Float4LiteralExp:
-                return typeof(float);
-            case Float8LiteralExp:
-                return typeof(double);
-            case Float16LiteralExp:
-                return typeof(decimal);
-            case VarRefExp v:
-                if (_localVariableTypes.TryGetValue(v.VarName, out var lty)) return lty;
-                if (_currentParameterTypes.TryGetValue(v.VarName, out var pty)) return pty;
-                return null;
-            case BinaryExp be:
-                {
-                    var lt = be.LHS != null ? InferExpressionType(be.LHS) : null;
-                    var rt = be.RHS != null ? InferExpressionType(be.RHS) : null;
-                    // Comparison/logical -> bool
-                    switch (be.Operator)
-                    {
-                        case Operator.Equal:
-                        case Operator.NotEqual:
-                        case Operator.LessThan:
-                        case Operator.GreaterThan:
-                        case Operator.LessThanOrEqual:
-                        case Operator.GreaterThanOrEqual:
-                        case Operator.LogicalAnd:
-                        case Operator.LogicalOr:
-                        case Operator.LogicalXor:
-                            return typeof(bool);
-                    }
-                    // Addition: string concatenation if either is string
-                    if (be.Operator == Operator.ArithmeticAdd && (lt == typeof(string) || rt == typeof(string)))
-                    {
-                        return typeof(string);
-                    }
-                    // Numeric promotion
-                    if (lt != null && rt != null && IsNumeric(lt) && IsNumeric(rt))
-                    {
-                        return PromoteNumeric(lt, rt);
-                    }
-                    return null;
-                }
-            case UnaryExp ue:
-                {
-                    var ot = InferExpressionType(ue.Operand);
-                    return ue.Operator switch
-                    {
-                        Operator.ArithmeticNegative => ot, // preserve numeric type
-                        Operator.LogicalNot => typeof(bool),
-                        _ => ot
-                    };
-                }
-            case MemberAccessExp ma:
-                {
-                    if (ma.RHS is ast.FuncCallExp callExp)
-                    {
-                        var qualifierType = ma.LHS != null ? InferExpressionType(ma.LHS) : null;
-                        if (callExp.Annotations != null && callExp.Annotations.TryGetValue("ExternalType", out var extTypeObj) && extTypeObj is Type extType)
-                        {
-                            var methodName = ExtractExternalMethodName(callExp);
-                            var args = callExp.InvocationArguments ?? new List<ast.Expression>();
-                            var chosen = ResolveExternalMethod(extType, methodName, args, qualifierType);
-                            if (chosen != null)
-                            {
-                                return chosen.ReturnType;
-                            }
-                        }
-
-                        if (callExp.FunctionDef?.ReturnType?.Name.Value is string funcReturn)
-                        {
-                            return MapBuiltinFifthTypeNameToSystem(funcReturn);
-                        }
-
-                        return null;
-                    }
-
-                    if (ma.RHS is ast.VarRefExp memberRef)
-                    {
-                        var lhsType = ma.LHS != null ? InferExpressionType(ma.LHS) : null;
-                        if (lhsType != null)
-                        {
-                            try
-                            {
-                                var member = lhsType.GetMember(memberRef.VarName).FirstOrDefault();
-                                if (member is System.Reflection.PropertyInfo prop) return prop.PropertyType;
-                                if (member is System.Reflection.FieldInfo field) return field.FieldType;
-                                if (member is System.Reflection.MethodInfo method) return method.ReturnType;
-                            }
-                            catch
-                            {
-                                // Reflection lookups are best-effort for inference; ignore failures.
-                            }
-                        }
-                        return null;
-                    }
-
-                    if (ma.RHS != null)
-                    {
-                        return InferExpressionType(ma.RHS);
-                    }
-
-                    return ma.LHS != null ? InferExpressionType(ma.LHS) : null;
-                }
-            case ast.FuncCallExp fc when fc.FunctionDef?.ReturnType?.Name.Value is string tn:
-                return MapBuiltinFifthTypeNameToSystem(tn);
-        }
-        return null;
+        return _typeInference.InferExpressionType(expr);
     }
 
     private System.Reflection.MethodInfo? ResolveExternalMethod(Type extType, string methodName, IList<ast.Expression> args, Type? receiverType = null)
     {
-        var methods = extType.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
-            .Where(mi => string.Equals(mi.Name, methodName, StringComparison.Ordinal))
-            .ToList();
-        var argCount = args.Count;
-        var inferred = new List<Type?>();
-        for (int i = 0; i < argCount; i++)
-        {
-            var ai = args[i];
-            inferred.Add(ai != null ? InferExpressionType(ai) : null);
-        }
-
-        // Filter by arity and optional trailing params
-        var candidates = methods
-            .Select(mi => new { mi, ps = mi.GetParameters() })
-            .Where(x =>
-            {
-                // Exact match on supplied args
-                if (x.ps.Length == argCount) return true;
-                // Extension method case: first parameter is the receiver and method has one more parameter than supplied args
-                if (x.ps.Length == argCount + 1) return true;
-                // Allow methods with optional trailing params
-                if (x.ps.Length > argCount && x.ps.Skip(argCount).All(p => p.IsOptional || p.HasDefaultValue)) return true;
-                return false;
-            })
-            .ToList();
-        if (candidates.Count == 0)
-        {
-            // No arity-compatible methods
-            return null;
-        }
-
-        // Score candidates by type compatibility of provided arguments
-        var scored = candidates.Select(x => new
-        {
-            x.mi,
-            x.ps,
-            score =
-                // Treat candidates that expect a receiver (ps.Length == argCount + 1) specially by shifting
-                // the mapping of supplied args to parameters by 1 so args map to ps[1..]. If receiverType is
-                // available, include its compatibility score against ps[0].
-                Enumerable.Range(0, Math.Min(argCount, x.ps.Length - (x.ps.Length == argCount + 1 ? 1 : 0)))
-                    .Sum(i =>
-                    {
-                        var offset = x.ps.Length == argCount + 1 ? 1 : 0;
-                        var paramIndex = i + offset;
-                        if (paramIndex >= 0 && paramIndex < x.ps.Length)
-                        {
-                            return CompatibilityScore(inferred[i], x.ps[paramIndex].ParameterType);
-                        }
-                        return 0;
-                    })
-                + (receiverType != null && x.ps.Length == argCount + 1 ? CompatibilityScore(receiverType, x.ps[0].ParameterType) : 0),
-            isGeneric = x.mi.IsGenericMethodDefinition
-        })
-        .OrderByDescending(s => s.score)
-        .ThenBy(s => s.ps.Length) // prefer fewer total params (i.e., fewer optionals)
-        .ThenBy(s => s.isGeneric) // prefer non-generic over generic
-        .ToList();
-
-        // Debug: print scored candidates to help diagnose ambiguous/failed resolutions
-        try
-        {
-            Console.WriteLine($"TRACE: ResolveExternalMethod candidates for {extType.FullName}.{methodName} (argCount={argCount}, receiverPresent={(receiverType != null)}):");
-            foreach (var sc in scored)
-            {
-                var pdesc = string.Join(",", sc.ps.Select(p => p.ParameterType.FullName + "(" + p.Name + ")"));
-                Console.WriteLine($"  candidate: {sc.mi.DeclaringType?.FullName}.{sc.mi.Name} params=[{pdesc}] score={sc.score}");
-            }
-        }
-        catch { }
-
-        // If no arguments supplied, any arity-compatible (zero-param) candidate is acceptable
-        if (argCount == 0 && scored.Count > 0)
-        {
-            return scored[0].mi;
-        }
-
-        var allInferredNull = inferred.All(t => t == null);
-
-        // Reject if best score indicates incompatible arguments for supplied args
-        if (scored.Count == 0)
-        {
-            return null;
-        }
-        if (scored[0].score <= 0 && !allInferredNull)
-        {
-            // Reject when there are inferred types but they don't match candidates
-            return null;
-        }
-        // If all inferred types were null, accept the best arity-compatible candidate (fallback)
-        if (allInferredNull && scored.Count > 0)
-        {
-            return scored[0].mi;
-        }
-
-        // Pick best candidate
-        var best = scored[0];
-
-        // Ensure each supplied argument is compatible; handle shifted parameters for extension methods
-        var bestOffset = (receiverType != null && best.ps.Length == argCount + 1) ? 1 : 0;
-        for (int i = 0; i < argCount; i++)
-        {
-            var paramIndex = i + bestOffset;
-            if (paramIndex < 0 || paramIndex >= best.ps.Length) return null;
-            if (CompatibilityScore(inferred[i], best.ps[paramIndex].ParameterType) <= 0)
-            {
-                return null;
-            }
-        }
-
-        // If this candidate expects a receiver (extension method) ensure receiver compatibility
-        if (receiverType != null && best.ps.Length == argCount + 1)
-        {
-            if (CompatibilityScore(receiverType, best.ps[0].ParameterType) <= 0)
-            {
-                return null;
-            }
-        }
-
-        return best.mi;
+        return _methodResolver.ResolveExternalMethod(_typeInference, extType, methodName, args, receiverType);
     }
 
     private void InitializeBuiltinTypes()
@@ -422,7 +163,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             AssemblyReferences = CreateStandardAssemblyReferences()
         };
 
-        _currentAssembly = ilAssembly;
+        _context.CurrentAssembly = ilAssembly;
 
         // Transform the first module (Fifth programs typically have one module)
         if (astAssembly.Modules.Count > 0)
@@ -473,7 +214,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             FileName = astModule.OriginalModuleName ?? "main.dll"
         };
 
-        _currentModule = ilModule;
+        _context.CurrentModule = ilModule;
 
         // Transform classes
         foreach (var astClass in astModule.Classes)
@@ -509,10 +250,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             Name = astClass.Name.Value ?? "UnnamedClass",
             Namespace = "Fifth.Generated",
             Visibility = MemberAccessability.Public,
-            ParentAssembly = _currentAssembly!
+            ParentAssembly = _context.CurrentAssembly!
         };
 
-        _currentClass = ilClass;
+        _context.CurrentClass = ilClass;
 
         // Transform members (properties, fields, methods)
         foreach (var astMember in astClass.MemberDefs)
@@ -544,8 +285,8 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         return new FieldDefinition
         {
             Name = astProperty.Name.Value ?? "UnnamedField",
-            TheType = MapType(astProperty.TypeName.Value?.ToString() ?? "object"),
-            ParentClass = _currentClass!,
+            TheType = _typeMapper.MapType(astProperty.TypeName.Value?.ToString() ?? "object"),
+            ParentClass = _context.CurrentClass!,
             TypeOfMember = MemberType.Field,
             Visibility = MemberAccessability.Public,
             IsStatic = false
@@ -557,8 +298,8 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         return new FieldDefinition
         {
             Name = astField.Name.Value ?? "UnnamedField",
-            TheType = MapType(astField.TypeName.Value?.ToString() ?? "object"),
-            ParentClass = _currentClass!,
+            TheType = _typeMapper.MapType(astField.TypeName.Value?.ToString() ?? "object"),
+            ParentClass = _context.CurrentClass!,
             TypeOfMember = MemberType.Field,
             Visibility = MemberAccessability.Public,
             IsStatic = false
@@ -570,10 +311,10 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         var ilMethod = new MethodDefinition
         {
             Name = astFunction.Name.Value ?? "UnnamedMethod",
-            ParentClass = _currentClass!,
+            ParentClass = _context.CurrentClass!,
             TypeOfMember = MemberType.Method,
             Visibility = MemberAccessability.Public,
-            IsStatic = _currentClass == null || astFunction.IsStatic,
+            IsStatic = _context.CurrentClass == null || astFunction.IsStatic,
             Header = new MethodHeader
             {
                 FunctionKind = astFunction.Name.Value == "main" ? FunctionKind.Normal : FunctionKind.Normal,
@@ -598,7 +339,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         var signature = new MethodSignature
         {
             CallingConvention = MethodCallingConvention.Default,
-            ReturnTypeSignature = MapType(returnTypeName),
+            ReturnTypeSignature = _typeMapper.MapType(returnTypeName),
             NumberOfParameters = (ushort)(astFunction.Params?.Count ?? 0)
         };
 
@@ -609,7 +350,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 signature.ParameterSignatures.Add(new ParameterSignature
                 {
                     Name = param.Name ?? "param",
-                    TypeReference = MapType(param.TypeName.Value?.ToString() ?? "object"),
+                    TypeReference = _typeMapper.MapType(param.TypeName.Value?.ToString() ?? "object"),
                     InOut = InOutFlag.In
                 });
             }
@@ -1086,224 +827,23 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
 
     /// <summary>
     /// Generates instruction sequence for an expression that evaluates to a value on the stack
+    /// Delegates to ExpressionEmitter for modular code generation
     /// </summary>
     public InstructionSequence GenerateExpression(ast.Expression expression)
     {
-        var sequence = new InstructionSequence();
-
-        switch (expression)
-        {
-            case Int32LiteralExp intLit:
-                sequence.Add(new LoadInstruction("ldc.i4", intLit.Value));
-                break;
-
-            case Float4LiteralExp floatLit:
-                sequence.Add(new LoadInstruction("ldc.r4", floatLit.Value));
-                break;
-
-            case Float8LiteralExp doubleLit:
-                sequence.Add(new LoadInstruction("ldc.r8", doubleLit.Value));
-                break;
-
-            case Float16LiteralExp decimalLit:
-                sequence.Add(new LoadInstruction("ldstr", decimalLit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)));
-                sequence.Add(new CallInstruction("call", "extcall:Asm=System.Runtime;Ns=System;Type=Decimal;Method=Parse;Params=System.String;Return=System.Decimal") { ArgCount = 1 });
-                break;
-
-            case StringLiteralExp stringLit:
-                sequence.Add(new LoadInstruction("ldstr", stringLit.Value ?? string.Empty));
-                break;
-
-            case BooleanLiteralExp boolLit:
-                sequence.Add(new LoadInstruction("ldc.i4", boolLit.Value ? 1 : 0));
-                break;
-
-            case VarRefExp varRef:
-                if (DebugEnabled)
-                {
-                    DebugLog($"VarRef load '{varRef.VarName}' param={_currentParameterNames.Contains(varRef.VarName)}");
-                }
-                if (_currentParameterNames.Contains(varRef.VarName))
-                    sequence.Add(new LoadInstruction("ldarg", varRef.VarName));
-                else
-                    sequence.Add(new LoadInstruction("ldloc", varRef.VarName));
-                break;
-
-            case BinaryExp binaryExp:
-                var opStr = GetOperatorString(binaryExp.Operator);
-                if (DebugEnabled)
-                {
-                    DebugLog($"Binary start op='{opStr}' lhs={(binaryExp.LHS?.GetType().Name ?? "null")} rhs={(binaryExp.RHS?.GetType().Name ?? "null")}");
-                }
-                if (binaryExp.LHS != null)
-                {
-                    var lhsSeq = GenerateExpression(binaryExp.LHS);
-                    if (DebugEnabled)
-                    {
-                        DebugLog($"Binary op='{opStr}' lhs contributed {lhsSeq.Instructions.Count} instructions");
-                    }
-                    sequence.AddRange(lhsSeq.Instructions);
-                }
-                if (binaryExp.RHS != null)
-                {
-                    var rhsSeq = GenerateExpression(binaryExp.RHS);
-                    if (DebugEnabled)
-                    {
-                        DebugLog($"Binary op='{opStr}' rhs contributed {rhsSeq.Instructions.Count} instructions");
-                    }
-                    sequence.AddRange(rhsSeq.Instructions);
-                }
-                if (DebugEnabled)
-                {
-                    DebugLog($"Binary op='{opStr}' total operand instructions {sequence.Instructions.Count}");
-                }
-                // Expand composite relational/equality ops explicitly so emitter sees real IL patterns
-                switch (opStr)
-                {
-                    case "!":
-                        // Should not appear as binary
-                        sequence.Add(new ArithmeticInstruction("nop"));
-                        break;
-                    case "!=":
-                        sequence.Add(new ArithmeticInstruction("ceq"));
-                        sequence.Add(new LoadInstruction("ldc.i4", 0));
-                        sequence.Add(new ArithmeticInstruction("ceq"));
-                        break;
-                    case "<=":
-                        // a <= b  ==>  a > b  -> cgt, ldc.i4.0, ceq
-                        sequence.Add(new ArithmeticInstruction("cgt"));
-                        sequence.Add(new LoadInstruction("ldc.i4", 0));
-                        sequence.Add(new ArithmeticInstruction("ceq"));
-                        break;
-                    case ">=":
-                        // a >= b  ==>  a < b  -> clt, ldc.i4.0, ceq
-                        sequence.Add(new ArithmeticInstruction("clt"));
-                        sequence.Add(new LoadInstruction("ldc.i4", 0));
-                        sequence.Add(new ArithmeticInstruction("ceq"));
-                        break;
-                    case "==":
-                        sequence.Add(new ArithmeticInstruction("ceq"));
-                        break;
-                    case "<":
-                        sequence.Add(new ArithmeticInstruction("clt"));
-                        break;
-                    case ">":
-                        sequence.Add(new ArithmeticInstruction("cgt"));
-                        break;
-                    default:
-                        sequence.Add(new ArithmeticInstruction(GetBinaryOpCode(opStr)));
-                        break;
-                }
-                if (DebugEnabled)
-                {
-                    DebugLog($"Binary end op='{opStr}'");
-                }
-                break;
-
-            case MemberAccessExp memberAccess:
-                // Method-style member access (e.g., KG.CreateGraph())
-                if (memberAccess.RHS is ast.FuncCallExp memberCall)
-                {
-                    var callSeq = GenerateFuncCall(memberCall, memberAccess.LHS);
-                    sequence.AddRange(callSeq.Instructions);
-                    break;
-                }
-
-                var lhsIsTypeQualifier = memberAccess.LHS is VarRefExp lhsVar && IsTypeName(lhsVar.VarName);
-
-                if (!lhsIsTypeQualifier && memberAccess.LHS != null)
-                {
-                    sequence.AddRange(GenerateExpression(memberAccess.LHS).Instructions);
-                }
-
-                switch (memberAccess.RHS)
-                {
-                    case VarRefExp memberRef:
-                        if (lhsIsTypeQualifier && memberAccess.LHS is VarRefExp typeQualifier)
-                        {
-                            // Static field access; encode as TypeName::FieldName for the emitter lookup
-                            var staticToken = $"{typeQualifier.VarName}::{memberRef.VarName}";
-                            sequence.Add(new LoadInstruction("ldsfld", staticToken));
-                        }
-                        else
-                        {
-                            sequence.Add(new LoadInstruction("ldfld", memberRef.VarName));
-                        }
-                        break;
-                    case null:
-                        SafeRecordZeroLowering(_currentMethodName ?? "<unknown>", "MemberAccess", "<null>");
-                        break;
-                    default:
-                        // Fallback: evaluate RHS independently; complex chaining will recurse via LHS
-                        sequence.AddRange(GenerateExpression(memberAccess.RHS).Instructions);
-                        break;
-                }
-                break;
-
-            case UnaryExp unaryExp:
-                var uop = GetOperatorString(unaryExp.Operator);
-                if (DebugEnabled)
-                {
-                    DebugLog($"Unary start op='{uop}' operand={(unaryExp.Operand?.GetType().Name ?? "null")}");
-                }
-                if (unaryExp.Operand != null) sequence.AddRange(GenerateExpression(unaryExp.Operand).Instructions);
-                if (uop == "!")
-                {
-                    // logical not: push 0 then ceq
-                    sequence.Add(new LoadInstruction("ldc.i4", 0));
-                    sequence.Add(new ArithmeticInstruction("ceq"));
-                }
-                else if (uop == "-")
-                {
-                    sequence.Add(new ArithmeticInstruction("neg"));
-                }
-                else
-                {
-                    sequence.Add(new ArithmeticInstruction("nop"));
-                }
-                if (DebugEnabled)
-                {
-                    DebugLog($"Unary end op='{uop}'");
-                }
-                break;
-
-            case ast.FuncCallExp funcCall:
-                if (funcCall.InvocationArguments != null)
-                {
-                    foreach (var arg in funcCall.InvocationArguments)
-                    {
-                        sequence.AddRange(GenerateExpression(arg).Instructions);
-                    }
-                }
-
-                // Default to a simple Console.WriteLine(object) call for top-level function calls
-                var argCountForFunc = funcCall.InvocationArguments?.Count ?? 0;
-                sequence.Add(new CallInstruction("call", "void [System.Console]System.Console::WriteLine(object)") { ArgCount = argCountForFunc });
-                break;
-
-            default:
-                // Unknown expression: record and emit a diagnostic debug marker so we can trace zero-lowerings
-                if (DebugEnabled)
-                {
-                    DebugLog($"Unknown expression kind '{expression?.GetType().Name}'");
-                }
-                SafeRecordZeroLowering(_currentMethodName ?? "<unknown>", "Expression", expression?.GetType().Name ?? "<null>");
-                break;
-        }
-
-        return sequence;
+        return _expressionEmitter.GenerateExpression(expression);
     }
 
     // Provide current parameter names so expression lowering can emit ldarg for parameters
     public void SetCurrentParameters(List<string> paramNames)
     {
-        _currentParameterNames = new HashSet<string>(paramNames ?? new List<string>(), StringComparer.Ordinal);
+        _context.ParameterNames = new HashSet<string>(paramNames ?? new List<string>(), StringComparer.Ordinal);
     }
 
     // Provide parameter type hints as (name, typeName) tuples where typeName is like 'System.Int32' or 'Fifth.Generated.Foo'
     public void SetCurrentParameterTypes(List<(string name, string? typeName)> paramInfos)
     {
-        _currentParameterTypes.Clear();
+        _context.ParameterTypes.Clear();
         if (paramInfos == null) return;
         foreach (var (name, typeName) in paramInfos)
         {
@@ -1312,143 +852,27 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             var mapped = MapBuiltinFifthTypeNameToSystem(typeName) ?? (Type.GetType(typeName));
             if (mapped != null)
             {
-                _currentParameterTypes[name] = mapped;
+                _context.ParameterTypes[name] = mapped;
             }
         }
     }
 
     // Generate instruction sequence for a single statement node
+    // Delegates to StatementEmitter for modular code generation
     public InstructionSequence GenerateStatement(ast.Statement statement)
     {
-        var seq = new InstructionSequence();
-        if (statement == null) return seq;
-
-        switch (statement)
-        {
-            case ast.VarDeclStatement varDeclStmt:
-                var varName = varDeclStmt.VariableDecl?.Name ?? "__var";
-                if (varDeclStmt.InitialValue != null)
-                {
-                    seq.AddRange(GenerateExpression(varDeclStmt.InitialValue).Instructions);
-                    seq.Add(new StoreInstruction("stloc", varName));
-                    // Try to record the declared type for later inference
-                    var tn = varDeclStmt.VariableDecl != null ? varDeclStmt.VariableDecl.TypeName.ToString() : null;
-                    var mapped = MapBuiltinFifthTypeNameToSystem(tn);
-                    if (mapped != null)
-                    {
-                        _localVariableTypes[varName] = mapped;
-                    }
-                }
-                break;
-
-            case ast.ExpStatement expStmt:
-                if (expStmt.RHS != null) seq.AddRange(GenerateExpression(expStmt.RHS).Instructions);
-                // Pop expression result to keep stack balanced for statement position
-                seq.Add(new StackInstruction("pop"));
-                break;
-
-            case ast.AssignmentStatement assignStmt:
-                if (assignStmt.RValue != null) seq.AddRange(GenerateExpression(assignStmt.RValue).Instructions);
-                if (assignStmt.LValue is VarRefExp lvr)
-                {
-                    seq.Add(new StoreInstruction("stloc", lvr.VarName));
-                }
-                break;
-
-            case ast.ReturnStatement retStmt:
-                if (retStmt.ReturnValue != null) seq.AddRange(GenerateExpression(retStmt.ReturnValue).Instructions);
-                seq.Add(new ReturnInstruction());
-                break;
-
-            case ast.IfElseStatement ifStmt:
-                seq.AddRange(GenerateIfStatement(ifStmt).Instructions);
-                break;
-
-            case ast.WhileStatement whileStmt:
-                seq.AddRange(GenerateWhileStatement(whileStmt).Instructions);
-                break;
-
-            default:
-                // Unhandled statements are no-ops for now
-                break;
-        }
-
-        return seq;
+        return _statementEmitter.GenerateStatement(statement);
     }
 
+    // Delegates to ControlFlowEmitter for modular code generation
     public InstructionSequence GenerateIfStatement(ast.IfElseStatement ifStmt)
     {
-        var seq = new InstructionSequence();
-        if (ifStmt == null) return seq;
-
-        var condition = ifStmt.Condition;
-        var falseLabel = $"IL_false_{_labelCounter++}";
-        var endLabel = $"IL_end_{_labelCounter++}";
-
-        if (condition != null) seq.AddRange(GenerateExpression(condition).Instructions);
-        seq.Add(new BranchInstruction("brfalse", falseLabel));
-
-        // Then block
-        if (ifStmt.ThenBlock?.Statements != null)
-        {
-            foreach (var s in ifStmt.ThenBlock.Statements)
-            {
-                seq.AddRange(GenerateStatement(s).Instructions);
-            }
-        }
-
-        seq.Add(new BranchInstruction("br", endLabel));
-        seq.Add(new LabelInstruction(falseLabel));
-
-        // Else block
-        if (ifStmt.ElseBlock?.Statements != null)
-        {
-            foreach (var s in ifStmt.ElseBlock.Statements)
-            {
-                seq.AddRange(GenerateStatement(s).Instructions);
-            }
-        }
-
-        seq.Add(new LabelInstruction(endLabel));
-
-        return seq;
+        return _controlFlowEmitter.GenerateIfStatement(ifStmt);
     }
 
+    // Delegates to ControlFlowEmitter for modular code generation
     public InstructionSequence GenerateWhileStatement(ast.WhileStatement whileStmt)
     {
-        var seq = new InstructionSequence();
-        if (whileStmt == null) return seq;
-
-        var startLabel = $"IL_while_start_{_labelCounter++}";
-        var endLabel = $"IL_while_end_{_labelCounter++}";
-
-        // Start of loop
-        seq.Add(new LabelInstruction(startLabel));
-
-        // Evaluate condition
-        if (whileStmt.Condition != null)
-        {
-            seq.AddRange(GenerateExpression(whileStmt.Condition).Instructions);
-        }
-
-        // Exit loop if condition is false
-        seq.Add(new BranchInstruction("brfalse", endLabel));
-
-        // Loop body
-        if (whileStmt.Body?.Statements != null)
-        {
-            foreach (var s in whileStmt.Body.Statements)
-            {
-                seq.AddRange(GenerateStatement(s).Instructions);
-            }
-        }
-
-        // Jump back to start
-        seq.Add(new BranchInstruction("br", startLabel));
-
-        // End label
-        seq.Add(new LabelInstruction(endLabel));
-
-        return seq;
+        return _controlFlowEmitter.GenerateWhileStatement(whileStmt);
     }
 }
