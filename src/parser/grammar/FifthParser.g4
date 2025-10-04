@@ -85,7 +85,7 @@ statement:
 graph_assertion_statement: graphAssertionBlock SEMI;
 
 assignment_statement:
-	lvalue = expression (op = ASSIGN | op = PLUS_ASSIGN) rvalue = expression SEMI;
+	lvalue = expression (op = ASSIGN | op = PLUS_ASSIGN | op = MINUS_ASSIGN) rvalue = expression SEMI;
 
 expression_statement: expression? SEMI;
 
