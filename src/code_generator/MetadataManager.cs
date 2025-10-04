@@ -5,9 +5,10 @@ using il_ast;
 namespace code_generator;
 
 /// <summary>
-/// Manages metadata lookups and registrations for types, fields, methods, and constructors
+/// Manages metadata lookups and registrations for types, fields, methods, and constructors.
+/// Encapsulates all metadata state needed during PE emission.
 /// </summary>
-internal class MetadataManager
+public class MetadataManager
 {
     // Maps for types, fields, and constructors defined in this assembly
     private readonly Dictionary<string, TypeDefinitionHandle> _typeHandles = new(StringComparer.Ordinal);
