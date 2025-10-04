@@ -54,25 +54,25 @@
 
 
 ## Phase 3.7: Type Inference & Diagnostics
-- [ ] T032 Extend type inference (likely in generated type inference file or manual visitor) to map triple literal to primitive `triple`
-- [ ] T033 [P] Add type inference test verifying operator result types (graph + triple → graph, triple + triple → graph)
-- [ ] T034 Add diagnostic emission points mapping (wire TRPL001–TRPL006) to existing diagnostic framework
-- [ ] T035 [P] Add tests asserting diagnostics appear with correct codes/messages
-- [ ] T035A Add canonical serialization / round-trip test (construct triple then serialize then parse; covers FR-018 & FR-018A escaping of `>` and `,`)
+- [x] T032 Extend type inference (likely in generated type inference file or manual visitor) to map triple literal to primitive `triple`
+- [x] T033 [P] Add type inference test verifying operator result types (graph + triple → graph, triple + triple → graph)
+- [x] T034 Add diagnostic emission points mapping (wire TRPL001–TRPL006) to existing diagnostic framework
+- [x] T035 [P] Add tests asserting diagnostics appear with correct codes/messages
+- [x] T035A Add canonical serialization / round-trip test (construct triple then serialize then parse; covers FR-018 & FR-018A escaping of `>` and `,`)
 
 ## Phase 3.8: Property-Based & Integration Tests
-- [ ] T036 Implement property-based duplicate suppression test (adding same triple N times size stable)
-- [ ] T037 [P] Implement property-based list expansion associativity test
-- [ ] T038 Integration test: triple literal in graph assertion block `<{ <s,p,o>; }>` asserts triple (FR-021)
-- [ ] T039 [P] Integration test: nested list rejected with TRPL006
-- [ ] T040 Integration test: performance harness baseline capture (pre-feature parse timing reference)
-- [ ] T040A Property-based ordering invariance test: ensure adding same set of triples via different `+` association yields graphs structurally equal disregarding order (FR-008B)
+- [x] T036 Implement property-based duplicate suppression test (adding same triple N times size stable)
+- [x] T037 [P] Implement property-based list expansion associativity test
+- [x] T038 Integration test: triple literal in graph assertion block `<{ <s,p,o>; }>` asserts triple (FR-021)
+- [x] T039 [P] Integration test: nested list rejected with TRPL006
+- [x] T040 Integration test: performance harness baseline capture (pre-feature parse timing reference)
+- [x] T040A Property-based ordering invariance test: ensure adding same set of triples via different `+` association yields graphs structurally equal disregarding order (FR-008B)
 
 ## Phase 3.9: Performance & Benchmark
-- [ ] T041 Create large sample file `test/perf/triple_heavy_01.5th` (1000 triple literals)
-- [ ] T042 Implement benchmark runner (if not existing) measuring parse time vs baseline
-- [ ] T043 Enforce ≤5% regression check (fail test if exceeded)
-- [ ] T043A Enforce variance guard (mean ≤5% AND mean ≤ 2σ) in benchmark assertion harness
+- [x] T041 Create large sample file `test/perf/triple_heavy_01.5th` (1000 triple literals)
+- [x] T042 Implement benchmark runner (if not existing) measuring parse time vs baseline
+- [x] T043 Enforce ≤5% regression check (fail test if exceeded)
+- [x] T043A Enforce variance guard (mean ≤5% AND mean ≤ 2σ) in benchmark assertion harness
 
 ## Phase 3.10: Documentation & Validation
 - [ ] T044 Validate `quickstart.md` samples parse with `scripts/validate-examples.fish`
