@@ -65,9 +65,23 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
             return false;
         }
 
-        if (expr is GraphAssertionBlockExp || expr is VarRefExp)
+        // Graph assertion blocks are always graph-like
+        if (expr is GraphAssertionBlockExp)
         {
             return true;
+        }
+
+        // Check if variable reference is typed as a graph
+        if (expr is VarRefExp varRef)
+        {
+            // Only treat as graph-like if the variable is actually typed as a graph
+            if (varRef.Type is FifthType.TType ttype && 
+                ttype.Name.Value != null && 
+                ttype.Name.Value.Equals("graph", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            return false;
         }
 
         if (expr is MemberAccessExp member && member.Annotations != null && member.Annotations.ContainsKey("GraphExpr"))
