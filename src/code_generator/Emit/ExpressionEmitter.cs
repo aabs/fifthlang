@@ -90,6 +90,10 @@ public class ExpressionEmitter
                 GenerateFuncCall(sequence, funcCall, null);
                 break;
 
+            case ObjectInitializerExp objectInit:
+                GenerateObjectInitializer(sequence, objectInit);
+                break;
+
             default:
                 if (DebugEnabled)
                 {
@@ -447,5 +451,46 @@ public class ExpressionEmitter
         if (string.IsNullOrEmpty(name)) return false;
         // Simple heuristic: treat capitalized identifiers as potential type names
         return char.IsUpper(name[0]);
+    }
+
+    private void GenerateObjectInitializer(InstructionSequence sequence, ObjectInitializerExp objectInit)
+    {
+        if (DebugEnabled)
+        {
+            var typeName = objectInit.TypeToInitialize?.Name.Value ?? "unknown";
+            DebugLog($"ObjectInitializer for type '{typeName}' with {objectInit.PropertyInitialisers?.Count ?? 0} properties");
+        }
+
+        // Get the type name
+        var typeNameStr = objectInit.TypeToInitialize?.Name.Value ?? "object";
+
+        // Emit the constructor call (newobj)
+        // For now, we assume a parameterless constructor
+        var ctorSignature = $"instance void {typeNameStr}::.ctor()";
+        sequence.Add(new CallInstruction("newobj", ctorSignature) { ArgCount = 0 });
+
+        // If there are property initializers, we need to:
+        // 1. Duplicate the object reference for each property assignment
+        // 2. Load the value
+        // 3. Store to the field
+        if (objectInit.PropertyInitialisers != null && objectInit.PropertyInitialisers.Count > 0)
+        {
+            foreach (var propInit in objectInit.PropertyInitialisers)
+            {
+                // Duplicate object reference on stack
+                sequence.Add(new StackInstruction("dup"));
+
+                // Generate the value to assign
+                var valueSeq = GenerateExpression(propInit.RHS);
+                sequence.AddRange(valueSeq.Instructions);
+
+                // Store to the field
+                var fieldName = propInit.PropertyToInitialize?.Property?.Name.Value ?? "unknown";
+                sequence.Add(new StoreInstruction("stfld", fieldName));
+            }
+        }
+
+        // At this point, the object reference is on the stack (consumed by stfld, but newobj produced it)
+        // If there are no property initializers, newobj leaves the object on the stack
     }
 }
