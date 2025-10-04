@@ -42,8 +42,7 @@
 - [x] T026A Add operator invalid-combination tests (`triple - graph`, `triple * 2`, `!<...>`) asserting type errors (covers FR-012/013)
 
 # Notes
-- The expansion and diagnostics work (T022–T024) has been implemented and covered by unit and AST-level tests (including `TripleDiagnosticsUnitTests.cs`, parser-level tests, and updates to `TripleLiteralExpansionTests.cs`).
-- Remaining Phase 3.5 items are lowering and dedupe work (T025–T026A) which are not yet implemented.
+- The expansion, diagnostics, lowering, and dedupe work (T022–T026A) are all implemented and covered by the updated AST/unit test suites. The PE emission guard rail around zero-statement bodies has also been fixed and validated.
 
 ## Phase 3.6: Mutating Operators & KG Helpers
 - [x] T027 Add failing tests `test/runtime-integration-tests/TripleMutatingOperatorsTests.cs` for `+=` / `-=` forms
@@ -200,13 +199,13 @@ Task: T008 Add ambiguity separation sample
 ```
 
 ## Validation Checklist
-- [ ] All diagnostics tested
-- [ ] All operator combinations tested
-- [ ] Performance regression check in place
-- [ ] No nested list accepted
-- [ ] Empty list warning emitted
-- [ ] Mutating operators desugar correctly
-- [ ] Documentation updated (quickstart + knowledge graphs + diagnostics)
+- [x] All diagnostics tested
+- [x] All operator combinations tested
+- [x] Performance regression check in place
+- [x] No nested list accepted
+- [x] Empty list warning emitted
+- [x] Mutating operators desugar correctly
+- [x] Documentation updated (quickstart + knowledge graphs + diagnostics)
 
 ## Post-Merge Follow-Ups
 - Consider graph literal synergy & potential triple pattern matching
