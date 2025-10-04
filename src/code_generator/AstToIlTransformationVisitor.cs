@@ -22,10 +22,33 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
     private readonly Dictionary<string, Type> _localVariableTypes = new(StringComparer.Ordinal);
     // Counter for generating unique temporary local variable names
     private int _tempCounter = 0;
+    // Current method context for lowering diagnostics and return-type inference
+    private il_ast.TypeReference? _currentReturnType = null;
+    private string? _currentMethodName = null;
+
+    // Safe wrapper for zero-lowering recording; if core helper missing, silently ignore.
+    private void SafeRecordZeroLowering(string method, string context, string nodeKind)
+    {
+        // Placeholder – previously would log zero-lowering events. Left intentionally blank.
+        if (DebugEnabled)
+        {
+            DebugLog($"ZERO-LOWERING method={method} ctx={context} node={nodeKind}");
+        }
+    }
 
     public AstToIlTransformationVisitor()
     {
         InitializeBuiltinTypes();
+    }
+
+    public void SetCurrentMethodName(string? methodName)
+    {
+        _currentMethodName = methodName;
+    }
+
+    public void SetCurrentReturnType(il_ast.TypeReference? returnType)
+    {
+        _currentReturnType = returnType;
     }
 
     private static bool IsImplicitNumericWidening(Type src, Type dest)
@@ -609,11 +632,11 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             "*" => "mul",
             "/" => "div",
             "==" => "ceq",
-            "!=" => "ceq", // handled by compare+not if needed by emitter
+            "!=" => "ceq_neg", // composite handled in GenerateExpression
             "<" => "clt",
             ">" => "cgt",
-            "<=" => "cgt", // will typically require additional logic
-            ">=" => "clt", // will typically require additional logic
+            "<=" => "cle",   // composite handled in GenerateExpression
+            ">=" => "cge",   // composite handled in GenerateExpression
             _ => "add",
         };
     }
@@ -623,7 +646,7 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
         return op switch
         {
             "-" => "neg",
-            "!" => "ldc.i4.0", // logical not will require compare
+            "!" => "not", // composite handled in GenerateExpression
             _ => "nop",
         };
     }
@@ -685,25 +708,78 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
 
             case VarRefExp varRef:
+                // Debug instrumentation for VarRef lowering (embedded as ldstr so it is ignorable by emitter)
+                sequence.Add(new LoadInstruction("ldstr", $"//DEBUG VarRef load '{varRef.VarName}' param={(_currentParameterNames.Contains(varRef.VarName))}"));
                 if (_currentParameterNames.Contains(varRef.VarName))
-                {
                     sequence.Add(new LoadInstruction("ldarg", varRef.VarName));
-                }
                 else
-                {
                     sequence.Add(new LoadInstruction("ldloc", varRef.VarName));
-                }
                 break;
 
             case BinaryExp binaryExp:
+                var opStr = GetOperatorString(binaryExp.Operator);
+                sequence.Add(new LoadInstruction("ldstr", $"//DEBUG Binary start op='{opStr}' lhs={(binaryExp.LHS?.GetType().Name ?? "null")} rhs={(binaryExp.RHS?.GetType().Name ?? "null")}"));
                 if (binaryExp.LHS != null) sequence.AddRange(GenerateExpression(binaryExp.LHS).Instructions);
                 if (binaryExp.RHS != null) sequence.AddRange(GenerateExpression(binaryExp.RHS).Instructions);
-                sequence.Add(new ArithmeticInstruction(GetBinaryOpCode(GetOperatorString(binaryExp.Operator))));
+                // Expand composite relational/equality ops explicitly so emitter sees real IL patterns
+                switch (opStr)
+                {
+                    case "!":
+                        // Should not appear as binary
+                        sequence.Add(new ArithmeticInstruction("nop"));
+                        break;
+                    case "!=":
+                        sequence.Add(new ArithmeticInstruction("ceq"));
+                        sequence.Add(new LoadInstruction("ldc.i4", 0));
+                        sequence.Add(new ArithmeticInstruction("ceq"));
+                        break;
+                    case "<=":
+                        // a <= b  ==>  a > b  -> cgt, ldc.i4.0, ceq
+                        sequence.Add(new ArithmeticInstruction("cgt"));
+                        sequence.Add(new LoadInstruction("ldc.i4", 0));
+                        sequence.Add(new ArithmeticInstruction("ceq"));
+                        break;
+                    case ">=":
+                        // a >= b  ==>  a < b  -> clt, ldc.i4.0, ceq
+                        sequence.Add(new ArithmeticInstruction("clt"));
+                        sequence.Add(new LoadInstruction("ldc.i4", 0));
+                        sequence.Add(new ArithmeticInstruction("ceq"));
+                        break;
+                    case "==":
+                        sequence.Add(new ArithmeticInstruction("ceq"));
+                        break;
+                    case "<":
+                        sequence.Add(new ArithmeticInstruction("clt"));
+                        break;
+                    case ">":
+                        sequence.Add(new ArithmeticInstruction("cgt"));
+                        break;
+                    default:
+                        sequence.Add(new ArithmeticInstruction(GetBinaryOpCode(opStr)));
+                        break;
+                }
+                sequence.Add(new LoadInstruction("ldstr", $"//DEBUG Binary end op='{opStr}'"));
                 break;
 
             case UnaryExp unaryExp:
+                var uop = GetOperatorString(unaryExp.Operator);
+                sequence.Add(new LoadInstruction("ldstr", $"//DEBUG Unary start op='{uop}' operand={(unaryExp.Operand?.GetType().Name ?? "null")}"));
                 if (unaryExp.Operand != null) sequence.AddRange(GenerateExpression(unaryExp.Operand).Instructions);
-                sequence.Add(new ArithmeticInstruction(GetUnaryOpCode(GetOperatorString(unaryExp.Operator))));
+                if (uop == "!")
+                {
+                    // logical not: push 0 then ceq
+                    sequence.Add(new LoadInstruction("ldc.i4", 0));
+                    sequence.Add(new ArithmeticInstruction("ceq"));
+                }
+                else if (uop == "-")
+                {
+                    sequence.Add(new ArithmeticInstruction("neg"));
+                }
+                else
+                {
+                    sequence.Add(new ArithmeticInstruction("nop"));
+                }
+                sequence.Add(new LoadInstruction("ldstr", $"//DEBUG Unary end op='{uop}'"));
                 break;
 
             case ast.FuncCallExp funcCall:
@@ -721,7 +797,9 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 break;
 
             default:
-                // Unknown expression: leave sequence empty to avoid stack corruption
+                // Unknown expression: record and emit a diagnostic debug marker so we can trace zero-lowerings
+                sequence.Add(new LoadInstruction("ldstr", $"//DEBUG Unknown expression kind '{expression?.GetType().Name}'"));
+                SafeRecordZeroLowering(_currentMethodName ?? "<unknown>", "Expression", expression?.GetType().Name ?? "<null>");
                 break;
         }
 
@@ -794,6 +872,14 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
                 seq.Add(new ReturnInstruction());
                 break;
 
+            case ast.IfElseStatement ifStmt:
+                seq.AddRange(GenerateIfStatement(ifStmt).Instructions);
+                break;
+
+            case ast.WhileStatement whileStmt:
+                seq.AddRange(GenerateWhileStatement(whileStmt).Instructions);
+                break;
+
             default:
                 // Unhandled statements are no-ops for now
                 break;
@@ -835,6 +921,44 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             }
         }
 
+        seq.Add(new LabelInstruction(endLabel));
+
+        return seq;
+    }
+
+    public InstructionSequence GenerateWhileStatement(ast.WhileStatement whileStmt)
+    {
+        var seq = new InstructionSequence();
+        if (whileStmt == null) return seq;
+
+        var startLabel = $"IL_while_start_{_labelCounter++}";
+        var endLabel = $"IL_while_end_{_labelCounter++}";
+
+        // Start of loop
+        seq.Add(new LabelInstruction(startLabel));
+
+        // Evaluate condition
+        if (whileStmt.Condition != null)
+        {
+            seq.AddRange(GenerateExpression(whileStmt.Condition).Instructions);
+        }
+
+        // Exit loop if condition is false
+        seq.Add(new BranchInstruction("brfalse", endLabel));
+
+        // Loop body
+        if (whileStmt.Body?.Statements != null)
+        {
+            foreach (var s in whileStmt.Body.Statements)
+            {
+                seq.AddRange(GenerateStatement(s).Instructions);
+            }
+        }
+
+        // Jump back to start
+        seq.Add(new BranchInstruction("br", startLabel));
+
+        // End label
         seq.Add(new LabelInstruction(endLabel));
 
         return seq;

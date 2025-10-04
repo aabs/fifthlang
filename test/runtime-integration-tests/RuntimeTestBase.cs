@@ -14,6 +14,8 @@ public abstract class RuntimeTestBase : IDisposable
     protected readonly string TempDirectory;
     protected readonly List<string> GeneratedFiles = new();
     protected readonly List<string> GeneratedDirectories = new();
+    // When true, keep generated temp directories for post-mortem debugging.
+    protected readonly bool KeepTemp;
 
     protected RuntimeTestBase()
     {
@@ -21,6 +23,43 @@ public abstract class RuntimeTestBase : IDisposable
         TempDirectory = Path.Combine(Path.GetTempPath(), $"FifthRuntime_{Guid.NewGuid():N}");
         Directory.CreateDirectory(TempDirectory);
         GeneratedDirectories.Add(TempDirectory);
+
+        // Determine whether to keep temporary folders for debugging.
+        // Controlled by environment variable FIFTH_KEEP_TEMP=true or presence of marker file at repo root: KEEP_FIFTH_TEMP
+        var env = Environment.GetEnvironmentVariable("FIFTH_KEEP_TEMP");
+        if (!string.IsNullOrEmpty(env) && env.Equals("true", StringComparison.OrdinalIgnoreCase))
+        {
+            KeepTemp = true;
+        }
+        else
+        {
+            // Check for marker file in repository root
+            try
+            {
+                var repoRoot = FindRepoRoot();
+                if (!string.IsNullOrEmpty(repoRoot))
+                {
+                    var marker = Path.Combine(repoRoot, "KEEP_FIFTH_TEMP");
+                    KeepTemp = File.Exists(marker);
+                }
+            }
+            catch
+            {
+                KeepTemp = false;
+            }
+        }
+    }
+
+    // Locate the repository root by walking upwards until the solution file is found
+    private static string FindRepoRoot()
+    {
+        var dir = Directory.GetCurrentDirectory();
+        while (!string.IsNullOrEmpty(dir))
+        {
+            if (File.Exists(Path.Combine(dir, "fifthlang.sln"))) return dir;
+            dir = Directory.GetParent(dir)?.FullName ?? string.Empty;
+        }
+        return Directory.GetCurrentDirectory();
     }
 
     /// <summary>
@@ -265,6 +304,16 @@ public abstract class RuntimeTestBase : IDisposable
     public void Dispose()
     {
         // Clean up generated files
+        if (KeepTemp)
+        {
+            // Preserve files/directories for post-mortem. Report location on stderr for easier inspection.
+            try
+            {
+                Console.Error.WriteLine($"[RuntimeTestBase] Preserving temp directory for debugging: {TempDirectory}");
+            }
+            catch { }
+            return;
+        }
         foreach (var file in GeneratedFiles)
         {
             try
