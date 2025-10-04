@@ -4,6 +4,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using il_ast;
 using static Fifth.DebugHelpers;
+using code_generator.InstructionEmitter;
 
 namespace code_generator;
 
@@ -14,6 +15,10 @@ namespace code_generator;
 public class PEEmitter
 {
     // Use shared DebugHelpers for debug logging.
+
+    // Extracted instruction emitters for better modularization
+    private readonly BranchInstructionEmitter _branchEmitter = new();
+    private readonly ArithmeticInstructionEmitter _arithmeticEmitter = new();
 
     // Maps for types, fields, and constructors defined in this assembly
     private readonly Dictionary<string, TypeDefinitionHandle> _typeHandles = new(StringComparer.Ordinal);
@@ -1463,70 +1468,12 @@ public class PEEmitter
     /// <summary>
     /// Emit arithmetic instruction
     /// </summary>
+    /// <summary>
+    /// Emit arithmetic instruction
+    /// </summary>
     private void EmitArithmeticInstruction(InstructionEncoder il, il_ast.ArithmeticInstruction arithInst)
     {
-        switch (arithInst.Opcode.ToLowerInvariant())
-        {
-            case "add":
-                il.OpCode(ILOpCode.Add);
-                break;
-            case "sub":
-                il.OpCode(ILOpCode.Sub);
-                break;
-            case "mul":
-                il.OpCode(ILOpCode.Mul);
-                break;
-            case "div":
-                il.OpCode(ILOpCode.Div);
-                break;
-            case "ceq":
-                il.OpCode(ILOpCode.Ceq);
-                break;
-            case "ceq_neg":
-                // Invert equality: ceq -> ldc.i4.0 -> ceq
-                il.OpCode(ILOpCode.Ceq);
-                il.LoadConstantI4(0);
-                il.OpCode(ILOpCode.Ceq);
-                break;
-            case "clt":
-                il.OpCode(ILOpCode.Clt);
-                break;
-            case "cgt":
-                il.OpCode(ILOpCode.Cgt);
-                break;
-            case "cle":
-                // a <= b  ==>  cgt -> not
-                il.OpCode(ILOpCode.Cgt);
-                il.LoadConstantI4(0);
-                il.OpCode(ILOpCode.Ceq);
-                break;
-            case "cge":
-                // a >= b  ==>  clt -> not
-                il.OpCode(ILOpCode.Clt);
-                il.LoadConstantI4(0);
-                il.OpCode(ILOpCode.Ceq);
-                break;
-            case "nop":
-                // nop is a placeholder for unknown unary ops; treat as net 0 in simulation
-                break;
-            case "and":
-                il.OpCode(ILOpCode.And);
-                break;
-            case "or":
-                il.OpCode(ILOpCode.Or);
-                break;
-            case "xor":
-                il.OpCode(ILOpCode.Xor);
-                break;
-            case "not":
-                // Logical not for booleans: compare with 0
-                il.LoadConstantI4(0);
-                il.OpCode(ILOpCode.Ceq);
-                break;
-            case "neg":
-                il.OpCode(ILOpCode.Neg);
-                break;
-        }
+        _arithmeticEmitter.Emit(il, arithInst);
     }
 
     /// <summary>
@@ -2112,79 +2059,13 @@ public class PEEmitter
     /// </summary>
     private string ExtractMethodName(string methodSignature)
     {
-        // Simple extraction - assume method signature format like "methodName" or "Program::methodName"
-        if (methodSignature.Contains("::"))
-        {
-            return methodSignature.Split("::").Last();
-        }
-
-        // If it looks like a simple method name, return as-is
-        if (!methodSignature.Contains(" ") && !methodSignature.Contains("("))
-        {
-            return methodSignature;
-        }
-
-        // For more complex signatures, try to extract the method name before parentheses
-        var parenIndex = methodSignature.IndexOf('(');
-        if (parenIndex > 0)
-        {
-            var beforeParen = methodSignature.Substring(0, parenIndex).Trim();
-            var spaceIndex = beforeParen.LastIndexOf(' ');
-            if (spaceIndex >= 0)
-            {
-                return beforeParen.Substring(spaceIndex + 1);
-            }
-            return beforeParen;
-        }
-
-        return methodSignature;
+        return SignatureUtilities.ExtractMethodName(methodSignature);
     }
     /// Extract type name from a constructor signature like "instance void TypeName::.ctor()"
     /// </summary>
     private string ExtractCtorTypeName(string ctorSignature)
     {
-        try
-        {
-            var raw = (ctorSignature ?? string.Empty).Trim();
-            if (string.IsNullOrEmpty(raw)) return string.Empty;
-
-            // Handle bracketed assembly-qualified signatures: "void [Asm]Namespace.Type::.ctor()"
-            if (raw.Contains('[') && raw.Contains(']') && raw.Contains("::"))
-            {
-                var lb = raw.IndexOf('[');
-                var rb = raw.IndexOf(']');
-                if (rb > lb)
-                {
-                    var after = raw.Substring(rb + 1).Trim();
-                    var sep = after.IndexOf("::", StringComparison.Ordinal);
-                    if (sep > 0)
-                    {
-                        var fullType = after.Substring(0, sep).Trim();
-                        var simple = fullType.Contains('.') ? fullType.Split('.').Last() : fullType;
-                        DebugLog($"DEBUG: ExtractCtorTypeName parsed bracketed signature -> fullType='{fullType}', simple='{simple}'");
-                        return simple;
-                    }
-                }
-            }
-
-            // Handle common form: 'instance void Namespace.Type::.ctor()' or 'void Namespace.Type::.ctor()'
-            var sepIndex = raw.IndexOf("::", StringComparison.Ordinal);
-            if (sepIndex > 0)
-            {
-                // Find the token that denotes the start of the type name (skip return-type token if present)
-                var lastSpaceBeforeSep = raw.LastIndexOf(' ', sepIndex);
-                var start = lastSpaceBeforeSep >= 0 ? lastSpaceBeforeSep + 1 : 0;
-                var typePart = raw.Substring(start, sepIndex - start).Trim();
-                var simple = typePart.Contains('.') ? typePart.Split('.').Last() : typePart;
-                DebugLog($"DEBUG: ExtractCtorTypeName parsed simple signature -> typePart='{typePart}', simple='{simple}'");
-                return simple;
-            }
-        }
-        catch (Exception ex)
-        {
-            DebugLog($"DEBUG: ExtractCtorTypeName error parsing '{ctorSignature}': {ex.Message}");
-        }
-        return string.Empty;
+        return SignatureUtilities.ExtractCtorTypeName(ctorSignature);
     }
 
     /// <summary>
@@ -2273,21 +2154,7 @@ public class PEEmitter
     /// </summary>
     private void EmitBranchInstruction(InstructionEncoder il, il_ast.BranchInstruction branchInst, Dictionary<string, LabelHandle>? labelMap)
     {
-        if (labelMap == null || string.IsNullOrEmpty(branchInst.TargetLabel) || !labelMap.TryGetValue(branchInst.TargetLabel, out var target))
-        {
-            Console.WriteLine("WARNING: Branch target label not found; skipping branch emission.");
-            return;
-        }
-        switch ((branchInst.Opcode ?? string.Empty).ToLowerInvariant())
-        {
-            case "br": il.Branch(ILOpCode.Br, target); break;
-            case "brtrue": il.Branch(ILOpCode.Brtrue, target); break;
-            case "brfalse": il.Branch(ILOpCode.Brfalse, target); break;
-            default:
-                Console.WriteLine($"WARNING: Unsupported branch opcode '{branchInst.Opcode}', emitting unconditional br");
-                il.Branch(ILOpCode.Br, target);
-                break;
-        }
+        _branchEmitter.Emit(il, branchInst, labelMap);
     }
 
     /// <summary>
