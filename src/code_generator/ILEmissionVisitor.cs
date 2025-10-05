@@ -16,6 +16,7 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
     private const string IndentString = "    ";
 
     private Dictionary<string, string>? _currentLocalsMap = null;
+    private Dictionary<string, int>? _currentParamsMap = null;
 
     public string EmitAssembly(AssemblyDeclaration assembly)
     {
@@ -133,7 +134,7 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
             EmitLine("{");
             IncreaseIndent();
             EmitLine(".entrypoint");
-            EmitMethodBody(method.Impl.Body);
+            EmitMethodBody(method.Impl.Body, method);
             DecreaseIndent();
             EmitLine("}");
         }
@@ -142,19 +143,29 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
             EmitLine($".method {visibility}{staticModifier} {returnType} {method.Name}({parameters}) cil managed");
             EmitLine("{");
             IncreaseIndent();
-            EmitMethodBody(method.Impl.Body);
+            EmitMethodBody(method.Impl.Body, method);
             DecreaseIndent();
             EmitLine("}");
         }
         EmitLine();
     }
 
-    private void EmitMethodBody(Block body)
+    private void EmitMethodBody(Block body, MethodDefinition method)
     {
         EmitLine(".maxstack 8"); // Default stack size
 
         // Use AstToIlTransformationVisitor to convert high-level statements to instruction sequences
         var transformer = new AstToIlTransformationVisitor();
+        
+        // Set the current method parameters so the transformer knows which variables are parameters
+        var paramNames = method.Signature.ParameterSignatures.Select(p => p.Name ?? "param").ToList();
+        transformer.SetCurrentParameters(paramNames);
+        
+        // Set parameter types for better type inference
+        var paramInfos = method.Signature.ParameterSignatures
+            .Select(p => (name: p.Name ?? "param", typeName: p.TypeReference != null ? $"{p.TypeReference.Namespace}.{p.TypeReference.Name}" : null))
+            .ToList();
+        transformer.SetCurrentParameterTypes(paramInfos);
 
         var allSequences = new List<InstructionSequence>();
         if (body.Statements.Any())
@@ -226,6 +237,13 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
             EmitLine($".locals init ({string.Join(", ", localsDecls)})");
         }
 
+        // Build map from parameter names to indices for ldarg instructions
+        _currentParamsMap = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (int i = 0; i < paramNames.Count; i++)
+        {
+            _currentParamsMap[paramNames[i]] = i;
+        }
+
         // Emit instructions
         foreach (var seq in allSequences)
         {
@@ -245,6 +263,7 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
         }
 
         _currentLocalsMap = null;
+        _currentParamsMap = null;
     }
 
     private void EmitInstructionSequence(InstructionSequence sequence)
@@ -463,6 +482,13 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
             if (_currentLocalsMap != null && loadInstr.Opcode.StartsWith("ldloc", StringComparison.OrdinalIgnoreCase) && loadInstr.Value is string name && _currentLocalsMap.TryGetValue(name, out var mapped))
             {
                 EmitLine($"{loadInstr.Opcode} {mapped}");
+                return;
+            }
+            
+            // If this is an argument load and we have a mapping, rewrite with the parameter index
+            if (_currentParamsMap != null && loadInstr.Opcode.StartsWith("ldarg", StringComparison.OrdinalIgnoreCase) && loadInstr.Value is string paramName && _currentParamsMap.TryGetValue(paramName, out var paramIndex))
+            {
+                EmitLine($"{loadInstr.Opcode}.{paramIndex}");
                 return;
             }
 

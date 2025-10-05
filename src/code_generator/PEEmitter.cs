@@ -738,9 +738,30 @@ public partial class PEEmitter
                         break;
                     case il_ast.CallInstruction ci:
                         var argCount = ci.ArgCount >= 0 ? ci.ArgCount : 0;
-                        var ret = (ci.MethodSignature ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
-                        var retLower = ret.ToLowerInvariant();
-                        if (retLower == "void")
+                        var sig = ci.MethodSignature ?? string.Empty;
+                        
+                        // Check if this is an extcall signature format: "extcall:...;Return=Type"
+                        bool isVoidReturn = false;
+                        if (sig.StartsWith("extcall:", StringComparison.Ordinal))
+                        {
+                            // Parse Return=Type from the signature
+                            var returnMatch = System.Text.RegularExpressions.Regex.Match(sig, @"Return=([^;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                            if (returnMatch.Success)
+                            {
+                                var returnType = returnMatch.Groups[1].Value;
+                                isVoidReturn = string.Equals(returnType, "System.Void", StringComparison.OrdinalIgnoreCase) || 
+                                              string.Equals(returnType, "Void", StringComparison.OrdinalIgnoreCase);
+                            }
+                        }
+                        else
+                        {
+                            // Traditional format: "returnType [Assembly]Type::Method(params)"
+                            var ret = sig.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
+                            var retLower = ret.ToLowerInvariant();
+                            isVoidReturn = retLower == "void";
+                        }
+                        
+                        if (isVoidReturn)
                         {
                             delta -= argCount;
                         }

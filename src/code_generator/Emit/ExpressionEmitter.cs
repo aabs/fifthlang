@@ -142,34 +142,67 @@ public class ExpressionEmitter
             DebugLog($"Binary start op='{opStr}' lhs={(binaryExp.LHS?.GetType().Name ?? "null")} rhs={(binaryExp.RHS?.GetType().Name ?? "null")}");
         }
 
-        // Generate LHS
-        if (binaryExp.LHS != null)
+        // Check if this is string concatenation (+ operator with string operands)
+        bool isStringConcat = false;
+        if (binaryExp.Operator == Operator.ArithmeticAdd)
         {
-            var lhsSeq = GenerateExpression(binaryExp.LHS);
-            sequence.AddRange(lhsSeq.Instructions);
-            
-            // Convert LHS to double if this is a power operation
-            if (binaryExp.Operator == Operator.ArithmeticPow)
-            {
-                sequence.Add(new ArithmeticInstruction("conv.r8"));
-            }
+            // Check if either operand is a string
+            var lhsIsString = binaryExp.LHS?.Type?.Name.Value == "string" || binaryExp.LHS is StringLiteralExp;
+            var rhsIsString = binaryExp.RHS?.Type?.Name.Value == "string" || binaryExp.RHS is StringLiteralExp;
+            isStringConcat = lhsIsString || rhsIsString;
         }
 
-        // Generate RHS
-        if (binaryExp.RHS != null)
+        if (isStringConcat)
         {
-            var rhsSeq = GenerateExpression(binaryExp.RHS);
-            sequence.AddRange(rhsSeq.Instructions);
-            
-            // Convert RHS to double if this is a power operation
-            if (binaryExp.Operator == Operator.ArithmeticPow)
+            // Generate string concatenation using String.Concat
+            // Generate LHS
+            if (binaryExp.LHS != null)
             {
-                sequence.Add(new ArithmeticInstruction("conv.r8"));
+                var lhsSeq = GenerateExpression(binaryExp.LHS);
+                sequence.AddRange(lhsSeq.Instructions);
             }
-        }
 
-        // Generate operator instruction(s)
-        GenerateBinaryOperator(sequence, binaryExp.Operator);
+            // Generate RHS
+            if (binaryExp.RHS != null)
+            {
+                var rhsSeq = GenerateExpression(binaryExp.RHS);
+                sequence.AddRange(rhsSeq.Instructions);
+            }
+
+            // Call String.Concat(string, string)
+            sequence.Add(new CallInstruction("call", "extcall:Asm=System.Runtime;Ns=System;Type=String;Method=Concat;Params=System.String,System.String;Return=System.String") { ArgCount = 2 });
+        }
+        else
+        {
+            // Generate LHS
+            if (binaryExp.LHS != null)
+            {
+                var lhsSeq = GenerateExpression(binaryExp.LHS);
+                sequence.AddRange(lhsSeq.Instructions);
+                
+                // Convert LHS to double if this is a power operation
+                if (binaryExp.Operator == Operator.ArithmeticPow)
+                {
+                    sequence.Add(new ArithmeticInstruction("conv.r8"));
+                }
+            }
+
+            // Generate RHS
+            if (binaryExp.RHS != null)
+            {
+                var rhsSeq = GenerateExpression(binaryExp.RHS);
+                sequence.AddRange(rhsSeq.Instructions);
+                
+                // Convert RHS to double if this is a power operation
+                if (binaryExp.Operator == Operator.ArithmeticPow)
+                {
+                    sequence.Add(new ArithmeticInstruction("conv.r8"));
+                }
+            }
+
+            // Generate operator instruction(s)
+            GenerateBinaryOperator(sequence, binaryExp.Operator);
+        }
     }
 
     private void GenerateBinaryOperator(InstructionSequence sequence, Operator op)
