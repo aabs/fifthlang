@@ -161,16 +161,39 @@ public class StatementEmitter
 
     private void GenerateAssignment(InstructionSequence seq, AssignmentStatement assignStmt)
     {
-        // Generate RValue expression
-        if (assignStmt.RValue != null)
+        // Handle member access assignments (e.g., obj.Property = value)
+        if (assignStmt.LValue is MemberAccessExp memberAccess)
         {
-            var rvalueSeq = _expressionEmitter.GenerateExpression(assignStmt.RValue);
-            seq.AddRange(rvalueSeq.Instructions);
+            // Load the object reference
+            if (memberAccess.LHS != null)
+            {
+                var lhsSeq = _expressionEmitter.GenerateExpression(memberAccess.LHS);
+                seq.AddRange(lhsSeq.Instructions);
+            }
+            
+            // Generate RValue expression
+            if (assignStmt.RValue != null)
+            {
+                var rvalueSeq = _expressionEmitter.GenerateExpression(assignStmt.RValue);
+                seq.AddRange(rvalueSeq.Instructions);
+            }
+            
+            // Store to the field
+            if (memberAccess.RHS is VarRefExp memberRef)
+            {
+                seq.Add(new StoreInstruction("stfld", memberRef.VarName));
+            }
         }
-        
-        // Store to LValue
-        if (assignStmt.LValue is VarRefExp varRef)
+        // Handle simple variable assignments (e.g., x = value)
+        else if (assignStmt.LValue is VarRefExp varRef)
         {
+            // Generate RValue expression
+            if (assignStmt.RValue != null)
+            {
+                var rvalueSeq = _expressionEmitter.GenerateExpression(assignStmt.RValue);
+                seq.AddRange(rvalueSeq.Instructions);
+            }
+            
             seq.Add(new StoreInstruction("stloc", varRef.VarName));
         }
     }
