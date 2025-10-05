@@ -1,4 +1,5 @@
 using ast;
+using ast_model.TypeSystem;
 using il_ast;
 
 namespace code_generator.Emit;
@@ -175,7 +176,28 @@ public class ControlFlowEmitter
                 if (expStmt.RHS != null)
                 {
                     seq.AddRange(_expressionEmitter.GenerateExpression(expStmt.RHS).Instructions);
-                    seq.Add(new StackInstruction("pop"));
+                    
+                    // Only pop if the expression produces a value (not void)
+                    bool isVoid = false;
+                    
+                    // Check if it's a function call with void return type
+                    if (expStmt.RHS is FuncCallExp funcCall && funcCall.FunctionDef != null)
+                    {
+                        var returnType = funcCall.FunctionDef.ReturnType;
+                        if (returnType != null)
+                        {
+                            // Check if it's TVoidType or if the Name is "void"
+                            isVoid = returnType is FifthType.TVoidType ||
+                                    string.Equals(returnType.Name.ToString(), "void", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(returnType.Name.ToString(), "System.Void", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(returnType.Name.ToString(), "Void", StringComparison.OrdinalIgnoreCase);
+                        }
+                    }
+                    
+                    if (!isVoid)
+                    {
+                        seq.Add(new StackInstruction("pop"));
+                    }
                 }
                 break;
 
