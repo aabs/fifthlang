@@ -535,11 +535,12 @@ public partial class PEEmitter
         // Use inferred types where available (default Int32)
         foreach (var localVar in localVariables)
         {
-            DebugLog($"DEBUG: Creating signature for local '{localVar}', classHandle={_localVarClassTypeHandles.ContainsKey(localVar)}, localTypesParam={localTypes.ContainsKey(localVar)}");
+            DebugLog($"DEBUG: Creating signature for local '{localVar}', classHandle={_localVarClassTypeHandles.ContainsKey(localVar)}, typeMap={(_localVarTypeMap.ContainsKey(localVar) ? _localVarTypeMap[localVar].ToString() : "not set")}");
             // Prefer explicit class type if known (from newobj)
             if (_localVarClassTypeHandles.TryGetValue(localVar, out var typeDefHandle))
             {
                 // ELEMENT_TYPE_CLASS (0x12) then TypeDefOrRef coded index for the type
+                DebugLog($"DEBUG: Using class type for '{localVar}'");
                 DebugLog($"DEBUG: Using class type for '{localVar}'");
                 localsSignature.WriteByte(0x12);
                 var rowId = MetadataTokens.GetRowNumber(typeDefHandle);
@@ -553,6 +554,7 @@ public partial class PEEmitter
                     sigType = SignatureTypeCode.Int32;
                     DebugLog($"DEBUG: Variable '{localVar}' not in localTypes parameter, defaulting to Int32");
                 }
+                DebugLog($"DEBUG: Using type code {sigType} for '{localVar}'");
                 DebugLog($"DEBUG: Using type code {sigType} for '{localVar}'");
                 localsSignature.WriteByte((byte)sigType);
             }
@@ -739,7 +741,7 @@ public partial class PEEmitter
                     case il_ast.CallInstruction ci:
                         var argCount = ci.ArgCount >= 0 ? ci.ArgCount : 0;
                         var sig = ci.MethodSignature ?? string.Empty;
-                        
+
                         // Check if this is an extcall signature format: "extcall:...;Return=Type"
                         bool isVoidReturn = false;
                         if (sig.StartsWith("extcall:", StringComparison.Ordinal))
@@ -749,7 +751,7 @@ public partial class PEEmitter
                             if (returnMatch.Success)
                             {
                                 var returnType = returnMatch.Groups[1].Value;
-                                isVoidReturn = string.Equals(returnType, "System.Void", StringComparison.OrdinalIgnoreCase) || 
+                                isVoidReturn = string.Equals(returnType, "System.Void", StringComparison.OrdinalIgnoreCase) ||
                                               string.Equals(returnType, "Void", StringComparison.OrdinalIgnoreCase);
                             }
                         }
@@ -760,7 +762,7 @@ public partial class PEEmitter
                             var retLower = ret.ToLowerInvariant();
                             isVoidReturn = retLower == "void";
                         }
-                        
+
                         if (isVoidReturn)
                         {
                             delta -= argCount;
