@@ -184,9 +184,10 @@ operand:
 	| object_instantiation_expression;
 
 // Treat triples as primary (non-left-recursive) expressions Semantic predicate: ensure lookahead
-// matches '<' IDENTIFIER ':' IDENTIFIER ',' before treating as triple
+// matches '<' followed by identifier and comma (for variable refs) or '<' IDENTIFIER ':' (for prefixed IRIs)
+// This allows both <var1, var2, var3> and <ex:s, ex:p, ex:o> forms
 tripleExpression:
-	{ InputStream.LA(1) == LESS && InputStream.LA(2) == IDENTIFIER && InputStream.LA(3) == COLON && InputStream.LA(4) == IDENTIFIER && InputStream.LA(5) == COMMA 
+	{ InputStream.LA(1) == LESS && InputStream.LA(2) == IDENTIFIER && (InputStream.LA(3) == COMMA || InputStream.LA(3) == COLON)
 		}? (tripleLiteral | malformedTripleLiteral);
 
 object_instantiation_expression:
@@ -230,8 +231,8 @@ tripleObjectTerm: tripleIriRef | primitiveLiteral | list;
 
 // Allow either full IRI, prefixed alias form, or bare var reference (alias prefix resolution later)
 prefixedIri: IDENTIFIER COLON IDENTIFIER;
-// Restrict triple components to prefixed forms for disambiguation (IRI & bare var forms can be reintroduced when precedence ladder lands)
-tripleIriRef: prefixedIri;
+// Allow both prefixed IRIs and expressions (variables, function calls, etc.) in triple components
+tripleIriRef: prefixedIri | expression;
 
 literal: primitiveLiteral;
 
