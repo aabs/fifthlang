@@ -44,6 +44,29 @@ public partial class PEEmitter
                     if (string.Equals(name, "Fifth.System", StringComparison.Ordinal)) return new System.Version(1, 0, 0, 0);
                     return new System.Version(1, 0, 0, 0);
                 }
+                
+                // Get public key token for known assemblies
+                BlobHandle GetPublicKeyToken(string? name)
+                {
+                    byte[]? token = null;
+                    if (string.Equals(name, "System.Runtime", StringComparison.Ordinal) ||
+                        string.Equals(name, "System.Console", StringComparison.Ordinal))
+                    {
+                        // Microsoft public key token: b03f5f7f11d50a3a
+                        token = new byte[] { 0xb0, 0x3f, 0x5f, 0x7f, 0x11, 0xd5, 0x0a, 0x3a };
+                    }
+                    else if (string.Equals(name, "System.Private.CoreLib", StringComparison.Ordinal))
+                    {
+                        // CoreLib public key token: 7cec85d7bea7798e
+                        token = new byte[] { 0x7c, 0xec, 0x85, 0xd7, 0xbe, 0xa7, 0x79, 0x8e };
+                    }
+                    
+                    if (token != null)
+                    {
+                        return metadataBuilder.GetOrAddBlob(token);
+                    }
+                    return default;
+                }
 
                 var asmNameResolved = string.IsNullOrWhiteSpace(asmName) ? "Fifth.System" : asmName;
                 var asmKey = asmNameResolved.ToLowerInvariant();
@@ -52,7 +75,7 @@ public partial class PEEmitter
                 {
                     asmRef = metadataBuilder.AddAssemblyReference(
                         metadataBuilder.GetOrAddString(asmNameResolved!),
-                        ResolveAssemblyVersion(asmNameResolved), default, default, default, default);
+                        ResolveAssemblyVersion(asmNameResolved), default, GetPublicKeyToken(asmNameResolved), default, default);
                     _assemblyRefHandles[asmKey] = asmRef;
                 }
 
@@ -121,7 +144,7 @@ public partial class PEEmitter
                     {
                         paramAsmRef = metadataBuilder.AddAssemblyReference(
                             metadataBuilder.GetOrAddString(asm),
-                            ResolveAssemblyVersion(asm), default, default, default, default);
+                            ResolveAssemblyVersion(asm), default, GetPublicKeyToken(asm), default, default);
                         _assemblyRefHandles[paramAsmKey] = paramAsmRef;
                     }
                     var paramTypeKey = $"{paramAsmKey}|{typeNs}|{simpleName}";
@@ -143,8 +166,8 @@ public partial class PEEmitter
                 }
 
                 // Build signature using accurate param and return types
+                // Note: We'll rebuild the signature later with the correct calling convention after resolving the method
                 var methodSig = new BlobBuilder();
-                methodSig.WriteByte(0x00); // DEFAULT
 
                 // Parse any explicit params advertised in the extcall token (may be coarse/granular)
                 var parsedParamTokens = new List<string>();
@@ -238,14 +261,16 @@ public partial class PEEmitter
                 // Derive parameter tokens and return token from resolved MethodInfo when available
                 var finalParamTokens = new List<string>();
                 string finalReturnToken = string.IsNullOrWhiteSpace(returnToken) ? "System.Object" : returnToken!;
+                bool isStaticMethod = true; // Assume static unless proven otherwise
                 if (resolved != null)
                 {
                     try
                     {
+                        isStaticMethod = resolved.IsStatic;
                         var ps = resolved.GetParameters();
                         foreach (var p in ps) finalParamTokens.Add(TypeToToken(p.ParameterType));
                         finalReturnToken = TypeToToken(resolved.ReturnType);
-                        DebugLog($"DEBUG: Resolved runtime method: {resolved.DeclaringType?.FullName}.{resolved.Name} params={ps.Length} return={resolved.ReturnType.FullName}");
+                        DebugLog($"DEBUG: Resolved runtime method: {resolved.DeclaringType?.FullName}.{resolved.Name} params={ps.Length} return={resolved.ReturnType.FullName} isStatic={isStaticMethod}");
                     }
                     catch { /* if reflection fails, fallback to parsed tokens */ }
                 }
@@ -267,6 +292,12 @@ public partial class PEEmitter
                     DebugLog($"WARNING: External call arity mismatch (tolerated) for method '{extMethodName}' in assembly '{asmNameResolved}'. CallInstruction.ArgCount={callInst.ArgCount}, resolvedParams={finalParamTokens.Count}, extSig='{extSig}'");
                 }
 
+                // Rebuild the method signature with the correct calling convention
+                methodSig = new BlobBuilder();
+                // For static methods, use DEFAULT (0x00). For instance methods, use DEFAULT | HASTHIS (0x00 | 0x20 = 0x20)
+                byte callingConvention = isStaticMethod ? (byte)0x00 : (byte)0x20;
+                methodSig.WriteByte(callingConvention);
+                
                 // Use the final tokens to write signature
                 methodSig.WriteByte((byte)finalParamTokens.Count);
                 WriteTypeToken(methodSig, finalReturnToken, asmName);
