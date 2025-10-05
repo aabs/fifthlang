@@ -104,16 +104,50 @@ public class StatementEmitter
             bool isVoid = false;
             
             // Check if it's a function call with void return type
-            if (expStmt.RHS is FuncCallExp funcCall && funcCall.FunctionDef != null)
+            if (expStmt.RHS is FuncCallExp funcCall)
             {
-                var returnType = funcCall.FunctionDef.ReturnType;
-                if (returnType != null)
+                // Check Fifth functions
+                if (funcCall.FunctionDef != null)
                 {
-                    // Check if it's TVoidType or if the Name is "void"
-                    isVoid = returnType is FifthType.TVoidType ||
-                            string.Equals(returnType.Name.ToString(), "void", StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(returnType.Name.ToString(), "System.Void", StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(returnType.Name.ToString(), "Void", StringComparison.OrdinalIgnoreCase);
+                    var returnType = funcCall.FunctionDef.ReturnType;
+                    if (returnType != null)
+                    {
+                        // Check if it's TVoidType or if the Name is "void"
+                        isVoid = returnType is FifthType.TVoidType ||
+                                string.Equals(returnType.Name.ToString(), "void", StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(returnType.Name.ToString(), "System.Void", StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(returnType.Name.ToString(), "Void", StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                // Check external calls by looking at the generated CallInstruction
+                else if (exprSeq.Instructions.Count > 0)
+                {
+                    var lastInst = exprSeq.Instructions[exprSeq.Instructions.Count - 1];
+                    if (lastInst is CallInstruction callInst && callInst.MethodSignature != null)
+                    {
+                        // Check if signature indicates void return (e.g., "Return=System.Void" in extcall signature)
+                        var sig = callInst.MethodSignature;
+                        if (sig.Contains("Return=System.Void") || sig.Contains("Return=Void") ||
+                            sig.StartsWith("void ", StringComparison.OrdinalIgnoreCase))
+                        {
+                            isVoid = true;
+                        }
+                    }
+                }
+            }
+            // Also check by examining the last generated instruction for any expression
+            // (e.g., MemberAccessExp that results in external call)
+            else if (exprSeq.Instructions.Count > 0)
+            {
+                var lastInst = exprSeq.Instructions[exprSeq.Instructions.Count - 1];
+                if (lastInst is CallInstruction callInst && callInst.MethodSignature != null)
+                {
+                    var sig = callInst.MethodSignature;
+                    if (sig.Contains("Return=System.Void") || sig.Contains("Return=Void") ||
+                        sig.StartsWith("void ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        isVoid = true;
+                    }
                 }
             }
             
