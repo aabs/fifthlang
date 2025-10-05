@@ -7,7 +7,7 @@
 
 ## Execution Flow (main)
 ```
-1. Project build resolves the full module set defined by MSBuild configuration.
+1. Project build resolves the full module set either from the MSBuild configuration or from an explicit list of source files supplied on the CLI.
 2. Each module is parsed; an optional top-level namespace declaration is read and registered.
 3. Compiler aggregates namespace symbol tables across all modules sharing the same namespace name.
 4. For every import directive in a module, the compiler links the referenced namespace symbol table into that module's lexical scope.
@@ -21,7 +21,7 @@
 - Ensure import directives act only within the declaring module and remain idempotent when repeated.
 - Allow import cycles while preventing repeated work through short-circuiting of already processed namespaces.
 - Keep namespace and import configuration discoverable through existing project structure to avoid separate configuration files.
-- Assume MSBuild-based project enumeration supplies the authoritative module list; coordination with build tooling changes happens in the companion MSBuild support effort.
+- Support two entry modes: MSBuild-provided module manifests and direct CLI enumeration of multiple source files, keeping resolution semantics identical in both cases.
 
 ## Clarifications
 
@@ -30,6 +30,7 @@
 - Q: When a module defines a symbol that matches one from an imported namespace, how is the conflict handled? → A: The local symbol shadows the imported symbol within that module.
 - Q: What compile-time performance target should namespace resolution meet for large projects? → A: Complete namespace resolution within 2 seconds for 100 modules.
 - Q: Do namespace resolution diagnostics need additional detail? → A: Emit structured compiler diagnostics with namespace and module identifiers.
+- Q: How should the CLI enumerate modules when no MSBuild manifest is provided? → A: Accept multiple `.5th` file paths on the CLI and treat that list as the module set.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -61,6 +62,7 @@ A project maintainer can organize multiple Fifth source files into namespaces, i
 - **FR-009**: System MUST emit a warning when an imported namespace is undeclared across the module set while treating it as an empty scope so compilation continues.
 - **FR-010**: System MUST ensure that locally declared symbols take precedence over imported symbols with the same name within the declaring module’s scope.
 - **FR-011**: System MUST produce structured diagnostics for namespace resolution warnings and errors that include the originating module and namespace identifiers to aid troubleshooting.
+- **FR-012**: CLI invocation MUST accept multiple `.5th` file paths and resolve namespaces using that enumerated set when no MSBuild manifest is provided, ensuring feature parity with MSBuild-based projects.
 
 ### Non-Functional Quality Attributes
 - **NFR-001**: Namespace resolution must complete within 2 seconds for projects containing up to 100 modules to keep incremental build latency acceptable for developers.
