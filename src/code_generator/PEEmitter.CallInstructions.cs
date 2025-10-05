@@ -288,19 +288,33 @@ public partial class PEEmitter
                 // Derive parameter tokens and return token from extcall signature
                 // Do NOT use reflection-based resolution here because it picks the wrong overload
                 // The ExternalMethodResolver in ExpressionEmitter already picked the correct overload
+                // Derive parameter tokens and return token from extcall signature
+                // Do NOT use reflection-based resolution here because it picks the wrong overload
+                // The ExternalMethodResolver in ExpressionEmitter already picked the correct overload
                 var finalParamTokens = new List<string>();
-                string finalReturnToken = string.IsNullOrWhiteSpace(returnToken) ? "System.Object" : returnToken!;
+                string finalReturnToken = string.IsNullOrWhiteSpace(returnToken) ? "System.Void" : returnToken!;
                 bool isStaticMethod = true; // Assume static unless proven otherwise
+
+                // Use the parsed tokens from the extcall signature (already correct from ExpressionEmitter)
+                if (parsedParamTokens.Count > 0)
+                {
+                    finalParamTokens = parsedParamTokens;
+                }
+                else if ((callInst?.ArgCount ?? 0) > 0)
+                {
+                    // Fallback: pad with System.Object if no parsed tokens available
+                    for (int pi = 0; pi < callInst!.ArgCount; pi++) finalParamTokens.Add("System.Object@System.Runtime");
+                }
+
+                // Only use reflection to determine if the method is static/instance
                 if (resolved != null)
                 {
                     try
                     {
                         isStaticMethod = resolved.IsStatic;
-                        var ps = resolved.GetParameters();
-                        foreach (var p in ps) finalParamTokens.Add(TypeToToken(p.ParameterType));
-                        finalReturnToken = TypeToToken(resolved.ReturnType);
-                        DebugLog($"DEBUG: Resolved runtime method: {resolved.DeclaringType?.FullName}.{resolved.Name} params={ps.Length} return={resolved.ReturnType.FullName} isStatic={isStaticMethod}");
+                        DebugLog($"DEBUG: Method is {(isStaticMethod ? "static" : "instance")}");
                     }
+                    catch { /* if reflection fails, assume static */ }
                     catch { /* if reflection fails, assume static */ }
                 }
                 // If CallInstruction reports ArgCount but finalParamTokens differ, log a debug warning but continue using finalParamTokens for the MemberRef
