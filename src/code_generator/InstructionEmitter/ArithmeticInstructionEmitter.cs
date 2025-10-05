@@ -75,6 +75,21 @@ internal class ArithmeticInstructionEmitter
             case "neg":
                 il.OpCode(ILOpCode.Neg);
                 break;
+            case "rem":
+                il.OpCode(ILOpCode.Rem);
+                break;
+            case "shl":
+                il.OpCode(ILOpCode.Shl);
+                break;
+            case "shr":
+                il.OpCode(ILOpCode.Shr);
+                break;
+            case "conv.r8":
+                il.OpCode(ILOpCode.Conv_r8);
+                break;
+            case "conv.i4":
+                il.OpCode(ILOpCode.Conv_i4);
+                break;
         }
     }
 }
