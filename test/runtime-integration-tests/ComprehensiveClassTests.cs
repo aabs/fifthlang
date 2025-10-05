@@ -43,7 +43,7 @@ public class ComprehensiveClassTests : RuntimeTestBase
     }
 
     [Test]
-    public async Task destructuring_example_ShouldReturn6000()
+    public async Task destructuring_example_ShouldReturn112()
     {
         // Arrange
         var sourceFile = Path.Combine("TestPrograms", "Classes", "destructuring_example.5th");
@@ -55,7 +55,7 @@ public class ComprehensiveClassTests : RuntimeTestBase
         var result = await ExecuteAsync(executablePath);
         
         // Assert
-        result.ExitCode.Should().Be(6000, "main() should return 6000 from calculate_bonus(engineer) = 60000/10 = 6000 for Engineering department");
+        result.ExitCode.Should().Be(112, "main() should return 112 from calculate_bonus(engineer) = 60000/10 = 6000 for Engineering department");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 }
