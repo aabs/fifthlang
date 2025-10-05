@@ -30,7 +30,7 @@ public class StatementEmitter
     public InstructionSequence GenerateStatement(Statement? statement)
     {
         var seq = new InstructionSequence();
-        
+
         if (statement == null)
         {
             return seq;
@@ -73,16 +73,16 @@ public class StatementEmitter
     private void GenerateVarDecl(InstructionSequence seq, VarDeclStatement varDeclStmt)
     {
         var varName = varDeclStmt.VariableDecl?.Name ?? "__var";
-        
+
         if (varDeclStmt.InitialValue != null)
         {
             // Generate initialization expression
             var initSeq = _expressionEmitter.GenerateExpression(varDeclStmt.InitialValue);
             seq.AddRange(initSeq.Instructions);
-            
+
             // Store to local variable
             seq.Add(new StoreInstruction("stloc", varName));
-            
+
             // Record type for later inference
             var typeName = varDeclStmt.VariableDecl?.TypeName.ToString();
             var mappedType = TypeMapper.MapBuiltinFifthTypeNameToSystem(typeName);
@@ -99,58 +99,24 @@ public class StatementEmitter
         {
             var exprSeq = _expressionEmitter.GenerateExpression(expStmt.RHS);
             seq.AddRange(exprSeq.Instructions);
-            
+
             // Only pop if the expression produces a value (not void)
             bool isVoid = false;
-            
+
             // Check if it's a function call with void return type
-            if (expStmt.RHS is FuncCallExp funcCall)
+            if (expStmt.RHS is FuncCallExp funcCall && funcCall.FunctionDef != null)
             {
-                // Check Fifth functions
-                if (funcCall.FunctionDef != null)
+                var returnType = funcCall.FunctionDef.ReturnType;
+                if (returnType != null)
                 {
-                    var returnType = funcCall.FunctionDef.ReturnType;
-                    if (returnType != null)
-                    {
-                        // Check if it's TVoidType or if the Name is "void"
-                        isVoid = returnType is FifthType.TVoidType ||
-                                string.Equals(returnType.Name.ToString(), "void", StringComparison.OrdinalIgnoreCase) ||
-                                string.Equals(returnType.Name.ToString(), "System.Void", StringComparison.OrdinalIgnoreCase) ||
-                                string.Equals(returnType.Name.ToString(), "Void", StringComparison.OrdinalIgnoreCase);
-                    }
-                }
-                // Check external calls by looking at the generated CallInstruction
-                else if (exprSeq.Instructions.Count > 0)
-                {
-                    var lastInst = exprSeq.Instructions[exprSeq.Instructions.Count - 1];
-                    if (lastInst is CallInstruction callInst && callInst.MethodSignature != null)
-                    {
-                        // Check if signature indicates void return (e.g., "Return=System.Void" in extcall signature)
-                        var sig = callInst.MethodSignature;
-                        if (sig.Contains("Return=System.Void") || sig.Contains("Return=Void") ||
-                            sig.StartsWith("void ", StringComparison.OrdinalIgnoreCase))
-                        {
-                            isVoid = true;
-                        }
-                    }
+                    // Check if it's TVoidType or if the Name is "void"
+                    isVoid = returnType is FifthType.TVoidType ||
+                            string.Equals(returnType.Name.ToString(), "void", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(returnType.Name.ToString(), "System.Void", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(returnType.Name.ToString(), "Void", StringComparison.OrdinalIgnoreCase);
                 }
             }
-            // Also check by examining the last generated instruction for any expression
-            // (e.g., MemberAccessExp that results in external call)
-            else if (exprSeq.Instructions.Count > 0)
-            {
-                var lastInst = exprSeq.Instructions[exprSeq.Instructions.Count - 1];
-                if (lastInst is CallInstruction callInst && callInst.MethodSignature != null)
-                {
-                    var sig = callInst.MethodSignature;
-                    if (sig.Contains("Return=System.Void") || sig.Contains("Return=Void") ||
-                        sig.StartsWith("void ", StringComparison.OrdinalIgnoreCase))
-                    {
-                        isVoid = true;
-                    }
-                }
-            }
-            
+
             // Pop expression result to keep stack balanced (but not for void expressions)
             if (!isVoid)
             {
@@ -170,14 +136,14 @@ public class StatementEmitter
                 var lhsSeq = _expressionEmitter.GenerateExpression(memberAccess.LHS);
                 seq.AddRange(lhsSeq.Instructions);
             }
-            
+
             // Generate RValue expression
             if (assignStmt.RValue != null)
             {
                 var rvalueSeq = _expressionEmitter.GenerateExpression(assignStmt.RValue);
                 seq.AddRange(rvalueSeq.Instructions);
             }
-            
+
             // Store to the field
             if (memberAccess.RHS is VarRefExp memberRef)
             {
@@ -193,7 +159,7 @@ public class StatementEmitter
                 var rvalueSeq = _expressionEmitter.GenerateExpression(assignStmt.RValue);
                 seq.AddRange(rvalueSeq.Instructions);
             }
-            
+
             seq.Add(new StoreInstruction("stloc", varRef.VarName));
         }
     }
@@ -206,7 +172,7 @@ public class StatementEmitter
             var returnSeq = _expressionEmitter.GenerateExpression(retStmt.ReturnValue);
             seq.AddRange(returnSeq.Instructions);
         }
-        
+
         // Emit return instruction
         seq.Add(new ReturnInstruction());
     }

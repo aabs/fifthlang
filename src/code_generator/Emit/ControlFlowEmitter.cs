@@ -25,7 +25,7 @@ public class ControlFlowEmitter
     public InstructionSequence GenerateIfStatement(IfElseStatement? ifStmt)
     {
         var seq = new InstructionSequence();
-        
+
         if (ifStmt == null)
         {
             return seq;
@@ -55,9 +55,9 @@ public class ControlFlowEmitter
         }
 
         // Only branch to end if the then block doesn't already terminate (e.g., with return)
-        bool thenBlockTerminates = seq.Instructions.Count > 0 && 
+        bool thenBlockTerminates = seq.Instructions.Count > 0 &&
             seq.Instructions[seq.Instructions.Count - 1] is ReturnInstruction;
-        
+
         if (!thenBlockTerminates)
         {
             seq.Add(new BranchInstruction("br", endLabel));
@@ -93,7 +93,7 @@ public class ControlFlowEmitter
                 break;
             }
         }
-        
+
         // Only emit end label if at least one path doesn't terminate
         if (!thenBlockTerminates || !elseBlockTerminates)
         {
@@ -109,7 +109,7 @@ public class ControlFlowEmitter
     public InstructionSequence GenerateWhileStatement(WhileStatement? whileStmt)
     {
         var seq = new InstructionSequence();
-        
+
         if (whileStmt == null)
         {
             return seq;
@@ -175,44 +175,25 @@ public class ControlFlowEmitter
             case ExpStatement expStmt:
                 if (expStmt.RHS != null)
                 {
-                    var exprSeq = _expressionEmitter.GenerateExpression(expStmt.RHS);
-                    seq.AddRange(exprSeq.Instructions);
-                    
+                    seq.AddRange(_expressionEmitter.GenerateExpression(expStmt.RHS).Instructions);
+
                     // Only pop if the expression produces a value (not void)
                     bool isVoid = false;
-                    
+
                     // Check if it's a function call with void return type
-                    if (expStmt.RHS is FuncCallExp funcCall)
+                    if (expStmt.RHS is FuncCallExp funcCall && funcCall.FunctionDef != null)
                     {
-                        // Check Fifth functions
-                        if (funcCall.FunctionDef != null)
+                        var returnType = funcCall.FunctionDef.ReturnType;
+                        if (returnType != null)
                         {
-                            var returnType = funcCall.FunctionDef.ReturnType;
-                            if (returnType != null)
-                            {
-                                // Check if it's TVoidType or if the Name is "void"
-                                isVoid = returnType is FifthType.TVoidType ||
-                                        string.Equals(returnType.Name.ToString(), "void", StringComparison.OrdinalIgnoreCase) ||
-                                        string.Equals(returnType.Name.ToString(), "System.Void", StringComparison.OrdinalIgnoreCase) ||
-                                        string.Equals(returnType.Name.ToString(), "Void", StringComparison.OrdinalIgnoreCase);
-                            }
-                        }
-                        // Check external calls by examining the generated instructions
-                        else if (exprSeq.Instructions.Count > 0)
-                        {
-                            var lastInst = exprSeq.Instructions[exprSeq.Instructions.Count - 1];
-                            if (lastInst is CallInstruction callInst && callInst.MethodSignature != null)
-                            {
-                                var sig = callInst.MethodSignature;
-                                if (sig.Contains("Return=System.Void") || sig.Contains("Return=Void") ||
-                                    sig.StartsWith("void ", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    isVoid = true;
-                                }
-                            }
+                            // Check if it's TVoidType or if the Name is "void"
+                            isVoid = returnType is FifthType.TVoidType ||
+                                    string.Equals(returnType.Name.ToString(), "void", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(returnType.Name.ToString(), "System.Void", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(returnType.Name.ToString(), "Void", StringComparison.OrdinalIgnoreCase);
                         }
                     }
-                    
+
                     if (!isVoid)
                     {
                         seq.Add(new StackInstruction("pop"));
