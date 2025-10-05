@@ -26,17 +26,35 @@ public partial class PEEmitter
                         il.StoreLocal(index);
                         if (_lastWasNewobj)
                         {
-                            _localVarTypeMap[varName] = SignatureTypeCode.Object;
+                            // Only override type if it wasn't explicitly set (e.g., from variable declaration)
+                            if (!_localVarTypeMap.ContainsKey(varName) || _localVarTypeMap[varName] == SignatureTypeCode.Int32)
+                            {
+                                DebugLog($"DEBUG: stloc override from newobj for '{varName}' to Object");
+                                _localVarTypeMap[varName] = SignatureTypeCode.Object;
+                            }
+                            else
+                            {
+                                DebugLog($"DEBUG: stloc preserving existing type for '{varName}': {_localVarTypeMap[varName]}");
+                            }
                             if (!string.IsNullOrEmpty(_pendingNewobjTypeName) && _typeHandles.TryGetValue(_pendingNewobjTypeName, out var tdh))
                             {
                                 _localVarClassTypeHandles[varName] = tdh;
                             }
                         }
                         // If the top of the stack is a known class type (from ldfld), propagate that to the target local
+                        // But only if the type wasn't explicitly declared
                         if (_pendingStackTopClassType.HasValue)
                         {
-                            _localVarTypeMap[varName] = SignatureTypeCode.Object;
-                            _localVarClassTypeHandles[varName] = _pendingStackTopClassType.Value;
+                            if (!_localVarTypeMap.ContainsKey(varName) || _localVarTypeMap[varName] == SignatureTypeCode.Int32)
+                            {
+                                DebugLog($"DEBUG: stloc override from stack class type for '{varName}' to Object");
+                                _localVarTypeMap[varName] = SignatureTypeCode.Object;
+                                _localVarClassTypeHandles[varName] = _pendingStackTopClassType.Value;
+                            }
+                            else
+                            {
+                                DebugLog($"DEBUG: stloc preserving existing type for '{varName}': {_localVarTypeMap[varName]}");
+                            }
                         }
                     }
                     else

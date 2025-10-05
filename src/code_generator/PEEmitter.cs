@@ -535,10 +535,12 @@ public partial class PEEmitter
         // Use inferred types where available (default Int32)
         foreach (var localVar in localVariables)
         {
+            DebugLog($"DEBUG: Creating signature for local '{localVar}', classHandle={_localVarClassTypeHandles.ContainsKey(localVar)}, typeMap={(_localVarTypeMap.ContainsKey(localVar) ? _localVarTypeMap[localVar].ToString() : "not set")}");
             // Prefer explicit class type if known (from newobj)
             if (_localVarClassTypeHandles.TryGetValue(localVar, out var typeDefHandle))
             {
                 // ELEMENT_TYPE_CLASS (0x12) then TypeDefOrRef coded index for the type
+                DebugLog($"DEBUG: Using class type for '{localVar}'");
                 localsSignature.WriteByte(0x12);
                 var rowId = MetadataTokens.GetRowNumber(typeDefHandle);
                 var codedIndex = (rowId << 2) | 0; // TypeDefOrRef tag 0 = TypeDef
@@ -550,6 +552,7 @@ public partial class PEEmitter
                 {
                     sigType = SignatureTypeCode.Int32;
                 }
+                DebugLog($"DEBUG: Using type code {sigType} for '{localVar}'");
                 localsSignature.WriteByte((byte)sigType);
             }
         }

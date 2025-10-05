@@ -114,6 +114,47 @@ public partial class PEEmitter
             stmtIndex++;
         }
 
+        // After processing all statements, get the inferred local variable types from the transformer
+        // and update our type map to use the correct types instead of defaulting to Object
+        var inferredLocalTypes = transformer.GetLocalVariableTypes();
+        DebugLog($"DEBUG: Got {inferredLocalTypes.Count} inferred local types from transformer");
+        foreach (var kvp in inferredLocalTypes)
+        {
+            var varName = kvp.Key;
+            var systemType = kvp.Value;
+            DebugLog($"DEBUG: Inferred type for '{varName}': {systemType.Name}");
+            
+            // Map System.Type to SignatureTypeCode
+            if (systemType == typeof(int) || systemType == typeof(Int32))
+                _localVarTypeMap[varName] = SignatureTypeCode.Int32;
+            else if (systemType == typeof(long) || systemType == typeof(Int64))
+                _localVarTypeMap[varName] = SignatureTypeCode.Int64;
+            else if (systemType == typeof(float) || systemType == typeof(Single))
+                _localVarTypeMap[varName] = SignatureTypeCode.Single;
+            else if (systemType == typeof(double) || systemType == typeof(Double))
+                _localVarTypeMap[varName] = SignatureTypeCode.Double;
+            else if (systemType == typeof(bool) || systemType == typeof(Boolean))
+                _localVarTypeMap[varName] = SignatureTypeCode.Boolean;
+            else if (systemType == typeof(string) || systemType == typeof(String))
+                _localVarTypeMap[varName] = SignatureTypeCode.String;
+            else if (systemType == typeof(byte) || systemType == typeof(Byte))
+                _localVarTypeMap[varName] = SignatureTypeCode.Byte;
+            else if (systemType == typeof(sbyte) || systemType == typeof(SByte))
+                _localVarTypeMap[varName] = SignatureTypeCode.SByte;
+            else if (systemType == typeof(short) || systemType == typeof(Int16))
+                _localVarTypeMap[varName] = SignatureTypeCode.Int16;
+            else if (systemType == typeof(ushort) || systemType == typeof(UInt16))
+                _localVarTypeMap[varName] = SignatureTypeCode.UInt16;
+            else if (systemType == typeof(uint) || systemType == typeof(UInt32))
+                _localVarTypeMap[varName] = SignatureTypeCode.UInt32;
+            else if (systemType == typeof(ulong) || systemType == typeof(UInt64))
+                _localVarTypeMap[varName] = SignatureTypeCode.UInt64;
+            else if (systemType == typeof(char) || systemType == typeof(Char))
+                _localVarTypeMap[varName] = SignatureTypeCode.Char;
+            // For other types (classes, etc.), keep as Object - will be handled by class type tracking
+        }
+        DebugLog($"DEBUG: After type inference, _localVarTypeMap has {_localVarTypeMap.Count} entries");
+
         // Second pass: simulate and emit using the final ordered local variable list
         var cumulativePerStatement = new List<int>();
         int cumulativeStack = 0;
