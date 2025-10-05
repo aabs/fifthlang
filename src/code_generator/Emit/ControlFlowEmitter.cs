@@ -175,22 +175,41 @@ public class ControlFlowEmitter
             case ExpStatement expStmt:
                 if (expStmt.RHS != null)
                 {
-                    seq.AddRange(_expressionEmitter.GenerateExpression(expStmt.RHS).Instructions);
+                    var exprSeq = _expressionEmitter.GenerateExpression(expStmt.RHS);
+                    seq.AddRange(exprSeq.Instructions);
 
                     // Only pop if the expression produces a value (not void)
                     bool isVoid = false;
 
                     // Check if it's a function call with void return type
-                    if (expStmt.RHS is FuncCallExp funcCall && funcCall.FunctionDef != null)
+                    if (expStmt.RHS is FuncCallExp funcCall)
                     {
-                        var returnType = funcCall.FunctionDef.ReturnType;
-                        if (returnType != null)
+                        // Check Fifth functions
+                        if (funcCall.FunctionDef != null)
                         {
-                            // Check if it's TVoidType or if the Name is "void"
-                            isVoid = returnType is FifthType.TVoidType ||
-                                    string.Equals(returnType.Name.ToString(), "void", StringComparison.OrdinalIgnoreCase) ||
-                                    string.Equals(returnType.Name.ToString(), "System.Void", StringComparison.OrdinalIgnoreCase) ||
-                                    string.Equals(returnType.Name.ToString(), "Void", StringComparison.OrdinalIgnoreCase);
+                            var returnType = funcCall.FunctionDef.ReturnType;
+                            if (returnType != null)
+                            {
+                                // Check if it's TVoidType or if the Name is "void"
+                                isVoid = returnType is FifthType.TVoidType ||
+                                        string.Equals(returnType.Name.ToString(), "void", StringComparison.OrdinalIgnoreCase) ||
+                                        string.Equals(returnType.Name.ToString(), "System.Void", StringComparison.OrdinalIgnoreCase) ||
+                                        string.Equals(returnType.Name.ToString(), "Void", StringComparison.OrdinalIgnoreCase);
+                            }
+                        }
+                        // Check external calls by examining the generated instructions
+                        else if (exprSeq.Instructions.Count > 0)
+                        {
+                            var lastInst = exprSeq.Instructions[exprSeq.Instructions.Count - 1];
+                            if (lastInst is CallInstruction callInst && callInst.MethodSignature != null)
+                            {
+                                var sig = callInst.MethodSignature;
+                                if (sig.Contains("Return=System.Void") || sig.Contains("Return=Void") ||
+                                    sig.StartsWith("void ", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    isVoid = true;
+                                }
+                            }
                         }
                     }
 
