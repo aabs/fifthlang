@@ -18,6 +18,9 @@ public static class OperatorMapper
             Operator.ArithmeticSubtract => "sub",
             Operator.ArithmeticMultiply => "mul",
             Operator.ArithmeticDivide => "div",
+            Operator.ArithmeticRem => "rem",
+            Operator.ArithmeticMod => "rem", // IL uses rem for modulo
+            Operator.ArithmeticPow => "pow", // Will need special handling via Math.Pow
             Operator.Equal => "ceq",
             Operator.NotEqual => "ceq_neg", // composite: ceq + ldc.i4.0 + ceq
             Operator.LessThan => "clt",
@@ -27,7 +30,10 @@ public static class OperatorMapper
             Operator.LogicalAnd => "and",
             Operator.LogicalOr => "or",
             Operator.BitwiseOr => "or",
+            Operator.BitwiseAnd => "and",
             Operator.LogicalXor => "xor",
+            Operator.BitwiseLeftShift => "shl",
+            Operator.BitwiseRightShift => "shr",
             _ => "nop"
         };
     }
@@ -87,6 +93,19 @@ public static class OperatorMapper
             Operator.LessThanOrEqual => true, // cgt + ldc.i4.0 + ceq
             Operator.GreaterThanOrEqual => true, // clt + ldc.i4.0 + ceq
             Operator.LogicalNot => true,     // ldc.i4.0 + ceq
+            Operator.ArithmeticPow => true,  // call Math.Pow
+            _ => false
+        };
+    }
+    
+    /// <summary>
+    /// Checks if the operator requires an external method call (e.g., Math.Pow)
+    /// </summary>
+    public static bool RequiresExternalCall(Operator op)
+    {
+        return op switch
+        {
+            Operator.ArithmeticPow => true,
             _ => false
         };
     }
