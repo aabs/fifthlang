@@ -1,0 +1,3 @@
+main(): void {
+    std.print("Hello from Fifth SDK!");
+}

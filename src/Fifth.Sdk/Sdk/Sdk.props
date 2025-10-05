@@ -1,0 +1,27 @@
+<Project>
+  <!-- This file is imported at the beginning of the project file -->
+  
+  <PropertyGroup>
+    <!-- Default properties for Fifth projects -->
+    <TargetFramework Condition="'$(TargetFramework)' == ''">net8.0</TargetFramework>
+    <OutputType Condition="'$(OutputType)' == ''">Exe</OutputType>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    
+    <!-- Set up standard output paths -->
+    <BaseOutputPath Condition="'$(BaseOutputPath)' == ''">bin\</BaseOutputPath>
+    <OutputPath Condition="'$(OutputPath)' == ''">$(BaseOutputPath)$(Configuration)\$(TargetFramework)\</OutputPath>
+    
+    <!-- Fifth-specific properties -->
+    <FifthSourceDirectory Condition="'$(FifthSourceDirectory)' == ''">$(MSBuildProjectDirectory)</FifthSourceDirectory>
+    
+    <!-- Disable default compilation -->
+    <EnableDefaultItems>false</EnableDefaultItems>
+  </PropertyGroup>
+
+  <!-- Define default Fifth source files -->
+  <ItemGroup>
+    <FifthSource Include="**\*.5th" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+  </ItemGroup>
+
+</Project>

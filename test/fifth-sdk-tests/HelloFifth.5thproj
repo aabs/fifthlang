@@ -1,0 +1,11 @@
+<Project Sdk="Fifth.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>HelloFifth</AssemblyName>
+    <!-- Point to the compiler in the repo -->
+    <FifthCompilerPath>../../src/compiler/bin/Release/net8.0/compiler.dll</FifthCompilerPath>
+  </PropertyGroup>
+
+</Project>
