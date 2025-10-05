@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageId>Fifth.Sdk</PackageId>
+    <Description>MSBuild SDK for building Fifth language projects (.5thproj)</Description>
+    <Version>0.1.0</Version>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <!-- Include the SDK files in the package -->
+  <ItemGroup>
+    <Content Include="Sdk\**\*.*">
+      <Pack>true</Pack>
+      <PackagePath>Sdk</PackagePath>
+    </Content>
+  </ItemGroup>
+
+  <!-- Reference the compiler project to ensure it's built -->
+  <ItemGroup>
+    <ProjectReference Include="..\compiler\compiler.csproj" PrivateAssets="none" />
+  </ItemGroup>
+
+</Project>

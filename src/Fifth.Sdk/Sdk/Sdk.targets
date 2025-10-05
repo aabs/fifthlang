@@ -1,0 +1,71 @@
+<Project>
+  <!-- This file is imported at the end of the project file -->
+
+  <!-- Define the core build target for Fifth projects -->
+  <Target Name="FifthCompile" 
+          DependsOnTargets="ResolveFifthCompilerPath">
+    
+    <PropertyGroup>
+      <_FifthSourceArg>$(FifthSourceDirectory)</_FifthSourceArg>
+      
+      <!-- Compute FifthOutputPath -->
+      <FifthOutputPath Condition="'$(FifthOutputPath)' == ''">$(OutputPath)$(AssemblyName).exe</FifthOutputPath>
+    </PropertyGroup>
+
+    <Message Text="Compiling Fifth project: $(MSBuildProjectName)" Importance="high" />
+    <Message Text="  Source: $(_FifthSourceArg)" Importance="high" />
+    <Message Text="  Output: $(FifthOutputPath)" Importance="high" />
+    
+    <!-- Run the Fifth compiler -->
+    <Exec Command="dotnet &quot;$(FifthCompilerPath)&quot; --command build --source &quot;$(_FifthSourceArg)&quot; --output &quot;$(FifthOutputPath)&quot;"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+    
+    <Message Text="Fifth compilation completed successfully" Importance="high" />
+  </Target>
+
+  <!-- Resolve the path to the Fifth compiler -->
+  <Target Name="ResolveFifthCompilerPath">
+    <PropertyGroup>
+      <!-- Allow override via environment variable or property -->
+      <FifthCompilerPath Condition="'$(FifthCompilerPath)' != '' AND Exists('$(FifthCompilerPath)')">$(FifthCompilerPath)</FifthCompilerPath>
+      
+      <!-- Try to find in source tree (for development) -->
+      <_FifthSrcDir>$(MSBuildThisFileDirectory)..\..\</_FifthSrcDir>
+      <_FifthCompilerDir Condition="'$(FifthCompilerPath)' == '' AND Exists('$(_FifthSrcDir)compiler\bin')">$(_FifthSrcDir)compiler\bin\$(Configuration)\net8.0</_FifthCompilerDir>
+      <_FifthCompilerDir Condition="'$(FifthCompilerPath)' == '' AND Exists('$(_FifthSrcDir)compiler\bin') AND !Exists('$(_FifthCompilerDir)')">$(_FifthSrcDir)compiler\bin\Release\net8.0</_FifthCompilerDir>
+      <_FifthCompilerDir Condition="'$(FifthCompilerPath)' == '' AND Exists('$(_FifthSrcDir)compiler\bin') AND !Exists('$(_FifthCompilerDir)')">$(_FifthSrcDir)compiler\bin\Debug\net8.0</_FifthCompilerDir>
+      
+      <!-- Check if compiler.dll exists in the resolved directory -->
+      <FifthCompilerPath Condition="'$(FifthCompilerPath)' == '' AND Exists('$(_FifthCompilerDir)\compiler.dll')">$(_FifthCompilerDir)\compiler.dll</FifthCompilerPath>
+    </PropertyGroup>
+    
+    <!-- Error if compiler still not found -->
+    <Error Condition="'$(FifthCompilerPath)' == '' OR !Exists('$(FifthCompilerPath)')" 
+           Text="Fifth compiler not found. Please set FifthCompilerPath property or environment variable to the full path of compiler.dll, or ensure the compiler is built in the repository at src/compiler/bin/." />
+    
+    <Message Text="Using Fifth compiler: $(FifthCompilerPath)" Importance="normal" />
+  </Target>
+
+  <!-- Create output directory before compilation -->
+  <Target Name="CreateOutputDirectory" BeforeTargets="FifthCompile">
+    <MakeDir Directories="$(OutputPath)" Condition="!Exists('$(OutputPath)')" />
+  </Target>
+
+  <!-- The main Build target -->
+  <Target Name="Build" DependsOnTargets="FifthCompile" />
+
+  <!-- Clean target -->
+  <Target Name="Clean">
+    <PropertyGroup>
+      <_FifthOutputToClean Condition="'$(FifthOutputPath)' != ''">$(FifthOutputPath)</_FifthOutputToClean>
+      <_FifthOutputToClean Condition="'$(FifthOutputPath)' == ''">$(OutputPath)$(AssemblyName).exe</_FifthOutputToClean>
+    </PropertyGroup>
+    <Delete Files="$(_FifthOutputToClean)" Condition="Exists('$(_FifthOutputToClean)')" />
+    <RemoveDir Directories="$(OutputPath)" Condition="Exists('$(OutputPath)')" />
+    <Message Text="Cleaned Fifth output" Importance="high" />
+  </Target>
+
+  <!-- Rebuild target -->
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
+
+</Project>
