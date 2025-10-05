@@ -535,7 +535,7 @@ public partial class PEEmitter
         // Use inferred types where available (default Int32)
         foreach (var localVar in localVariables)
         {
-            DebugLog($"DEBUG: Creating signature for local '{localVar}', classHandle={_localVarClassTypeHandles.ContainsKey(localVar)}, typeMap={(_localVarTypeMap.ContainsKey(localVar) ? _localVarTypeMap[localVar].ToString() : "not set")}");
+            DebugLog($"DEBUG: Creating signature for local '{localVar}', classHandle={_localVarClassTypeHandles.ContainsKey(localVar)}, localTypesParam={localTypes.ContainsKey(localVar)}");
             // Prefer explicit class type if known (from newobj)
             if (_localVarClassTypeHandles.TryGetValue(localVar, out var typeDefHandle))
             {
