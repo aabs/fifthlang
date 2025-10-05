@@ -102,6 +102,10 @@ public class ExpressionEmitter
                 GenerateListComprehension(sequence, listComp);
                 break;
 
+            case TripleLiteralExp tripleLit:
+                GenerateTripleLiteral(sequence, tripleLit);
+                break;
+
             default:
                 if (DebugEnabled)
                 {
@@ -558,5 +562,25 @@ public class ExpressionEmitter
         sequence.Add(new LoadInstruction("newarr", "System.Int32"));
         
         // Array reference remains on stack
+    }
+
+    private void GenerateTripleLiteral(InstructionSequence sequence, TripleLiteralExp tripleLit)
+    {
+        if (DebugEnabled)
+        {
+            DebugLog($"TripleLiteral: generating triple creation placeholder");
+        }
+
+        // TODO: Triple literals should generate proper calls to KG/RDF helper functions
+        // For now, just push a null reference as a placeholder to avoid stack underflow
+        // The proper implementation would:
+        // 1. Generate subject, predicate, object expressions
+        // 2. Call constructor: new Triple(subject, predicate, object)
+        // 3. Leave triple object on stack
+        
+        // Placeholder: just push null for now
+        sequence.Add(new LoadInstruction("ldnull", null));
+        
+        // Triple reference remains on stack
     }
 }
