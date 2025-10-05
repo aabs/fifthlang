@@ -277,80 +277,87 @@ public partial class PEEmitter
         }
 
         // If the method contains an explicit return statement, the return instruction(s)
-        // already produce the required stack behaviour; only enforce default-return
-        // stack adjustments when there is no explicit return.
-        if (!hasExplicitReturn && cumulativeStack != expectedReturnStack)
+        // Ensure all methods end with a return instruction
+        // Methods without explicit returns and with correct stack still need ret
+        if (!hasExplicitReturn)
         {
-            // Attempt to repair by injecting conservative default return producers so the method
-            // ends with the expected stack state. This is a temporary safety net while the
-            // lowering stage is hardened to always produce the necessary producers.
-            var needed = expectedReturnStack - cumulativeStack;
-            if (needed > 0)
+            if (cumulativeStack == expectedReturnStack)
             {
-                // Insert required producers directly into the emitted IL
-                for (int n = 0; n < needed; n++)
-                {
-                    switch (retTypeName)
-                    {
-                        case "Int32":
-                        case "Boolean":
-                        case "Char":
-                        case "SByte":
-                        case "Byte":
-                        case "Int16":
-                        case "UInt16":
-                        case "UInt32":
-                        case "UInt64":
-                        case "Int64":
-                            il.LoadConstantI4(0);
-                            break;
-                        case "Single":
-                            il.LoadConstantR4(0f);
-                            break;
-                        case "Double":
-                            il.LoadConstantR8(0.0);
-                            break;
-                        case "String":
-                        case "Object":
-                        default:
-                            il.OpCode(ILOpCode.Ldnull);
-                            break;
-                    }
-                }
-                // Append a terminating return so the method is well-formed
+                // Stack is correct, just add ret
                 il.OpCode(ILOpCode.Ret);
-                Console.WriteLine($"WARNING: Injected {needed} default return value(s) for method '{ilMethod?.Name}' due to final-stack mismatch (expected {expectedReturnStack}, got {cumulativeStack}).");
-                DebugLog($"DEBUG: Injected {needed} fallback load(s) + ret for method '{ilMethod?.Name}' to satisfy expected return stack.");
-                cumulativeStack += needed;
-                cumulativePerStatement.Add(cumulativeStack);
+                DebugLog($"DEBUG: Added ret instruction for method '{ilMethod?.Name}' without explicit return");
             }
-            else if (needed < 0)
+            else
             {
-                // Too many values on the stack; pop extras to recover
-                for (int p = 0; p < -needed; p++)
+                // Stack mismatch - attempt to repair
+                var needed = expectedReturnStack - cumulativeStack;
+                if (needed > 0)
                 {
-                    il.OpCode(ILOpCode.Pop);
+                    // Insert required producers directly into the emitted IL
+                    for (int n = 0; n < needed; n++)
+                    {
+                        switch (retTypeName)
+                        {
+                            case "Int32":
+                            case "Boolean":
+                            case "Char":
+                            case "SByte":
+                            case "Byte":
+                            case "Int16":
+                            case "UInt16":
+                            case "UInt32":
+                            case "UInt64":
+                            case "Int64":
+                                il.LoadConstantI4(0);
+                                break;
+                            case "Single":
+                                il.LoadConstantR4(0f);
+                                break;
+                            case "Double":
+                                il.LoadConstantR8(0.0);
+                                break;
+                            case "String":
+                            case "Object":
+                            default:
+                                il.OpCode(ILOpCode.Ldnull);
+                                break;
+                        }
+                    }
+                    // Append a terminating return so the method is well-formed
+                    il.OpCode(ILOpCode.Ret);
+                    Console.WriteLine($"WARNING: Injected {needed} default return value(s) for method '{ilMethod?.Name}' due to final-stack mismatch (expected {expectedReturnStack}, got {cumulativeStack}).");
+                    DebugLog($"DEBUG: Injected {needed} fallback load(s) + ret for method '{ilMethod?.Name}' to satisfy expected return stack.");
+                    cumulativeStack += needed;
+                    cumulativePerStatement.Add(cumulativeStack);
                 }
-                DebugLog($"DEBUG: Popped {-needed} extra stack value(s) for method '{ilMethod?.Name}' to satisfy expected return stack.");
-                cumulativeStack += needed; // needed is negative
-                cumulativePerStatement.Add(cumulativeStack);
-            }
+                else if (needed < 0)
+                {
+                    // Too many values on the stack; pop extras to recover
+                    for (int p = 0; p < -needed; p++)
+                    {
+                        il.OpCode(ILOpCode.Pop);
+                    }
+                    DebugLog($"DEBUG: Popped {-needed} extra stack value(s) for method '{ilMethod?.Name}' to satisfy expected return stack.");
+                    cumulativeStack += needed; // needed is negative
+                    cumulativePerStatement.Add(cumulativeStack);
+                }
 
-            // If we still don't match, emit a diagnostic and fail loudly so it can be fixed
-            if (cumulativeStack != expectedReturnStack)
-            {
-                var sb = new System.Text.StringBuilder();
-                sb.AppendLine();
-                sb.AppendLine($"PEEmitter: Method '{ilMethod?.Name}' expected final stack {expectedReturnStack} but got {cumulativeStack}. Statement stack history (last 10 entries):");
-                var start = Math.Max(0, cumulativePerStatement.Count - 10);
-                for (int i = start; i < cumulativePerStatement.Count; i++)
+                // If we still don't match, emit a diagnostic and fail loudly so it can be fixed
+                if (cumulativeStack != expectedReturnStack)
                 {
-                    sb.AppendLine($"  stmt#{i}: cumulative={cumulativePerStatement[i]}");
+                    var sb = new System.Text.StringBuilder();
+                    sb.AppendLine();
+                    sb.AppendLine($"PEEmitter: Method '{ilMethod?.Name}' expected final stack {expectedReturnStack} but got {cumulativeStack}. Statement stack history (last 10 entries):");
+                    var start = Math.Max(0, cumulativePerStatement.Count - 10);
+                    for (int i = start; i < cumulativePerStatement.Count; i++)
+                    {
+                        sb.AppendLine($"  stmt#{i}: cumulative={cumulativePerStatement[i]}");
+                    }
+                    var msg = sb.ToString();
+                    var fullMsg = $"PEEmitter: Final stack mismatch for method '{ilMethod?.Name}': expected {expectedReturnStack} but simulation resulted in {cumulativeStack}.{msg}";
+                    Console.WriteLine(fullMsg);
+                    throw new InvalidOperationException(fullMsg);
                 }
-                var msg = sb.ToString();
-                var fullMsg = $"PEEmitter: Final stack mismatch for method '{ilMethod?.Name}': expected {expectedReturnStack} but simulation resulted in {cumulativeStack}.{msg}";
-                Console.WriteLine(fullMsg);
-                throw new InvalidOperationException(fullMsg);
             }
         }
         // Dump raw IL bytes produced for this method (for debug)
