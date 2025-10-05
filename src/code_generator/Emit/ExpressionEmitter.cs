@@ -170,7 +170,8 @@ public class ExpressionEmitter
             }
 
             // Call String.Concat(string, string)
-            sequence.Add(new CallInstruction("call", "extcall:Asm=System.Runtime;Ns=System;Type=String;Method=Concat;Params=System.String,System.String;Return=System.String") { ArgCount = 2 });
+            // Note: We use System.Runtime as the assembly ref, which is a facade that forwards to System.Private.CoreLib
+            sequence.Add(new CallInstruction("call", "extcall:Asm=System.Private.CoreLib;Ns=System;Type=String;Method=Concat;Params=System.String,System.String;Return=System.String") { ArgCount = 2 });
         }
         else
         {
