@@ -1,4 +1,5 @@
 using ast;
+using ast_model.TypeSystem;
 using il_ast;
 
 namespace code_generator.Emit;
@@ -99,8 +100,28 @@ public class StatementEmitter
             var exprSeq = _expressionEmitter.GenerateExpression(expStmt.RHS);
             seq.AddRange(exprSeq.Instructions);
             
-            // Pop expression result to keep stack balanced
-            seq.Add(new StackInstruction("pop"));
+            // Only pop if the expression produces a value (not void)
+            bool isVoid = false;
+            
+            // Check if it's a function call with void return type
+            if (expStmt.RHS is FuncCallExp funcCall && funcCall.FunctionDef != null)
+            {
+                var returnType = funcCall.FunctionDef.ReturnType;
+                if (returnType != null)
+                {
+                    // Check if it's TVoidType or if the Name is "void"
+                    isVoid = returnType is FifthType.TVoidType ||
+                            string.Equals(returnType.Name.ToString(), "void", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(returnType.Name.ToString(), "System.Void", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(returnType.Name.ToString(), "Void", StringComparison.OrdinalIgnoreCase);
+                }
+            }
+            
+            // Pop expression result to keep stack balanced (but not for void expressions)
+            if (!isVoid)
+            {
+                seq.Add(new StackInstruction("pop"));
+            }
         }
     }
 
