@@ -517,12 +517,15 @@ public class ExpressionEmitter
             DebugLog($"ListLiteral with {elementCount} elements");
         }
 
+        // Infer element type from the list's type or first element
+        var elementTypeName = InferListElementType(listLiteral);
+        
         // Emit the array size
         sequence.Add(new LoadInstruction("ldc.i4", elementCount));
         
-        // Create the array - for now assume int32 array
-        // TODO: Infer actual element type
-        sequence.Add(new LoadInstruction("newarr", "System.Int32"));
+        // Create the array with inferred element type
+        // Note: newarr instruction expects the element type (not the array type)
+        sequence.Add(new LoadInstruction("newarr", elementTypeName));
         
         // Initialize each element
         if (listLiteral.ElementExpressions != null)
@@ -540,7 +543,9 @@ public class ExpressionEmitter
                 sequence.AddRange(elemSeq.Instructions);
                 
                 // Store element (consumes array ref, index, value)
-                sequence.Add(new StoreInstruction("stelem.i4", null));
+                // For reference types (including arrays), use stelem.ref
+                var stelemOpcode = GetStoreElementOpcode(elementTypeName);
+                sequence.Add(new StoreInstruction(stelemOpcode, null));
             }
         }
         
@@ -557,9 +562,12 @@ public class ExpressionEmitter
         // TODO: List comprehensions should be lowered to loops in an earlier transformation pass
         // For now, create an empty array as a placeholder to avoid stack underflow
         
+        // Infer element type from the comprehension's type
+        var elementTypeName = InferListElementType(listComp);
+        
         // Create empty array
         sequence.Add(new LoadInstruction("ldc.i4", 0));  // Size 0
-        sequence.Add(new LoadInstruction("newarr", "System.Int32"));
+        sequence.Add(new LoadInstruction("newarr", elementTypeName));
         
         // Array reference remains on stack
     }
@@ -582,5 +590,117 @@ public class ExpressionEmitter
         sequence.Add(new LoadInstruction("ldnull", null));
         
         // Triple reference remains on stack
+    }
+
+    /// <summary>
+    /// Infers the element type name for a list or array expression
+    /// </summary>
+    private string InferListElementType(Expression listExpr)
+    {
+        try
+        {
+            // Try to get element type from the expression's FifthType
+            if (listExpr?.Type != null)
+            {
+                var fifthType = listExpr.Type;
+                
+                // Check if it's a TArrayOf or TListOf type
+                if (fifthType is ast_model.TypeSystem.FifthType.TArrayOf arrayType)
+                {
+                    return GetTypeNameFromFifthType(arrayType.ElementType);
+                }
+                else if (fifthType is ast_model.TypeSystem.FifthType.TListOf listType)
+                {
+                    return GetTypeNameFromFifthType(listType.ElementType);
+                }
+            }
+            
+            // If we have a ListLiteral, try to infer from first element
+            if (listExpr is ListLiteral listLit && 
+                listLit.ElementExpressions != null && 
+                listLit.ElementExpressions.Count > 0)
+            {
+                var firstElem = listLit.ElementExpressions[0];
+                if (firstElem?.Type != null)
+                {
+                    return GetTypeNameFromFifthType(firstElem.Type);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            if (DebugEnabled)
+            {
+                DebugLog($"WARNING: Failed to infer list element type: {ex.Message}. Defaulting to System.Int32");
+            }
+        }
+        
+        // Default to Int32 if type inference fails
+        return "System.Int32";
+    }
+
+    /// <summary>
+    /// Converts a FifthType to a .NET type name string
+    /// </summary>
+    private string GetTypeNameFromFifthType(ast_model.TypeSystem.FifthType fifthType)
+    {
+        try
+        {
+            if (fifthType is ast_model.TypeSystem.FifthType.TDotnetType dotnetType)
+            {
+                // Use the .NET type's full name
+                return dotnetType.TheType.FullName ?? dotnetType.TheType.Name;
+            }
+            
+            // Handle array/list types recursively
+            if (fifthType is ast_model.TypeSystem.FifthType.TArrayOf arrayType)
+            {
+                var elementTypeName = GetTypeNameFromFifthType(arrayType.ElementType);
+                return $"{elementTypeName}[]";
+            }
+            
+            if (fifthType is ast_model.TypeSystem.FifthType.TListOf listType)
+            {
+                var elementTypeName = GetTypeNameFromFifthType(listType.ElementType);
+                return $"{elementTypeName}[]";
+            }
+            
+            // Map common type names using TypeMapper
+            var typeName = fifthType.Name.Value;
+            var typeRef = _typeMapper.MapType(typeName);
+            
+            if (!string.IsNullOrEmpty(typeRef.Namespace) && !string.IsNullOrEmpty(typeRef.Name))
+            {
+                return $"{typeRef.Namespace}.{typeRef.Name}";
+            }
+            
+            return typeRef.Name ?? "System.Object";
+        }
+        catch (Exception ex)
+        {
+            if (DebugEnabled)
+            {
+                DebugLog($"WARNING: Failed to get type name from FifthType: {ex.Message}. Defaulting to System.Object");
+            }
+            return "System.Object";
+        }
+    }
+
+    /// <summary>
+    /// Gets the appropriate stelem opcode for a given type
+    /// </summary>
+    private string GetStoreElementOpcode(string typeName)
+    {
+        return typeName switch
+        {
+            "System.Int32" => "stelem.i4",
+            "System.Int64" => "stelem.i8",
+            "System.Single" => "stelem.r4",
+            "System.Double" => "stelem.r8",
+            "System.IntPtr" => "stelem.i",
+            "System.Byte" => "stelem.i1",
+            "System.Int16" => "stelem.i2",
+            _ => "stelem.ref" // Reference types and other types
+        };
     }
 }
