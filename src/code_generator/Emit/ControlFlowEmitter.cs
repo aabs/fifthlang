@@ -53,8 +53,14 @@ public class ControlFlowEmitter
             }
         }
 
-        // Branch to end (skip else block)
-        seq.Add(new BranchInstruction("br", endLabel));
+        // Only branch to end if the then block doesn't already terminate (e.g., with return)
+        bool thenBlockTerminates = seq.Instructions.Count > 0 && 
+            seq.Instructions[seq.Instructions.Count - 1] is ReturnInstruction;
+        
+        if (!thenBlockTerminates)
+        {
+            seq.Add(new BranchInstruction("br", endLabel));
+        }
         seq.Add(new LabelInstruction(falseLabel));
 
         // Else block
@@ -67,8 +73,31 @@ public class ControlFlowEmitter
             }
         }
 
-        // End label
-        seq.Add(new LabelInstruction(endLabel));
+        // Only add end label if it's reachable (i.e., the then block didn't terminate)
+        // If both blocks terminate, the end label is unreachable and shouldn't be emitted
+        bool elseBlockTerminates = false;
+        for (int i = seq.Instructions.Count - 1; i >= 0; i--)
+        {
+            if (seq.Instructions[i] is LabelInstruction label && label.Label == falseLabel)
+            {
+                // Found the start of else block, check if anything after it is a return
+                for (int j = i + 1; j < seq.Instructions.Count; j++)
+                {
+                    if (seq.Instructions[j] is ReturnInstruction)
+                    {
+                        elseBlockTerminates = true;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        
+        // Only emit end label if at least one path doesn't terminate
+        if (!thenBlockTerminates || !elseBlockTerminates)
+        {
+            seq.Add(new LabelInstruction(endLabel));
+        }
 
         return seq;
     }

@@ -870,4 +870,13 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
     {
         return _controlFlowEmitter.GenerateWhileStatement(whileStmt);
     }
+
+    /// <summary>
+    /// Gets the local variable types tracked by the EmitContext during statement generation.
+    /// This allows the PE emitter to use proper types instead of defaulting to Object.
+    /// </summary>
+    public Dictionary<string, Type> GetLocalVariableTypes()
+    {
+        return new Dictionary<string, Type>(_context.LocalVariableTypes, StringComparer.Ordinal);
+    }
 }
