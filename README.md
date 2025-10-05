@@ -64,6 +64,33 @@ foo(a : int, n : string): void
  make build-all
 ```
 
+## MSBuild Project Support (.5thproj)
+
+Fifth projects can be integrated into .NET solutions using the `.5thproj` MSBuild project type provided by Fifth.Sdk.
+
+### Example .5thproj
+
+```xml
+<Project Sdk="Fifth.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>MyFifthApp</AssemblyName>
+  </PropertyGroup>
+</Project>
+```
+
+### Building .5thproj
+
+```fish
+dotnet build MyProject.5thproj
+# Or add to a solution
+dotnet sln add MyProject.5thproj
+dotnet build MySolution.sln
+```
+
+For more details, see [src/Fifth.Sdk/README.md](src/Fifth.Sdk/README.md).
+
 ## Tests
 ```fish
 # List and run tests for the whole solution
