@@ -186,6 +186,12 @@ public class AstToIlTransformationVisitor : DefaultRecursiveDescentVisitor
             },
             new AssemblyReference
             {
+                Name = "System.Private.CoreLib",
+                PublicKeyToken = "7cec85d7bea7798e",
+                Version = new il_ast.Version(8, 0, 0, 0)
+            },
+            new AssemblyReference
+            {
                 Name = "System.Console",
                 PublicKeyToken = "b03f5f7f11d50a3a",
                 Version = new il_ast.Version(8, 0, 0, 0)
