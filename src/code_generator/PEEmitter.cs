@@ -726,13 +726,13 @@ public partial class PEEmitter
                         break;
                     case il_ast.ArithmeticInstruction ai:
                         var aop = (ai.Opcode ?? string.Empty).ToLowerInvariant();
-                        if (aop == "add" || aop == "sub" || aop == "mul" || aop == "div" || aop == "and" || aop == "or" || aop == "xor" || aop == "ceq" || aop == "clt" || aop == "cgt")
+                        if (aop == "add" || aop == "sub" || aop == "mul" || aop == "div" || aop == "and" || aop == "or" || aop == "xor" || aop == "ceq" || aop == "clt" || aop == "cgt" || aop == "rem" || aop == "shl" || aop == "shr")
                         {
                             delta -= 1; // net -1 (2 consumed, 1 produced)
                         }
-                        else if (aop == "not" || aop == "neg")
+                        else if (aop == "not" || aop == "neg" || aop == "conv.r8" || aop == "conv.i4" || aop == "conv.r4")
                         {
-                            // unary ops: net 0
+                            // unary ops and type conversions: net 0 (1 consumed, 1 produced)
                         }
                         break;
                     case il_ast.CallInstruction ci:
