@@ -139,6 +139,15 @@ expressionList:
 expression:
 	lhs = expression DOT rhs = expression					# exp_member_access
 	| lhs = expression index								# exp_index
+	| funcname = IDENTIFIER L_PAREN expressionList? R_PAREN	# exp_funccall
+	| expression unary_op = (PLUS_PLUS | MINUS_MINUS)	# exp_unary_postfix
+	| unary_op = (
+		PLUS
+		| MINUS
+		| LOGICAL_NOT
+		| PLUS_PLUS
+		| MINUS_MINUS
+	) expression										# exp_unary
 	| <assoc = right> lhs = expression POW rhs = expression	# exp_exp
 	| lhs = expression mul_op = (
 		STAR
@@ -160,15 +169,6 @@ expression:
 	) rhs = expression										# exp_rel
 	| lhs = expression LOGICAL_AND rhs = expression			# exp_and
 	| lhs = expression LOGICAL_OR rhs = expression			# exp_or
-	| funcname = IDENTIFIER L_PAREN expressionList? R_PAREN	# exp_funccall
-	| unary_op = (
-		PLUS
-		| MINUS
-		| LOGICAL_NOT
-		| PLUS_PLUS
-		| MINUS_MINUS
-	) expression										# exp_unary
-	| expression unary_op = (PLUS_PLUS | MINUS_MINUS)	# exp_unary_postfix
 	| operand											# exp_operand;
 
 function_call_expression:
