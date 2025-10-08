@@ -311,7 +311,26 @@ public class ExpressionEmitter
         switch (memberAccess.RHS)
         {
             case VarRefExp memberRef:
-                if (lhsIsTypeQualifier && memberAccess.LHS is VarRefExp typeQualifier)
+                // Check if this is an indexing operation (e.g., arr[i])
+                if (memberRef.VarName == "[index]" && memberRef.Annotations?.ContainsKey("IndexExpression") == true)
+                {
+                    // This is an array/list indexing operation
+                    var indexExpr = memberRef.Annotations["IndexExpression"] as Expression;
+                    if (indexExpr != null)
+                    {
+                        // Generate the index expression (pushes index onto stack)
+                        var indexSeq = GenerateExpression(indexExpr);
+                        sequence.AddRange(indexSeq.Instructions);
+                        
+                        // Infer the element type from LHS
+                        string elementTypeName = InferArrayElementType(memberAccess.LHS);
+                        
+                        // Emit appropriate ldelem instruction based on element type
+                        var ldelemOpcode = GetLoadElementOpcode(elementTypeName);
+                        sequence.Add(new LoadInstruction(ldelemOpcode, null));
+                    }
+                }
+                else if (lhsIsTypeQualifier && memberAccess.LHS is VarRefExp typeQualifier)
                 {
                     // Static field access: TypeName::FieldName
                     var staticToken = $"{typeQualifier.VarName}::{memberRef.VarName}";
@@ -766,5 +785,79 @@ public class ExpressionEmitter
             "System.Int16" => "stelem.i2",
             _ => "stelem.ref" // Reference types and other types
         };
+    }
+
+    private string GetLoadElementOpcode(string typeName)
+    {
+        return typeName switch
+        {
+            "System.Int32" => "ldelem.i4",
+            "System.Int64" => "ldelem.i8",
+            "System.Single" => "ldelem.r4",
+            "System.Double" => "ldelem.r8",
+            "System.IntPtr" => "ldelem.i",
+            "System.Byte" => "ldelem.u1",
+            "System.Int16" => "ldelem.i2",
+            _ => "ldelem.ref" // Reference types and other types
+        };
+    }
+
+    /// <summary>
+    /// Infer the element type of an array/list expression
+    /// </summary>
+    private string InferArrayElementType(Expression? arrayExpr)
+    {
+        if (arrayExpr == null)
+        {
+            return "System.Int32"; // Default fallback
+        }
+
+        try
+        {
+            // Try to get type from the expression's Type property
+            if (arrayExpr.Type != null)
+            {
+                var fifthType = arrayExpr.Type;
+                
+                // Check if it's an array or list type
+                if (fifthType is ast_model.TypeSystem.FifthType.TArrayOf arrayType)
+                {
+                    return GetTypeNameFromFifthType(arrayType.ElementType);
+                }
+                
+                if (fifthType is ast_model.TypeSystem.FifthType.TListOf listType)
+                {
+                    return GetTypeNameFromFifthType(listType.ElementType);
+                }
+            }
+
+            // For VarRefExp, try to look up the variable's type from context
+            if (arrayExpr is VarRefExp varRef)
+            {
+                // Try to infer from TypeInference if available
+                var inferredType = _typeInference.InferExpressionType(arrayExpr);
+                if (inferredType != null)
+                {
+                    // Check if it's an array type (arrays have element type suffix)
+                    var typeName = inferredType.FullName ?? inferredType.Name;
+                    if (typeName.EndsWith("[]"))
+                    {
+                        // Extract element type from "TypeName[]"
+                        var elementTypeName = typeName.Substring(0, typeName.Length - 2);
+                        return elementTypeName;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            if (DebugEnabled)
+            {
+                DebugLog($"WARNING: Failed to infer array element type: {ex.Message}. Defaulting to System.Int32");
+            }
+        }
+
+        // Default to Int32
+        return "System.Int32";
     }
 }
