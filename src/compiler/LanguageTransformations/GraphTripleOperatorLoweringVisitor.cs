@@ -312,8 +312,8 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         // Subtraction semantics: graph - graph -> Difference(l,r), graph - triple -> Retract
         if (op == Operator.ArithmeticSubtract)
         {
-            bool leftGraph = lhs is GraphAssertionBlockExp || lhs is VarRefExp || lhs is MemberAccessExp && lhs.Annotations != null && lhs.Annotations.ContainsKey("GraphExpr");
-            bool rightGraph = rhs is GraphAssertionBlockExp || rhs is VarRefExp || rhs is MemberAccessExp && rhs.Annotations != null && rhs.Annotations.ContainsKey("GraphExpr");
+            bool leftGraph = IsGraphLike(lhs);
+            bool rightGraph = IsGraphLike(rhs);
             bool rightIsTriple = rhs is TripleLiteralExp;
 
             if (leftGraph && rightGraph)
