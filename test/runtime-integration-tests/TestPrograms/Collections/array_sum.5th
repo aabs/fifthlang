@@ -1,5 +1,5 @@
 main(): int {
-    arr: int[] = [1, 2, 3, 4, 5];
+    arr: [int] = [1, 2, 3, 4, 5];
     sum: int = 0;
     i: int = 0;
     while (i < 5) {

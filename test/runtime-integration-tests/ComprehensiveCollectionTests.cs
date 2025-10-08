@@ -13,13 +13,13 @@ public class ComprehensiveCollectionTests : RuntimeTestBase
     {
         // Arrange
         var sourceFile = Path.Combine("TestPrograms", "Collections", "list_access.5th");
-        
+
         // Act - Compile the test file
         var executablePath = await CompileFileAsync(sourceFile);
-        
+
         // Execute and validate result
         var result = await ExecuteAsync(executablePath);
-        
+
         // Assert
         result.ExitCode.Should().Be(20, "main() should return 20 from items[1] where items = [10, 20, 30]");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
@@ -30,13 +30,13 @@ public class ComprehensiveCollectionTests : RuntimeTestBase
     {
         // Arrange
         var sourceFile = Path.Combine("TestPrograms", "Collections", "array_sum.5th");
-        
+
         // Act - Compile the test file
         var executablePath = await CompileFileAsync(sourceFile);
-        
+
         // Execute and validate result
         var result = await ExecuteAsync(executablePath);
-        
+
         // Assert
         result.ExitCode.Should().Be(15, "main() should return 15 from sum of [1, 2, 3, 4, 5] = 1+2+3+4+5 = 15");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
