@@ -1,4 +1,3 @@
 main(): int {
-    (1 + 2) * 3 ^ 2 && 0 || 1; // Note: logical operators return bool; this is to exercise parsing
-    return 0;
+    return (1 + 2) * 3 - 3 ^ 2; // Tests precedence: parentheses, power, multiplication, subtraction
 }
