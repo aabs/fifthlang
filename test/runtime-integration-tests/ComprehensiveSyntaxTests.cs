@@ -332,7 +332,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
 
-        result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
+        result.ExitCode.Should().Be(3, "main() should return 3 indicating successful addition");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
@@ -387,7 +387,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
 
-        result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
+        result.ExitCode.Should().Be(2, "main() should return 2 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
@@ -398,7 +398,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
 
-        result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
+        result.ExitCode.Should().Be(0, "main() should return 0 indicating constrained case got invoked");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
