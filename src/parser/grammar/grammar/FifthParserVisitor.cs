@@ -224,23 +224,33 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitList_comprehension([NotNull] FifthParser.List_comprehensionContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.list_type_signature"/>.
+	/// Visit a parse tree produced by the <c>generic_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitList_type_signature([NotNull] FifthParser.List_type_signatureContext context);
+	Result VisitGeneric_type_spec([NotNull] FifthParser.Generic_type_specContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.array_type_signature"/>.
+	/// Visit a parse tree produced by the <c>array_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitArray_type_signature([NotNull] FifthParser.Array_type_signatureContext context);
+	Result VisitArray_type_spec([NotNull] FifthParser.Array_type_specContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.generic_type_signature"/>.
+	/// Visit a parse tree produced by the <c>base_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitGeneric_type_signature([NotNull] FifthParser.Generic_type_signatureContext context);
+	Result VisitBase_type_spec([NotNull] FifthParser.Base_type_specContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>list_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitList_type_spec([NotNull] FifthParser.List_type_specContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.expressionList"/>.
 	/// </summary>

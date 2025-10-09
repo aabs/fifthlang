@@ -100,13 +100,7 @@ while_statement:
 with_statement: WITH expression statement;
 
 var_decl:
-	var_name COLON (
-		// Order matters: try more specific signatures before plain identifiers
-		list_type_signature
-		| array_type_signature
-		| generic_type_signature
-		| type_name
-	);
+	var_name COLON type_spec;
 
 var_name: IDENTIFIER;
 
@@ -122,14 +116,11 @@ list_comprehension:
 		SUCH_THAT constraint = expression
 	);
 
-list_type_signature: L_BRACKET type_name R_BRACKET;
-
-array_type_signature:
-	type_name L_BRACKET (size = operand)? R_BRACKET;
-
-// ========[GENERIC TYPES]========= Supports syntax like: items: list<int>
-generic_type_signature:
-	generic_name = IDENTIFIER '<' inner = type_name '>';
+type_spec:
+	L_BRACKET type_spec R_BRACKET  # list_type_spec
+	| type_spec L_BRACKET (size = operand)? R_BRACKET  # array_type_spec
+	| IDENTIFIER '<' type_spec '>'  # generic_type_spec
+	| IDENTIFIER  # base_type_spec;
 
 // ========[EXPRESSIONS]=========
 
