@@ -420,41 +420,61 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitList_comprehension([NotNull] FifthParser.List_comprehensionContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.list_type_signature"/>.
+	/// Enter a parse tree produced by the <c>generic_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterList_type_signature([NotNull] FifthParser.List_type_signatureContext context) { }
+	public virtual void EnterGeneric_type_spec([NotNull] FifthParser.Generic_type_specContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.list_type_signature"/>.
+	/// Exit a parse tree produced by the <c>generic_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitList_type_signature([NotNull] FifthParser.List_type_signatureContext context) { }
+	public virtual void ExitGeneric_type_spec([NotNull] FifthParser.Generic_type_specContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.array_type_signature"/>.
+	/// Enter a parse tree produced by the <c>array_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterArray_type_signature([NotNull] FifthParser.Array_type_signatureContext context) { }
+	public virtual void EnterArray_type_spec([NotNull] FifthParser.Array_type_specContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.array_type_signature"/>.
+	/// Exit a parse tree produced by the <c>array_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitArray_type_signature([NotNull] FifthParser.Array_type_signatureContext context) { }
+	public virtual void ExitArray_type_spec([NotNull] FifthParser.Array_type_specContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.generic_type_signature"/>.
+	/// Enter a parse tree produced by the <c>base_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterGeneric_type_signature([NotNull] FifthParser.Generic_type_signatureContext context) { }
+	public virtual void EnterBase_type_spec([NotNull] FifthParser.Base_type_specContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.generic_type_signature"/>.
+	/// Exit a parse tree produced by the <c>base_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitGeneric_type_signature([NotNull] FifthParser.Generic_type_signatureContext context) { }
+	public virtual void ExitBase_type_spec([NotNull] FifthParser.Base_type_specContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by the <c>list_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterList_type_spec([NotNull] FifthParser.List_type_specContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>list_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitList_type_spec([NotNull] FifthParser.List_type_specContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.expressionList"/>.
 	/// <para>The default implementation does nothing.</para>

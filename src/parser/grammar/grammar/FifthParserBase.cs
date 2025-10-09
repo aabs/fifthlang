@@ -19,7 +19,7 @@ public abstract class FifthParserBase : Parser
     {
         var local_var_decl = this.Context as FifthParser.Var_declContext;
         if (local_var_decl == null) return true;
-        var local_variable_type = local_var_decl.type_name();
+        var local_variable_type = local_var_decl.type_spec();
         if (local_variable_type == null) return true;
         if (local_variable_type.GetText() == "var") return false;
         return true;
