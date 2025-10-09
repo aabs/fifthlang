@@ -157,7 +157,29 @@ public static class FifthParserManager
             ast = new SymbolTableBuilderVisitor().Visit(ast);
 
         if (upTo >= AnalysisPhase.TypeAnnotation)
-            ast = new TypeAnnotationVisitor().Visit(ast);
+        {
+            var typeAnnotationVisitor = new TypeAnnotationVisitor();
+            ast = typeAnnotationVisitor.Visit(ast);
+            
+            // Collect type checking errors
+            if (diagnostics != null)
+            {
+                foreach (var error in typeAnnotationVisitor.Errors)
+                {
+                    var diagnostic = new compiler.Diagnostic(
+                        compiler.DiagnosticLevel.Error,
+                        $"{error.Message} at {error.Filename}:{error.Line}:{error.Column}",
+                        error.Filename,
+                        "TYPE_ERROR");
+                    diagnostics.Add(diagnostic);
+                }
+                
+                if (diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
+                {
+                    return null;
+                }
+            }
+        }
 
         // Validate external qualified calls now that types have been annotated
         if (diagnostics != null)
