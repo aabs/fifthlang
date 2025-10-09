@@ -1,5 +1,12 @@
-f(x: int | x > 0, p: Person { first: FirstName, last: LastName }): int {
+// constrained case
+f(x: int | x > 0, 
+  p: Person { first: FirstName, last: LastName }): int {
     return 0;
+}
+
+// base case (should not be invoked)
+f(x: int, p: Person { first: FirstName, last: LastName }): int {
+    return 1;
 }
 
 main(): int { return f(1, new Person()); }
