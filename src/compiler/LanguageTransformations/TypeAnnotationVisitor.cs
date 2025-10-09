@@ -293,6 +293,100 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     }
 
     /// <summary>
+    /// Visits a FuncCallExp and infers its type from the function's return type.
+    /// </summary>
+    public override FuncCallExp VisitFuncCallExp(FuncCallExp ctx)
+    {
+        var result = base.VisitFuncCallExp(ctx);
+
+        // Use the function's return type
+        if (result.FunctionDef != null)
+        {
+            OnTypeInferred(result, result.FunctionDef.ReturnType);
+            return result with { Type = result.FunctionDef.ReturnType };
+        }
+
+        // If we can't determine the type, mark as unknown
+        OnTypeNotFound(result);
+        var unknownType = new FifthType.UnknownType() { Name = TypeName.From("unknown") };
+        return result with { Type = unknownType };
+    }
+
+    /// <summary>
+    /// Visits a MemberAccessExp and validates that member access is valid on the LHS type.
+    /// </summary>
+    public override MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx)
+    {
+        var result = base.VisitMemberAccessExp(ctx);
+
+        // Check if LHS has a type
+        if (result.LHS?.Type != null)
+        {
+            var lhsType = result.LHS.Type;
+            
+            // Check if this is a primitive type (int, float, bool, string, etc.)
+            // Primitive types don't have member access (except for built-in methods which would be handled elsewhere)
+            if (IsPrimitiveType(lhsType))
+            {
+                var error = new TypeCheckingError(
+                    $"Cannot access member on primitive type '{GetTypeName(lhsType)}'",
+                    result.Location?.Filename ?? "",
+                    result.Location?.Line ?? 0,
+                    result.Location?.Column ?? 0,
+                    new[] { lhsType });
+                errors.Add(error);
+                
+                // Return with unknown type
+                var unknownType = new FifthType.UnknownType() { Name = TypeName.From("unknown") };
+                return result with { Type = unknownType };
+            }
+        }
+
+        // If we can't determine the type yet, just return the result
+        // Type will be inferred later or will be unknown
+        return result;
+    }
+
+    /// <summary>
+    /// Checks if a type is a primitive type that doesn't support member access.
+    /// </summary>
+    private bool IsPrimitiveType(FifthType type)
+    {
+        return type switch
+        {
+            FifthType.TDotnetType dotnetType => 
+                dotnetType.TheType == typeof(int) ||
+                dotnetType.TheType == typeof(long) ||
+                dotnetType.TheType == typeof(float) ||
+                dotnetType.TheType == typeof(double) ||
+                dotnetType.TheType == typeof(bool) ||
+                dotnetType.TheType == typeof(string),
+            FifthType.TType ttype =>
+                ttype.Name.Value == "int" ||
+                ttype.Name.Value == "long" ||
+                ttype.Name.Value == "float" ||
+                ttype.Name.Value == "double" ||
+                ttype.Name.Value == "bool" ||
+                ttype.Name.Value == "string",
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Gets a human-readable name for a type.
+    /// </summary>
+    private string GetTypeName(FifthType type)
+    {
+        return type switch
+        {
+            FifthType.TDotnetType dotnetType => dotnetType.TheType?.Name ?? "unknown",
+            FifthType.TType ttype => ttype.Name.Value,
+            FifthType.TVoidType => "void",
+            _ => type.ToString() ?? "unknown"
+        };
+    }
+
+    /// <summary>
     /// Visits a FunctionDef and uses its declared return type.
     /// </summary>
     public override FunctionDef VisitFunctionDef(FunctionDef ctx)
