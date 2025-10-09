@@ -161,10 +161,10 @@ public static class FifthParserManager
             var typeAnnotationVisitor = new TypeAnnotationVisitor();
             ast = typeAnnotationVisitor.Visit(ast);
             
-            // Collect type checking errors
+            // Collect type checking errors (only Error severity, not Info)
             if (diagnostics != null)
             {
-                foreach (var error in typeAnnotationVisitor.Errors)
+                foreach (var error in typeAnnotationVisitor.Errors.Where(e => e.Severity == TypeCheckingSeverity.Error))
                 {
                     var diagnostic = new compiler.Diagnostic(
                         compiler.DiagnosticLevel.Error,
