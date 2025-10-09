@@ -355,7 +355,8 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	/// <return>The visitor result.</return>
 	public virtual Result VisitList_comprehension([NotNull] FifthParser.List_comprehensionContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.list_type_signature"/>.
+	/// Visit a parse tree produced by the <c>generic_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -363,9 +364,10 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitList_type_signature([NotNull] FifthParser.List_type_signatureContext context) { return VisitChildren(context); }
+	public virtual Result VisitGeneric_type_spec([NotNull] FifthParser.Generic_type_specContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.array_type_signature"/>.
+	/// Visit a parse tree produced by the <c>array_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -373,9 +375,10 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitArray_type_signature([NotNull] FifthParser.Array_type_signatureContext context) { return VisitChildren(context); }
+	public virtual Result VisitArray_type_spec([NotNull] FifthParser.Array_type_specContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.generic_type_signature"/>.
+	/// Visit a parse tree produced by the <c>base_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -383,7 +386,18 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitGeneric_type_signature([NotNull] FifthParser.Generic_type_signatureContext context) { return VisitChildren(context); }
+	public virtual Result VisitBase_type_spec([NotNull] FifthParser.Base_type_specContext context) { return VisitChildren(context); }
+	/// <summary>
+	/// Visit a parse tree produced by the <c>list_type_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
+	/// <para>
+	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
+	/// on <paramref name="context"/>.
+	/// </para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	public virtual Result VisitList_type_spec([NotNull] FifthParser.List_type_specContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.expressionList"/>.
 	/// <para>

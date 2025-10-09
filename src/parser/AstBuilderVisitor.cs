@@ -1065,46 +1065,77 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         // Record variable declaration name in current function scope set
         CurrentFunctionLocals?.Add(context.var_name().GetText());
 
-        if (context.type_name() is not null)
+        var typeSpec = context.type_spec();
+        if (typeSpec != null)
         {
-            b.WithTypeName(TypeName.From(context.type_name().GetText()));
-            b.WithCollectionType(CollectionType.SingleInstance);
+            var (typeName, collectionType) = ParseTypeSpec(typeSpec);
+            b.WithTypeName(typeName);
+            b.WithCollectionType(collectionType);
         }
-        else if (context.list_type_signature() is not null)
-        {
-            b.WithTypeName(TypeName.From(context.list_type_signature().type_name().GetText()));
-            b.WithCollectionType(CollectionType.List);
-        }
-        else if (context.array_type_signature() is not null)
-        {
-            b.WithTypeName(TypeName.From(context.array_type_signature().type_name().GetText()));
-            b.WithCollectionType(CollectionType.Array);
-        }
-        else if (context.generic_type_signature() is not null)
-        {
-            // Handle generic syntax like list<int>
-            var genericName = context.generic_type_signature().generic_name?.Text ?? string.Empty;
-            var innerType = context.generic_type_signature().inner?.GetText() ?? "object";
 
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
+
+    private (TypeName, CollectionType) ParseTypeSpec(FifthParser.Type_specContext typeSpec)
+    {
+        // Check which alternative this is
+        if (typeSpec is FifthParser.Base_type_specContext baseType)
+        {
+            // Simple identifier
+            return (TypeName.From(baseType.GetText()), CollectionType.SingleInstance);
+        }
+        else if (typeSpec is FifthParser.List_type_specContext listType)
+        {
+            // [type_spec] - list of type_spec
+            var innerTypeSpec = listType.type_spec();
+            var (innerTypeName, innerCollectionType) = ParseTypeSpec(innerTypeSpec);
+            
+            // For now, flatten nested collections - this is a limitation
+            // TODO: Support fully nested types in AST model
+            if (innerCollectionType != CollectionType.SingleInstance)
+            {
+                // Nested collection - just use the text representation
+                return (TypeName.From(innerTypeSpec.GetText()), CollectionType.List);
+            }
+            return (innerTypeName, CollectionType.List);
+        }
+        else if (typeSpec is FifthParser.Array_type_specContext arrayType)
+        {
+            // type_spec[] - array of type_spec
+            var innerTypeSpec = arrayType.type_spec();
+            var (innerTypeName, innerCollectionType) = ParseTypeSpec(innerTypeSpec);
+            
+            // For now, flatten nested collections
+            if (innerCollectionType != CollectionType.SingleInstance)
+            {
+                return (TypeName.From(innerTypeSpec.GetText()), CollectionType.Array);
+            }
+            return (innerTypeName, CollectionType.Array);
+        }
+        else if (typeSpec is FifthParser.Generic_type_specContext genericType)
+        {
+            // generic<type_spec>
+            var genericName = genericType.IDENTIFIER().GetText();
+            var innerTypeSpec = genericType.type_spec();
+            var (innerTypeName, _) = ParseTypeSpec(innerTypeSpec);
+            
             if (string.Equals(genericName, "list", StringComparison.OrdinalIgnoreCase))
             {
-                b.WithTypeName(TypeName.From(innerType));
-                b.WithCollectionType(CollectionType.List);
+                return (innerTypeName, CollectionType.List);
             }
             else if (string.Equals(genericName, "array", StringComparison.OrdinalIgnoreCase))
             {
-                b.WithTypeName(TypeName.From(innerType));
-                b.WithCollectionType(CollectionType.Array);
+                return (innerTypeName, CollectionType.Array);
             }
             else
             {
-                // Fallback: treat as single instance of the inner type if unknown generic
-                b.WithTypeName(TypeName.From(innerType));
-                b.WithCollectionType(CollectionType.SingleInstance);
+                return (innerTypeName, CollectionType.SingleInstance);
             }
         }
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result;
+        
+        // Fallback
+        return (TypeName.From(typeSpec.GetText()), CollectionType.SingleInstance);
     }
 
     #region Triple Literal Support

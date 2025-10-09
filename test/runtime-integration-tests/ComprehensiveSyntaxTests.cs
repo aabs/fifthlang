@@ -494,7 +494,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
 
-        result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
+        result.ExitCode.Should().Be(4, "main() should return x[1][1] which is 4");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
