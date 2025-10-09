@@ -333,7 +333,8 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
                     result.Location?.Filename ?? "",
                     result.Location?.Line ?? 0,
                     result.Location?.Column ?? 0,
-                    new[] { lhsType });
+                    new[] { lhsType },
+                    TypeCheckingSeverity.Error);
                 errors.Add(error);
                 
                 // Return with unknown type
@@ -521,7 +522,8 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             node.Location?.Filename ?? "",
             node.Location?.Line ?? 0,
             node.Location?.Column ?? 0,
-            new[] { type1, type2 });
+            new[] { type1, type2 },
+            TypeCheckingSeverity.Error);
 
         errors.Add(error);
     }
@@ -537,7 +539,8 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             node.Location?.Filename ?? "",
             node.Location?.Line ?? 0,
             node.Location?.Column ?? 0,
-            Array.Empty<FifthType>());
+            Array.Empty<FifthType>(),
+            TypeCheckingSeverity.Info); // This is informational, not an error
 
         errors.Add(error);
     }
@@ -562,13 +565,36 @@ public class TypeCheckingError
     public int Line { get; }
     public int Column { get; }
     public IReadOnlyList<FifthType> Types { get; }
+    public TypeCheckingSeverity Severity { get; }
 
-    public TypeCheckingError(string message, string filename, int line, int column, IEnumerable<FifthType> types)
+    public TypeCheckingError(string message, string filename, int line, int column, IEnumerable<FifthType> types, TypeCheckingSeverity severity = TypeCheckingSeverity.Error)
     {
         Message = message;
         Filename = filename;
         Line = line;
         Column = column;
         Types = types.ToList().AsReadOnly();
+        Severity = severity;
     }
+}
+
+/// <summary>
+/// Severity levels for type checking errors
+/// </summary>
+public enum TypeCheckingSeverity
+{
+    /// <summary>
+    /// Informational message (e.g., type couldn't be inferred but it's expected)
+    /// </summary>
+    Info,
+    
+    /// <summary>
+    /// Warning that should be reported but doesn't fail compilation
+    /// </summary>
+    Warning,
+    
+    /// <summary>
+    /// Error that should fail compilation
+    /// </summary>
+    Error
 }
