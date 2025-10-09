@@ -727,7 +727,7 @@ public class ILEmissionVisitor : DefaultRecursiveDescentVisitor
             "uint" or "UInt32" or "uint32" => "uint32",
             "ulong" or "UInt64" or "uint64" => "uint64",
             "ushort" or "UInt16" or "uint16" => "uint16",
-            _ => typeRef.Name.ToLowerInvariant()
+            _ => typeRef.Name  // Preserve original casing for custom types
         };
     }
 
