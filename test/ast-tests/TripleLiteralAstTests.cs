@@ -7,6 +7,7 @@ using test_infra;
 using compiler; // FifthParserManager
 using compiler.LangProcessingPhases;
 
+namespace ast_tests;
 
 public class TripleLiteralAstTests
 {
