@@ -5,5 +5,5 @@ class Foo {
 main(): int {
     f: Foo = new Foo;
     f.a = 42;
-    return 0;
+    return f.a;
 }
