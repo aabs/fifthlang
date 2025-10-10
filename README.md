@@ -60,8 +60,8 @@ foo(a : int, n : string): void
 ```fish
 # From repo root
  dotnet build fifthlang.sln
- # Or with Make (runs restore + build fast)
- make build-all
+ # Or with just (runs restore + build fast)
+ just build-all (or: make build-all)
 ```
 
 ## MSBuild Project Support (.5thproj)

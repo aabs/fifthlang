@@ -38,7 +38,7 @@
 - [x] T016 AST model: add `GraphAssertionBlockExp` and `GraphAssertionBlockStmt` to `src/ast-model/AstMetamodel.cs` per `data-model.md`.
 - [x] T017 Types: add `store`, `graph`, `triple`, `iri` types in `src/ast-model/TypeSystem/` and wire in `src/ast-model/AstTypeProvider.cs`.
 - [x] T018 Types: implement typing for `graph += graph` and `store += graph` operators.
-- [x] T019 Codegen: regenerate AST builders/visitors via `make run-generator` (updates `src/ast-generated/*`).
+- [x] T019 Codegen: regenerate AST builders/visitors via `just run-generator` (or: `make run-generator`) (updates `src/ast-generated/*`).
 - [x] T020 Parser→AST: update `src/parser/AstBuilderVisitor.cs` to construct `GraphAssertionBlock*` nodes from the new rule.
 - [x] T021 Lowering: create `src/compiler/LanguageTransformations/GraphAssertionLoweringVisitor.cs` to lower blocks to KG calls. (Visitor implemented; annotates and validates stores; expression form passthrough)
 - [x] T022 Pipeline: register lowering pass in `src/compiler/ParserManager.cs` before IL conversion. (Registered before Symbol/Type passes)
