@@ -1,9 +1,9 @@
 class Foo {
-    a: int;
+	a: int;
 }
 
 main(): int {
-    f: Foo = new Foo;
-    f.a = 42;
-    return f.a;
+	f: Foo;
+	f.a = 42;
+	return f.a;
 }
