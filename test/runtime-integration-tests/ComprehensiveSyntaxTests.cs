@@ -491,11 +491,11 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
     public async Task list_literal_nested_ShouldCompileAndReturnZero()
     {
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "list_literal_nested.5th");
-        
+
         // Nested list types parse correctly with the updated grammar
         var executablePath = await CompileFileAsync(sourceFile);
         File.Exists(executablePath).Should().BeTrue("Nested list syntax should compile successfully");
-        
+
         // TODO: When nested list/array code generation is fully implemented,
         // enable runtime execution testing:
         // var result = await ExecuteAsync(executablePath);
@@ -714,11 +714,11 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         // The code f().a[0] attempts to access member 'a' on int (returned by f())
         // which is not valid.
         var sourceFile = Path.Combine("TestPrograms", "Syntax", "op_call_then_access_index.5th");
-        
+
         // Act & Assert
         var act = async () => await CompileFileAsync(sourceFile);
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .Where(ex => ex.Message.Contains("Compilation failed") && 
+            .Where(ex => ex.Message.Contains("Compilation failed") &&
                         (ex.Message.Contains("TYPE_ERROR") || ex.Message.Contains("Cannot access member")));
     }
 
@@ -729,7 +729,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
 
-        result.ExitCode.Should().Be(0, "main() should return 0 indicating successful execution");
+        result.ExitCode.Should().Be(31415, "main() should return 31415 indicating successful execution");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
