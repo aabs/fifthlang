@@ -161,9 +161,45 @@ public class StatementEmitter
 
     private void GenerateAssignment(InstructionSequence seq, AssignmentStatement assignStmt)
     {
-        // Handle member access assignments (e.g., obj.Property = value)
+        // Handle member access assignments (e.g., obj.Property = value or array[index] = value)
         if (assignStmt.LValue is MemberAccessExp memberAccess)
         {
+            // Check for array indexing (synthetic VarRef with "[index]" name and IndexExpression annotation)
+            if (memberAccess.RHS is VarRefExp indexMarker && 
+                indexMarker.VarName == "[index]" &&
+                indexMarker.Annotations != null &&
+                indexMarker.Annotations.TryGetValue("IndexExpression", out var indexExprObj) &&
+                indexExprObj is Expression indexExpr)
+            {
+                // This is array element assignment: array[index] = value
+                // Generate: load array, load index, load value, stelem
+                
+                // Load the array reference
+                if (memberAccess.LHS != null)
+                {
+                    var arraySeq = _expressionEmitter.GenerateExpression(memberAccess.LHS);
+                    seq.AddRange(arraySeq.Instructions);
+                }
+                
+                // Load the index
+                var indexSeq = _expressionEmitter.GenerateExpression(indexExpr);
+                seq.AddRange(indexSeq.Instructions);
+                
+                // Load the value to store
+                if (assignStmt.RValue != null)
+                {
+                    var valueSeq = _expressionEmitter.GenerateExpression(assignStmt.RValue);
+                    seq.AddRange(valueSeq.Instructions);
+                }
+                
+                // Determine element type for appropriate stelem instruction
+                var elementTypeName = _expressionEmitter.InferArrayElementTypePublic(memberAccess.LHS);
+                var stelemOpcode = _expressionEmitter.GetStoreElementOpcodePublic(elementTypeName);
+                seq.Add(new StoreInstruction(stelemOpcode, null));
+                return;
+            }
+            
+            // Regular field assignment
             // Load the object reference
             if (memberAccess.LHS != null)
             {

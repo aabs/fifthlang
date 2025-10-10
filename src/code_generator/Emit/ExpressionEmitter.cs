@@ -289,6 +289,55 @@ public class ExpressionEmitter
             return;
         }
 
+        // Check for array indexing (synthetic VarRef with "[index]" name and IndexExpression annotation)
+        if (memberAccess.RHS is VarRefExp indexMarker && 
+            indexMarker.VarName == "[index]" &&
+            indexMarker.Annotations != null &&
+            indexMarker.Annotations.TryGetValue("IndexExpression", out var indexExprObj) &&
+            indexExprObj is Expression indexExpr)
+        {
+            // Check if LHS is a type name - if so, this is array instantiation, not array access
+            if (memberAccess.LHS is VarRefExp typeRef && IsTypeName(typeRef.VarName))
+            {
+                // This is array instantiation: TypeName[size]
+                // Generate: load size, newarr TypeName
+                
+                // Load the array size
+                var sizeSeq = GenerateExpression(indexExpr);
+                sequence.AddRange(sizeSeq.Instructions);
+                
+                // Create the array with the specified element type
+                var elementType = typeRef.VarName;
+                var typeRefInfo = _typeMapper.MapType(elementType);
+                var fullTypeName = !string.IsNullOrEmpty(typeRefInfo.Namespace) && !string.IsNullOrEmpty(typeRefInfo.Name)
+                    ? $"{typeRefInfo.Namespace}.{typeRefInfo.Name}"
+                    : typeRefInfo.Name ?? "System.Object";
+                
+                sequence.Add(new LoadInstruction("newarr", fullTypeName));
+                return;
+            }
+            
+            // This is array element access: array[index]
+            // Generate: load array, load index, ldelem
+            
+            // Load the array reference
+            if (memberAccess.LHS != null)
+            {
+                var arraySeq = GenerateExpression(memberAccess.LHS);
+                sequence.AddRange(arraySeq.Instructions);
+            }
+            
+            // Load the index
+            var indexSeq = GenerateExpression(indexExpr);
+            sequence.AddRange(indexSeq.Instructions);
+            
+            // Determine element type for appropriate ldelem instruction
+            var elementTypeName = InferArrayElementType(memberAccess.LHS);
+            var ldelemOpcode = GetLoadElementOpcode(elementTypeName);
+            sequence.Add(new LoadInstruction(ldelemOpcode, null));
+            return;
+        }
+
         var lhsIsTypeQualifier = memberAccess.LHS is VarRefExp lhsVar && IsTypeName(lhsVar.VarName);
 
         // If LHS is not a type qualifier, evaluate it (pushes object reference on stack)
@@ -744,6 +793,64 @@ public class ExpressionEmitter
     /// <summary>
     /// Gets the appropriate stelem opcode for a given type
     /// </summary>
+    /// <summary>
+    /// Gets the appropriate ldelem opcode for a given type
+    /// </summary>
+    private string GetLoadElementOpcode(string typeName)
+    {
+        return typeName switch
+        {
+            "System.Int32" => "ldelem.i4",
+            "System.Int64" => "ldelem.i8",
+            "System.Single" => "ldelem.r4",
+            "System.Double" => "ldelem.r8",
+            "System.IntPtr" => "ldelem.i",
+            "System.Byte" => "ldelem.u1",
+            "System.SByte" => "ldelem.i1",
+            "System.Int16" => "ldelem.i2",
+            "System.UInt16" => "ldelem.u2",
+            "System.UInt32" => "ldelem.u4",
+            _ => "ldelem.ref" // Reference types and other types
+        };
+    }
+
+    /// <summary>
+    /// Infers the element type of an array expression
+    /// </summary>
+    private string InferArrayElementType(Expression? arrayExpr)
+    {
+        if (arrayExpr == null)
+        {
+            return "System.Int32"; // Default
+        }
+
+        // If it's a variable reference, check its variable declaration
+        if (arrayExpr is VarRefExp varRef && varRef.VariableDecl != null)
+        {
+            var typeName = varRef.VariableDecl.TypeName.Value;
+            var typeRef = _typeMapper.MapType(typeName);
+            
+            if (!string.IsNullOrEmpty(typeRef.Namespace) && !string.IsNullOrEmpty(typeRef.Name))
+            {
+                return $"{typeRef.Namespace}.{typeRef.Name}";
+            }
+            
+            return typeRef.Name ?? "System.Int32";
+        }
+
+        // Check the Type field if available
+        if (arrayExpr.Type != null)
+        {
+            if (arrayExpr.Type is ast_model.TypeSystem.FifthType.TArrayOf arrayType)
+            {
+                return GetTypeNameFromFifthType(arrayType.ElementType);
+            }
+        }
+
+        // Default fallback
+        return "System.Int32";
+    }
+
     private string GetStoreElementOpcode(string typeName)
     {
         return typeName switch
@@ -758,4 +865,14 @@ public class ExpressionEmitter
             _ => "stelem.ref" // Reference types and other types
         };
     }
+
+    /// <summary>
+    /// Public wrapper for InferArrayElementType - used by StatementEmitter
+    /// </summary>
+    public string InferArrayElementTypePublic(Expression? arrayExpr) => InferArrayElementType(arrayExpr);
+
+    /// <summary>
+    /// Public wrapper for GetStoreElementOpcode - used by StatementEmitter
+    /// </summary>
+    public string GetStoreElementOpcodePublic(string typeName) => GetStoreElementOpcode(typeName);
 }
