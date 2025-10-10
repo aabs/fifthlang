@@ -753,7 +753,7 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
 
-        result.ExitCode.Should().Be(42, "main() should return 42 indicating successful execution");
+        result.ExitCode.Should().Be(42, "main() should return 42, the value of Foo.a");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
