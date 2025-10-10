@@ -1,1 +1,7 @@
-main(): int { a: int[]; a = new int[10]; return a[0]; }
+main(): int 
+{ 
+  a: int[]; 
+  a = new int[10]; 
+  a[3] = 31415;
+  return a[3]; 
+}
