@@ -31,7 +31,8 @@ public static class FifthParserManager
         TripleExpansion = 14,
         GraphTripleOperatorLowering = 15,
         SymbolTableFinal = 16,
-        TypeAnnotation = 17,
+        VarRefResolver = 17,
+        TypeAnnotation = 18,
         All = TypeAnnotation
     }
 
@@ -155,6 +156,9 @@ public static class FifthParserManager
 
         if (upTo >= AnalysisPhase.SymbolTableFinal)
             ast = new SymbolTableBuilderVisitor().Visit(ast);
+
+        if (upTo >= AnalysisPhase.VarRefResolver)
+            ast = new VarRefResolverVisitor().Visit(ast);
 
         if (upTo >= AnalysisPhase.TypeAnnotation)
         {

@@ -247,6 +247,53 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     }
 
     /// <summary>
+    /// Visits a ListLiteral and infers its type based on element expressions or type annotation.
+    /// </summary>
+    public override ListLiteral VisitListLiteral(ListLiteral ctx)
+    {
+        var result = base.VisitListLiteral(ctx);
+
+        // Try to infer element type from the list literal itself
+        FifthType? elementType = null;
+
+        // If there are elements, infer from the first element
+        if (result.ElementExpressions?.Count > 0)
+        {
+            var firstElement = result.ElementExpressions[0];
+            if (firstElement?.Type != null)
+            {
+                elementType = firstElement.Type;
+            }
+        }
+
+        // If no elements or couldn't infer, try to get from annotation
+        if (elementType == null && result.Type is FifthType.TArrayOf arrayType)
+        {
+            elementType = arrayType.ElementType;
+        }
+        else if (elementType == null && result.Type is FifthType.TListOf listType)
+        {
+            elementType = listType.ElementType;
+        }
+
+        // Default to int if we still don't have a type
+        if (elementType == null)
+        {
+            elementType = GetLanguageFriendlyType(typeof(int)) ?? 
+                         new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From("int") };
+        }
+
+        // Create the array type (lists are always arrays in Fifth currently)
+        var arrayTypeResult = new FifthType.TArrayOf(elementType) 
+        { 
+            Name = TypeName.From($"{GetTypeName(elementType)}[]") 
+        };
+
+        OnTypeInferred(result, arrayTypeResult);
+        return result with { Type = arrayTypeResult };
+    }
+
+    /// <summary>
     /// Visits a BinaryExp and infers its result type based on the operator and operand types.
     /// </summary>
     public override BinaryExp VisitBinaryExp(BinaryExp ctx)
@@ -349,12 +396,61 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     }
 
     /// <summary>
+    /// Visits an IndexerExpression and infers the element type from the array/list type.
+    /// </summary>
+    public override IndexerExpression VisitIndexerExpression(IndexerExpression ctx)
+    {
+        var result = base.VisitIndexerExpression(ctx);
+
+        // Get the type of the expression being indexed
+        if (result.IndexExpression?.Type != null)
+        {
+            var indexedType = result.IndexExpression.Type;
+            
+            // Extract element type from array or list type
+            FifthType? elementType = indexedType switch
+            {
+                FifthType.TArrayOf arrayType => arrayType.ElementType,
+                FifthType.TListOf listType => listType.ElementType,
+                _ => null
+            };
+
+            if (elementType != null)
+            {
+                OnTypeInferred(result, elementType);
+                return result with { Type = elementType };
+            }
+            else
+            {
+                // Error: trying to index a non-indexable type
+                var error = new TypeCheckingError(
+                    $"Cannot index type '{GetTypeName(indexedType)}' - only arrays and lists support indexing",
+                    result.Location?.Filename ?? "",
+                    result.Location?.Line ?? 0,
+                    result.Location?.Column ?? 0,
+                    new[] { indexedType },
+                    TypeCheckingSeverity.Error);
+                errors.Add(error);
+            }
+        }
+
+        // If we can't determine the type, mark as unknown
+        OnTypeNotFound(result);
+        var unknownType = new FifthType.UnknownType() { Name = TypeName.From("unknown") };
+        return result with { Type = unknownType };
+    }
+
+    /// <summary>
     /// Checks if a type is a primitive type that doesn't support member access.
+    /// Arrays and lists are NOT considered primitive types.
     /// </summary>
     private bool IsPrimitiveType(FifthType type)
     {
         return type switch
         {
+            // Arrays and lists are not primitive - they support indexing
+            FifthType.TArrayOf => false,
+            FifthType.TListOf => false,
             FifthType.TDotnetType dotnetType => 
                 dotnetType.TheType == typeof(int) ||
                 dotnetType.TheType == typeof(long) ||
@@ -398,6 +494,90 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
         // We can set the overall type to match the return type
         OnTypeInferred(result, result.ReturnType);
         return result with { Type = result.ReturnType };
+    }
+
+    /// <summary>
+    /// Visits a VariableDecl and infers its type from TypeName and CollectionType.
+    /// </summary>
+    public override VariableDecl VisitVariableDecl(VariableDecl ctx)
+    {
+        var result = base.VisitVariableDecl(ctx);
+
+        // Create FifthType from TypeName and CollectionType
+        FifthType fifthType = CreateFifthType(result.TypeName, result.CollectionType);
+        
+        OnTypeInferred(result, fifthType);
+        return result with { Type = fifthType };
+    }
+
+    /// <summary>
+    /// Visits a VarRefExp and infers its type from the referenced VariableDecl.
+    /// </summary>
+    public override VarRefExp VisitVarRefExp(VarRefExp ctx)
+    {
+        var result = base.VisitVarRefExp(ctx);
+
+        // If the variable declaration is resolved, use its type
+        if (result.VariableDecl != null && result.VariableDecl.Type != null)
+        {
+            OnTypeInferred(result, result.VariableDecl.Type);
+            return result with { Type = result.VariableDecl.Type };
+        }
+
+        // If not resolved, return with unknown type
+        OnTypeNotFound(result);
+        var unknownType = new FifthType.UnknownType() { Name = TypeName.From("unknown") };
+        return result with { Type = unknownType };
+    }
+
+    /// <summary>
+    /// Creates a FifthType from a TypeName and CollectionType.
+    /// </summary>
+    private FifthType CreateFifthType(TypeName typeName, CollectionType collectionType)
+    {
+        // First create the base type
+        FifthType baseType = CreateBaseType(typeName);
+
+        // Wrap in collection type if needed
+        return collectionType switch
+        {
+            CollectionType.Array => new FifthType.TArrayOf(baseType) { Name = TypeName.From($"{typeName.Value}[]") },
+            CollectionType.List => new FifthType.TListOf(baseType) { Name = TypeName.From($"List<{typeName.Value}>") },
+            _ => baseType
+        };
+    }
+
+    /// <summary>
+    /// Creates a base FifthType from a TypeName (without collection wrapper).
+    /// </summary>
+    private FifthType CreateBaseType(TypeName typeName)
+    {
+        // Try to get from language-friendly types first
+        var friendlyType = GetLanguageFriendlyTypeByName(typeName.Value);
+        if (friendlyType != null)
+        {
+            return friendlyType;
+        }
+
+        // Default to TType for unknown types
+        return new FifthType.TType() { Name = typeName };
+    }
+
+    /// <summary>
+    /// Gets a language-friendly type by its name.
+    /// </summary>
+    private FifthType? GetLanguageFriendlyTypeByName(string typeName)
+    {
+        return typeName switch
+        {
+            "int" => GetLanguageFriendlyType(typeof(int)),
+            "long" => GetLanguageFriendlyType(typeof(long)),
+            "float" => GetLanguageFriendlyType(typeof(float)),
+            "double" => GetLanguageFriendlyType(typeof(double)),
+            "bool" => GetLanguageFriendlyType(typeof(bool)),
+            "string" => GetLanguageFriendlyType(typeof(string)),
+            _ => null
+        };
     }
 
     /// <summary>

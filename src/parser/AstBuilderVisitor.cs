@@ -1398,15 +1398,15 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     // Handle indexing expressions: numbers[0]
     public override IAstThing VisitExp_index([NotNull] FifthParser.Exp_indexContext context)
     {
-        // Represent index access as a MemberAccessExp with RHS being the index expression in annotations
+        // Create an IndexerExpression for array/list element access
         var target = (Expression)Visit(context.lhs);
         var indexCtx = context.index();
         var indexExpr = (Expression)Visit(indexCtx.expression());
 
-        // Create a temporary VarRefExp for the index and attach metadata to LHS for later lowering phases
-        var synthetic = new VarRefExp { VarName = "[index]", Annotations = new Dictionary<string, object> { ["IndexExpression"] = indexExpr }, Location = GetLocationDetails(context), Type = Void };
-
-        var b = new MemberAccessExpBuilder().WithAnnotations([]).WithLHS(target).WithRHS(synthetic);
+        var b = new IndexerExpressionBuilder()
+            .WithAnnotations([])
+            .WithIndexExpression(target)
+            .WithOffsetExpression(indexExpr);
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
