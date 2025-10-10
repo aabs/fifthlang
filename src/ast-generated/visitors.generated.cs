@@ -136,6 +136,8 @@ public interface IAstVisitor
     public void LeaveAtomLiteralExp(AtomLiteralExp ctx);
     public void EnterMemberAccessExp(MemberAccessExp ctx);
     public void LeaveMemberAccessExp(MemberAccessExp ctx);
+    public void EnterIndexerExpression(IndexerExpression ctx);
+    public void LeaveIndexerExpression(IndexerExpression ctx);
     public void EnterObjectInitializerExp(ObjectInitializerExp ctx);
     public void LeaveObjectInitializerExp(ObjectInitializerExp ctx);
     public void EnterPropertyInitializerExp(PropertyInitializerExp ctx);
@@ -292,6 +294,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveAtomLiteralExp(AtomLiteralExp ctx){}
     public virtual void EnterMemberAccessExp(MemberAccessExp ctx){}
     public virtual void LeaveMemberAccessExp(MemberAccessExp ctx){}
+    public virtual void EnterIndexerExpression(IndexerExpression ctx){}
+    public virtual void LeaveIndexerExpression(IndexerExpression ctx){}
     public virtual void EnterObjectInitializerExp(ObjectInitializerExp ctx){}
     public virtual void LeaveObjectInitializerExp(ObjectInitializerExp ctx){}
     public virtual void EnterPropertyInitializerExp(PropertyInitializerExp ctx){}
@@ -384,6 +388,7 @@ public interface IAstRecursiveDescentVisitor
     public UriLiteralExp VisitUriLiteralExp(UriLiteralExp ctx);
     public AtomLiteralExp VisitAtomLiteralExp(AtomLiteralExp ctx);
     public MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx);
+    public IndexerExpression VisitIndexerExpression(IndexerExpression ctx);
     public ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx);
     public PropertyInitializerExp VisitPropertyInitializerExp(PropertyInitializerExp ctx);
     public UnaryExp VisitUnaryExp(UnaryExp ctx);
@@ -468,6 +473,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              UriLiteralExp node => VisitUriLiteralExp(node),
              AtomLiteralExp node => VisitAtomLiteralExp(node),
              MemberAccessExp node => VisitMemberAccessExp(node),
+             IndexerExpression node => VisitIndexerExpression(node),
              ObjectInitializerExp node => VisitObjectInitializerExp(node),
              PropertyInitializerExp node => VisitPropertyInitializerExp(node),
              UnaryExp node => VisitUnaryExp(node),
@@ -892,6 +898,13 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
      return ctx with {
          LHS = (ast.Expression)Visit((AstThing)ctx.LHS)
         ,RHS = (ast.Expression)Visit((AstThing)ctx.RHS)
+        };
+    }
+    public virtual IndexerExpression VisitIndexerExpression(IndexerExpression ctx)
+    {
+     return ctx with {
+         IndexExpression = (ast.Expression)Visit((AstThing)ctx.IndexExpression)
+        ,OffsetExpression = (ast.Expression)Visit((AstThing)ctx.OffsetExpression)
         };
     }
     public virtual ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx)

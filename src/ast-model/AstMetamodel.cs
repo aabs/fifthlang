@@ -778,6 +778,24 @@ public record MemberAccessExp : Expression
     public required Expression? RHS { get; init; } // grammar expects var_name or function_call_expression
 }
 
+/// <summary>
+/// Indexing expression for array/list element access
+/// </summary>
+/// <example>
+/// <code title="accessing an array element">var x = arr[5];</code>
+/// <code title="accessing a multidimensional array element">var y = matrix[2][3];</code>
+/// </example>
+/// <remarks>
+/// <p>This expression represents indexing operations like arr[i] where arr is an array or list
+/// and i is the index expression. The IndexExpression is the target being indexed,
+/// and OffsetExpression is the index value.</p>
+/// </remarks>
+public record IndexerExpression : Expression
+{
+    public required Expression IndexExpression { get; init; }
+    public required Expression OffsetExpression { get; init; }
+}
+
 /// <summary>An expression that supplies a set of values to the properties of an object being created</summary>
 /// <example>
 ///   <code title="Initializing a Person Instance">var p = new Person()

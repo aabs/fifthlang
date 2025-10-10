@@ -86,6 +86,10 @@ public class ExpressionEmitter
                 GenerateMemberAccess(sequence, memberAccess);
                 break;
 
+            case IndexerExpression indexer:
+                GenerateIndexer(sequence, indexer);
+                break;
+
             case FuncCallExp funcCall:
                 GenerateFuncCall(sequence, funcCall, null);
                 break;
@@ -347,6 +351,27 @@ public class ExpressionEmitter
                 sequence.AddRange(rhsSeq.Instructions);
                 break;
         }
+    }
+
+    /// <summary>
+    /// Generates IL for an indexer expression (array/list element access).
+    /// </summary>
+    private void GenerateIndexer(InstructionSequence sequence, IndexerExpression indexer)
+    {
+        // Generate the expression being indexed (pushes array/list reference onto stack)
+        var targetSeq = GenerateExpression(indexer.IndexExpression);
+        sequence.AddRange(targetSeq.Instructions);
+
+        // Generate the index/offset expression (pushes index onto stack)
+        var offsetSeq = GenerateExpression(indexer.OffsetExpression);
+        sequence.AddRange(offsetSeq.Instructions);
+
+        // Infer the element type from the indexed expression's type
+        string elementTypeName = InferArrayElementType(indexer.IndexExpression);
+
+        // Emit appropriate ldelem instruction based on element type
+        var ldelemOpcode = GetLoadElementOpcode(elementTypeName);
+        sequence.Add(new LoadInstruction(ldelemOpcode, null));
     }
 
     private void GenerateFuncCall(InstructionSequence sequence, FuncCallExp funcCall, Expression? qualifier)

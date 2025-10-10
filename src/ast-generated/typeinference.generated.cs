@@ -71,6 +71,7 @@ public interface ITypeChecker
     public FifthType Infer(ScopeAstThing scope, UriLiteralExp node);
     public FifthType Infer(ScopeAstThing scope, AtomLiteralExp node);
     public FifthType Infer(ScopeAstThing scope, MemberAccessExp node);
+    public FifthType Infer(ScopeAstThing scope, IndexerExpression node);
     public FifthType Infer(ScopeAstThing scope, ObjectInitializerExp node);
     public FifthType Infer(ScopeAstThing scope, PropertyInitializerExp node);
     public FifthType Infer(ScopeAstThing scope, UnaryExp node);
@@ -158,6 +159,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             UriLiteralExp node => Infer(scope, node),
             AtomLiteralExp node => Infer(scope, node),
             MemberAccessExp node => Infer(scope, node),
+            IndexerExpression node => Infer(scope, node),
             ObjectInitializerExp node => Infer(scope, node),
             PropertyInitializerExp node => Infer(scope, node),
             UnaryExp node => Infer(scope, node),
@@ -239,6 +241,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, UriLiteralExp node);
     public abstract FifthType Infer(ScopeAstThing scope, AtomLiteralExp node);
     public abstract FifthType Infer(ScopeAstThing scope, MemberAccessExp node);
+    public abstract FifthType Infer(ScopeAstThing scope, IndexerExpression node);
     public abstract FifthType Infer(ScopeAstThing scope, ObjectInitializerExp node);
     public abstract FifthType Infer(ScopeAstThing scope, PropertyInitializerExp node);
     public abstract FifthType Infer(ScopeAstThing scope, UnaryExp node);
