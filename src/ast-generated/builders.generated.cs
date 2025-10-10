@@ -2035,6 +2035,36 @@ public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
     }
 
 }
+public class IndexerExpressionBuilder : IBuilder<ast.IndexerExpression>
+{
+    private ast.Expression _IndexExpression;
+    private ast.Expression _OffsetExpression;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.IndexerExpression Build()
+    {
+        return new ast.IndexerExpression(){
+             IndexExpression = this._IndexExpression // from IndexerExpression
+           , OffsetExpression = this._OffsetExpression // from IndexerExpression
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public IndexerExpressionBuilder WithIndexExpression(ast.Expression value){
+        _IndexExpression = value;
+        return this;
+    }
+
+    public IndexerExpressionBuilder WithOffsetExpression(ast.Expression value){
+        _OffsetExpression = value;
+        return this;
+    }
+
+    public IndexerExpressionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class ObjectInitializerExpBuilder : IBuilder<ast.ObjectInitializerExp>
 {
     private Dictionary<System.String, System.Object> _Annotations;

@@ -161,8 +161,31 @@ public class StatementEmitter
 
     private void GenerateAssignment(InstructionSequence seq, AssignmentStatement assignStmt)
     {
+        // Handle indexer assignments (e.g., arr[i] = value)
+        if (assignStmt.LValue is IndexerExpression indexer)
+        {
+            // Load the array/list reference
+            var targetSeq = _expressionEmitter.GenerateExpression(indexer.IndexExpression);
+            seq.AddRange(targetSeq.Instructions);
+            
+            // Load the index
+            var offsetSeq = _expressionEmitter.GenerateExpression(indexer.OffsetExpression);
+            seq.AddRange(offsetSeq.Instructions);
+            
+            // Generate RValue expression
+            if (assignStmt.RValue != null)
+            {
+                var rvalueSeq = _expressionEmitter.GenerateExpression(assignStmt.RValue);
+                seq.AddRange(rvalueSeq.Instructions);
+            }
+            
+            // Infer element type and emit appropriate stelem instruction
+            var elementTypeName = InferArrayElementType(indexer.IndexExpression);
+            var stelemOpcode = GetStoreElementOpcode(elementTypeName);
+            seq.Add(new StoreInstruction(stelemOpcode, null));
+        }
         // Handle member access assignments (e.g., obj.Property = value)
-        if (assignStmt.LValue is MemberAccessExp memberAccess)
+        else if (assignStmt.LValue is MemberAccessExp memberAccess)
         {
             // Load the object reference
             if (memberAccess.LHS != null)
@@ -196,6 +219,60 @@ public class StatementEmitter
 
             seq.Add(new StoreInstruction("stloc", varRef.VarName));
         }
+    }
+
+    /// <summary>
+    /// Infers the element type of an array expression.
+    /// </summary>
+    private string InferArrayElementType(Expression? arrayExpr)
+    {
+        if (arrayExpr?.Type is ast_model.TypeSystem.FifthType.TArrayOf arrayType)
+        {
+            return GetTypeNameFromFifthType(arrayType.ElementType);
+        }
+        if (arrayExpr?.Type is ast_model.TypeSystem.FifthType.TListOf listType)
+        {
+            return GetTypeNameFromFifthType(listType.ElementType);
+        }
+        return "System.Int32"; // Default fallback
+    }
+
+    /// <summary>
+    /// Gets the appropriate .NET type name from a FifthType.
+    /// </summary>
+    private string GetTypeNameFromFifthType(ast_model.TypeSystem.FifthType fifthType)
+    {
+        if (fifthType is ast_model.TypeSystem.FifthType.TDotnetType dotnetType)
+        {
+            return dotnetType.TheType.FullName ?? dotnetType.TheType.Name;
+        }
+        // Map Fifth type names to .NET types
+        return fifthType switch
+        {
+            ast_model.TypeSystem.FifthType.TType ttype when ttype.Name.Value == "int" => "System.Int32",
+            ast_model.TypeSystem.FifthType.TType ttype when ttype.Name.Value == "long" => "System.Int64",
+            ast_model.TypeSystem.FifthType.TType ttype when ttype.Name.Value == "float" => "System.Single",
+            ast_model.TypeSystem.FifthType.TType ttype when ttype.Name.Value == "double" => "System.Double",
+            _ => "System.Object"
+        };
+    }
+
+    /// <summary>
+    /// Gets the appropriate stelem opcode for the given type.
+    /// </summary>
+    private string GetStoreElementOpcode(string typeName)
+    {
+        return typeName switch
+        {
+            "System.Int32" => "stelem.i4",
+            "System.Int64" => "stelem.i8",
+            "System.Single" => "stelem.r4",
+            "System.Double" => "stelem.r8",
+            "System.IntPtr" => "stelem.i",
+            "System.Byte" => "stelem.i1",
+            "System.Int16" => "stelem.i2",
+            _ => "stelem.ref" // Reference types and other types
+        };
     }
 
     private void GenerateReturn(InstructionSequence seq, ReturnStatement retStmt)
