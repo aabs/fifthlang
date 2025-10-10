@@ -112,7 +112,7 @@ Estimated Output:
 - Files:
    - `src/ast-model/AstMetamodel.cs` (add `GraphAssertionBlockExp`, `GraphAssertionBlockStmt`)
    - `src/ast-model/TypeSystem/*` and `src/ast-model/AstTypeProvider.cs` (types)
-   - Regenerate: `make run-generator` (updates `src/ast-generated/*`)
+   - Regenerate: `just run-generator` (or: `make run-generator`) (updates `src/ast-generated/*`)
 - DO: Only edit `ast-model`; never hand-edit `src/ast-generated/*`.
 - Node shape: block has `Statements`, yields `graph` in expression contexts.
 
@@ -161,7 +161,7 @@ Estimated Output:
    - Use dotNetRdf `TripleStore` to verify persisted triples via `store += graph`.
 
 ### Do/Don’t Quick List
-- DO: Regenerate AST with `make run-generator` after model changes.
+- DO: Regenerate AST with `just run-generator` (or: `make run-generator`) after model changes.
 - DO: Keep persistence explicit (no auto-persist in expression form).
 - DO: Keep default store non-transactional (no rollback).
 - DON’T: Edit generated files.

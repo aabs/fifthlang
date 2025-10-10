@@ -21,8 +21,8 @@ java -version     # Should show Java 17+ for ANTLR
 dotnet restore fifthlang.sln                      # Takes ~70 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
 dotnet build fifthlang.sln                        # Takes ~60 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
 
-# Alternative: Use Makefile
-make build-all                                     # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
+# Alternative: Use just (or Makefile)
+just build-all                                     # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
 
 # Run tests
 dotnet test test/ast-tests/ast_tests.csproj        # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
@@ -30,7 +30,7 @@ dotnet test test/ast-tests/ast_tests.csproj        # Takes ~25 seconds. NEVER CA
 dotnet test fifthlang.sln
 
 # Run AST code generator separately
-make run-generator                                 # Takes ~5 seconds.
+just run-generator                                 # Takes ~5 seconds. (or: make run-generator)
 # OR
 dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
 ```
@@ -40,7 +40,7 @@ dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-
 See the constitution (`/specs/.specify/memory/constitution.md`) for the complete project structure diagram and component descriptions. Key operational points:
 
 - `src/ast-model/` - Edit `AstMetamodel.cs` or `ILMetamodel.cs` to modify AST definitions
-- `src/ast-generated/` - **NEVER edit manually**; regenerate via `make run-generator`
+- `src/ast-generated/` - **NEVER edit manually**; regenerate via `just run-generator` (or: `make run-generator`)
 - `src/parser/grammar/` - `FifthLexer.g4` + `FifthParser.g4` (split grammar)
 - `src/compiler/LanguageTransformations/` - AST transformation passes
 - `test/` - TUnit tests with FluentAssertions
@@ -132,7 +132,7 @@ Notes for agents
 # Regenerate AST builders and visitors after metamodel changes
 dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
 # OR
-make run-generator
+just run-generator (or: make run-generator)
 ```
 
 ### Grammar Development

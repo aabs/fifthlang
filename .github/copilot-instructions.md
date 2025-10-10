@@ -17,8 +17,8 @@ java -version     # Should show Java 17+ for ANTLR
 dotnet restore fifthlang.sln                      # Takes ~70 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
 dotnet build fifthlang.sln                        # Takes ~60 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
 
-# Alternative: Use Makefile
-make build-all                                     # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
+# Alternative: Use just (or Makefile)
+just build-all                                     # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
 
 # Run tests
 dotnet test test/ast-tests/ast_tests.csproj        # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
@@ -26,7 +26,8 @@ dotnet test test/ast-tests/ast_tests.csproj        # Takes ~25 seconds. NEVER CA
 dotnet test fifthlang.sln
 
 # Run AST code generator separately
-make run-generator                                 # Takes ~5 seconds.
+# Prefer just for quick tasks
+just run-generator                                 # Takes ~5 seconds. (or: make run-generator)
 # OR
 dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
 ```
@@ -169,7 +170,7 @@ main(): int {
 ### Common Issues
 1. **"java command not found"** - Install Java 17+ 
 2. **ANTLR grammar errors** - Check Fifth.g4 syntax in `src/parser/grammar/`
-3. **Missing generated files** - Run `make run-generator` to regenerate AST code
+3. **Missing generated files** - Run `just run-generator` (or: `make run-generator`) to regenerate AST code
 4. **Build timeouts** - Use longer timeout values, builds can legitimately take 1-2 minutes
 
 ### Key Files to Watch

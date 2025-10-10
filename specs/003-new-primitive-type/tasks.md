@@ -29,7 +29,7 @@
 
 ## Phase 3.4: AST / Metamodel Adjustments
 - [x] T018 Confirm `TripleLiteralExp` exists in `src/ast-model/AstMetamodel.cs` (no change expected) else add and regenerate (completed: rename applied & verified via successful build/tests)
-- [x] T019 [P] Regenerate AST (`make run-generator`) and commit generated artifacts (do NOT hand-edit) (completed: generation ran during build after rename)
+- [x] T019 [P] Regenerate AST (`just run-generator` or `make run-generator`) and commit generated artifacts (do NOT hand-edit) (completed: generation ran during build after rename)
 
 ## Phase 3.5: Transformation Passes (Design Tests First)
 - [x] T020 Add failing test `test/ast-tests/TripleExpansionVisitorTests.cs` for list -> multiple triples  # implemented: covered via updates to `TripleLiteralExpansionTests.cs` and added unit-level checks for expansion behavior

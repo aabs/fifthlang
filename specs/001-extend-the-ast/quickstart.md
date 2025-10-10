@@ -6,7 +6,7 @@
 ## Build & Generate
 ```fish
 # From repo root
-make build-all
+just build-all (or: make build-all)
 # or
  dotnet restore fifthlang.sln
  dotnet build fifthlang.sln

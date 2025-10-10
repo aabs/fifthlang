@@ -1,8 +1,14 @@
 # Major Development Targets for AST Builder
+# When `just` is available, prefer it and forward all make targets to it.
+ifneq (, $(shell command -v just 2>/dev/null))
 .PHONY: help build-all restore test run-generator clean rebuild ci setup-hooks \
 	build-ast-model build-ast-generator build-ast-generated build-parser build-compiler build-tests \
 	test-ast test-runtime test-syntax \
 	coverage coverage-report install-cli
+
+%:
+	@just $@
+else
 
 help:
 	@echo "Available targets:"
@@ -61,7 +67,7 @@ coverage-report:
 		reportgenerator -reports:**/coverage.cobertura.xml -targetdir:CoverageReport -reporttypes:Html;TextSummary;Cobertura; \
 		echo "CoverageReport generated at ./CoverageReport"; \
 	else \
-		echo "No Cobertura files found. Run 'make coverage' first (or ensure --collect and runsettings are used)."; \
+		echo "No Cobertura files found. Run 'just coverage' (or: 'make coverage') first (or ensure --collect and runsettings are used)."; \
 	fi
 
 run-generator:
