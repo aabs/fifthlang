@@ -555,6 +555,29 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
                     }
                 }
             }
+
+            // Extension method detection: handle instance-style calls like g.CreateUri() where g is typed
+            // This pattern arises from user code calling KG extension methods in the natural instance syntax.
+            if (result?.LHS is VarRefExp receiverVar && result.RHS is FuncCallExp extensionCall 
+                && extensionCall.Annotations != null
+                && extensionCall.Annotations.TryGetValue("FunctionName", out var funcNameObj) 
+                && funcNameObj is string funcName
+                && !extensionCall.Annotations.ContainsKey("ExternalType"))
+            {
+                // Check if this looks like a KG extension method call by method name
+                var kgMethods = new HashSet<string>(StringComparer.Ordinal)
+                {
+                    "CreateUri", "CreateLiteral", "CreateTriple", "Assert", "Retract", 
+                    "Merge", "CopyGraph", "CountTriples", "Difference", "CreateGraph"
+                };
+
+                if (kgMethods.Contains(funcName))
+                {
+                    extensionCall["ExternalType"] = typeof(Fifth.System.KG);
+                    extensionCall["ExternalMethodName"] = funcName;
+                    DebugLog($"DEBUG: Extension method call detected: {funcName} on receiver {receiverVar.VarName}");
+                }
+            }
         }
         catch (System.Exception ex)
         {

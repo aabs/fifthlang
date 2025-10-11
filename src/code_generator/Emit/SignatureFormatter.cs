@@ -57,12 +57,20 @@ public static class SignatureFormatter
             return true;
         }
 
+        // Check for extension method attribute
         if (methodInfo.IsDefined(typeof(System.Runtime.CompilerServices.ExtensionAttribute), inherit: false))
         {
             return true;
         }
 
-        return parameters.Length > suppliedArgCount;
+        // Alternative check: if parameters.Length is one more than suppliedArgCount,
+        // treat the first parameter as the receiver (likely an extension method)
+        if (parameters.Length == suppliedArgCount + 1)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private static string FormatTypeToken(Type t, string defaultAssembly)
