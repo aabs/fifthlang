@@ -439,6 +439,12 @@ public class ExpressionEmitter
         var expectsReceiver = SignatureFormatter.ShouldUseQualifierAsReceiver(
             resolvedMethod, qualifier, receiverType, parameters, invocationArgs.Count);
         
+        // DEBUG logging
+        if (DebugEnabled)
+        {
+            DebugLog($"DEBUG: GenerateResolvedExternalCall - method={resolvedMethod.Name}, expectsReceiver={expectsReceiver}, qualifier={(qualifier != null ? "present" : "null")}, receiverType={(receiverType?.Name ?? "null")}, paramCount={parameters.Length}, argCount={invocationArgs.Count}");
+        }
+        
         var emittedArgCount = 0;
 
         // Emit receiver if needed
@@ -447,6 +453,14 @@ public class ExpressionEmitter
             var qualifierSeq = GenerateExpression(qualifier);
             sequence.AddRange(qualifierSeq.Instructions);
             emittedArgCount++;
+            if (DebugEnabled)
+            {
+                DebugLog($"DEBUG: Emitted receiver, emittedArgCount={emittedArgCount}");
+            }
+        }
+        else if (DebugEnabled)
+        {
+            DebugLog($"DEBUG: NOT emitting receiver - expectsReceiver={expectsReceiver}, qualifier={(qualifier != null ? "present" : "null")}");
         }
 
         // Emit arguments (with optional parameter handling)
@@ -493,13 +507,57 @@ public class ExpressionEmitter
         Type extType,
         string methodName)
     {
-        var emittedArgCount = 0;
+        if (DebugEnabled)
+        {
+            DebugLog($"DEBUG: GenerateFallbackExternalCall - method={methodName}, qualifier={(qualifier != null ? "present" : "null")}, receiverType={(receiverType?.Name ?? "null")}, argCount={invocationArgs.Count}");
+        }
         
-        if (qualifier != null && receiverType != null)
+        var emittedArgCount = 0;
+        System.Reflection.MethodInfo? foundMethod = null;
+        
+        // Try to determine if we should emit the qualifier as the first argument
+        // This handles extension method calls where type inference failed
+        bool shouldEmitQualifier = false;
+        if (qualifier != null)
+        {
+            // If receiverType is known and compatible, emit it
+            if (receiverType != null)
+            {
+                shouldEmitQualifier = true;
+            }
+            // Otherwise, check if this looks like an extension method call by checking
+            // if there's a method on extType with argCount+1 parameters
+            else
+            {
+                var methods = extType.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                    .Where(m => string.Equals(m.Name, methodName, StringComparison.Ordinal) &&
+                                m.GetParameters().Length == invocationArgs.Count + 1)
+                    .ToList();
+                if (methods.Count > 0)
+                {
+                    shouldEmitQualifier = true;
+                    foundMethod = methods[0]; // Use first matching method for signature
+                    if (DebugEnabled)
+                    {
+                        DebugLog($"DEBUG: Fallback detected extension method pattern (method with {invocationArgs.Count + 1} params exists)");
+                    }
+                }
+            }
+        }
+        
+        if (shouldEmitQualifier)
         {
             var qualifierSeq = GenerateExpression(qualifier);
             sequence.AddRange(qualifierSeq.Instructions);
             emittedArgCount++;
+            if (DebugEnabled)
+            {
+                DebugLog($"DEBUG: Fallback emitted receiver, emittedArgCount={emittedArgCount}");
+            }
+        }
+        else if (DebugEnabled)
+        {
+            DebugLog($"DEBUG: Fallback NOT emitting receiver - shouldEmitQualifier=false");
         }
 
         foreach (var arg in invocationArgs)
@@ -509,7 +567,10 @@ public class ExpressionEmitter
             emittedArgCount++;
         }
 
-        var fallbackSig = SignatureFormatter.BuildFallbackExternalSignature(extType, methodName, emittedArgCount);
+        // Use the found method's return type if available
+        var fallbackSig = foundMethod != null 
+            ? SignatureFormatter.BuildExternalCallSignature(foundMethod, extType)
+            : SignatureFormatter.BuildFallbackExternalSignature(extType, methodName, emittedArgCount);
         sequence.Add(new CallInstruction("call", fallbackSig) { ArgCount = emittedArgCount });
     }
 
