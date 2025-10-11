@@ -1200,12 +1200,12 @@ public partial class FifthParser : FifthParserBase {
 
 	public partial class Property_declarationContext : ParserRuleContext {
 		public IToken name;
-		public IToken type;
+		public Type_specContext type;
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode COLON() { return GetToken(FifthParser.COLON, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SEMI() { return GetToken(FifthParser.SEMI, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode[] IDENTIFIER() { return GetTokens(FifthParser.IDENTIFIER); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IDENTIFIER(int i) {
-			return GetToken(FifthParser.IDENTIFIER, i);
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IDENTIFIER() { return GetToken(FifthParser.IDENTIFIER, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public Type_specContext type_spec() {
+			return GetRuleContext<Type_specContext>(0);
 		}
 		public Property_declarationContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -1242,7 +1242,7 @@ public partial class FifthParser : FifthParserBase {
 			State = 232;
 			Match(COLON);
 			State = 233;
-			_localctx.type = Match(IDENTIFIER);
+			_localctx.type = type_spec(0);
 			State = 234;
 			Match(SEMI);
 			}
@@ -5633,7 +5633,7 @@ public partial class FifthParser : FifthParserBase {
 		220,221,1,0,0,0,221,226,5,43,0,0,222,225,3,10,5,0,223,225,3,26,13,0,224,
 		222,1,0,0,0,224,223,1,0,0,0,225,228,1,0,0,0,226,224,1,0,0,0,226,227,1,
 		0,0,0,227,229,1,0,0,0,228,226,1,0,0,0,229,230,5,44,0,0,230,25,1,0,0,0,
-		231,232,5,40,0,0,232,233,5,52,0,0,233,234,5,40,0,0,234,235,5,51,0,0,235,
+		231,232,5,40,0,0,232,233,5,52,0,0,233,234,3,64,32,0,234,235,5,51,0,0,235,
 		27,1,0,0,0,236,237,5,40,0,0,237,29,1,0,0,0,238,242,5,43,0,0,239,241,3,
 		36,18,0,240,239,1,0,0,0,241,244,1,0,0,0,242,240,1,0,0,0,242,243,1,0,0,
 		0,243,245,1,0,0,0,244,242,1,0,0,0,245,246,5,44,0,0,246,31,1,0,0,0,247,

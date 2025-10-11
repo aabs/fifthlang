@@ -130,6 +130,7 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
             Annotations = ctx.Annotations,
             IsReadOnly = false,
             Name = ctx.Name,
+            CollectionType = ctx.CollectionType,
             FunctionDef = fd,
             Location = ctx.Location,
             Parent = ctx.Parent,
@@ -202,6 +203,7 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
                     Name = fd.Name,
                     Type = fd.ReturnType,
                     TypeName = fd.ReturnType.Name,
+                    CollectionType = methodDef.CollectionType,
                     Visibility = methodDef.Visibility,
                     IsReadOnly = methodDef.IsReadOnly,
                     Parent = methodDef.Parent
@@ -215,6 +217,7 @@ public class OverloadTransformingVisitor : DefaultRecursiveDescentVisitor
                     Name = fd.Name,
                     Type = fd.ReturnType,
                     TypeName = fd.ReturnType.Name,
+                    CollectionType = CollectionType.SingleInstance,
                     Visibility = functionDef.Visibility,
                     IsReadOnly = false, // FunctionDef doesn't have IsReadOnly
                     Parent = functionDef.Parent

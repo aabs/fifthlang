@@ -294,6 +294,7 @@ public class FieldDefBuilder : IBuilder<ast.FieldDef>
     private ast.AccessConstraint[] _AccessConstraints;
     private ast.MemberName _Name;
     private ast_model.TypeSystem.TypeName _TypeName;
+    private ast.CollectionType _CollectionType;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -304,6 +305,7 @@ public class FieldDefBuilder : IBuilder<ast.FieldDef>
              AccessConstraints = this._AccessConstraints // from FieldDef
            , Name = this._Name // from MemberDef
            , TypeName = this._TypeName // from MemberDef
+           , CollectionType = this._CollectionType // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
@@ -321,6 +323,11 @@ public class FieldDefBuilder : IBuilder<ast.FieldDef>
 
     public FieldDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
         _TypeName = value;
+        return this;
+    }
+
+    public FieldDefBuilder WithCollectionType(ast.CollectionType value){
+        _CollectionType = value;
         return this;
     }
 
@@ -350,6 +357,7 @@ public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
     private System.Boolean _CtorOnlySetter;
     private ast.MemberName _Name;
     private ast_model.TypeSystem.TypeName _TypeName;
+    private ast.CollectionType _CollectionType;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -365,6 +373,7 @@ public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
            , CtorOnlySetter = this._CtorOnlySetter // from PropertyDef
            , Name = this._Name // from MemberDef
            , TypeName = this._TypeName // from MemberDef
+           , CollectionType = this._CollectionType // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
@@ -410,6 +419,11 @@ public class PropertyDefBuilder : IBuilder<ast.PropertyDef>
         return this;
     }
 
+    public PropertyDefBuilder WithCollectionType(ast.CollectionType value){
+        _CollectionType = value;
+        return this;
+    }
+
     public PropertyDefBuilder WithIsReadOnly(System.Boolean value){
         _IsReadOnly = value;
         return this;
@@ -430,6 +444,7 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
 {
     private ast.MemberName _Name;
     private ast_model.TypeSystem.TypeName _TypeName;
+    private ast.CollectionType _CollectionType;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -439,6 +454,7 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
         return new ast.MethodDef(){
              Name = this._Name // from MemberDef
            , TypeName = this._TypeName // from MemberDef
+           , CollectionType = this._CollectionType // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
@@ -451,6 +467,11 @@ public class MethodDefBuilder : IBuilder<ast.MethodDef>
 
     public MethodDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
         _TypeName = value;
+        return this;
+    }
+
+    public MethodDefBuilder WithCollectionType(ast.CollectionType value){
+        _CollectionType = value;
         return this;
     }
 
@@ -476,6 +497,7 @@ public class OverloadedFunctionDefinitionBuilder : IBuilder<ast.OverloadedFuncti
     private ast_model.TypeSystem.IFunctionSignature _Signature;
     private ast.MemberName _Name;
     private ast_model.TypeSystem.TypeName _TypeName;
+    private ast.CollectionType _CollectionType;
     private System.Boolean _IsReadOnly;
     private ast.Visibility _Visibility;
     private Dictionary<System.String, System.Object> _Annotations;
@@ -487,6 +509,7 @@ public class OverloadedFunctionDefinitionBuilder : IBuilder<ast.OverloadedFuncti
            , Signature = this._Signature // from OverloadedFunctionDefinition
            , Name = this._Name // from MemberDef
            , TypeName = this._TypeName // from MemberDef
+           , CollectionType = this._CollectionType // from MemberDef
            , IsReadOnly = this._IsReadOnly // from MemberDef
            , Visibility = this._Visibility // from Definition
            , Annotations = this._Annotations // from AnnotatedThing
@@ -514,6 +537,11 @@ public class OverloadedFunctionDefinitionBuilder : IBuilder<ast.OverloadedFuncti
 
     public OverloadedFunctionDefinitionBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
         _TypeName = value;
+        return this;
+    }
+
+    public OverloadedFunctionDefinitionBuilder WithCollectionType(ast.CollectionType value){
+        _CollectionType = value;
         return this;
     }
 

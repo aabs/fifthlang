@@ -58,7 +58,7 @@ class_definition:
 	)* R_CURLY;
 
 property_declaration:
-	name = IDENTIFIER COLON type = IDENTIFIER SEMI;
+	name = IDENTIFIER COLON type = type_spec SEMI;
 
 type_name: IDENTIFIER;
 
