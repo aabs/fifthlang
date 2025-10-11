@@ -100,7 +100,6 @@ public partial class PEEmitter
                     asmRef = metadataBuilder.AddAssemblyReference(
                         metadataBuilder.GetOrAddString(asmNameResolved!),
                         ResolveAssemblyVersion(asmNameResolved), default, GetPublicKeyToken(asmNameResolved), default, default);
-                    ResolveAssemblyVersion(asmNameResolved), default, GetPublicKeyToken(asmNameResolved), default, default);
                     _assemblyRefHandles[asmKey] = asmRef;
                 }
 
@@ -170,7 +169,6 @@ public partial class PEEmitter
                         paramAsmRef = metadataBuilder.AddAssemblyReference(
                             metadataBuilder.GetOrAddString(asm),
                             ResolveAssemblyVersion(asm), default, GetPublicKeyToken(asm), default, default);
-                        ResolveAssemblyVersion(asm), default, GetPublicKeyToken(asm), default, default);
                         _assemblyRefHandles[paramAsmKey] = paramAsmRef;
                     }
                     var paramTypeKey = $"{paramAsmKey}|{typeNs}|{simpleName}";
