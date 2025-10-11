@@ -92,8 +92,17 @@ Multiple passes through the AST apply increasingly sophisticated transformations
 - IL-level AST uses simpler, lower-level constructs suitable for code generation
 
 #### Phase 4: Code Generation
-- **ILEmissionVisitor**: Generates CIL instructions from IL-level AST
-- **PEEmitter**: Emits PE assembly directly or via IL assembly generation
+#### Phase 3: IL Transformation (legacy)
+- **AstToIlTransformationVisitor**: Transforms high-level AST to IL-level AST
+- IL-level AST uses simpler, lower-level constructs suitable for code generation
+
+> Note (Roslyn migration): The project is transitioning from the legacy IL pipeline (AstToIlTransformationVisitor → ILEmissionVisitor → PEEmitter) to a Roslyn-based backend. During migration the legacy pipeline remains available behind a feature flag; the long-term goal is to remove IL-level lowering and PEEmitter code once equivalence is established and preservation candidates are handled.
+
+#### Phase 4: Code Generation (Roslyn-backed)
+- New component: `LoweredAstToRoslynTranslator` — accepts the Lowered AST and emits C# syntax trees for Roslyn compilation and PE/PDB emission.
+- Roslyn-based emission replaces direct IL emission for most constructs and produces Portable PDBs with #line mapping back to `.5th` sources.
+- Roslyn-generated PDBs MUST include full line-and-column sequence points for all emitted statements and expressions to preserve developer debugging experience. Implementations should use Roslyn's SequencePoint APIs / #line pragmas and EmbeddedText to preserve source fidelity.
+- Legacy emitters (ILEmissionVisitor/PEEmitter) will be deprecated and removed only after passing a documented canary and acceptance plan.
 
 ### VIII. AST Design & Transformation Strategy
 When designing language features and solving problems:
@@ -255,8 +264,8 @@ dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-
 2. `ast_generator` (creates builders/visitors) 
 3. `ast-generated` (output of generator, depends on ast-model)
 4. `parser` (depends on ast-model, ast-generated, runs ANTLR)
-5. `code_generator` (depends on all above)
-6. `compiler` (depends on all above)
+5. `code_generator` (legacy IL pipeline — will be phased out as Roslyn backend matures)
+6. `compiler` (depends on all above; after migration, compiler will integrate `LoweredAstToRoslynTranslator` and may depend less on legacy `code_generator` internals)
 7. `tests` (depends on all above)
 
 Always build the full solution rather than individual projects to ensure proper dependency resolution.
