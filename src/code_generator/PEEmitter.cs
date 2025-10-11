@@ -38,6 +38,8 @@ public partial class PEEmitter
     private readonly Dictionary<string, TypeDefinitionHandle> _localVarClassTypeHandles = new(StringComparer.Ordinal);
     // Track the class type of the current stack top when known (e.g., result of ldfld/newobj)
     private TypeDefinitionHandle? _pendingStackTopClassType;
+    // Track array element type when an array is on the stack (for ldelem operations)
+    private TypeDefinitionHandle? _pendingArrayElementType;
     // Track parameter class types per-method and the last loaded parameter name
     private readonly Dictionary<string, TypeDefinitionHandle> _paramClassTypeHandles = new(StringComparer.Ordinal);
     private string? _lastLoadedParam;

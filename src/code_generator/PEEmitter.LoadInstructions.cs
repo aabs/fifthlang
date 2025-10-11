@@ -25,12 +25,37 @@ public partial class PEEmitter
                 break;
             case "newarr":
                 il.OpCode(ILOpCode.Newarr);
-                il.Token(_systemInt32TypeRef);
+                // Use the type from the instruction if available, otherwise fallback to Int32
+                EntityHandle arrayElementTypeHandle = _systemInt32TypeRef;
+                if (loadInst.Value is string arrayTypeName && !string.IsNullOrEmpty(arrayTypeName))
+                {
+                    // Try to get the type handle for the array element type
+                    if (_typeHandles.TryGetValue(arrayTypeName, out var typeHandle))
+                    {
+                        arrayElementTypeHandle = typeHandle;
+                        DebugLog($"DEBUG: newarr using type '{arrayTypeName}' -> handle {MetadataTokens.GetRowNumber(typeHandle)}");
+                    }
+                    else
+                    {
+                        DebugLog($"DEBUG: newarr could not resolve type '{arrayTypeName}', falling back to System.Int32");
+                    }
+                }
+                il.Token(arrayElementTypeHandle);
                 _lastWasNewobj = true;
                 _pendingNewobjTypeName = null;
                 break;
             case "ldelem.i4":
                 il.OpCode(ILOpCode.Ldelem_i4);
+                break;
+            case "ldelem.ref":
+                il.OpCode(ILOpCode.Ldelem_ref);
+                // After loading an array element, propagate the element type to stack top
+                if (_pendingArrayElementType.HasValue)
+                {
+                    _pendingStackTopClassType = _pendingArrayElementType.Value;
+                    DebugLog($"DEBUG: ldelem.ref propagated element type to stack top");
+                }
+                _pendingArrayElementType = null;
                 break;
             case "ldc.r4":
                 if (loadInst.Value is float floatValue)
@@ -59,6 +84,7 @@ public partial class PEEmitter
                 il.OpCode(ILOpCode.Ldnull);
                 _lastLoadedLocal = null;
                 _pendingStackTopClassType = null;
+                _pendingArrayElementType = null;
                 _lastLoadedParam = null;
                 break;
             case "ldloc":
@@ -98,6 +124,7 @@ public partial class PEEmitter
                 else
                 {
                     _pendingStackTopClassType = null;
+                    _pendingArrayElementType = null;
                 }
                 _lastLoadedParam = null;
             }
@@ -107,6 +134,7 @@ public partial class PEEmitter
                 il.LoadConstantI4(0);
                 _lastLoadedLocal = null;
                 _pendingStackTopClassType = null;
+                _pendingArrayElementType = null;
                 _lastLoadedParam = null;
             }
         }
@@ -140,6 +168,7 @@ public partial class PEEmitter
             il.LoadConstantI4(0);
             _lastLoadedLocal = null;
             _lastLoadedParam = null;
+            _pendingArrayElementType = null;
         }
     }
 
@@ -164,6 +193,7 @@ public partial class PEEmitter
                 _lastLoadedLocal = null;
                 _lastLoadedParam = null;
                 _pendingStackTopClassType = null;
+                _pendingArrayElementType = null;
                 LogFieldResolutionFailure(fldName);
             }
         }
@@ -217,6 +247,7 @@ public partial class PEEmitter
     private void PropagateFieldType(EntityHandle fieldToken)
     {
         _pendingStackTopClassType = null;
+        _pendingArrayElementType = null;
         if (fieldToken.Kind == HandleKind.FieldDefinition)
         {
             var fdh = (FieldDefinitionHandle)fieldToken;
@@ -224,7 +255,19 @@ public partial class PEEmitter
             {
                 if (!string.Equals(declaredType.Namespace, "System", StringComparison.Ordinal) && !string.IsNullOrEmpty(declaredType.Name))
                 {
-                    if (_typeHandles.TryGetValue(declaredType.Name, out var declTypeHandle))
+                    // Check if this is an array type (e.g., "Bar[]")
+                    if (declaredType.Name.EndsWith("[]"))
+                    {
+                        // Extract element type name by removing "[]" suffix
+                        var elementTypeName = declaredType.Name.Substring(0, declaredType.Name.Length - 2);
+                        if (_typeHandles.TryGetValue(elementTypeName, out var elementTypeHandle))
+                        {
+                            // Track the array element type for ldelem operations
+                            _pendingArrayElementType = elementTypeHandle;
+                            DebugLog($"DEBUG: ldfld propagated array element type '{elementTypeName}' for ldelem");
+                        }
+                    }
+                    else if (_typeHandles.TryGetValue(declaredType.Name, out var declTypeHandle))
                     {
                         _pendingStackTopClassType = declTypeHandle;
                     }
@@ -281,6 +324,7 @@ public partial class PEEmitter
                 _lastLoadedLocal = null;
                 _lastLoadedParam = null;
                 _pendingStackTopClassType = null;
+                _pendingArrayElementType = null;
             }
             else
             {
@@ -288,6 +332,7 @@ public partial class PEEmitter
                 _lastLoadedLocal = null;
                 _lastLoadedParam = null;
                 _pendingStackTopClassType = null;
+                _pendingArrayElementType = null;
             }
         }
     }
