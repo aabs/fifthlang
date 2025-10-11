@@ -325,10 +325,10 @@ public class ExpressionEmitter
                         // Generate the index expression (pushes index onto stack)
                         var indexSeq = GenerateExpression(indexExpr);
                         sequence.AddRange(indexSeq.Instructions);
-                        
+
                         // Infer the element type from LHS
                         string elementTypeName = InferArrayElementType(memberAccess.LHS);
-                        
+
                         // Emit appropriate ldelem instruction based on element type
                         var ldelemOpcode = GetLoadElementOpcode(elementTypeName);
                         sequence.Add(new LoadInstruction(ldelemOpcode, null));
@@ -581,39 +581,85 @@ public class ExpressionEmitter
             DebugLog($"ObjectInitializer for type '{typeName}' with {objectInit.PropertyInitialisers?.Count ?? 0} properties");
         }
 
-        // Get the type name
-        var typeNameStr = objectInit.TypeToInitialize?.Name.Value ?? "object";
-
-        // Emit the constructor call (newobj)
-        // For now, we assume a parameterless constructor
-        var ctorSignature = $"instance void {typeNameStr}::.ctor()";
-        sequence.Add(new CallInstruction("newobj", ctorSignature) { ArgCount = 0 });
-
-        // If there are property initializers, we need to set each property
-        // The pattern for each property is:
-        //   dup           ; duplicate object reference (stfld will consume it)
-        //   <load value>  ; push the value to assign
-        //   stfld <name>  ; store value to field (consumes object ref + value)
-        // After all properties are set, the original object reference remains on stack
-        if (objectInit.PropertyInitialisers != null && objectInit.PropertyInitialisers.Count > 0)
+        // Check if we're creating an array type
+        if (objectInit.TypeToInitialize is ast_model.TypeSystem.FifthType.TArrayOf arrayType)
         {
-            foreach (var propInit in objectInit.PropertyInitialisers)
+            // For array creation: new Bar[size]
+            // We need to emit: <push size>, newarr <elementType>
+
+            // Get the array size from annotations or default to 0
+            int arraySize = 0;
+            Expression? sizeExpr = null;
+
+            if (objectInit.Annotations != null && objectInit.Annotations.TryGetValue("ArraySize", out var sizeObj))
             {
-                // Duplicate object reference on stack (stfld will consume one copy)
-                // Use LoadInstruction for dup to match PEEmitter expectations
-                sequence.Add(new LoadInstruction("dup", null));
+                sizeExpr = sizeObj as Expression;
+            }
 
-                // Generate the value to assign
-                var valueSeq = GenerateExpression(propInit.RHS);
-                sequence.AddRange(valueSeq.Instructions);
+            if (sizeExpr != null)
+            {
+                // Generate the size expression
+                var sizeSeq = GenerateExpression(sizeExpr);
+                sequence.AddRange(sizeSeq.Instructions);
+            }
+            else
+            {
+                // Default size of 0 if not specified
+                sequence.Add(new LoadInstruction("ldc.i4", 0));
+            }
 
-                // Store to the field (consumes object ref and value, leaving original object on stack)
-                var fieldName = propInit.PropertyToInitialize?.Property?.Name.Value ?? "unknown";
-                sequence.Add(new StoreInstruction("stfld", fieldName));
+            // Get element type name
+            var elementTypeName = arrayType.ElementType?.Name.Value ?? "object";
+
+            if (DebugEnabled)
+            {
+                DebugLog($"Creating array of {elementTypeName}");
+            }
+
+            // Emit array creation (newarr expects element type, not array type)
+            sequence.Add(new LoadInstruction("newarr", elementTypeName));
+
+            // Arrays don't have property initializers in the traditional sense,
+            // but if present, they might represent element initialization
+            // For now, we leave the array as-is
+        }
+        else
+        {
+            // Regular object creation
+            // Get the type name
+            var typeNameStr = objectInit.TypeToInitialize?.Name.Value ?? "object";
+
+            // Emit the constructor call (newobj)
+            // For now, we assume a parameterless constructor
+            var ctorSignature = $"instance void {typeNameStr}::.ctor()";
+            sequence.Add(new CallInstruction("newobj", ctorSignature) { ArgCount = 0 });
+
+            // If there are property initializers, we need to set each property
+            // The pattern for each property is:
+            //   dup           ; duplicate object reference (stfld will consume it)
+            //   <load value>  ; push the value to assign
+            //   stfld <name>  ; store value to field (consumes object ref + value)
+            // After all properties are set, the original object reference remains on stack
+            if (objectInit.PropertyInitialisers != null && objectInit.PropertyInitialisers.Count > 0)
+            {
+                foreach (var propInit in objectInit.PropertyInitialisers)
+                {
+                    // Duplicate object reference on stack (stfld will consume one copy)
+                    // Use LoadInstruction for dup to match PEEmitter expectations
+                    sequence.Add(new LoadInstruction("dup", null));
+
+                    // Generate the value to assign
+                    var valueSeq = GenerateExpression(propInit.RHS);
+                    sequence.AddRange(valueSeq.Instructions);
+
+                    // Store to the field (consumes object ref and value, leaving original object on stack)
+                    var fieldName = propInit.PropertyToInitialize?.Property?.Name.Value ?? "unknown";
+                    sequence.Add(new StoreInstruction("stfld", fieldName));
+                }
             }
         }
 
-        // At this point, the object reference is on the stack
+        // At this point, the object/array reference is on the stack
     }
 
     private void GenerateListLiteral(InstructionSequence sequence, ListLiteral listLiteral)
@@ -843,13 +889,13 @@ public class ExpressionEmitter
             if (arrayExpr.Type != null)
             {
                 var fifthType = arrayExpr.Type;
-                
+
                 // Check if it's an array or list type
                 if (fifthType is ast_model.TypeSystem.FifthType.TArrayOf arrayType)
                 {
                     return GetTypeNameFromFifthType(arrayType.ElementType);
                 }
-                
+
                 if (fifthType is ast_model.TypeSystem.FifthType.TListOf listType)
                 {
                     return GetTypeNameFromFifthType(listType.ElementType);
