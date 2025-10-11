@@ -51,7 +51,11 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         var mergeCall = new FuncCallExp
         {
             InvocationArguments = new List<Expression> { mergeArgument },
-            Annotations = new Dictionary<string, object> { ["FunctionName"] = "Merge" },
+            Annotations = new Dictionary<string, object> 
+            { 
+                ["FunctionName"] = "Merge",
+                ["ExternalType"] = typeof(Fifth.System.KG)
+            },
             Location = loc,
             Parent = null
         };
@@ -139,7 +143,11 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         var createGraphCall = new FuncCallExp
         {
             InvocationArguments = new List<Expression>(),
-            Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateGraph" },
+            Annotations = new Dictionary<string, object> 
+            { 
+                ["FunctionName"] = "CreateGraph",
+                ["ExternalType"] = typeof(Fifth.System.KG)
+            },
             Location = loc,
             Parent = null
         };
@@ -151,7 +159,11 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         var call = new FuncCallExp
         {
             InvocationArguments = new List<Expression> { left, right },
-            Annotations = new Dictionary<string, object> { ["FunctionName"] = "Difference" },
+            Annotations = new Dictionary<string, object> 
+            { 
+                ["FunctionName"] = "Difference",
+                ["ExternalType"] = typeof(Fifth.System.KG)
+            },
             Location = loc,
             Parent = null
         };
@@ -163,7 +175,17 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         if (uriExp is UriLiteralExp uri)
         {
             var uriLiteral = new StringLiteralExp { Annotations = new Dictionary<string, object>(), Location = uri.Location, Parent = null, Value = uri.Value.AbsoluteUri };
-            var createUri = new FuncCallExp { InvocationArguments = new List<Expression> { graphExpr, uriLiteral }, Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateUri" }, Location = uri.Location, Parent = null };
+            var createUri = new FuncCallExp 
+            { 
+                InvocationArguments = new List<Expression> { graphExpr, uriLiteral }, 
+                Annotations = new Dictionary<string, object> 
+                { 
+                    ["FunctionName"] = "CreateUri",
+                    ["ExternalType"] = typeof(Fifth.System.KG)
+                }, 
+                Location = uri.Location, 
+                Parent = null 
+            };
             return new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = uri.Location }, RHS = createUri, Location = uri.Location };
         }
         return new VarRefExp { VarName = "null", Annotations = new Dictionary<string, object>(), Location = loc };
@@ -175,11 +197,31 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         {
             case StringLiteralExp s:
                 var lit = new StringLiteralExp { Annotations = new Dictionary<string, object>(), Location = s.Location, Parent = null, Value = s.Value };
-                var createLiteralCall = new FuncCallExp { InvocationArguments = new List<Expression> { graphExpr, lit }, Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" }, Location = s.Location, Parent = null };
+                var createLiteralCall = new FuncCallExp 
+                { 
+                    InvocationArguments = new List<Expression> { graphExpr, lit }, 
+                    Annotations = new Dictionary<string, object> 
+                    { 
+                        ["FunctionName"] = "CreateLiteral",
+                        ["ExternalType"] = typeof(Fifth.System.KG)
+                    }, 
+                    Location = s.Location, 
+                    Parent = null 
+                };
                 return new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = s.Location }, RHS = createLiteralCall, Location = s.Location };
             case Int32LiteralExp i32:
                 var iLit = new Int32LiteralExp { Annotations = new Dictionary<string, object>(), Location = i32.Location, Parent = null, Value = i32.Value };
-                var createIntLit = new FuncCallExp { InvocationArguments = new List<Expression> { graphExpr, iLit }, Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" }, Location = i32.Location, Parent = null };
+                var createIntLit = new FuncCallExp 
+                { 
+                    InvocationArguments = new List<Expression> { graphExpr, iLit }, 
+                    Annotations = new Dictionary<string, object> 
+                    { 
+                        ["FunctionName"] = "CreateLiteral",
+                        ["ExternalType"] = typeof(Fifth.System.KG)
+                    }, 
+                    Location = i32.Location, 
+                    Parent = null 
+                };
                 return new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = i32.Location }, RHS = createIntLit, Location = i32.Location };
             default:
                 return new VarRefExp { VarName = "null", Annotations = new Dictionary<string, object>(), Location = loc };
@@ -200,7 +242,17 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         var objNode = CreateObjectNodeExpression(createGraphExpr, triple.ObjectExp, loc);
 
         // Create triple: KG.CreateTriple(subjNode,predNode,objNode)
-        var createTripleCall = new FuncCallExp { InvocationArguments = new List<Expression> { subjNode, predNode, objNode }, Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateTriple" }, Location = triple.Location, Parent = null };
+        var createTripleCall = new FuncCallExp 
+        { 
+            InvocationArguments = new List<Expression> { subjNode, predNode, objNode }, 
+            Annotations = new Dictionary<string, object> 
+            { 
+                ["FunctionName"] = "CreateTriple",
+                ["ExternalType"] = typeof(Fifth.System.KG)
+            }, 
+            Location = triple.Location, 
+            Parent = null 
+        };
         var tripleExpr = new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = triple.Location }, RHS = createTripleCall, Location = triple.Location };
 
         // Assert: <createGraphExpr>.Assert(tripleExpr)
@@ -337,7 +389,11 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
                 var copyCall = new FuncCallExp
                 {
                     InvocationArguments = new List<Expression> { lhs },
-                    Annotations = new Dictionary<string, object> { ["FunctionName"] = "CopyGraph" },
+                    Annotations = new Dictionary<string, object> 
+                    { 
+                        ["FunctionName"] = "CopyGraph",
+                        ["ExternalType"] = typeof(Fifth.System.KG)
+                    },
                     Location = loc2,
                     Parent = null
                 };
@@ -362,7 +418,11 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
                 var createTripleCall = new FuncCallExp
                 {
                     InvocationArguments = new List<Expression> { subjNode, predNode, objNode },
-                    Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateTriple" },
+                    Annotations = new Dictionary<string, object> 
+                    { 
+                        ["FunctionName"] = "CreateTriple",
+                        ["ExternalType"] = typeof(Fifth.System.KG)
+                    },
                     Location = loc2,
                     Parent = null
                 };
