@@ -220,8 +220,35 @@ main(): int {
 
 // Function with parameter constraints
 // Use pipe | to specify constraints on parameters
+// IMPORTANT: When using constraints, you must provide a base case
+// The base case is an unconstrained version that handles all other inputs
 positive(x: int | x > 0): int {
-    return x;
+    return x * 2;  // Handles positive numbers
+}
+
+positive(x: int): int {
+    return 0;  // Base case: handles zero and negative numbers
+}
+
+// Multiple constrained overloads with a base case
+classify(x: int | x < 0): string {
+    return "negative";
+}
+
+classify(x: int | x == 0): string {
+    return "zero";
+}
+
+classify(x: int | x > 0): string {
+    return "positive";
+}
+
+classify(x: int): string {
+    return "unknown";  // Base case (fallback)
+}
+
+callClassify(): int {
+    return 0;
 }
 
 // Parameter destructuring
@@ -449,6 +476,31 @@ main(): int {
     return 0;
 }
 
+// Transparent assertion: assignments inside graph blocks create triples
+class Person {
+    Name: string;
+    Age: int;
+}
+
+main(): int {
+    // Create an object
+    alice: Person;
+    alice = new Person();
+    
+    // Graph block with transparent assertions
+    // Assignments to object properties automatically create RDF triples
+    peopleGraph : graph in <ex:> = <{
+        // These assignments transparently assert triples:
+        alice.Name = "Alice";      // Creates: <alice, ex:Name, "Alice">
+        alice.Age = 30;            // Creates: <alice, ex:Age, 30>
+        
+        // You can also use explicit triple literals
+        <ex:alice, ex:knows, ex:bob>;
+    }>;
+    
+    return 0;
+}
+
 // Assigning graphs to stores
 alias ex as <http://example.org/>;
 myStore : store = sparql_store(<http://localhost:8080/graphdb>);
@@ -509,11 +561,16 @@ main(): int {
 }
 
 // Function with multiple constraints
+// All constrained overloads require a base case
 constrained(
     x: int | x > 0,
     y: int | y < 100
 ): int {
-    return x + y;
+    return x + y;  // Handles when x>0 AND y<100
+}
+
+constrained(x: int, y: int): int {
+    return 0;  // Base case: handles all other combinations
 }
 
 main(): int {
@@ -584,8 +641,15 @@ main(): int {
     adult: bool;
     adult = isAdult(john.Age);
     
-    // Create knowledge graph about this person
+    // Create knowledge graph with transparent assertions
+    // Assignments inside the graph block automatically create triples
     johnGraph : graph in <ex:> = <{
+        // Transparent assertions - property assignments become triples
+        john.FirstName = "John";
+        john.LastName = "Doe";
+        john.Age = 30;
+        
+        // Explicit triple literals also work
         <ex:john, foaf:firstName, "John">;
         <ex:john, foaf:lastName, "Doe">;
         <ex:john, foaf:age, 30>;
