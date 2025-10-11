@@ -24,6 +24,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     private readonly List<TypeCheckingError> errors = new();
     private readonly TypeSystem typeSystem;
     private readonly Dictionary<Type, FifthType> languageFriendlyTypes = new();
+    private ModuleDef? currentModule;
 
     /// <summary>
     /// Initializes a new instance of the TypeAnnotationVisitor.
@@ -395,25 +396,28 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             // RHS should be a VarRefExp representing the member name
             if (result.RHS is VarRefExp memberRef && lhsType is FifthType.TType userType)
             {
-                // Try to find the class definition for the LHS type
+                // Look up the class definition from the current module (not symbol table)
+                // to get the latest AST nodes with proper CollectionType information
                 var className = userType.Name.Value;
-                var nearestScope = result.NearestScope();
-                if (nearestScope != null && nearestScope.TryResolveByName(className, out var classDefObj))
+                ClassDef? classDef = null;
+                
+                if (currentModule != null)
                 {
-                    if (classDefObj is ClassDef classDef)
+                    classDef = currentModule.Classes.FirstOrDefault(c => c.Name.Value == className);
+                }
+                
+                if (classDef != null)
+                {
+                    // Find the property/field in the class
+                    var memberName = memberRef.VarName;
+                    var member = classDef.MemberDefs.FirstOrDefault(m => m.Name.Value == memberName);
+                    
+                    if (member != null)
                     {
-                        // Find the property/field in the class
-                        var memberName = memberRef.VarName;
-                        var member = classDef.MemberDefs.FirstOrDefault(m => m.Name.Value == memberName);
-                        
-                        if (member != null)
-                        {
-                            // Compute the member's type from its TypeName and CollectionType
-                            // (Don't rely on member.Type being set, as it might be from an old AST node)
-                            var memberType = CreateFifthType(member.TypeName, member.CollectionType);
-                            OnTypeInferred(result, memberType);
-                            return result with { Type = memberType };
-                        }
+                        // Compute the member's type from its TypeName and CollectionType
+                        var memberType = CreateFifthType(member.TypeName, member.CollectionType);
+                        OnTypeInferred(result, memberType);
+                        return result with { Type = memberType };
                     }
                 }
             }
@@ -510,6 +514,17 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             FifthType.TVoidType => "void",
             _ => type.ToString() ?? "unknown"
         };
+    }
+
+    /// <summary>
+    /// Visits a ModuleDef and tracks it for class lookup.
+    /// </summary>
+    public override ModuleDef VisitModuleDef(ModuleDef ctx)
+    {
+        currentModule = ctx;
+        var result = base.VisitModuleDef(ctx);
+        currentModule = result;
+        return result;
     }
 
     /// <summary>
