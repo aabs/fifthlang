@@ -1440,6 +1440,18 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         // Create the type reference with collection type support
         FifthType typeToInitialize = CreateTypeFromSpec(typeName, collectionType);
 
+        // For array types, extract the size if present
+        Expression? arraySizeExpr = null;
+        if (typeSpec is FifthParser.Array_type_specContext arrayTypeContext)
+        {
+            var sizeOperand = arrayTypeContext.operand();
+            if (sizeOperand != null)
+            {
+                arraySizeExpr = (Expression)Visit(sizeOperand);
+                DebugLog($"DEBUG: Array size expression found: {arraySizeExpr?.GetType().Name ?? "null"}");
+            }
+        }
+
         // Extract property initializers
         var propertyInitializers = new List<PropertyInitializerExp>();
         var propertyAssignments = context.initialiser_property_assignment();
@@ -1501,11 +1513,17 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         }
 
         // Create the ObjectInitializerExp
+        var annotations = new Dictionary<string, object>();
+        if (arraySizeExpr != null)
+        {
+            annotations["ArraySize"] = arraySizeExpr;
+        }
+        
         var result = new ObjectInitializerExp
         {
             TypeToInitialize = typeToInitialize,
             PropertyInitialisers = propertyInitializers,
-            Annotations = new Dictionary<string, object>(),
+            Annotations = annotations,
             Location = GetLocationDetails(context),
             Type = typeToInitialize // The result type is the same as the type being initialized
         };
