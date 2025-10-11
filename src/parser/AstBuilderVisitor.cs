@@ -306,6 +306,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             {
                 Name = f.Name,
                 TypeName = f.ReturnType?.Name ?? TypeName.From("void"),
+                CollectionType = CollectionType.SingleInstance,
                 IsReadOnly = false,
                 Visibility = Visibility.Public,
                 Annotations = [],
@@ -1034,11 +1035,20 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var b = new PropertyDefBuilder();
         b.WithName(MemberName.From(context.name.Text))
-         .WithTypeName(TypeName.From(context.type.Text))
          .WithVisibility(Visibility.Public)
          .WithAccessConstraints([AccessConstraint.None])
          .WithIsReadOnly(false)
          .WithIsWriteOnly(false);
+        
+        // Parse type_spec to support arrays, lists, and generic types
+        var typeSpec = context.type;
+        if (typeSpec != null)
+        {
+            var (typeName, collectionType) = ParseTypeSpec(typeSpec);
+            b.WithTypeName(typeName);
+            b.WithCollectionType(collectionType);
+        }
+        
         // todo:  There's a lot more detail that could be filled in here, and a lot more
         // sophistication needed in the grammar of the decl
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
@@ -1530,7 +1540,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 Setter = null,
                 CtorOnlySetter = false,
                 Visibility = Visibility.Public,
-                TypeName = TypeName.From("object") // We'll resolve this later
+                TypeName = TypeName.From("object"), // We'll resolve this later
+                CollectionType = CollectionType.SingleInstance
             }
         };
 
