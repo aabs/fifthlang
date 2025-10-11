@@ -11,6 +11,7 @@ class Foo
 main(): int
 {
     a: Foo = new Foo{ b = new Bar[1] }; 
+    a.b[0] = new Bar();
     a.b[0].c = 42; 
     return a.b[0].c;
 }
