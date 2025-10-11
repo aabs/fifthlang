@@ -83,6 +83,7 @@ public class PropertyToFieldExpander : DefaultRecursiveDescentVisitor
             Visibility = ctx.Visibility,
             IsReadOnly = ctx.IsReadOnly,
             TypeName = ctx.TypeName,
+            CollectionType = ctx.CollectionType,
             Annotations = ctx.Annotations,
             FunctionDef = getter,
             Location = ctx.Location
@@ -140,6 +141,7 @@ public class PropertyToFieldExpander : DefaultRecursiveDescentVisitor
                 Visibility = ctx.Visibility,
                 IsReadOnly = ctx.IsReadOnly,
                 TypeName = ctx.TypeName,
+                CollectionType = ctx.CollectionType,
                 Annotations = ctx.Annotations,
                 FunctionDef = getter,
                 Location = ctx.Location

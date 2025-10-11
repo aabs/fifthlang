@@ -1,5 +1,6 @@
 using ast;
 using ast_generated;
+using ast_model.Symbols;
 using ast_model.TypeSystem;
 using ast_model.TypeSystem.Inference;
 using System;
@@ -361,6 +362,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
 
     /// <summary>
     /// Visits a MemberAccessExp and validates that member access is valid on the LHS type.
+    /// Also infers the type of the member access expression from the property/field type.
     /// </summary>
     public override MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx)
     {
@@ -387,6 +389,31 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
                 // Return with unknown type
                 var unknownType = new FifthType.UnknownType() { Name = TypeName.From("unknown") };
                 return result with { Type = unknownType };
+            }
+
+            // Try to infer the type of the member access from the property/field
+            // RHS should be a VarRefExp representing the member name
+            if (result.RHS is VarRefExp memberRef && lhsType is FifthType.TType userType)
+            {
+                // Try to find the class definition for the LHS type
+                var className = userType.Name.Value;
+                var nearestScope = result.NearestScope();
+                if (nearestScope != null && nearestScope.TryResolveByName(className, out var classDefObj))
+                {
+                    if (classDefObj is ClassDef classDef)
+                    {
+                        // Find the property/field in the class
+                        var memberName = memberRef.VarName;
+                        var member = classDef.MemberDefs.FirstOrDefault(m => m.Name.Value == memberName);
+                        
+                        if (member != null && member.Type != null)
+                        {
+                            // Use the member's type for this member access expression
+                            OnTypeInferred(result, member.Type);
+                            return result with { Type = member.Type };
+                        }
+                    }
+                }
             }
         }
 
@@ -502,6 +529,20 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     public override VariableDecl VisitVariableDecl(VariableDecl ctx)
     {
         var result = base.VisitVariableDecl(ctx);
+
+        // Create FifthType from TypeName and CollectionType
+        FifthType fifthType = CreateFifthType(result.TypeName, result.CollectionType);
+        
+        OnTypeInferred(result, fifthType);
+        return result with { Type = fifthType };
+    }
+
+    /// <summary>
+    /// Visits a PropertyDef and infers its type from TypeName and CollectionType.
+    /// </summary>
+    public override PropertyDef VisitPropertyDef(PropertyDef ctx)
+    {
+        var result = base.VisitPropertyDef(ctx);
 
         // Create FifthType from TypeName and CollectionType
         FifthType fifthType = CreateFifthType(result.TypeName, result.CollectionType);
