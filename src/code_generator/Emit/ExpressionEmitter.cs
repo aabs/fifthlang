@@ -801,12 +801,25 @@ public class ExpressionEmitter
             if (fifthType is ast_model.TypeSystem.FifthType.TArrayOf arrayType)
             {
                 var elementTypeName = GetTypeNameFromFifthType(arrayType.ElementType);
+                // For nested arrays, we need to use the IL-compatible bracket notation
+                // e.g., System.Int32[][] becomes [System.Runtime]System.Int32[] when used in newarr
+                if (elementTypeName.Contains("[]"))
+                {
+                    // This is a nested array - need to properly format for IL
+                    return $"[System.Runtime]{elementTypeName}";
+                }
                 return $"{elementTypeName}[]";
             }
             
             if (fifthType is ast_model.TypeSystem.FifthType.TListOf listType)
             {
                 var elementTypeName = GetTypeNameFromFifthType(listType.ElementType);
+                // For nested arrays/lists, we need to use the IL-compatible bracket notation
+                if (elementTypeName.Contains("[]"))
+                {
+                    // This is a nested array - need to properly format for IL
+                    return $"[System.Runtime]{elementTypeName}";
+                }
                 return $"{elementTypeName}[]";
             }
             

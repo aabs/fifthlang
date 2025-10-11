@@ -607,11 +607,32 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
 
     /// <summary>
     /// Creates a base FifthType from a TypeName (without collection wrapper).
+    /// Handles nested collection types like "[int]" or "[[int]]".
     /// </summary>
     private FifthType CreateBaseType(TypeName typeName)
     {
+        var typeNameValue = typeName.Value;
+        
+        // Check if this is a list type notation: [type]
+        if (typeNameValue.StartsWith("[") && typeNameValue.EndsWith("]"))
+        {
+            // Extract the inner type from "[type]"
+            var innerTypeName = typeNameValue.Substring(1, typeNameValue.Length - 2);
+            var innerType = CreateBaseType(TypeName.From(innerTypeName));
+            return new FifthType.TListOf(innerType) { Name = TypeName.From($"List<{innerTypeName}>") };
+        }
+        
+        // Check if this is an array type notation: type[]
+        if (typeNameValue.EndsWith("[]"))
+        {
+            // Extract the inner type from "type[]"
+            var innerTypeName = typeNameValue.Substring(0, typeNameValue.Length - 2);
+            var innerType = CreateBaseType(TypeName.From(innerTypeName));
+            return new FifthType.TArrayOf(innerType) { Name = TypeName.From($"{innerTypeName}[]") };
+        }
+        
         // Try to get from language-friendly types first
-        var friendlyType = GetLanguageFriendlyTypeByName(typeName.Value);
+        var friendlyType = GetLanguageFriendlyTypeByName(typeNameValue);
         if (friendlyType != null)
         {
             return friendlyType;

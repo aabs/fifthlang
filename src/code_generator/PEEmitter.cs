@@ -49,6 +49,8 @@ public partial class PEEmitter
     // Cache assembly and typeref handles to avoid creating duplicate metadata rows
     private readonly Dictionary<string, AssemblyReferenceHandle> _assemblyRefHandles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, TypeReferenceHandle> _typeRefHandlesCache = new(StringComparer.Ordinal);
+    // Cache for array type specifications
+    private readonly Dictionary<string, TypeSpecificationHandle> _arrayTypeSpecs = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Generate a PE assembly directly from IL metamodel
