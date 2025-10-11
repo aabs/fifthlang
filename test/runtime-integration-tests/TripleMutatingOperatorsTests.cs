@@ -10,15 +10,11 @@ public class TripleMutatingOperatorsTests : RuntimeTestBase
     public async Task Graph_PlusAssign_Triple_ShouldAddTripleToGraph()
     {
         var src = """
+            alias s as <http://example.org/>;
             main(): int {
-                g = KG.CreateGraph();
-                subj = g.CreateUri("http://example.org/subject");
-                pred = g.CreateUri("http://example.org/predicate");
-                obj = g.CreateUri("http://example.org/object");
-                triple = <subj, pred, obj>;
-                
+                g: graph = <{}>;
                 // Test += operator: adds triple to graph
-                g += triple;
+                g += <s:subject, s:predicate, s:object>;
                 
                 // Verify graph contains the triple
                 if (g.CountTriples() != 1) {
@@ -28,7 +24,7 @@ public class TripleMutatingOperatorsTests : RuntimeTestBase
                 return 0;
             }
             """;
-        
+
         var exe = await CompileSourceAsync(src, "graph_plusassign_triple");
         var result = await ExecuteAsync(exe);
         result.ExitCode.Should().Be(0, "g += triple should add the triple to the graph");
@@ -59,7 +55,7 @@ public class TripleMutatingOperatorsTests : RuntimeTestBase
                 return 0;
             }
             """;
-        
+
         var exe = await CompileSourceAsync(src, "graph_minusassign_triple");
         var result = await ExecuteAsync(exe);
         result.ExitCode.Should().Be(0, "g -= triple should remove the triple from the graph");
@@ -91,7 +87,7 @@ public class TripleMutatingOperatorsTests : RuntimeTestBase
                 return 0;
             }
             """;
-        
+
         var exe = await CompileSourceAsync(src, "graph_plusassign_multiple");
         var result = await ExecuteAsync(exe);
         result.ExitCode.Should().Be(0, "g += triple (multiple times) should accumulate triples");
@@ -125,7 +121,7 @@ public class TripleMutatingOperatorsTests : RuntimeTestBase
                 return 0;
             }
             """;
-        
+
         var exe = await CompileSourceAsync(src, "graph_minusassign_nonexistent");
         var result = await ExecuteAsync(exe);
         result.ExitCode.Should().Be(0, "g -= triple (non-existent) should be idempotent");

@@ -57,7 +57,7 @@ public partial class FifthParser : FifthParserBase {
 		WS=111, COMMENT=112, TERMINATOR=113, LINE_COMMENT=114, WS_NLSEMI=115, 
 		COMMENT_NLSEMI=116, LINE_COMMENT_NLSEMI=117, EOS=118, PrefixedName=119, 
 		PNAME_LN=120, PN_LOCAL=121, PLX=122, PERCENT=123, PNAME_NS=124, PN_PREFIX=125, 
-		PN_LOCAL_ESC=126;
+		PN_LOCAL_ESC=126, SL_COMMENT=127;
 	public const int
 		RULE_fifth = 0, RULE_module_import = 1, RULE_module_name = 2, RULE_packagename = 3, 
 		RULE_alias = 4, RULE_function_declaration = 5, RULE_function_body = 6, 
@@ -125,7 +125,8 @@ public partial class FifthParser : FifthParserBase {
 		"HEX_BYTE_VALUE", "LITTLE_U_VALUE", "BIG_U_VALUE", "RAW_STRING_LIT", "INTERPRETED_STRING_LIT", 
 		"INTERPOLATED_STRING_LIT", "WS", "COMMENT", "TERMINATOR", "LINE_COMMENT", 
 		"WS_NLSEMI", "COMMENT_NLSEMI", "LINE_COMMENT_NLSEMI", "EOS", "PrefixedName", 
-		"PNAME_LN", "PN_LOCAL", "PLX", "PERCENT", "PNAME_NS", "PN_PREFIX", "PN_LOCAL_ESC"
+		"PNAME_LN", "PN_LOCAL", "PLX", "PERCENT", "PNAME_NS", "PN_PREFIX", "PN_LOCAL_ESC", 
+		"SL_COMMENT"
 	};
 	public static readonly IVocabulary DefaultVocabulary = new Vocabulary(_LiteralNames, _SymbolicNames);
 
@@ -5540,7 +5541,7 @@ public partial class FifthParser : FifthParserBase {
 	}
 
 	private static int[] _serializedATN = {
-		4,1,126,606,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
+		4,1,127,606,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
 		7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,2,14,7,14,
 		2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,7,20,2,21,7,21,
 		2,22,7,22,2,23,7,23,2,24,7,24,2,25,7,25,2,26,7,26,2,27,7,27,2,28,7,28,

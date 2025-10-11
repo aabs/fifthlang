@@ -9,6 +9,19 @@ lexer grammar FifthLexer;
 // $antlr-format allowShortRulesOnASingleLine true, allowShortBlocksOnASingleLine true, minEmptyLines 0, alignSemicolons ownLine
 // $antlr-format alignColons trailing, singleLineOverrulesHangingColon true, alignLexerCommands true, alignLabels true, alignTrailers true
 
+@members {
+    // Prevent '//' inside IRIs (e.g. 'http://...') from being treated as a line comment.
+    // We only want to accept '//' as the start of a comment if it occurs at the
+    // start of input or immediately after whitespace/newline.
+    private bool IsStartOfComment() {
+        // Use the C# ANTLR runtime InputStream property (not the Java-style _input field)
+        int prev = InputStream.LA(-1);
+        if (prev <= 0) return true; // start of file / no previous char
+        char c = (char)prev;
+        return c == '\n' || c == '\r' || char.IsWhiteSpace(c);
+    }
+}
+
 // Keywords
 
 ALIAS       : 'alias';
@@ -305,3 +318,9 @@ PN_LOCAL_ESC:
         | '%'
     )
 ;
+
+// Replace or update the existing single-line comment rule so that '//' is only
+// considered a comment when it truly begins a comment (not when part of an IRI).
+// If your grammar already names the rule differently, apply the same predicate
+// there (e.g. LINE_COMMENT -> {IsStartOfComment()}? '//' ...).
+SL_COMMENT: {IsStartOfComment()}? '//' ~[\r\n]* -> skip;
