@@ -1,1 +1,16 @@
-main(): int { a: int[]; a = int[10]; a.a[0].a; return 0; }
+class Bar 
+{
+    c: int;
+}
+
+class Foo 
+{
+    b: Bar[];
+}
+
+main(): int
+{
+    a: Foo = new Foo{ b = new Bar[1] }; 
+    a.b[0].c = 42; 
+    return a.b[0].c;
+}

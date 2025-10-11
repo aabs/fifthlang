@@ -3,7 +3,7 @@ class Foo {
 }
 
 main(): int {
-	f: Foo;
+	f: Foo = new Foo{a = 0};
 	f.a = 42;
 	return f.a;
 }
