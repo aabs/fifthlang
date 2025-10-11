@@ -406,11 +406,13 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
                         var memberName = memberRef.VarName;
                         var member = classDef.MemberDefs.FirstOrDefault(m => m.Name.Value == memberName);
                         
-                        if (member != null && member.Type != null)
+                        if (member != null)
                         {
-                            // Use the member's type for this member access expression
-                            OnTypeInferred(result, member.Type);
-                            return result with { Type = member.Type };
+                            // Compute the member's type from its TypeName and CollectionType
+                            // (Don't rely on member.Type being set, as it might be from an old AST node)
+                            var memberType = CreateFifthType(member.TypeName, member.CollectionType);
+                            OnTypeInferred(result, memberType);
+                            return result with { Type = memberType };
                         }
                     }
                 }
