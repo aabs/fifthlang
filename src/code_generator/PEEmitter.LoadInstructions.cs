@@ -29,8 +29,15 @@ public partial class PEEmitter
                 EntityHandle arrayElementTypeHandle = _systemInt32TypeRef;
                 if (loadInst.Value is string arrayTypeName && !string.IsNullOrEmpty(arrayTypeName))
                 {
-                    // Try to get the type handle for the array element type
-                    if (_typeHandles.TryGetValue(arrayTypeName, out var typeHandle))
+                    // Check if this is an array type (e.g., "System.Int32[]" or "[System.Runtime]System.Int32[]")
+                    if (arrayTypeName.Contains("[]"))
+                    {
+                        // This is an array type - need to create a TypeSpec for it
+                        arrayElementTypeHandle = GetOrCreateArrayTypeSpec(arrayTypeName, metadataBuilder);
+                        DebugLog($"DEBUG: newarr using array type spec for '{arrayTypeName}'");
+                    }
+                    // Try to get the type handle for non-array element types
+                    else if (_typeHandles.TryGetValue(arrayTypeName, out var typeHandle))
                     {
                         arrayElementTypeHandle = typeHandle;
                         DebugLog($"DEBUG: newarr using type '{arrayTypeName}' -> handle {MetadataTokens.GetRowNumber(typeHandle)}");
@@ -395,5 +402,131 @@ public partial class PEEmitter
         }
         il.OpCode(ILOpCode.Box);
         il.Token(paramTypeRef);
+    }
+
+    /// <summary>
+    /// Gets or creates a TypeSpec for an array type (e.g., "System.Int32[]" or "[System.Runtime]System.Int32[]")
+    /// </summary>
+    private EntityHandle GetOrCreateArrayTypeSpec(string arrayTypeName, MetadataBuilder metadataBuilder)
+    {
+        // Check if we've already created a TypeSpec for this array type
+        if (_arrayTypeSpecs.TryGetValue(arrayTypeName, out var existingHandle))
+        {
+            return existingHandle;
+        }
+
+        // Parse the array type name to extract the element type
+        // Format can be: "System.Int32[]" or "[System.Runtime]System.Int32[]"
+        string elementTypeName = arrayTypeName;
+        
+        // Strip assembly reference if present (e.g., "[System.Runtime]System.Int32[]")
+        if (elementTypeName.StartsWith("["))
+        {
+            var closeBracket = elementTypeName.IndexOf(']');
+            if (closeBracket > 0)
+            {
+                elementTypeName = elementTypeName.Substring(closeBracket + 1);
+            }
+        }
+        
+        // Strip the [] suffix
+        if (elementTypeName.EndsWith("[]"))
+        {
+            elementTypeName = elementTypeName.Substring(0, elementTypeName.Length - 2);
+        }
+
+        // Build a type signature for the array
+        var signatureBuilder = new BlobBuilder();
+        var encoder = new BlobEncoder(signatureBuilder);
+        
+        // Encode SZARRAY (single-dimensional zero-based array)
+        encoder.Builder.WriteByte((byte)SignatureTypeCode.SZArray);
+        
+        // Encode the element type
+        EncodeTypeInSignature(encoder.Builder, elementTypeName, metadataBuilder);
+        
+        // Create the TypeSpec
+        var typeSpecHandle = metadataBuilder.AddTypeSpecification(
+            metadataBuilder.GetOrAddBlob(signatureBuilder));
+        
+        // Cache it
+        _arrayTypeSpecs[arrayTypeName] = typeSpecHandle;
+        
+        return typeSpecHandle;
+    }
+    
+    /// <summary>
+    /// Encodes a type in a signature blob
+    /// </summary>
+    private void EncodeTypeInSignature(BlobBuilder builder, string typeName, MetadataBuilder metadataBuilder)
+    {
+        // Handle nested array types recursively
+        if (typeName.EndsWith("[]"))
+        {
+            builder.WriteByte((byte)SignatureTypeCode.SZArray);
+            var elementType = typeName.Substring(0, typeName.Length - 2);
+            EncodeTypeInSignature(builder, elementType, metadataBuilder);
+            return;
+        }
+        
+        // Encode primitive types
+        var typeCode = typeName switch
+        {
+            "System.Int32" => SignatureTypeCode.Int32,
+            "System.Int64" => SignatureTypeCode.Int64,
+            "System.Single" => SignatureTypeCode.Single,
+            "System.Double" => SignatureTypeCode.Double,
+            "System.Boolean" => SignatureTypeCode.Boolean,
+            "System.Byte" => SignatureTypeCode.Byte,
+            "System.SByte" => SignatureTypeCode.SByte,
+            "System.Int16" => SignatureTypeCode.Int16,
+            "System.UInt16" => SignatureTypeCode.UInt16,
+            "System.UInt32" => SignatureTypeCode.UInt32,
+            "System.UInt64" => SignatureTypeCode.UInt64,
+            "System.IntPtr" => SignatureTypeCode.IntPtr,
+            "System.UIntPtr" => SignatureTypeCode.UIntPtr,
+            "System.Char" => SignatureTypeCode.Char,
+            "System.String" => SignatureTypeCode.String,
+            "System.Object" => SignatureTypeCode.Object,
+            _ => (SignatureTypeCode)0
+        };
+        
+        if (typeCode != 0)
+        {
+            builder.WriteByte((byte)typeCode);
+        }
+        else
+        {
+            // For non-primitive types, use a type reference
+            // Format: ELEMENT_TYPE_CLASS followed by compressed TypeDefOrRefOrSpecEncoded token
+            builder.WriteByte((byte)SignatureTypeCode.TypeHandle);
+            
+            // Try to find the type in our handles
+            EntityHandle typeHandle = _systemInt32TypeRef; // fallback
+            if (_typeHandles.TryGetValue(typeName, out var handle))
+            {
+                typeHandle = handle;
+            }
+            else
+            {
+                // Create a type reference for System.Runtime types
+                var systemRuntimeRef = _assemblyRefHandles.GetValueOrDefault("System.Runtime");
+                if (systemRuntimeRef != default)
+                {
+                    var parts = typeName.Split('.');
+                    var ns = parts.Length > 1 ? string.Join(".", parts.Take(parts.Length - 1)) : "";
+                    var name = parts.Last();
+                    
+                    typeHandle = metadataBuilder.AddTypeReference(
+                        systemRuntimeRef,
+                        metadataBuilder.GetOrAddString(ns),
+                        metadataBuilder.GetOrAddString(name));
+                }
+            }
+            
+            // Encode the TypeDefOrRef token as compressed integer
+            var codedIndex = CodedIndex.TypeDefOrRefOrSpec(typeHandle);
+            builder.WriteCompressedInteger(codedIndex);
+        }
     }
 }
