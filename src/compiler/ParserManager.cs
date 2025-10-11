@@ -165,6 +165,12 @@ public static class FifthParserManager
             var typeAnnotationVisitor = new TypeAnnotationVisitor();
             ast = typeAnnotationVisitor.Visit(ast);
             
+            // Rebuild symbol table after type annotation to ensure all references point to
+            // the updated AST nodes with proper types and CollectionType information.
+            // This fixes the stale reference issue where the symbol table contains old nodes
+            // from before type annotation transformed the immutable AST.
+            ast = new SymbolTableBuilderVisitor().Visit(ast);
+            
             // Collect type checking errors (only Error severity, not Info)
             if (diagnostics != null)
             {
