@@ -82,6 +82,9 @@ public partial class PEEmitter
             case "stelem.i4":
                 il.OpCode(ILOpCode.Stelem_i4);
                 break;
+            case "stelem.ref":
+                il.OpCode(ILOpCode.Stelem_ref);
+                break;
 
             case "stfld":
                 if (storeInst.Target is string fieldName)
