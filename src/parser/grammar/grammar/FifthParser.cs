@@ -3649,8 +3649,8 @@ public partial class FifthParser : FifthParserBase {
 		public Initialiser_property_assignmentContext _initialiser_property_assignment;
 		public IList<Initialiser_property_assignmentContext> _properties = new List<Initialiser_property_assignmentContext>();
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NEW() { return GetToken(FifthParser.NEW, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public Type_nameContext type_name() {
-			return GetRuleContext<Type_nameContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public Type_specContext type_spec() {
+			return GetRuleContext<Type_specContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode L_PAREN() { return GetToken(FifthParser.L_PAREN, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode R_PAREN() { return GetToken(FifthParser.R_PAREN, 0); }
@@ -3706,7 +3706,7 @@ public partial class FifthParser : FifthParserBase {
 			State = 437;
 			Match(NEW);
 			State = 438;
-			type_name();
+			type_spec(0);
 			State = 451;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,37,Context) ) {
@@ -5692,7 +5692,7 @@ public partial class FifthParser : FifthParserBase {
 		421,1,0,0,0,430,422,1,0,0,0,430,423,1,0,0,0,430,424,1,0,0,0,430,428,1,
 		0,0,0,430,429,1,0,0,0,431,73,1,0,0,0,432,435,4,37,10,0,433,436,3,84,42,
 		0,434,436,3,86,43,0,435,433,1,0,0,0,435,434,1,0,0,0,436,75,1,0,0,0,437,
-		438,5,23,0,0,438,451,3,28,14,0,439,448,5,41,0,0,440,445,3,18,9,0,441,442,
+		438,5,23,0,0,438,451,3,64,32,0,439,448,5,41,0,0,440,445,3,18,9,0,441,442,
 		5,50,0,0,442,444,3,18,9,0,443,441,1,0,0,0,444,447,1,0,0,0,445,443,1,0,
 		0,0,445,446,1,0,0,0,446,449,1,0,0,0,447,445,1,0,0,0,448,440,1,0,0,0,448,
 		449,1,0,0,0,449,450,1,0,0,0,450,452,5,42,0,0,451,439,1,0,0,0,451,452,1,

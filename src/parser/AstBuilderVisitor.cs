@@ -1425,19 +1425,20 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         DebugLog($"DEBUG: FINALLY ENTERING VisitObject_instantiation_expression!!!");
         DebugLog($"DEBUG: Context type: {context?.GetType().Name ?? "null"}");
-        DebugLog($"DEBUG: Type name method exists: {context?.type_name() != null}");
 
-        if (context?.type_name() != null)
+        // Extract the type specification (now supports arrays, lists, etc.)
+        var typeSpec = context.type_spec();
+        if (typeSpec == null)
         {
-            DebugLog($"DEBUG: Type name: {context.type_name().GetText()}");
+            DebugLog($"DEBUG: No type_spec found");
+            return DefaultResult;
         }
 
-        // Extract the type name
-        var typeName = context.type_name()?.GetText() ?? "object";
-        DebugLog($"DEBUG: Creating ObjectInitializerExp for type: {typeName}");
+        var (typeName, collectionType) = ParseTypeSpec(typeSpec);
+        DebugLog($"DEBUG: Creating ObjectInitializerExp for type: {typeName.Value} with collection type: {collectionType}");
 
-        // Create the type reference
-        var typeToInitialize = new FifthType.TType() { Name = TypeName.From(typeName) };
+        // Create the type reference with collection type support
+        FifthType typeToInitialize = CreateTypeFromSpec(typeName, collectionType);
 
         // Extract property initializers
         var propertyInitializers = new List<PropertyInitializerExp>();
@@ -1511,6 +1512,20 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
         DebugLog($"DEBUG: Created ObjectInitializerExp with {propertyInitializers.Count} property initializers");
         return result;
+    }
+
+    private FifthType CreateTypeFromSpec(TypeName typeName, CollectionType collectionType)
+    {
+        // Create base type
+        var baseType = new FifthType.TType() { Name = typeName };
+        
+        // Wrap in collection type if needed
+        return collectionType switch
+        {
+            CollectionType.Array => new FifthType.TArrayOf(baseType) { Name = TypeName.From($"{typeName.Value}[]") },
+            CollectionType.List => new FifthType.TListOf(baseType) { Name = TypeName.From($"[{typeName.Value}]") },
+            _ => baseType
+        };
     }
 
     protected override IAstThing DefaultResult { get; }
