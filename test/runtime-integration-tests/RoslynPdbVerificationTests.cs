@@ -40,11 +40,36 @@ public class RoslynPdbVerificationTests
         var source = "using System; public class Program { public static void Main() { Console.WriteLine(1); } }";
         var syntaxTree = CSharpSyntaxTree.ParseText(source, path: "Program.cs", encoding: Encoding.UTF8);
 
-        var references = new List<MetadataReference>
+        // Robust reference resolution across .NET SDKs: prefer Trusted Platform Assemblies (TPA)
+        // This avoids missing framework references when using a pinned Roslyn toolset
+        var references = new List<MetadataReference>();
+        var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
+        if (!string.IsNullOrWhiteSpace(tpa))
         {
-            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(System.Console).Assembly.Location)
-        };
+            foreach (var path in tpa.Split(Path.PathSeparator))
+            {
+                try
+                {
+                    // Only include core framework assemblies to keep compilation fast
+                    var fileName = Path.GetFileName(path);
+                    if (fileName is null) continue;
+                    if (fileName.StartsWith("System.") || fileName.Equals("System.Private.CoreLib.dll") || fileName.Equals("netstandard.dll") || fileName.Equals("mscorlib.dll"))
+                    {
+                        references.Add(MetadataReference.CreateFromFile(path));
+                    }
+                }
+                catch
+                {
+                    // Ignore any files we fail to load as metadata
+                }
+            }
+        }
+        // Fallback minimal references if TPA is unavailable
+        if (references.Count == 0)
+        {
+            references.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
+            references.Add(MetadataReference.CreateFromFile(typeof(System.Console).Assembly.Location));
+        }
 
         var compilation = CSharpCompilation.Create(
             assemblyName: "RoslynPdbTest",

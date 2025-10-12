@@ -17,12 +17,12 @@ public record CompilerOptions(
     string[] Args = null!,
     bool KeepTemp = false,
     bool Diagnostics = false,
-    CompilerBackend Backend = CompilerBackend.Legacy)
+    CompilerBackend Backend = CompilerBackend.Roslyn)
 {
     /// <summary>
     /// Create default options
     /// </summary>
-    public CompilerOptions() : this(CompilerCommand.Build, "", "", Array.Empty<string>(), false, false, CompilerBackend.Legacy)
+    public CompilerOptions() : this(CompilerCommand.Build, "", "", Array.Empty<string>(), false, false, CompilerBackend.Roslyn)
     {
     }
 
