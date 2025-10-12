@@ -335,11 +335,11 @@ public partial class PEEmitter
                     // Fall through to unresolved behavior below so the emitter remains tolerant
                 }
             }
-                catch (System.Exception ex)
-                {
-                    Console.WriteLine($"WARNING: Failed to emit external call: {ex.Message}");
-                    // Fall through to unresolved behavior below
-                }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"WARNING: Failed to emit external call: {ex.Message}");
+                // Fall through to unresolved behavior below
+            }
         }
         // Support bracketed assembly-style signatures like: "void [System.Console]System.Console::WriteLine(object)"
         var sigStr = callInst?.MethodSignature ?? string.Empty;
