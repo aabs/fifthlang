@@ -94,19 +94,24 @@ public class Compiler
                 return CompilationResult.Failed(3, diagnostics);
             }
 
-            // Phase 3: IL Generation
+            // Phase 3: Code Generation - Select backend
             if (options.Diagnostics)
             {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting IL generation phase"));
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Starting code generation phase using {options.Backend} backend"));
             }
 
-            // Phase 4: Assembly - use Direct PE emission only
+            // Phase 4: Assembly
             if (options.Diagnostics)
             {
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting assembly phase"));
             }
 
-            var (assemblyResult, assemblyPath) = await DirectPEEmissionPhase(transformedAst, options, diagnostics);
+            var (assemblyResult, assemblyPath) = options.Backend switch
+            {
+                CompilerBackend.Roslyn => await RoslynEmissionPhase(transformedAst, options, diagnostics),
+                CompilerBackend.Legacy => await DirectPEEmissionPhase(transformedAst, options, diagnostics),
+                _ => await DirectPEEmissionPhase(transformedAst, options, diagnostics)
+            };
 
             if (!assemblyResult)
             {
@@ -364,6 +369,76 @@ Examples:
         }
     }
 
+
+    private async Task<(bool success, string? outputPath)> RoslynEmissionPhase(AstThing transformedAst, CompilerOptions options, List<Diagnostic> diagnostics)
+    {
+        try
+        {
+            // Cast to AssemblyDef as expected by the Roslyn translator
+            if (transformedAst is not AssemblyDef assemblyDef)
+            {
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Expected AssemblyDef but got {transformedAst.GetType().Name}"));
+                return (false, null);
+            }
+
+            if (options.Diagnostics)
+            {
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Using Roslyn backend for code generation"));
+            }
+
+            // Create the Roslyn translator
+            var translator = new LoweredAstToRoslynTranslator();
+            
+            // Translate the AST to C# sources
+            var translationResult = translator.Translate(assemblyDef);
+            
+            // Check for translation diagnostics
+            if (translationResult.Diagnostics != null && translationResult.Diagnostics.Any())
+            {
+                foreach (var diag in translationResult.Diagnostics)
+                {
+                    diagnostics.Add(diag);
+                }
+                
+                // If there are any errors, fail the compilation
+                if (translationResult.Diagnostics.Any(d => d.Level == DiagnosticLevel.Error))
+                {
+                    return (false, null);
+                }
+            }
+
+            // For now, write the generated C# sources to disk for inspection
+            if (options.Diagnostics && translationResult.Sources.Any())
+            {
+                try
+                {
+                    var debugDir = Path.Combine(Directory.GetCurrentDirectory(), "build_debug_roslyn");
+                    Directory.CreateDirectory(debugDir);
+                    
+                    for (int i = 0; i < translationResult.Sources.Count; i++)
+                    {
+                        var csPath = Path.Combine(debugDir, $"generated_{i}.cs");
+                        await File.WriteAllTextAsync(csPath, translationResult.Sources[i]);
+                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated C# source written to: {csPath}"));
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to write C# sources for diagnostics: {ex.Message}"));
+                }
+            }
+
+            // TODO: Compile the C# sources using Roslyn and emit the assembly
+            // For now, we'll return an error indicating this is not yet fully implemented
+            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "Roslyn backend: Full compilation pipeline not yet implemented. Translation completed successfully, but assembly emission is pending."));
+            return (false, null);
+        }
+        catch (System.Exception ex)
+        {
+            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Roslyn emission error: {ex.Message}"));
+            return (false, null);
+        }
+    }
 
     private async Task<(bool success, string? outputPath)> DirectPEEmissionPhase(AstThing transformedAst, CompilerOptions options, List<Diagnostic> diagnostics)
     {

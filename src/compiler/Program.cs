@@ -46,6 +46,15 @@ var diagnosticsOption = new Option<bool>(
     IsRequired = false
 };
 
+// Define backend option
+var backendOption = new Option<string>(
+    name: "--backend",
+    description: "Backend to use for code generation: legacy (default), roslyn")
+{
+    IsRequired = false
+};
+backendOption.SetDefaultValue("legacy");
+
 var rootCommand = new RootCommand("Fifth Language Compiler (fifthc)")
 {
     commandOption,
@@ -53,12 +62,14 @@ var rootCommand = new RootCommand("Fifth Language Compiler (fifthc)")
     outputOption,
     argsOption,
     keepTempOption,
-    diagnosticsOption
+    diagnosticsOption,
+    backendOption
 };
 
-rootCommand.SetHandler(async (command, source, output, args, keepTemp, diagnostics) =>
+rootCommand.SetHandler(async (command, source, output, args, keepTemp, diagnostics, backend) =>
 {
     var compilerCommand = ParseCommand(command);
+    var compilerBackend = ParseBackend(backend);
     
     var options = new CompilerOptions(
         Command: compilerCommand,
@@ -66,7 +77,8 @@ rootCommand.SetHandler(async (command, source, output, args, keepTemp, diagnosti
         Output: output ?? "",
         Args: args ?? Array.Empty<string>(),
         KeepTemp: keepTemp,
-        Diagnostics: diagnostics);
+        Diagnostics: diagnostics,
+        Backend: compilerBackend);
 
     var compiler = new Compiler();
     var result = await compiler.CompileAsync(options);
@@ -97,7 +109,7 @@ rootCommand.SetHandler(async (command, source, output, args, keepTemp, diagnosti
     }
 
     Environment.Exit(result.ExitCode);
-}, commandOption, sourceOption, outputOption, argsOption, keepTempOption, diagnosticsOption);
+}, commandOption, sourceOption, outputOption, argsOption, keepTempOption, diagnosticsOption, backendOption);
 
 return await rootCommand.InvokeAsync(args);
 
@@ -110,5 +122,15 @@ static CompilerCommand ParseCommand(string command)
         "lint" => CompilerCommand.Lint,
         "help" => CompilerCommand.Help,
         _ => CompilerCommand.Build // Default to build
+    };
+}
+
+static CompilerBackend ParseBackend(string backend)
+{
+    return backend.ToLowerInvariant() switch
+    {
+        "roslyn" => CompilerBackend.Roslyn,
+        "legacy" => CompilerBackend.Legacy,
+        _ => CompilerBackend.Legacy // Default to legacy
     };
 }
