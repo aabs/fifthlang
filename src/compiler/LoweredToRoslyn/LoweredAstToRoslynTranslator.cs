@@ -351,6 +351,8 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private StatementSyntax TranslateIfElseStatement(IfElseStatement ifStmt)
     {
         var condition = TranslateExpression(ifStmt.Condition);
+        // Fifth uses int for bool (0=false, non-zero=true), so convert to bool for C# if statement
+        condition = IntToBoolConversion(condition);
         var thenBlock = BuildBlockStatement(ifStmt.ThenBlock);
 
         if (ifStmt.ElseBlock != null)
@@ -368,7 +370,11 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         return expr switch
         {
             Int32LiteralExp intLit => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(intLit.Value)),
+            Int64LiteralExp longLit => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(longLit.Value)),
             Float8LiteralExp floatLit => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(floatLit.Value)),
+            Float4LiteralExp float32Lit => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(float32Lit.Value)),
+            BooleanLiteralExp boolLit => LiteralExpression(
+                boolLit.Value ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression),
             StringLiteralExp strLit => LiteralExpression(
                 SyntaxKind.StringLiteralExpression,
                 Literal(NormalizeStringLiteral(strLit.Value))),
@@ -376,7 +382,11 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             BinaryExp binExp => TranslateBinaryExpression(binExp),
             FuncCallExp funcCall => TranslateFuncCallExpression(funcCall),
             MemberAccessExp memberAccess => TranslateMemberAccessExpression(memberAccess),
-            _ => LiteralExpression(SyntaxKind.NullLiteralExpression) // Fallback for unsupported expressions
+            IndexerExpression indexer => TranslateIndexerExpression(indexer),
+            List list => TranslateListExpression(list),
+            ObjectInitializerExp objInit => TranslateObjectInitializerExpression(objInit),
+            UnaryExp unary => TranslateUnaryExpression(unary),
+            _ => DefaultExpression(IdentifierName("object")) // Fallback for unsupported expressions
         };
     }
 
@@ -401,6 +411,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             Operator.LogicalOr => SyntaxKind.LogicalOrExpression,
             _ => SyntaxKind.AddExpression // Default fallback
         };
+
+        // For logical operators, convert int operands to bool (Fifth uses int for bool: 0=false, non-zero=true)
+        if (binExp.Operator == Operator.LogicalAnd || binExp.Operator == Operator.LogicalOr)
+        {
+            left = IntToBoolConversion(left);
+            right = IntToBoolConversion(right);
+        }
 
         return BinaryExpression(kind, left, right);
     }
@@ -507,6 +524,81 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
         // Fallback
         return objExpr;
+    }
+
+    private ExpressionSyntax TranslateIndexerExpression(IndexerExpression indexer)
+    {
+        var target = TranslateExpression(indexer.IndexExpression);
+        var index = TranslateExpression(indexer.OffsetExpression);
+        
+        // Generate: target[index]
+        return ElementAccessExpression(target)
+            .WithArgumentList(
+                BracketedArgumentList(
+                    SingletonSeparatedList(Argument(index))));
+    }
+
+    private ExpressionSyntax TranslateListExpression(List list)
+    {
+        // Handle specific List subtypes
+        if (list is ListLiteral listLiteral)
+        {
+            // Translate to C# collection initializer: new[] { items }
+            var elements = new List<ExpressionSyntax>();
+            foreach (var item in listLiteral.ElementExpressions)
+            {
+                elements.Add(TranslateExpression(item));
+            }
+
+            // Use implicit array creation: new[] { ... }
+            return ImplicitArrayCreationExpression(
+                InitializerExpression(
+                    SyntaxKind.ArrayInitializerExpression,
+                    SeparatedList(elements)));
+        }
+        
+        // Fallback for unsupported list types
+        return DefaultExpression(IdentifierName("object"));
+    }
+
+    private ExpressionSyntax TranslateObjectInitializerExpression(ObjectInitializerExp objInit)
+    {
+        // Create object creation with initializers: new TypeName { ... }
+        var typeName = MapTypeName(objInit.TypeToInitialize.ToString());
+        
+        var initializers = new List<ExpressionSyntax>();
+        foreach (var propInit in objInit.PropertyInitialisers)
+        {
+            var propName = SanitizeIdentifier(propInit.PropertyToInitialize.ToString());
+            var valueExpr = TranslateExpression(propInit.RHS);
+            
+            var assignment = AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                IdentifierName(propName),
+                valueExpr);
+            
+            initializers.Add(assignment);
+        }
+
+        return ObjectCreationExpression(IdentifierName(typeName))
+            .WithInitializer(
+                InitializerExpression(
+                    SyntaxKind.ObjectInitializerExpression,
+                    SeparatedList(initializers)));
+    }
+
+    private ExpressionSyntax TranslateUnaryExpression(UnaryExp unary)
+    {
+        var operand = TranslateExpression(unary.Operand);
+        
+        var kind = unary.Operator switch
+        {
+            Operator.ArithmeticNegative => SyntaxKind.UnaryMinusExpression,
+            Operator.LogicalNot => SyntaxKind.LogicalNotExpression,
+            _ => SyntaxKind.UnaryPlusExpression
+        };
+
+        return PrefixUnaryExpression(kind, operand);
     }
 
     private string MapTypeName(string? fifthTypeName)
@@ -684,6 +776,19 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 _ => "object"
             };
         }
+    }
+
+    /// <summary>
+    /// Convert an integer expression to a boolean expression for use in C# boolean contexts.
+    /// In Fifth, 0 is false and non-zero is true.
+    /// </summary>
+    private static ExpressionSyntax IntToBoolConversion(ExpressionSyntax expr)
+    {
+        // Generate: (expr) != 0
+        return BinaryExpression(
+            SyntaxKind.NotEqualsExpression,
+            ParenthesizedExpression(expr),
+            LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0)));
     }
 
     private static string SanitizeIdentifier(string identifier)
