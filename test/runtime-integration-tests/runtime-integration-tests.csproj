@@ -16,7 +16,7 @@
   <PackageReference Include="FluentAssertions" Version="6.12.0" />
   <!-- Use centralized RoslynVersion from Directory.Build.props for deterministic pinning -->
   <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
-  <PackageReference Include="System.Reflection.Metadata" Version="8.0.1" />
+  <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
   </ItemGroup>
 
   <ItemGroup>

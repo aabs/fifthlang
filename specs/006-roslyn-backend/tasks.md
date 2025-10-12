@@ -44,7 +44,7 @@ T002 - [P] (setup) Add Roslyn & Metadata test dependencies to runtime integratio
 - Estimate: 0.25d
 - Description: Add PackageReference entries:
   - `Microsoft.CodeAnalysis.CSharp` -> pinned version `4.14.0`
-  - `System.Reflection.Metadata` -> pinned version `8.0.1`
+  - `System.Reflection.Metadata` -> pinned version `9.0.0`
   - Preserve existing test SDK/runner references
 - Dependencies: T001 (preferred, but not strictly required to edit csproj)
 - Acceptance: `dotnet restore` completes; test project can reference Roslyn APIs without compile errors.
