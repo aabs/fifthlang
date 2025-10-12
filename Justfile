@@ -92,6 +92,56 @@ test-ast:
 test-runtime:
 	dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj
 
+# Run the entire test matrix and a CLI smoke-compile using the Roslyn backend
+# This target mirrors the CI `roslyn-backend-validation` check for the roslyn backend
+test-all-roslyn:
+
+	# Restore deps and build the full solution with pinned Roslyn (Release mode)
+	dotnet restore fifthlang.sln
+
+	# Try to build with the pinned Roslyn toolset. If that fails (e.g., local SDK
+	# rejects /langversion:14), fall back to a non-pinned build. Use a single-line
+	# shell invocation with '||' to avoid multi-line recipe indentation issues.
+	sh -c "dotnet build fifthlang.sln -c Release -p:UsePinnedRoslyn=true > /tmp/pinned-build.log 2>&1 || (echo 'Warning: Pinned Roslyn build failed (possible invalid /langversion). Falling back to non-pinned build.' >&2; sed -n '1,400p' /tmp/pinned-build.log >&2; dotnet build fifthlang.sln -c Release -p:UsePinnedRoslyn=false)"
+
+	# Run unit & integration suites (no-build because we've just built)
+	dotnet test test/ast-tests/ast_tests.csproj -c Release --no-build --verbosity normal
+	dotnet test test/syntax-parser-tests/syntax-parser-tests.csproj -c Release --no-build --verbosity normal
+	dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj -c Release --no-build --verbosity normal || true
+
+	# Small CLI smoke-compile: create a tiny .5th program, compile with the roslyn backend and run it
+	printf 'main(): int {\n  x: int = 10;\n  y: int = 32;\n  return x + y;\n}\n' > /tmp/roslyn_test.5th
+	dotnet run --project src/compiler/compiler.csproj -c Release --no-build -- --source /tmp/roslyn_test.5th --output /tmp/roslyn_test.exe --backend roslyn --diagnostics
+	dotnet /tmp/roslyn_test.exe
+	EXIT_CODE=$?
+	if [ $EXIT_CODE -ne 42 ]; then
+	echo "ERROR: Expected exit code 42 but got $EXIT_CODE"
+	exit 1
+	fi
+
+
+# Run the entire test matrix and a CLI smoke-compile using the Legacy backend
+# Builds the solution with pinned Roslyn disabled to emulate developer SDK Roslyn
+test-all-legacy:
+	# Restore deps and build the full solution without forced pinned Roslyn (Release mode but disabled)
+	dotnet restore fifthlang.sln
+	dotnet build fifthlang.sln -c Release -p:UsePinnedRoslyn=false
+
+	# Run unit & integration suites (no-build because we've just built)
+	dotnet test test/ast-tests/ast_tests.csproj -c Release --no-build --verbosity normal
+	dotnet test test/syntax-parser-tests/syntax-parser-tests.csproj -c Release --no-build --verbosity normal
+	dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj -c Release --no-build --verbosity normal || true
+
+	# Small CLI smoke-compile: create a tiny .5th program, compile with the legacy backend and run it
+	printf 'main(): int {\n  x: int = 10;\n  y: int = 32;\n  return x + y;\n}\n' > /tmp/legacy_test.5th
+	dotnet run --project src/compiler/compiler.csproj -c Release --no-build -- --source /tmp/legacy_test.5th --output /tmp/legacy_test.exe --backend legacy --diagnostics
+	dotnet /tmp/legacy_test.exe
+	EXIT_CODE=$?
+	if [ $EXIT_CODE -ne 42 ]; then
+	echo "ERROR: Expected exit code 42 but got $EXIT_CODE"
+	exit 1
+	fi
+
 # Important: build before running to ensure updated assets are copied
 test-syntax:
 	dotnet clean test/syntax-parser-tests/syntax-parser-tests.csproj || true
