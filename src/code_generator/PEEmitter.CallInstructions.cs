@@ -45,28 +45,7 @@ public partial class PEEmitter
                     return new System.Version(1, 0, 0, 0);
                 }
 
-                // Get public key token for known assemblies
-                BlobHandle GetPublicKeyToken(string? name)
-                {
-                    byte[]? token = null;
-                    if (string.Equals(name, "System.Runtime", StringComparison.Ordinal) ||
-                        string.Equals(name, "System.Console", StringComparison.Ordinal))
-                    {
-                        // Microsoft public key token: b03f5f7f11d50a3a
-                        token = new byte[] { 0xb0, 0x3f, 0x5f, 0x7f, 0x11, 0xd5, 0x0a, 0x3a };
-                    }
-                    else if (string.Equals(name, "System.Private.CoreLib", StringComparison.Ordinal))
-                    {
-                        // CoreLib public key token: 7cec85d7bea7798e
-                        token = new byte[] { 0x7c, 0xec, 0x85, 0xd7, 0xbe, 0xa7, 0x79, 0x8e };
-                    }
-
-                    if (token != null)
-                    {
-                        return metadataBuilder.GetOrAddBlob(token);
-                    }
-                    return default;
-                }
+                // Get public key token for known assemblies (single helper defined above)
 
 
                 // Get public key token for known assemblies
@@ -324,8 +303,8 @@ public partial class PEEmitter
                 // Rebuild the method signature with the correct calling convention
                 methodSig = new BlobBuilder();
                 // For static methods, use DEFAULT (0x00). For instance methods, use DEFAULT | HASTHIS (0x00 | 0x20 = 0x20)
-                byte callingConvention = isStaticMethod ? (byte)0x00 : (byte)0x20;
-                methodSig.WriteByte(callingConvention);
+                byte callConv = isStaticMethod ? (byte)0x00 : (byte)0x20;
+                methodSig.WriteByte(callConv);
 
 
                 // Rebuild the method signature with the correct calling convention
@@ -357,11 +336,11 @@ public partial class PEEmitter
                     // Fall through to unresolved behavior below so the emitter remains tolerant
                 }
             }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine($"WARNING: Failed to emit external call: {ex.Message}");
-                // Fall through to unresolved behavior below
-            }
+                catch (System.Exception ex)
+                {
+                    Console.WriteLine($"WARNING: Failed to emit external call: {ex.Message}");
+                    // Fall through to unresolved behavior below
+                }
         }
         // Support bracketed assembly-style signatures like: "void [System.Console]System.Console::WriteLine(object)"
         var sigStr = callInst?.MethodSignature ?? string.Empty;
