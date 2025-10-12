@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
-    <PackageReference Include="System.Reflection.Metadata" Version="8.0.1" />
+  <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
   </ItemGroup>
 
 </Project>

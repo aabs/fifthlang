@@ -10,6 +10,8 @@
   <RoslynVersion>4.14.0</RoslynVersion>
     <!-- Default language version for generated C# sources -->
     <LangVersion>14</LangVersion>
+  <!-- Centralized System.Reflection.Metadata version to keep dependency graph consistent -->
+  <SystemReflectionMetadataVersion>9.0.0</SystemReflectionMetadataVersion>
     <!-- Use pinned Roslyn by default for Release builds (CI / release); developers may override locally -->
     <UsePinnedRoslyn Condition="'$(UsePinnedRoslyn)'=='' and '$(Configuration)'=='Release'">true</UsePinnedRoslyn>
   </PropertyGroup>
