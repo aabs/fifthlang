@@ -32,20 +32,47 @@
 
 ## Summary
 [Extract from feature spec: primary requirement + technical approach from research]
+The feature replaces the repository's legacy IL/PEEmitter code-generation pipeline with a Roslyn-driven backend that
+translates the Lowered AST into C# syntax trees and uses Microsoft.CodeAnalysis to emit assemblies and Portable PDBs.
+Primary goals: preserve developer debugging fidelity (full line/column SequencePoints), achieve test-suite behavioral
+equivalence for a curated baseline, and provide a gated, auditable cut-over plan that keeps the legacy emitter available
+until the FR-009 deletion gates are satisfied.
 
 ## Technical Context
-**Language/Version**: C# 14 (generated sources; set MSBuild LangVersion to 14 for generated compilation)
-**Primary Dependencies**: Microsoft.CodeAnalysis (Roslyn) — explicit pinned package for release/CI; Antlr4.Runtime.Standard for parsing; System.Reflection.Metadata retained for narrow preservation shims.
-**Storage**: N/A
-**Testing**: TUnit + FluentAssertions for unit/integration tests; add translator unit tests and mapping/PDB verification harness tests.
-**Target Platform / Toolchain Policy**: Development focus: **.NET 10** (preferred for development and future feature work). To maintain reproducible builds and comply with the project constitution the repository's canonical pinned SDK remains **.NET 8** (see `global.json`). CI and release validation MUST run the baseline test matrix on both **.NET 8** and **.NET 10-rc** and produce artifacts for inspection for both SDKs. Any intention to change the canonical pinned SDK in `global.json` is a constitution-level change and requires an explicit amendment, migration plan and owner sign-off.
-**Project Type**: Multi-project .NET compiler toolchain
-**Performance Goals**: Not enforced as a CI gate for migration (per FR-004). Benchmark and document compile/runtime performance in `test/perf/` and treat regressions as remediation items.
-**Constraints**: Full Portable PDB SequencePoint fidelity required; Roslyn package must be pinned for deterministic releases; immediate removal of legacy emitters is a constitutional deviation and requires explicit owner approval before code deletion.
-**Scale/Scope**: Repository-wide migration affecting `src/code_generator`, `src/compiler`, CI pipelines, and test suites that reference IL artifacts.
+**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
+**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
+**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
+**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
+**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Project Type**: [single/web/mobile - determines source structure]  
+**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
+**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
+**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+## Technical Context
+Language/Version: C# targeting C# 14 for generated sources (LangVersion=14 when `UsePinnedRoslyn=true` in CI/release; local devs may use SDK-provided Roslyn and 'preview' language mode).
+Primary Dependencies: Microsoft.CodeAnalysis.CSharp (Roslyn) pinned to 4.14.0 for CI/release, System.Reflection.Metadata pinned to 9.0.0, Antlr4.Runtime.Standard (parser), TUnit & FluentAssertions (tests), RazorLight (codegen templates) and existing runtime dependencies referenced by the compiler.
+Storage: N/A (compiler/tooling work — no persistent data stores required)
+Testing: TUnit-based unit & integration tests; dotnet test harnesses under `test/` (parser tests, ast-tests, runtime-integration-tests, kg-smoke-tests, perf scenarios).
+Target Platform: Validate and produce artifacts on .NET 8 (canonical pinned SDK) and .NET 10-rc; CI matrix must run both SDKs.
+Project Type: Library-first compiler monorepo (existing layout). New translator and supporting types will be added under `src/compiler/LoweredToRoslyn/` and tests under `test/`.
+Performance Goals: Performance validation is deferred during initial CI gating (FR-004). Compile-time and runtime benchmarks will be executed during stabilization and optimization phases; regressions will be documented and addressed post-cutover.
+Constraints:
+- Preserve developer debugging experience (Portable PDBs with precise SequencePoints mapping back to original `.5th` source).
+- Do NOT hand-edit generated code in `src/ast-generated/` (follow Constitution). Regeneration must be used for any metamodel changes.
+- Keep `global.json` canonical SDK pinned to .NET 8; CI must additionally validate .NET 10-rc artifacts.
+Scale/Scope: Target a full replacement of the downstream IL emission pipeline for all constructs currently emitted by the legacy emitter, with a gated deletion plan for the legacy code paths.
 
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+
+Constitutional gates evaluated (quick summary):
+
+- Generator discipline: The plan does not require hand-editing `src/ast-generated/` and preserves the generator-as-source-of-truth rule. PASS
+- Canonical SDK: The plan keeps `global.json` pinned to .NET 8 and treats .NET 10-rc as a validation target in CI. PASS
+- Build & Test ordering: The plan preserves the required build order and tooling constraints (ast-model → ast_generator → ast-generated → parser → code_generator/translator → compiler → tests). PASS
+- Gated deletion: The plan implements FR-009 gated deletion steps (preservation inventory, PDB mapping tests, CI matrix, regeneration proof, constitutional deviation checklist). PASS
+
+Conclusion: No constitution violations detected at the plan level. Any future step that would change the canonical SDK, hand-edit generated files, or remove legacy emitters must follow the documented constitutional-deviation process (see FR-009 and `constitutional-deviation.md`).
 
 [Gates determined based on constitution file]
 
@@ -107,6 +134,7 @@ ios/ or android/
 
 **Structure Decision**: [Document the selected structure and reference the real
 directories captured above]
+**Structure Decision**: Use the existing repository, library-first layout. Add the Roslyn translator under a new compiler subfolder: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/LoweredToRoslyn/` for `LoweredAstToRoslynTranslator`, mapping/table types and any small runtime shims. Tests and validation harnesses will live under `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/` (runtime-integration-tests and ast-tests). No large structural refactor expected.
 
 ## Phase 0: Outline & Research
 1. **Extract unknowns from Technical Context** above:
@@ -202,20 +230,20 @@ directories captured above]
 *This checklist is updated during execution flow*
 
 **Phase Status**:
- - [x] Phase 0: Research complete (/plan command)
- - [x] Phase 1: Design complete (/plan command)
- - [ ] Phase 2: Task planning complete (/tasks command to generate tasks.md)
- - [ ] Phase 3: Tasks generated (/tasks command)
- - [ ] Phase 4: Implementation complete
- - [ ] Phase 5: Validation passed
+**Phase Status**:
+- [x] Phase 0: Research complete (/plan command)
+- [x] Phase 1: Design complete (/plan command)
+- [x] Phase 2: Task planning complete (/plan command - describe approach only)
+- [ ] Phase 3: Tasks generated (/tasks command)
+- [ ] Phase 4: Implementation complete
+- [ ] Phase 5: Validation passed
 
 **Gate Status**:
- - [ ] Initial Constitution Check: PASS
- - [ ] Post-Design Constitution Check: PASS
- - [ ] All NEEDS CLARIFICATION resolved
- - [ ] Complexity deviations documented
-
-**Constitutional Deviation Note (Option A adopted)**: The user requested immediate removal of legacy IL emission code. Per the constitution and FR-009, the project rejects immediate deletion and adopts Option A (gated removal). Legacy emitters will remain present and selectable during the migration. Deletion will only proceed after all FR-009 preconditions are satisfied: (1) preservation inventory and dispositions, (2) successful PDB/mapping verification, (3) CI matrix validation producing inspection artifacts, (4) regeneration proof and generator-consistency checks, and (5) explicit owner/constitutional sign-off (T019). Any attempt to change the canonical SDK or to delete the legacy emitter before these conditions are met requires a constitution amendment recorded in the repository.
+**Gate Status**:
+- [x] Initial Constitution Check: PASS
+- [x] Post-Design Constitution Check: PASS
+- [ ] All NEEDS CLARIFICATION resolved (some operational clarifications are recorded in `clarifications.md` and T027 - owner: @aabs)
+- [ ] Complexity deviations documented
 
 ---
 *Based on Constitution v2.1.1 - See `/memory/constitution.md`*
