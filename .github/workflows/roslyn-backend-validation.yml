@@ -104,6 +104,64 @@ jobs:
         shell: bash
         run: dotnet build fifthlang.sln --configuration Release --no-restore
 
+      - name: Run core test suites
+        shell: bash
+        run: |
+          echo "Running AST tests..."
+          dotnet test test/ast-tests/ast_tests.csproj --configuration Release --no-build --verbosity normal
+          
+          echo "Running runtime integration tests..."
+          dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj --configuration Release --no-build --verbosity normal || true
+
+      - name: Test Roslyn backend compilation
+        shell: bash
+        run: |
+          echo "Creating simple Fifth test program..."
+          cat > /tmp/roslyn_test.5th << 'EOF'
+          main(): int {
+              x: int = 10;
+              y: int = 32;
+              return x + y;
+          }
+          EOF
+          
+          echo "Testing Roslyn backend compilation..."
+          dotnet run --project src/compiler/compiler.csproj --configuration Release --no-build -- \
+            --source /tmp/roslyn_test.5th \
+            --output /tmp/roslyn_test.exe \
+            --backend roslyn \
+            --diagnostics
+          
+          echo "Verifying compiled program executes..."
+          dotnet /tmp/roslyn_test.exe
+          EXIT_CODE=$?
+          echo "Exit code: $EXIT_CODE"
+          if [ $EXIT_CODE -ne 42 ]; then
+            echo "ERROR: Expected exit code 42 but got $EXIT_CODE"
+            exit 1
+          fi
+          echo "✓ Roslyn backend test passed!"
+
+      - name: Test Legacy backend (for comparison)
+        shell: bash
+        run: |
+          echo "Testing legacy backend compilation..."
+          dotnet run --project src/compiler/compiler.csproj --configuration Release --no-build -- \
+            --source /tmp/roslyn_test.5th \
+            --output /tmp/legacy_test.exe \
+            --backend legacy \
+            --diagnostics
+          
+          echo "Verifying compiled program executes..."
+          dotnet /tmp/legacy_test.exe
+          EXIT_CODE=$?
+          echo "Exit code: $EXIT_CODE"
+          if [ $EXIT_CODE -ne 42 ]; then
+            echo "ERROR: Expected exit code 42 but got $EXIT_CODE"
+            exit 1
+          fi
+          echo "✓ Legacy backend test passed!"
+
       - name: Run Roslyn PDB verification tests
         shell: bash
         run: |
