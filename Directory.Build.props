@@ -12,7 +12,8 @@
   <RoslynVersion>4.11.0</RoslynVersion>
   <!-- Default language version for generated C# sources -->
   <!-- Use C# 14 in CI/Release when pinned Roslyn is used; developers use 'preview' by default to avoid SDK/compiler mismatches locally. -->
-  <LangVersion Condition="'$(UsePinnedRoslyn)' == 'true'">14</LangVersion>
+  <!-- Use the latest supported language version with the pinned Roslyn toolset to avoid CS1617 on unsupported numeric versions -->
+  <LangVersion Condition="'$(UsePinnedRoslyn)' == 'true'">latest</LangVersion>
   <LangVersion Condition="'$(UsePinnedRoslyn)' != 'true'">preview</LangVersion>
   <!-- Centralized System.Reflection.Metadata version to keep dependency graph consistent -->
   <SystemReflectionMetadataVersion>9.0.0</SystemReflectionMetadataVersion>

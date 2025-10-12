@@ -13,7 +13,7 @@ commandOption.SetDefaultValue("build");
 
 // Define source option
 var sourceOption = new Option<string>(
-    name: "--source", 
+    name: "--source",
     description: "Source file or directory path");
 
 // Define output option  
@@ -40,7 +40,7 @@ var keepTempOption = new Option<bool>(
 
 // Define diagnostics option
 var diagnosticsOption = new Option<bool>(
-    name: "--diagnostics", 
+    name: "--diagnostics",
     description: "Enable diagnostic output")
 {
     IsRequired = false
@@ -49,11 +49,11 @@ var diagnosticsOption = new Option<bool>(
 // Define backend option
 var backendOption = new Option<string>(
     name: "--backend",
-    description: "Backend to use for code generation: legacy (default), roslyn")
+    description: "Backend to use for code generation: roslyn (default), legacy")
 {
     IsRequired = false
 };
-backendOption.SetDefaultValue("legacy");
+backendOption.SetDefaultValue("roslyn");
 
 var rootCommand = new RootCommand("Fifth Language Compiler (fifthc)")
 {
@@ -70,7 +70,7 @@ rootCommand.SetHandler(async (command, source, output, args, keepTemp, diagnosti
 {
     var compilerCommand = ParseCommand(command);
     var compilerBackend = ParseBackend(backend);
-    
+
     var options = new CompilerOptions(
         Command: compilerCommand,
         Source: source ?? "",
@@ -89,12 +89,12 @@ rootCommand.SetHandler(async (command, source, output, args, keepTemp, diagnosti
         var level = diagnostic.Level switch
         {
             DiagnosticLevel.Error => "ERROR",
-            DiagnosticLevel.Warning => "WARNING", 
+            DiagnosticLevel.Warning => "WARNING",
             DiagnosticLevel.Info => "INFO",
             _ => "UNKNOWN"
         };
 
-        var message = diagnostic.Source != null 
+        var message = diagnostic.Source != null
             ? $"{level}: {diagnostic.Message} ({diagnostic.Source})"
             : $"{level}: {diagnostic.Message}";
 
@@ -131,6 +131,6 @@ static CompilerBackend ParseBackend(string backend)
     {
         "roslyn" => CompilerBackend.Roslyn,
         "legacy" => CompilerBackend.Legacy,
-        _ => CompilerBackend.Legacy // Default to legacy
+        _ => CompilerBackend.Roslyn // Default to roslyn
     };
 }

@@ -2,12 +2,6 @@
   "version": 1,
   "dependencies": {
     "net8.0": {
-      "Microsoft.Net.Compilers.Toolset": {
-        "type": "Direct",
-        "requested": "[4.10.0-3.final, )",
-        "resolved": "4.10.0-3.final",
-        "contentHash": "ThSkt+au4hCWFrmNdCgzFd+Jp8pN8G38193rm1b6NXj4oVTAkTdR45FDiAqFvDnSSC7Hlex8Mn2TUCEoPWSU4w=="
-      },
       "TUnit": {
         "type": "Direct",
         "requested": "[0.57.1, )",
