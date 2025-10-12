@@ -292,7 +292,6 @@ public partial class PEEmitter
                         DebugLog($"DEBUG: Method is {(isStaticMethod ? "static" : "instance")}");
                     }
                     catch { /* if reflection fails, assume static */ }
-                    catch { /* if reflection fails, assume static */ }
                 }
                 // If CallInstruction reports ArgCount but finalParamTokens differ, log a debug warning but continue using finalParamTokens for the MemberRef
                 if (callInst != null && callInst.ArgCount >= 0 && finalParamTokens.Count != callInst.ArgCount)
