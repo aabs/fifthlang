@@ -341,7 +341,8 @@ myprint(int x) => std.print(x);
 ## Engineering Constraints & Standards
 
 ### Toolchain & Environment
-- .NET 8.0 SDK required; Java 17+ required for ANTLR operations
+- C# 14 Language Version required.
+- .NET 10.0 SDK required; Java 17+ required for ANTLR operations
 - For build timing, set timeouts per documented guidance; do not prematurely interrupt tasks
 
 ### Code Generation

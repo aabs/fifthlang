@@ -13,7 +13,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     public TranslationResult Translate(AssemblyDef assembly)
     {
         // Produce a minimal generated program that can be used by downstream tests
-    var src = "using System; public static class GeneratedEntry { public static int Main() { System.Console.WriteLine(\"Hello from translator POC\"); return 0; } }";
+        var src = "using System; public static class GeneratedEntry { public static int Main() { System.Console.WriteLine(\"Hello from translator POC\"); return 0; } }";
         var sources = new List<string> { src };
         var mapping = new MappingTable();
 
