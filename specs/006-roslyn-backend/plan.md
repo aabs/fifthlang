@@ -38,7 +38,7 @@
 **Primary Dependencies**: Microsoft.CodeAnalysis (Roslyn) — explicit pinned package for release/CI; Antlr4.Runtime.Standard for parsing; System.Reflection.Metadata retained for narrow preservation shims.
 **Storage**: N/A
 **Testing**: TUnit + FluentAssertions for unit/integration tests; add translator unit tests and mapping/PDB verification harness tests.
-**Target Platform**: .NET 10 (primary); validate on .NET 8 for compatibility. Generated assemblies and CI matrix must cover platforms supported by Roslyn (Windows, macOS, Linux).
+**Target Platform / Toolchain Policy**: Development focus: **.NET 10** (preferred for development and future feature work). To maintain reproducible builds and comply with the project constitution the repository's canonical pinned SDK remains **.NET 8** (see `global.json`). CI and release validation MUST run the baseline test matrix on both **.NET 8** and **.NET 10-rc** and produce artifacts for inspection for both SDKs. Any intention to change the canonical pinned SDK in `global.json` is a constitution-level change and requires an explicit amendment, migration plan and owner sign-off.
 **Project Type**: Multi-project .NET compiler toolchain
 **Performance Goals**: Not enforced as a CI gate for migration (per FR-004). Benchmark and document compile/runtime performance in `test/perf/` and treat regressions as remediation items.
 **Constraints**: Full Portable PDB SequencePoint fidelity required; Roslyn package must be pinned for deterministic releases; immediate removal of legacy emitters is a constitutional deviation and requires explicit owner approval before code deletion.

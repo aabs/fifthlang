@@ -1,277 +1,344 @@
-# Tasks: Roslyn Backend Migration (T‑series)
+# Tasks: Roslyn Backend Migration (Feature 006)
 
-Feature: Roslyn Backend Migration
-Spec: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/spec.md`
-Plan: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/plan.md`
-Data model: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/data-model.md`
+**Input**: Design artifacts in `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/`
+**Prerequisites**: `plan.md` (required), `research.md`, `data-model.md`, `quickstart.md`, `inventory-il.md`
 
-Repository root (absolute): `/Users/aabs/dev/aabs/active/5th-related/fifthlang`
+> NOTE: All file paths in task descriptions are absolute and rooted at the repository root: `/Users/aabs/dev/aabs/active/5th-related/fifthlang`.
 
-Guiding rules applied when generating tasks:
-- Tests first (TDD): every implementation task references a preceeding test task where feasible.
-- Setup tasks run before all others.
-- Tasks that operate on different files are marked `[P]` (parallelizable).
-- No destructive deletion of legacy emitter code will occur without explicit owner approval and confirmation of preservation inventory (gated task). See T021 (Cleanup gating).
+## Execution & Ordering Rules
+- Setup tasks run first.
+- Tests-first (TDD): Write failing tests before implementation whenever possible.
+- Models before services; services before endpoints; core before integration; everything before polish.
+- Mark `[P]` on tasks that can safely run in parallel (different files, no shared write conflicts).
+- If two tasks edit the same file, do NOT mark them `[P]` and run them sequentially.
 
-Numbering, format and ordering follow the project template: T001..T0NN. Each task has: ID, Title, Owner (TBD), Estimate, File path(s) to create/change, Dependencies (task IDs), Description, Acceptance criteria, Example agent commands (fish shell) to start the work.
+## Shortcuts for agent executors
+- Branch naming convention: `006-roslyn-T{NNN}-{short-slug}` (e.g. `006-roslyn-T004-roslyn-pdb-test`).
+- Per-task agent sequence (example):
+  1. `git checkout -b 006-roslyn-T{NNN}-{slug}`
+  2. Apply changes to the files listed in the task (use repo's apply_patch mechanism or edit files directly)
+  3. `dotnet restore && dotnet build` (fail fast if build breaks)
+  4. `dotnet test --filter FullyQualifiedName~{TestName}` for the specific tests added/changed
+  5. `git add ... && git commit -m "T{NNN}: {short description}" && git push --set-upstream origin 006-roslyn-T{NNN}-{slug}`
+  6. Open a PR with description and link to this task in the PR body
+
+## Tasks (TDD-first, numbered)
+
+### Phase 1 — Setup & Tooling
+
+T001 - [ ] (setup) Add Roslyn pin and C# LangVersion to `Directory.Build.props`
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/Directory.Build.props`
+- Owner: TBD
+- Estimate: 0.5d
+- Description: Add a `RoslynVersion` MSBuild property (pin candidate: `4.1.0`) and set `LangVersion` to `14` for generated projects. Ensure an MSBuild `Condition` exists so release builds use the pinned Roslyn package, and developers may still use SDK-provided compiler locally.
+- Dependencies: none
+- Acceptance: `Directory.Build.props` contains `<RoslynVersion>4.1.0</RoslynVersion>` and `<LangVersion>14</LangVersion>`, `dotnet build` succeeds on the solution.
+- Agent commands (example):
+  - `git checkout -b 006-roslyn-T001-tooling`
+  - Edit `/Users/aabs/.../Directory.Build.props` to add the properties under a top-level `<PropertyGroup>` (or update existing ones)
+  - `dotnet build` to validate
+
+T002 - [P] (setup) Add Roslyn & Metadata test dependencies to runtime integration project
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/runtime-integration-tests/runtime-integration-tests.csproj`
+- Owner: TBD
+- Estimate: 0.25d
+- Description: Add PackageReference entries:
+  - `Microsoft.CodeAnalysis.CSharp` -> pinned version `4.1.0`
+  - `System.Reflection.Metadata` -> pinned version `8.0.1`
+  - Preserve existing test SDK/runner references
+- Dependencies: T001 (preferred, but not strictly required to edit csproj)
+- Acceptance: `dotnet restore` completes; test project can reference Roslyn APIs without compile errors.
+- Agent commands:
+  - `git checkout -b 006-roslyn-T002-add-roslyn-deps`
+  - Modify the `.csproj` to add the package references and commit
+  - `dotnet restore && dotnet build test/runtime-integration-tests/runtime-integration-tests.csproj`
+
+T003 - [ ] (setup) Add a small POC CodeSample used by Roslyn PDB tests
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/ast-tests/CodeSamples/roslyn-poc-simple.5th`
+- Owner: TBD
+- Estimate: 0.25d
+- Description: Create a simple `.5th` sample that exercises functions, a method call and a return value. This sample will be used by both mapping tests and PDB verification harness.
+- Dependencies: none
+- Acceptance: File exists with a minimal program that the translator POC can translate and for which the PDB mapping expectations can be described precisely (line/column positions documented in the test expectations).
+- Agent commands: create the file with a minimal sample and reference it in the mapping/PDB tests added in Phase 2.
+
+### Phase 2 — Tests (TDD) — Write failing tests first
+
+T004 - [P] (test) Roslyn PDB verification harness (failing test to drive POC)
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/runtime-integration-tests/RoslynPdbVerificationTests.cs`
+- Owner: TBD
+- Estimate: 1d
+- Description: Add/extend tests that compile generated C# SyntaxTrees using Roslyn and assert that the produced Portable PDB contains:
+  - Document entries mapping to the expected generated source file path(s)
+  - MethodDebugInformation entries with SequencePoints for statements (including start-line/start-column and end-line/end-column)
+  - Coverage: Add a test that asserts at least one SequencePoint corresponds to the original `.5th` sample's known line/column position
+- Dependencies: T003 (POC sample exists)
+- Acceptance: Test compiles (may fail initially) and asserts the PDB shape; tests should be written to fail initially until the translator emits the expected mapping.
+- Agent commands:
+  - `git checkout -b 006-roslyn-T004-roslyn-pdb-test`
+  - Add/extend `RoslynPdbVerificationTests.cs` with the described assertions
+  - `dotnet test test/runtime-integration-tests --filter FullyQualifiedName~RoslynPdbVerificationTests`
+
+T005 - [P] (test) Mapping unit tests for MappingTable and TranslationResult
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/ast-tests/LoweredToRoslynMappingTests.cs`
+- Owner: TBD
+- Estimate: 0.5d
+- Description: Add failing tests that create a miniature Lowered AST (or a mocked representation), pass it to the translator (or its mapping helper), and assert that `MappingTable` contains specific `MappingEntry` rows with expected `NodeId` -> SourceIndex/line/column mappings.
+- Dependencies: T003 (POC sample)
+- Acceptance: Tests express the exact mapping expectations and fail until the mapping code is implemented.
+- Agent commands:
+  - `git checkout -b 006-roslyn-T005-mapping-tests`
+  - Extend `LoweredToRoslynMappingTests.cs` to include a failing mapping assertion for at least one node in `roslyn-poc-simple.5th`
+  - `dotnet test test/ast-tests --filter FullyQualifiedName~LoweredToRoslynMappingTests`
+
+T006 - [P] (test) TranslationResult & API contract tests
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/ast-tests/TranslationResultTests.cs`
+- Owner: TBD
+- Estimate: 0.5d
+- Description: Add unit tests asserting `TranslationResult` shape, that `Sources` contains expected entries after a minimal translation, and that `Diagnostics` are surfaced when translation fails.
+- Dependencies: T004, T005
+- Acceptance: Small unit tests that fail until `TranslationResult` is filled by POC translator.
+- Agent commands:
+  - `git checkout -b 006-roslyn-T006-translation-result-tests`
+  - Add `TranslationResultTests.cs` and run the unit test project to confirm failures when translator is absent.
+
+### Phase 3 — Models & Core Implementation (models before implementation)
+
+T007 - [P] (model) Create `LoweredAstModule` model
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/LoweredToRoslyn/LoweredAstModule.cs`
+- Owner: TBD
+- Estimate: 0.5d
+- Description: Define a lightweight representation of the lowered assembly/module used by the translator (Module Name, list of lowered types, list of lowered methods, source mapping origin information). Keep the model small and testable.
+- Dependencies: T005 (mapping tests reference shape), T003 (sample)
+- Acceptance: Model compiles and mapping tests can construct a `LoweredAstModule` instance to feed into translator tests.
+- Agent commands:
+  - `git checkout -b 006-roslyn-T007-create-lowered-ast-module`
+  - Create file `LoweredAstModule.cs` with record type and basic fields and commit
+  - `dotnet build`
+
+T008 - [P] (model) Create `TranslationResult` type & refine existing file if necessary
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/LoweredToRoslyn/TranslationResult.cs`
+- Owner: TBD
+- Estimate: 0.25d
+- Description: Ensure `TranslationResult` exposes `IReadOnlyList<string> Sources`, a `MappingTable` and `IReadOnlyList<Diagnostic> Diagnostics`. Add convenience factory helpers for test construction.
+- Dependencies: T006
+- Acceptance: Unit tests in T006 can construct `TranslationResult` fixtures successfully.
+- Agent commands: `git checkout -b 006-roslyn-T008-translationresult && edit file && dotnet build`
+
+T009 - [P] (model) Create `MappingEntry`/`MappingTable` (if not already complete)
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/LoweredToRoslyn/MappingTable.cs`
+- Owner: TBD
+- Estimate: 0.25d
+- Description: Confirm `MappingEntry` (NodeId, SourceIndex, StartLine, StartColumn, EndLine, EndColumn) and ensure `MappingTable` exposes a query API that tests can use to assert mapping for a specific `NodeId`.
+- Dependencies: T005, T007
+- Acceptance: Mapping unit tests reference a stable API and compile.
+- Agent commands: `git checkout -b 006-roslyn-T009-mapping-table && small edits && dotnet test`
+
+T010 - [P] (model) Create `PreservationCandidate` model & initial inventory
+- Path(s):
+  - Model: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/LoweredToRoslyn/PreservationCandidate.cs`
+  - Inventory: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/preservation-inventory.md`
+- Owner: TBD
+- Estimate: 1d
+- Description: Define `PreservationCandidate` (identifier, reason, test-reference, recommended disposition) and populate `preservation-inventory.md` by scanning tests and known IL hotspots (see `inventory-il.md`).
+- Dependencies: `inventory-il.md` (present in spec dir)
+ - Acceptance: Inventory file contains an initial pass listing top preservation candidates and their recommended disposition (shim / keep legacy emitter / test-change). For each top-priority candidate include a `Representative-Sample-Path` and a `Required-Acceptance-Test` entry. At least one high-priority candidate must include either a passing acceptance test or an implemented shim before deletion gating (see FR-009).
+- Agent commands:
+  - `git checkout -b 006-roslyn-T010-preservation-inventory`
+  - Create `PreservationCandidate.cs` and `preservation-inventory.md` and commit
+
+T011 - [P] (model) Create `DiagnosticRecord` and align existing Diagnostic type
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/Diagnostics/DiagnosticRecord.cs` (or refine `CompilationResult.cs`)
+- Owner: TBD
+- Estimate: 0.5d
+- Description: Provide a durable `DiagnosticRecord` (Id, Severity, Message, SourceSpan) used across parser, translator and compiler phases. If `CompilationResult.Diagnostic` already exists adapt usage or create an alias type for the translator surface.
+- Dependencies: T008
+- Acceptance: Tests and translator diagnostics compile and the translator can return diagnostics into `TranslationResult`.
+- Agent commands: `git checkout -b 006-roslyn-T011-diagnostic-record && add file && dotnet build`
+
+T012 - [ ] (core) Implement `LoweredAstToRoslynTranslator` skeleton
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/LoweredAstToRoslynTranslator.cs`
+- Owner: TBD
+- Estimate: 2d
+- Description: Implement the translator skeleton so that it:
+  - Accepts `LoweredAstModule` / `AssemblyDef` and produces `TranslationResult` with at least one generated source file for the POC sample
+  - Populates `MappingTable` entries for at least one AST node
+  - Returns diagnostics if translation cannot proceed for certain nodes
+- Dependencies: T005-T011 (tests and models)
+- Acceptance: `RoslynPdbVerificationTests` (T004) and mapping tests (T005) now pass for the minimal sample.
+- Agent commands:
+  - `git checkout -b 006-roslyn-T012-implement-translator`
+  - Edit `LoweredAstToRoslynTranslator.cs` to produce a small SyntaxTree via Roslyn APIs or to return equivalent generated sources expected by the test harness
+  - `dotnet test --filter FullyQualifiedName~RoslynPdbVerificationTests`
+
+### Phase 4 — Conversion, Preservation & Shims
+
+T013 - [ ] (analysis) Survey low-level IL tests and produce conversion plan
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/preservation-inventory.md`
+- Owner: TBD
+- Estimate: 3d
+- Description: Enumerate tests and artifacts that assert `.il` output or directly exercise `ILMetamodel` and produce an actionable conversion plan: convert to behavioral tests, implement shims, or keep under legacy emitter. Mark which tests must be executed unchanged and which can be converted.
+- Dependencies: T010 (preservation inventory)
+- Acceptance: `preservation-inventory.md` contains per-test disposition and a short conversion checklist for each test marked for conversion.
+- Agent commands:
+  - `git checkout -b 006-roslyn-T013-survey-il-tests`
+  - Add entries to `preservation-inventory.md` with links to the test files and suggested disposition
+
+T014 - [P] (conversion) Convert top-priority IL tests to behavioral tests
+- Path: varies; examples under `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/**` (each converted test must list its new test file path)
+- Owner: TBD
+- Estimate: 3d (first tranche)
+- Description: For the highest-priority tests from the inventory, implement behavioral tests that validate runtime behavior rather than textual IL output. If conversion is impossible without preserving IL layout, mark test as preservation candidate.
+- Dependencies: T013
+- Acceptance: Converted tests pass against both legacy and Roslyn backends, or are documented preserved cases.
+- Agent commands: standard per-test patch / branch sequence.
+
+T015 - [ ] (preservation) Implement narrow runtime shims for preservation candidates (if necessary)
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/fifthlang.system/` or a dedicated runtime shim library path
+- Owner: TBD
+- Estimate: 2d per candidate
+- Description: For cases where IL semantics cannot be reproduced in C# directly but the observable runtime behavior must be preserved, implement small runtime shims (helper methods) that can be referenced by generated C# code.
+- Dependencies: T013, T014
+- Acceptance: Preservation candidate tests pass when the translator uses the shim interface.
+- Agent commands: create shim stubs, wire translator to emit calls to shim helpers, run conversion tests.
+
+### Phase 5 — CI, Flags & Canary
+
+T016 - [ ] (ci) Create Roslyn backend validation CI workflow (SDK matrix)
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/.github/workflows/roslyn-backend-validation.yml`
+- Owner: TBD
+- Estimate: 1d
+- Description: New GitHub Actions workflow that runs critical test suites (parser, ast, runtime-integration, kg-smoke) on both .NET 8 and .NET 10-rc; produce artifacts (assemblies+pdbs) for inspection and enable optional manual gating for cut-over.
+- Dependencies: T001, T002, T012 (POC tests should compile in CI)
+- Acceptance: Workflow executes successfully on a sample PR and artifacts uploaded for inspection.
+- Agent commands: add workflow file and push branch; run or request a workflow dispatch in CI.
+  - Additional constraints (toolchain policy - Option A): The workflow MUST validate both SDKs and produce artifacts for both. The workflow should also include a lightweight PR guard that flags changes to `global.json` and requires a constitution amendment or explicit owner sign-off before allowing a change to the canonical pinned SDK. Explicitly: do NOT change `global.json` as part of this migration unless a constitution amendment is performed and recorded.
+
+T017 - [ ] (feature) Add compiler backend selection flag and wiring (non-destructive)
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/CompilerOptions.cs` and `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/ParserManager.cs`
+- Owner: TBD
+- Estimate: 0.5d
+- Description: Add a `--backend` option (`legacy|roslyn`) and ensure `ParserManager` can instantiate `IBackendTranslator` implementations without deleting legacy emitter. Default behavior remains legacy until canary is approved.
+- Dependencies: T012
+- Acceptance: Local `dotnet run -- --backend=roslyn` triggers the Roslyn translator path for the POC.
+- Agent commands:
+  - `git checkout -b 006-roslyn-T017-backend-flag`
+  - Modify `CompilerOptions` and `ParserManager` to read the flag and select translator
+  - `dotnet build && dotnet run -- --backend=roslyn` against small sample
+
+T018 - [ ] (ci) Canary PR to move legacy emitters to `src/legacy-emitters/` for non-destructive validation
+- Path(s): move (COPY) and update references under `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/code_generator/` and `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/ast-model/ILMetamodel.cs`
+- Owner: TBD
+- Estimate: 1d
+- Description: Create a non-destructive staging PR that duplicates the legacy emitter code into `src/legacy-emitters/` (leave original in place for now). Update build scripts or a feature flag to allow CI to run the Roslyn backend against this branch while preserving legacy code for rollback.
+- Dependencies: T016, T017
+- Acceptance: Canary PR runs the Roslyn CI matrix and shows artifacts without modifying the original legacy files in the default view; reviewers can test the Roslyn backend on CI.
+- Agent commands: create a PR branch and copy files; add a note to PR body referencing the constitutional-deviation checklist.
+
+T019 - [ ] (governance) Complete constitutional deviation sign-off checklist
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/constitutional-deviation.md`
+- Owner: Project lead (TBD)
+- Estimate: 0.5d
+- Description: Ensure preservation inventory, CI green (on matrix), PDB mapping tests passing, and obtain owner approval recorded in the deviation document.
+- Dependencies: T010, T012, T016
+- Acceptance: Signed checklist and an approval comment recorded in the spec file.
+- Agent commands: add approvals as comments and push a signed PR to the deviation file.
+
+T026 - [ ] (governance) Codify toolchain policy (Option A) and add CI enforcement
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/spec.md` and `.github/workflows/roslyn-backend-validation.yml`
+- Owner: Project lead (TBD)
+- Estimate: 0.25d
+- Description: Record the decision to keep the repository canonical SDK pinned to .NET 8 in `global.json` while treating .NET 10 as the development focus. Update `spec.md` (this file) and `plan.md` to reflect the policy (done). Add CI guard(s) to the T016 workflow that detect changes to `global.json` and require a special label/approval and a constitution amendment before allowing such PRs to proceed. Document the policy in the top-level README or `docs/` as appropriate.
+- Dependencies: T016
+- Acceptance: `spec.md` and `plan.md` include the Option A policy; CI workflow (T016) includes a check that flags PRs that modify `global.json` unless a special approver label is present; `global.json` remains unchanged in the feature branch.
+- Agent commands:
+  - `git checkout -b 006-roslyn-T026-toolchain-policy`
+  - Ensure `spec.md` and `plan.md` are updated to include the Option A policy (this is already performed)
+  - Add a small CI job in `roslyn-backend-validation.yml` that runs `git diff --name-only ${{ github.event.before }} ${{ github.sha }}` and fails or annotates the PR if `global.json` is modified without the required label/approval
+  - Commit and push; request a workflow dispatch
+
+T020 - [ ] (cleanup) Prepare gated deletion PR for legacy emitters (deferred until sign-off)
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/code_generator/` and `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/ast-model/ILMetamodel.cs` and tests referencing IL
+- Owner: TBD
+- Estimate: 2d (execute only after approvals)
+- Description: After owner sign-off and canary period completion, remove legacy emitter source files in a single, well-documented PR referencing the constitutional-deviation checklist and the preservation inventory.
+- Dependencies: T019
+- Acceptance: Deletion PR merges only after CI passes and sign-off file is present in PR description.
+- Agent commands: create a PR branch, delete files, run full CI matrix.
+
+### Phase 6 — Diagnostics, Incremental, LSP & Polish
+
+T021 - [ ] (diagnostics) Introduce a unified Diagnostic system and migrate parser to return diagnostics
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/Diagnostics/` and `src/parser/AstBuilderVisitor.cs`
+- Owner: TBD
+- Estimate: 3d
+- Description: Provide a stable diagnostic codeset and a parser flow that records diagnostics (instead of throwing) and returns partial ASTs. Update tests to assert diagnostics where previously they threw.
+- Dependencies: T011
+- Acceptance: Parser tests pass and newly created diagnostic tests validate handling of error nodes.
+
+T022 - [ ] (incremental) File-level parse and compilation cache prototype
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/CompilationCache.cs`
+- Owner: TBD
+- Estimate: 3d
+- Description: Implement a content-hash keyed parse cache and a compilation cache for generated SyntaxTrees to speed iteration.
+- Dependencies: T012
+- Acceptance: Demonstrable cache hits on repeat runs of the same inputs; unit test showing cache reuse.
+
+T023 - [ ] (lsp) LSP skeleton and document services
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/language-server/`
+- Owner: TBD
+- Estimate: 5d
+- Description: Create a minimal Language Server project (separate process) to host diagnostics and document parsing services (document open/close, quick diagnostics). Use incremental parser from T022.
+- Dependencies: T021, T022
+- Acceptance: LSP server accepts a document, parses it and returns diagnostics for a malformed sample.
+
+T024 - [ ] (perf & polish) Add unit tests, docs and perf harness entries
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/perf/` and `docs/` and `README.md`
+- Owner: TBD
+- Estimate: 2d
+- Description: Add unit tests for mapping, PDB verification, update `docs/` with developer guidance (how to run the Roslyn backend locally, how to debug generated sources), and add a perf scenario to `test/perf/` for compile-time measurement.
+- Dependencies: T012, T016
+- Acceptance: Docs updated and perf scenario present in `test/perf/`.
+
+T025 - [ ] (polish) Final regression & integration runs, sign-off and merge
+- Path: N/A (process)
+- Owner: Project lead
+- Estimate: 1d
+- Description: Run the full test suite (parser, ast, runtime-integration, kg-smoke) on the release pipeline and obtain final sign-off before removal of legacy emitters.
+- Dependencies: T019, T020, T024
+- Acceptance: Final sign-off documented and canary period completed without critical regressions.
 
 ---
 
-SECTION A — SETUP & TOOLING
+## Parallel Execution Examples
 
-T001 — Create POC branch and workspace
- - Owner: TBD
- - Estimate: 0.25d
- - Paths: N/A (repo-level)
- - Dependencies: none
- - Description: Create a short-lived work branch for the POC work and ensure local toolchain readiness instructions are present in quickstart.md.
- - Acceptance: Branch `006-roslyn-poc` exists and quickstart.md updated with how to run the POC locally.
- - Agent commands (fish):
-   - git checkout -b 006-roslyn-poc  # create POC branch from current feature branch
-   - printf '1. Install .NET 10-rc
-2. Use dotnet tool to run POC
-' > /Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/quickstart.md
+1) Run model creation tasks (safe parallel group): `T007`, `T008`, `T009`, `T010`, `T011`
+- Agent pattern to run in parallel (multiple agents/worker processes recommended):
+  - For each task `T###`:
+    - `git checkout -b 006-roslyn-T###-<slug>`
+    - Apply the model file changes described in the task
+    - `dotnet build`
+    - `git commit` & push & open PR
+  - If you must run in a single shell sequentially, do one-by-one.
 
-T002 — Add Roslyn pin + C# language version to MSBuild (`Directory.Build.props`)
- - Owner: TBD
- - Estimate: 0.5d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/Directory.Build.props`
- - Dependencies: T001
- - Description: Add a `RoslynVersion` MSBuild property and a `LangVersion` override for generated compilation to C# 14. Provide conditional NuGet PackageReference injection in Release builds to use the pinned Roslyn package (avoid changing `global.json` which remains pinned at .NET 8 per constitution). This makes release builds reproducible while allowing local dev to use SDK-provided Roslyn.
- - Acceptance: `dotnet restore` and `dotnet build -c Release` succeed and the Release build uses the pinned Microsoft.CodeAnalysis package (verify `dotnet list package --include-transitive` shows pinned version when `Configuration=Release`).
- - Agent commands (fish):
-   - git switch -c 006-roslyn-tooling
-   - # Implement Directory.Build.props changes (developer edits)
-   - dotnet restore -v minimal --configfile nuget.config
-   - dotnet build -c Release
+2) Run test-writing tasks together (safe parallel group): `T004`, `T005`, `T006`
+- Example local validation commands (fish shell):
+  - `dotnet test /Users/aabs/dev/aabs/active/5th-related/fifthlang/test/runtime-integration-tests/runtime-integration-tests.csproj --filter FullyQualifiedName~RoslynPdbVerificationTests &`
+  - `dotnet test /Users/aabs/dev/aabs/active/5th-related/fifthlang/test/ast-tests/ast-tests.csproj --filter FullyQualifiedName~LoweredToRoslynMappingTests &`
+  - `wait`  # wait for the background tests to finish
 
-T003 — Add CI skeleton for .NET 8 + .NET 10-rc matrix (workflow file)
- - Owner: TBD
- - Estimate: 0.5d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/.github/workflows/roslyn-backend-validation.yml`
- - Dependencies: T002
- - Description: Create a GitHub Actions workflow that runs the baseline test matrix on an OS/SDK matrix: {ubuntu-latest, windows-latest, macos-latest} × {.NET 8.x (from global.json), .NET 10-rc}. Include a job step to run the Roslyn backend using `--backend=roslyn` or env var `BACKEND=roslyn`.
- - Acceptance: The workflow file is present and can be executed; a manual dispatch run completes the build+test steps for the sample POC branch without destructive changes.
- - Agent commands (fish):
-   - git checkout -b 006-roslyn-ci
-   - # Create workflow YAML file per path above
-   - gh workflow run roslyn-backend-validation.yml -f ref=006-roslyn-poc
+3) CI parallelization guidance:
+- Configure GitHub Actions matrix entries to run distinct test suites in parallel jobs: `parser-tests`, `ast-tests`, `runtime-integration-tests`, `kg-smoke-tests` across SDKs (`dotnet-8`, `dotnet-10-rc`).
+
+## Task Validation Checklist (Gates)
+- [ ] Setup tasks completed: T001, T002, T003
+- [ ] Core POC tests added and failing (T004-T006)
+- [ ] Basic models created (T007-T011)
+- [ ] Translator skeleton implemented and POC tests pass (T012)
+- [ ] Preservation inventory created and top conversions planned (T010, T013)
+- [ ] CI matrix added and green for POC (T016)
+- [ ] Constitutional-deviation checklist signed (T019)
 
 ---
 
-SECTION B — DATA MODEL (entity tasks) [P]
-Note: Each entity in `data-model.md` becomes a model creation task and is parallelizable because they are different files.
-
-T010 [P] — Create model: `LoweredASTModule`
- - Owner: TBD
- - Estimate: 0.5d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/Models/LoweredASTModule.cs`
- - Dependencies: T002
- - Description: Create a minimal POCO representing a module-level lowered AST wrapper used by the translator (module name, list of top-level lowered nodes, source mapping reference). Include XML doc comments.
- - Acceptance: Compiles in the compiler project and is used by a placeholder unit test.
- - Agent commands (fish):
-   - git switch 006-roslyn-poc
-   - printf '%s' "// create LoweredASTModule.cs skeleton" > /Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/Models/LoweredASTModule.cs
-
-T011 [P] — Create model: `TranslationResult`
- - Owner: TBD
- - Estimate: 0.5d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/LoweredToRoslyn/TranslationResult.cs`
- - Dependencies: T010
- - Description: Create `TranslationResult` carrying generated SyntaxTrees, MappingTable reference, and Diagnostics collection.
- - Acceptance: Unit test can construct a `TranslationResult` and read its fields.
-
-T012 [P] — Create model: `MappingEntry`
- - Owner: TBD
- - Estimate: 0.5d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/LoweredToRoslyn/MappingEntry.cs`
- - Dependencies: T010
- - Description: Implement a MappingEntry (Lowered node id → generated SyntaxNode id → SourceSpan). Include serialization helpers for test inspection.
- - Acceptance: Mapping entry unit test serializes/deserializes the entry and asserts equality.
-
-T013 [P] — Create model: `PreservationCandidate`
- - Owner: TBD
- - Estimate: 0.5d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/Preservation/PreservationCandidate.cs`
- - Dependencies: T012
- - Description: Data structure representing a reflection/interop-sensitive member (member identity, reason, test references, recommended disposition).
- - Acceptance: The preservation inventory can be generated and mapped into `PreservationCandidate` instances.
-
-T014 [P] — Create model: `DiagnosticRecord`
- - Owner: TBD
- - Estimate: 0.5d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/Diagnostics/DiagnosticRecord.cs`
- - Dependencies: T002
- - Description: A small record type representing a diagnostic with Id, Severity, SourceSpan, and optional structured data.
- - Acceptance: Parser diagnostic unit test can create and inspect a `DiagnosticRecord`.
-
----
-
-SECTION C — TESTS FIRST (TDD tasks) [P]
-
-T020 [P] — Add PDB SequencePoint verification tests (POC harness)
- - Owner: TBD
- - Estimate: 2d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/runtime-integration-tests/RoslynPdbVerificationTests.cs`
- - Dependencies: T010–T014
- - Description: Implement tests that construct a minimal lowered AST or a small sample `.5th` program, translate it to C# SyntaxTrees via a stub translator, compile in-memory using Microsoft.CodeAnalysis, emit assembly+pdb to MemoryStreams, and then use `System.Reflection.Metadata` to assert that SequencePoints exist and match expected line/column numbers. Keep the test isolated (no external runtime dependencies).
- - Acceptance: Test runs in CI in the POC job and asserts SequencePoints for at least one sample method.
- - Example test-run command (fish):
-   - dotnet test /Users/aabs/dev/aabs/active/5th-related/fifthlang/test/runtime-integration-tests -f net8.0 --filter RoslynPdbVerificationTests
-
-T021 [P] — Add Mapping unit tests (mapping invariants)
- - Owner: TBD
- - Estimate: 1d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/ast-tests/LoweredToRoslynMappingTests.cs`
- - Dependencies: T010–T014
- - Description: Unit tests that assert `MappingTable` contains expected entries for a small lowered AST input and that `TranslationResult` exposes SyntaxTrees and mapping info.
- - Acceptance: Tests pass locally and on CI when the model skeletons are in place.
-
-T022 — Survey & inventory existing IL tests (automation)
- - Owner: TBD
- - Estimate: 0.5d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/preservation-inventory.md`
- - Dependencies: none
- - Description: Run a deterministic scan of repo test outputs and unit tests for references to `.il` outputs or IL metamodel types and produce `preservation-inventory.md` which lists candidate files, tests, and why they matter.
- - Acceptance: The `preservation-inventory.md` is created and includes at minimum the quick grep hits and proposed disposition columns.
- - Example agent commands (fish):
-   - grep -R --line-number --exclude-dir=.git --include='*.il' '/Users/aabs/dev/aabs/active/5th-related/fifthlang' || true
-   - grep -R --line-number --exclude-dir=.git --include='*.cs' "ILMetamodel" '/Users/aabs/dev/aabs/active/5th-related/fifthlang' || true
-
----
-
-SECTION D — CORE IMPLEMENTATION (after tests) — sequential where same files affected
-
-T030 — Implement `IBackendTranslator` and ParserManager integration
- - Owner: TBD
- - Estimate: 1d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/IBackendTranslator.cs` and `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/ParserManager.cs`
- - Dependencies: T010–T014, T020–T021
- - Description: Create the interface `IBackendTranslator` (Translate method) and add wiring in `ParserManager` to call the translator immediately after language lowering. The translator should return `TranslationResult`. Do not remove or modify existing legacy lowering/emitter logic — only add a new invocation path that can be enabled via CLI flag (T040).
- - Acceptance: `ParserManager` compiles and a unit test can invoke the translator path without disabling the legacy pipeline.
-
-T031 — Implement minimal `LoweredAstToRoslynTranslator` (POC)
- - Owner: TBD
- - Estimate: 2d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/LoweredAstToRoslynTranslator.cs`
- - Dependencies: T030, T020, T021
- - Description: Implement translator skeleton that consumes `LoweredASTModule` and emits C# SyntaxTree(s) for a small subset of constructs (method, call, newobj, return). Include `#line` pragmas to map source and create a `TranslationResult` for tests to assert.
- - Acceptance: PDB SequencePoint test (T020) passes when translator is used in unit tests; no legacy emitter deletion performed.
-
-T032 — Implement `TranslationResult` and `MappingTable` code (concrete)
- - Owner: TBD
- - Estimate: 1d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/LoweredToRoslyn/TranslationResult.cs` and `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/LoweredToRoslyn/MappingTable.cs`
- - Dependencies: T011–T013, T031
- - Description: Implement the concrete data structures used by translator and mapping tests.
- - Acceptance: Mapping unit tests (T021) pass.
-
-T033 — Implement simple CompilationCache prototype
- - Owner: TBD
- - Estimate: 2d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/CompilationCache.cs`
- - Dependencies: T030, T031
- - Description: Implement file-level parse cache keyed by file content hash. Integrate with ParserManager to reuse parse result for unchanged files.
- - Acceptance: Demonstrable cache-hit on repeated parse+translate runs (add a unit test to assert cache usage).
-
----
-
-SECTION E — INFRA (CI, Signing, Observability, Preservations & Gating)
-
-T040 — Add `--backend=roslyn|legacy` CLI option and MSBuild property
- - Owner: TBD
- - Estimate: 0.5d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/CompilerOptions.cs` and `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/ParserManager.cs`
- - Dependencies: T030
- - Description: Introduce a CLI option `--backend` and corresponding CompilerOptions property; wire it so default is `legacy` and `roslyn` triggers the translator path. Ensure unit tests can set CompilerOptions programmatically.
- - Acceptance: Running `dotnet run --project src/compiler -- --backend=roslyn` selects the translator invocation path; running with `--backend=legacy` uses the legacy emitter. No deletions of legacy emitter code.
-
-T041 — Add Signing task (P1-Signing)
- - Owner: TBD
- - Estimate: 1d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/signing.md` and `Directory.Build.props` updates
- - Dependencies: T002, T003
- - Description: Create a formal signing policy (where keys are stored, CI steps to sign release assemblies) and add MSBuild props to enable signing in Release builds. Add verification tests that signed assemblies contain expected public key tokens.
- - Acceptance: Release build artifacts are signed and CI can verify signatures using `sn` or equivalent tooling.
-
-T042 — Observability & artifact identity (P1-Observability)
- - Owner: TBD
- - Estimate: 1d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/observability.md`
- - Dependencies: T003
- - Description: Define telemetry tokens for backend used per build (e.g., embed build-info resource with backend id) and CI artifact upload steps. Create a simple monitor script to compare artifact identity between legacy and Roslyn builds for the same sample input.
- - Acceptance: CI artifacts include a `backend.json` manifest that records backend id and Roslyn version; monitor script can compare manifests.
-
-T043 — Preservation shims plan & implementation (blocked)
- - Owner: TBD
- - Estimate: 2d (after inventory)
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/fifthlang.system/PreservationShims.cs`
- - Dependencies: T022 (preservation inventory) and T012 (owner approval via T021)
- - Description: For each preservation candidate requiring exact IL or special behavior, implement a small runtime shim or wrapper in `fifthlang.system` that the translator can call. This is intentionally blocked until preservation inventory is approved.
- - Acceptance: For each shim, a unit or integration test demonstrates parity for the specific reflection/interop-sensitive scenario.
-
-T044 — Final cleanup gating / deletion task (blocked, high-safeguard)
- - Owner: Project lead (must be explicit approver)
- - Estimate: 1d (execution after approvals)
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/code_generator/` and `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/ast-model/ILMetamodel.cs`
- - Dependencies: T041 (signing), T022 (inventory), T040 (backend flag), T003 (CI green), T021 (owner sign-off)
- - Description: Perform legacy emitter deletion only after all gating items are satisfied. The task includes: a) a non-destructive PR that moves legacy sources to `src/legacy-emitters/` for a canary interval, b) running full CI matrix on that PR, c) collecting acceptance sign-offs, d) final deletion PR after canary window.
- - Acceptance: All preconditions pass; final deletion is merged only with explicit owner approval and CI green on both SDKs/OS matrix.
-
----
-
-SECTION F — POLISH & VALIDATION [P]
-
-T050 [P] — Add property-based & unit tests for translator invariants
- - Owner: TBD
- - Estimate: 2d
- - Path: `test/property/TranslatorProperties.cs` and `test/ast-tests/*` updates
- - Dependencies: T031, T032
- - Description: Add property-based tests (e.g., FsCheck or Hypothesis-like approach in .NET) that validate mapping invariants: mapping counts, monotonicity, and idempotence of translation for sanitized inputs.
- - Acceptance: Property tests run locally and in CI; failures produce targeted counterexamples.
-
-T051 — Performance benchmark harness (stabilization phase)
- - Owner: TBD
- - Estimate: 2d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/perf/roslyn-backend/` and scripts in `scripts/perf/`
- - Dependencies: T031, T032
- - Description: Add benchmark harness comparing compile-time and simple runtime characteristics between legacy and Roslyn pipelines for representative samples. The harness must not gate migration but must record baselines for stabilization phase.
- - Acceptance: Benchmarks run and produce CSV and HTML outputs in `BenchmarkDotNet.Artifacts/results/`.
-
-T052 — Maintainer documentation & quickstart finalization
- - Owner: TBD
- - Estimate: 1d
- - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/maintainer-guide.md` and `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/quickstart.md`
- - Dependencies: T031, T032, T041
- - Description: Produce step-by-step maintainer documentation for running the translator, debugging PDB mapping, running the CI validation job, and the deprecation checklist. Include exact commands for fish shell.
- - Acceptance: Docs reviewed by one maintainer and incorporated into the spec folder.
-
----
-
-PARALLEL GROUPS (examples & agent commands)
-- Group P1: Model skeletons (T010, T011, T012, T013, T014) — safe to implement in parallel because different files
-  - Example agent run (fish):
-    - # Run three independent model creation tasks in background (example):
-    - (apply_patch --some-script-to-add-file1 &); (apply_patch --some-script-to-add-file2 &); wait
-
-- Group P2: Tests-first group (T020, T021, T022) — can be authored in parallel
-  - Example: run unit test file creation and then run `dotnet test` in parallel per OS in CI matrix
-
-AGENT COMMAND EXAMPLES (fish)
-- Create branch and push:
-  - git checkout -b 006-roslyn-poc; git push -u origin 006-roslyn-poc
-- Run the PDB verification test locally (net8):
-  - dotnet test /Users/aabs/dev/aabs/active/5th-related/fifthlang/test/runtime-integration-tests -f net8.0 --filter RoslynPdbVerificationTests
-- Run the CI matrix locally (example using act or just run commands):
-  - # For each SDK version run: dotnet build -f net8.0 && dotnet test -f net8.0
-
-TASK NAMING / DEPENDENCY NOTES
-- Use task ID prefixes when referencing a dependency (e.g., T031 depends on T030 and T020). Always resolve `T022` (preservation inventory) and `T021` (owner approval) before T044 (cleanup deletion).
-
----
-
-If you want, I can now (pick one):
- - A) Convert these T‑series tasks into the repository `tasks.md` (this file is already updated) and open PRs for the top N implementation tasks (requires your approval and owner assignment).
- - B) Produce the precise apply_patch patches for the top N setup and test scaffold tasks (T002, T020, T021, T030, T031) so they can be applied immediately.
- - C) Keep this plan as-is and wait for owners/approvals before generating code-level patches.
-
+If you want I can: 1) run the prerequisite script and confirm available docs (already done), 2) create or update `tasks.md` on disk (done by this change), and 3) start the first task (T001) by creating the branch and applying the Directory.Build.props change. Which one should I do next?
