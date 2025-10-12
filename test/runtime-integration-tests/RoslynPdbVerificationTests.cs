@@ -1,6 +1,14 @@
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using compiler;
 using FluentAssertions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
 using TUnit;
 
 namespace runtime_integration_tests;
@@ -25,22 +33,7 @@ public class RoslynPdbVerificationTests
         result.Mapping.Entries.Should().NotBeEmpty("POC translator should populate mapping entries for sample nodes");
         result.Mapping.Entries.Any(e => e.NodeId == "node1").Should().BeTrue("Expected mapping row for NodeId 'node1'");
     }
-}
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using FluentAssertions;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Emit;
-using TUnit;
 
-namespace runtime_integration_tests;
-
-public class RoslynPdbVerificationTests
-{
     [Test]
     public void EmitPortablePdb_HasDocumentsAndMethodDebugInfo()
     {
