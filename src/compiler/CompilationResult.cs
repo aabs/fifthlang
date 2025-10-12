@@ -13,6 +13,11 @@ public record Diagnostic(
     string? Source = null,
     string? Code = null);
 
+// Alias used by the translator surface for clarity in translator-specific API types.
+// This intentionally reuses the existing compiler.Diagnostic shape so diagnostics
+// are comparable across phases of the toolchain.
+public record DiagnosticRecord(DiagnosticLevel Level, string Message, string? Source = null, string? Code = null);
+
 /// <summary>
 /// Diagnostic severity levels
 /// </summary>

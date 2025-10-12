@@ -1,3 +1,31 @@
+using System.Linq;
+using compiler;
+using FluentAssertions;
+using TUnit;
+
+namespace runtime_integration_tests;
+
+public class RoslynPdbVerificationTests
+{
+    [Test]
+    public void Translator_Should_Emit_MappingEntry_For_Known_Node_In_POC()
+    {
+        // Construct a minimal lowered module referencing the POC sample
+        var methods = new List<LoweredMethod>
+        {
+            new LoweredMethod("node1", "main", "roslyn-poc-simple.5th", 1, 1)
+        };
+        var module = new LoweredAstModule("roslyn-poc", new List<LoweredType>(), methods, new[] { "roslyn-poc-simple.5th" });
+
+        var translator = new LoweredAstToRoslynTranslator();
+        var result = translator.Translate(module);
+
+        // Failing expectation (POC-driven): translator must produce at least one mapping entry
+        // that maps the lowered node 'node1' back to a generated C# source location.
+        result.Mapping.Entries.Should().NotBeEmpty("POC translator should populate mapping entries for sample nodes");
+        result.Mapping.Entries.Any(e => e.NodeId == "node1").Should().BeTrue("Expected mapping row for NodeId 'node1'");
+    }
+}
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection.Metadata;
