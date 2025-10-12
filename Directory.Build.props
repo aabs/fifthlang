@@ -6,8 +6,8 @@
     <UseNETSdkDefaults>true</UseNETSdkDefaults>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <!-- Roslyn pin and language version for generated sources -->
-    <!-- Pin candidate for Roslyn used in CI/release artifacts -->
-    <RoslynVersion>4.1.0</RoslynVersion>
+  <!-- Pin Roslyn used in CI/release artifacts. Corrected pin: 4.14.0 (5.0.0-2.final caused package conflicts) -->
+  <RoslynVersion>4.14.0</RoslynVersion>
     <!-- Default language version for generated C# sources -->
     <LangVersion>14</LangVersion>
     <!-- Use pinned Roslyn by default for Release builds (CI / release); developers may override locally -->

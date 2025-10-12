@@ -25,4 +25,10 @@ Entries:
   - Owner: @aabs
   - Date: 2025-10-12
 
+- Q: Roslyn package pin for CI/release artifacts
+  - Decision: Pin Roslyn to `4.14.0` for CI/release artifacts. Developers may still use SDK-provided Roslyn locally when `UsePinnedRoslyn` is not set to true.
+  - Rationale: `5.0.0-2.final` caused package resolution conflicts with existing test and runtime dependencies. `4.14.0` preserves compatibility with other packages while providing a stable, deterministic minor/patch pin for CI builds.
+  - Owner: @aabs
+  - Date: 2025-10-12 (corrected to 4.14.0 due to dependency conflicts)
+
 ```
