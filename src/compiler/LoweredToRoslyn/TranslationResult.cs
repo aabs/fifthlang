@@ -10,3 +10,4 @@ public record TranslationResult(
     IReadOnlyList<string> Sources,
     MappingTable Mapping,
     IReadOnlyList<Diagnostic>? Diagnostics = null);
+

@@ -1,3 +1,32 @@
+# Preservation Inventory — Roslyn Backend Migration
+
+This inventory is the initial pass required by FR-009. It lists candidate cases where exact IL layout
+or emission details may be important to downstream consumers and therefore require explicit
+disposition (shim | keep-legacy | convert-test).
+
+Top-level summary (initial pass)
+
+1. Interop / Reflection-sensitive public APIs
+   - Representative-Sample-Path: `test/fifth-runtime-tests/Interop/ExampleInteropTest.5th`
+   - Reason: Public APIs that may be reflected over at runtime; exact method signatures and custom
+     attributes might be relied upon by consumers.
+   - Recommended disposition: Survey & convert to behavioral integration tests; consider runtime shim
+   - Owner: @aabs
+   - Required-Acceptance-Test: Add an integration test that validates reflection-based lookups for the sample API.
+
+2. Custom IL patterns used by hand-crafted tests
+   - Representative-Sample-Path: `test/ast-tests/IL-Expectations/*` (ad-hoc)
+   - Reason: Tests that assert textual `.il` output or exact PE layout
+   - Recommended disposition: Convert to behavior-focused tests where possible; mark a small subset
+     as preservation candidates and create narrow shims if necessary.
+   - Owner: @aabs
+   - Required-Acceptance-Test: Each converted test must pass under both legacy and Roslyn backends.
+
+Next steps
+
+- Expand the inventory by scanning `test/` for `.il` or `IL`-focused tests and produce a per-test
+  disposition during T013 (survey). At least one top-priority candidate must have an acceptance test
+  or a shim implemented before any deletion PR is merged.
 ```markdown
 # Preservation Inventory — Roslyn Backend Migration
 

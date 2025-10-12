@@ -15,4 +15,7 @@ public class MappingTable
     public void Add(MappingEntry entry) => _entries.Add(entry);
 
     public IReadOnlyList<MappingEntry> Entries => _entries.AsReadOnly();
+
+    public MappingEntry? FindByNodeId(string nodeId) => _entries.Find(e => e.NodeId == nodeId);
 }
+

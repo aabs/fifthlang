@@ -1,0 +1,5 @@
+// Minimal POC program used by Roslyn PDB and mapping tests
+main(): int {
+    // Simple arithmetic expression to exercise sequence points
+    return 40 + 2;
+}
