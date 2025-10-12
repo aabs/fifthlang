@@ -428,10 +428,107 @@ Examples:
                 }
             }
 
-            // TODO: Compile the C# sources using Roslyn and emit the assembly
-            // For now, we'll return an error indicating this is not yet fully implemented
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "Roslyn backend: Full compilation pipeline not yet implemented. Translation completed successfully, but assembly emission is pending."));
-            return (false, null);
+            // Compile the C# sources using Roslyn
+            if (options.Diagnostics)
+            {
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Compiling generated C# sources with Roslyn"));
+            }
+
+            // Parse the C# sources into syntax trees
+            var syntaxTrees = new List<Microsoft.CodeAnalysis.SyntaxTree>();
+            for (int i = 0; i < translationResult.Sources.Count; i++)
+            {
+                var syntaxTree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(
+                    translationResult.Sources[i],
+                    path: $"generated_{i}.cs",
+                    encoding: System.Text.Encoding.UTF8);
+                syntaxTrees.Add(syntaxTree);
+            }
+
+            // Get required references
+            var references = new List<Microsoft.CodeAnalysis.MetadataReference>
+            {
+                Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
+                Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly.Location),
+            };
+
+            // Add System.Runtime reference if available
+            try
+            {
+                var systemRuntimePath = Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "", "System.Runtime.dll");
+                if (File.Exists(systemRuntimePath))
+                {
+                    references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(systemRuntimePath));
+                }
+            }
+            catch { /* Ignore if System.Runtime not found */ }
+
+            // Create the compilation
+            var assemblyName = Path.GetFileNameWithoutExtension(options.Output);
+            var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(
+                assemblyName,
+                syntaxTrees: syntaxTrees,
+                references: references,
+                options: new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(
+                    Microsoft.CodeAnalysis.OutputKind.ConsoleApplication,
+                    optimizationLevel: Microsoft.CodeAnalysis.OptimizationLevel.Debug,
+                    platform: Microsoft.CodeAnalysis.Platform.AnyCpu));
+
+            // Ensure output directory exists
+            var outputDir = Path.GetDirectoryName(options.Output);
+            if (!string.IsNullOrWhiteSpace(outputDir) && !Directory.Exists(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+            }
+
+            // Emit the assembly
+            using var peStream = new FileStream(options.Output, FileMode.Create, FileAccess.Write);
+            using var pdbStream = new FileStream(Path.ChangeExtension(options.Output, ".pdb"), FileMode.Create, FileAccess.Write);
+
+            var emitOptions = new Microsoft.CodeAnalysis.Emit.EmitOptions(
+                debugInformationFormat: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb);
+
+            var emitResult = compilation.Emit(peStream, pdbStream, options: emitOptions);
+
+            if (!emitResult.Success)
+            {
+                // Report compilation errors
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "Roslyn compilation failed with errors:"));
+                foreach (var diagnostic in emitResult.Diagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error))
+                {
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, diagnostic.ToString()));
+                }
+                return (false, null);
+            }
+
+            if (options.Diagnostics)
+            {
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Successfully compiled assembly: {options.Output}"));
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated PDB: {Path.ChangeExtension(options.Output, ".pdb")}"));
+            }
+
+            // Generate runtime configuration file for framework-dependent execution
+            await GenerateRuntimeConfigAsync(options.Output, diagnostics);
+
+            // Set execute permission on Unix-like systems
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                try
+                {
+                    var chmodResult = await _processRunner.RunAsync("chmod", $"+x \"{options.Output}\"");
+                    if (!chmodResult.Success && options.Diagnostics)
+                    {
+                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission on {options.Output}"));
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission: {ex.Message}"));
+                }
+            }
+
+            return (true, options.Output);
         }
         catch (System.Exception ex)
         {
