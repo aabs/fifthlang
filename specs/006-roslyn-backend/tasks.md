@@ -226,14 +226,31 @@ T017 - [ ] (feature) Add compiler backend selection flag and wiring (non-destruc
   - Modify `CompilerOptions` and `ParserManager` to read the flag and select translator
   - `dotnet build && dotnet run -- --backend=roslyn` against small sample
 
-T018 - [ ] (ci) Canary PR to move legacy emitters to `src/legacy-emitters/` for non-destructive validation
-- Path(s): move (COPY) and update references under `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/code_generator/` and `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/ast-model/ILMetamodel.cs`
+T018 - [ ] (ci) Canary: CI-overlay of legacy emitters for non-destructive validation (no repo copy)
+- Path(s): CI job step and helper script: `scripts/ci-overlay-legacy.sh` (CI-only overlay of `src/code_generator/` into `src/legacy-emitters/`)
 - Owner: TBD
 - Estimate: 1d
-- Description: Create a non-destructive staging PR that duplicates the legacy emitter code into `src/legacy-emitters/` (leave original in place for now). Update build scripts or a feature flag to allow CI to run the Roslyn backend against this branch while preserving legacy code for rollback.
+- Description: Instead of committing a copy of legacy emitters into the repository, implement a CI-only overlay that places a copy of the legacy emitter sources into the CI workspace at `src/legacy-emitters/` at job runtime. The overlay is created from a trusted source (for example `origin/master` or a dedicated archival branch) by checking out that ref into a separate path (e.g., `legacy-src`) and copying just the required sub-tree. This lets reviewers and CI validate the Roslyn backend side-by-side with the legacy emitter behavior without polluting the repository with throwaway code.
+
+  Implementation sketch (CI job):
+  1. Checkout the PR/feature branch as usual (`actions/checkout` default).
+  2. Also checkout the authoritative legacy branch into a separate path:
+     - `uses: actions/checkout@v4` with `ref: 'master'` and `path: 'legacy-src'` (or target archival branch or tag)
+  3. Run the overlay helper: `scripts/ci-overlay-legacy.sh legacy-src src/code_generator src/legacy-emitters`
+     - The script copies the necessary subtree from `legacy-src` into `src/legacy-emitters/` in the CI workspace.
+  4. Build and run the Roslyn backend (`--backend=roslyn`) in CI; optionally, run the legacy backend in a separate job to gather comparison artifacts. Upload artifacts for inspection.
+
+  Local reproduction (developer machine):
+  - `git fetch origin master && mkdir -p legacy-src && git --work-tree=legacy-src checkout origin/master -- src/code_generator`
+  - `./scripts/ci-overlay-legacy.sh legacy-src src/code_generator src/legacy-emitters`
+  - `dotnet run -- --backend=roslyn` (or use the feature flag to select backend)
+
 - Dependencies: T016, T017
-- Acceptance: Canary PR runs the Roslyn CI matrix and shows artifacts without modifying the original legacy files in the default view; reviewers can test the Roslyn backend on CI.
-- Agent commands: create a PR branch and copy files; add a note to PR body referencing the constitutional-deviation checklist.
+- Acceptance: The CI canary run produces artifacts for review (Roslyn-built assemblies + PDBs) while the same PR contains no committed `src/legacy-emitters/` changes. The PR must not include a committed copy of legacy emitters. The overlay script and CI job must be documented and included in the canary run. Artifacts are uploaded and accessible for reviewers to validate equivalence and PDB fidelity.
+- Agent commands:
+  - `git checkout -b 006-roslyn-T018-ci-overlay`
+  - Add `scripts/ci-overlay-legacy.sh` and update CI dispatch or `roslyn-backend-validation.yml` to include an overlay step gated behind a 'canary' label or a workflow input
+  - Push branch and request a canary run (label PR with `canary` or use workflow dispatch)
 
 T019 - [ ] (governance) Complete constitutional deviation sign-off checklist
 - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/constitutional-deviation.md`
