@@ -26,13 +26,13 @@
 
 ### Phase 1 — Setup & Tooling
 
-T001 - [ ] (setup) Add Roslyn pin and C# LangVersion to `Directory.Build.props`
+ T001 - [ ] (setup) Add Roslyn pin and C# LangVersion to `Directory.Build.props`
 - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/Directory.Build.props`
 - Owner: @aabs
 - Estimate: 0.5d
-- Description: Add a `RoslynVersion` MSBuild property (pin candidate: `4.1.0`) and set `LangVersion` to `14` for generated projects. Ensure an MSBuild `Condition` exists so release builds use the pinned Roslyn package, and developers may still use SDK-provided compiler locally.
+- Description: Add a `RoslynVersion` MSBuild property (chosen pin: `4.14.0`) and set `LangVersion` to `14` for generated projects. Ensure an MSBuild `Condition` exists so release builds use the pinned Roslyn package, and developers may still use SDK-provided compiler locally.
 - Dependencies: none
-- Acceptance: `Directory.Build.props` contains `<RoslynVersion>4.1.0</RoslynVersion>` and `<LangVersion>14</LangVersion>`, `dotnet build` succeeds on the solution.
+- Acceptance: `Directory.Build.props` contains `<RoslynVersion>4.14.0</RoslynVersion>` and `<LangVersion>14</LangVersion>`, `dotnet build` succeeds on the solution.
 - Agent commands (example):
   - `git checkout -b 006-roslyn-T001-tooling`
   - Edit `/Users/aabs/.../Directory.Build.props` to add the properties under a top-level `<PropertyGroup>` (or update existing ones)
@@ -43,7 +43,7 @@ T002 - [P] (setup) Add Roslyn & Metadata test dependencies to runtime integratio
 - Owner: @aabs
 - Estimate: 0.25d
 - Description: Add PackageReference entries:
-  - `Microsoft.CodeAnalysis.CSharp` -> pinned version `4.1.0`
+  - `Microsoft.CodeAnalysis.CSharp` -> pinned version `4.14.0`
   - `System.Reflection.Metadata` -> pinned version `8.0.1`
   - Preserve existing test SDK/runner references
 - Dependencies: T001 (preferred, but not strictly required to edit csproj)
