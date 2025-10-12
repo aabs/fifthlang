@@ -104,7 +104,14 @@ Build environments with different .NET SDKs or toolchains may produce different 
 
 - **FR-008 (Backward Compatibility of Artifacts)**: Artifacts produced by the Roslyn backend MUST be compatible with existing deployment flows (loading, reflection, interop) used by downstream consumers unless explicitly documented otherwise.
 
-- **FR-009 (Removal of Legacy Code)**: The legacy CIL generator code paths MUST be retained behind a well-documented deprecation plan and only removed after the Roslyn backend meets the acceptance criteria and a canary/rollout period has completed. Acceptance: removal is gated by passing migration checklist and a release decision.
+- **FR-009 (Legacy Emitter Deletion — gated)**: Removal of the legacy CIL generator code paths is a high-risk operation and MUST be gated by an explicit, auditable deletion process. The legacy emitter shall remain available until all of the following preconditions are satisfied and recorded in the migration artifact repository:
+   1. Preservation inventory completed: `specs/006-roslyn-backend/preservation-inventory.md` exists and every preservation candidate has an assigned disposition (shim | keep-legacy | convert-test), an owner, and a Representative-Sample-Path. Top-priority candidates must include an associated acceptance test or an implemented shim prior to deletion.
+   2. PDB mapping verification: PDB mapping tests (see `test/runtime-integration-tests/RoslynPdbVerificationTests.cs` and mapping unit tests) pass on the migration branch for both .NET 8 and .NET 10-rc.
+   3. CI matrix validation: the Roslyn backend validation CI (see `/.github/workflows/roslyn-backend-validation.yml` or the `CI` job) completes successfully for both .NET 8 and .NET 10-rc and produces inspection artifacts (assemblies + PDBs) for review.
+   4. Regeneration proof: any required changes to `src/ast-model/*` or `src/ast_generator/*` are accompanied by a generator run (`just run-generator` or `dotnet run --project src/ast_generator/ast_generator.csproj -- --folder ...`) whose outputs are committed in the same PR. The PR MUST include the generator log and pass a generator-consistency check (see `scripts/check-generated.sh`).
+   5. Constitutional deviation sign-off: the `specs/006-roslyn-backend/constitutional-deviation.md` checklist is completed and explicitly signed by the designated approver(s) referenced in the checklist (T019).
+
+   Acceptance: A single, gated deletion PR that removes the legacy emitter files will only be merged after (A) the preservation inventory dispositions are satisfied (tests or shims present for flagged candidates), (B) the generator-consistency check passes in CI, (C) CI is green across the SDK matrix, and (D) the constitutional-deviation checklist has recorded owner approvals. Deletion PRs must reference FR-009 and the corresponding checklist entries.
 
 - **FR-010 (Observability & Telemetry)**: Add test/CI hooks and runtime checks that allow verification of the backend used for each build, artifact identity, and a post-deployment monitor for any runtime regressions.
 
@@ -248,7 +255,7 @@ Developer guidance (local debugging)
 
 NOTE: The following choices were provided as explicit implementation directives and must be 1) recorded in the spec, and 2) reconciled with the project's constitution and release gating before deletion occurs.
 
-- Primary Target Platform: **.NET 10** (latest stable in the 10.x line). .NET 8 support is retained for compatibility and CI verification, but the Roslyn backend will be developed primarily for .NET 10 toolchain and runtime.
+   - Development focus (preferred development target): **.NET 10** (latest stable in the 10.x line). IMPORTANT: the repository's canonical pinned SDK remains **.NET 8** as recorded in `global.json` to preserve reproducible builds and constitution compliance. CI and release builds MUST validate and produce artifacts on both **.NET 8** and **.NET 10-rc**. Any change to the canonical pinned SDK in `global.json` requires an explicit constitution amendment and a documented migration plan (see Constitution & Governance sections).
 - Generated C# language level: **C# 14** (use LanguageVersion=14 or equivalent MSBuild property).
 - Roslyn toolchain: Use Microsoft.CodeAnalysis (Roslyn) as the canonical compiler API. The project will pin an explicit Roslyn compiler package/version for release and CI reproducibility; developer workflows may use SDK-provided Roslyn for local iteration.
 - Backend removal policy: The user has requested immediate removal of the existing backend code-generation phases (IL AST lowering, IL metamodel, ILEmissionVisitor, and PEEmitter) rather than hiding them behind a feature flag. This is a deliberate deviation from the earlier deprecation approach and therefore must be recorded as a constitutional deviation and handled via an explicit approval and rollout plan (see Complexity Tracking below).
