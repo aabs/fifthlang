@@ -17,6 +17,12 @@ This refactoring will significantly reduce our technical debt in maintaining a c
  - Q: Which Roslyn version policy should we adopt? → A: Pin a specific Roslyn version across builds for determinism
  - Q: What performance regression thresholds should the CI gate enforce? → A: Ignore performance testing
  - Q: What debug/source mapping fidelity is required for PDBs produced by the Roslyn backend? → A: Full line-and-column mapping for all statements and expressions (highest fidelity)
+ - Q: Which Roslyn compiler version should we pin for CI/release builds? → A: Pin to 4.14.0 (conservative; compatible with SRM 9.0.0)
+ - Q: For preservation candidates that require exact IL layout, what default disposition should the migration follow? → A: Do not require exact IL equivalence (allow IL differences)
+ - Q: How should backend selection be controlled during rollout? → A: Build-time flag (--backend=roslyn|legacy)
+ - Q: Which legacy IL constructs require special handling (inventory)? → A: none
+ - Q: Who is the owner of the migration and who approves the final removal of the legacy backend? → A: aabs (repo owner)
+ - Q: Which signing policy should we adopt for release artifacts? → A: No signing (artifacts unsigned)
 
 ## Execution Flow (main)
 ```
@@ -81,8 +87,8 @@ As a compiler maintainer and consumer of the Fifth language toolchain, I want th
 
 
 ### Edge Cases
-Code patterns that historically relied on emitting custom IL sequences (e.g., nontrivial modifiers, unverifiable IL, custom tail-call patterns) may not map directly to C# AST. Policy: allow emitted IL to change if test-suite equivalence holds; document every deviation in the migration inventory with rationale. For constructs that must preserve IL layout or behavior (interop/reflection-sensitive), add them to the inventory as preservation candidates requiring explicit handling or approval. [NEEDS CLARIFICATION: inventory of legacy IL patterns that require special handling].
-Cases that depend on exact emitted IL layout for interop or reflection must be discovered and validated. [NEEDS CLARIFICATION: list of public surface APIs or tests that depend on IL layout].
+Code patterns that historically relied on emitting custom IL sequences (e.g., nontrivial modifiers, unverifiable IL, custom tail-call patterns) may not map directly to C# AST. Policy: allow emitted IL to change if test-suite equivalence holds; document every deviation in the migration inventory with rationale. For constructs that must preserve IL layout or behavior (interop/reflection-sensitive), add them to the inventory as preservation candidates requiring explicit handling or approval. Preservation inventory completed: no constructs were identified that require special handling.
+Cases that depend on exact emitted IL layout for interop or reflection must be discovered and validated. Preservation inventory found no public surface APIs or tests that depend on exact IL layout.
 Build environments with different .NET SDKs or toolchains may produce different results. Target SDKs for the Roslyn backend: .NET 8 and the .NET 10 release candidate (10-rc). Roslyn versioning should align with the SDK-provided Roslyn when possible; specific pinning decisions will be made during planning. CI must validate builds and run the baseline test suite on both targeted SDKs.
 
 ## Requirements *(mandatory)*
@@ -95,10 +101,11 @@ Build environments with different .NET SDKs or toolchains may produce different 
 - **FR-003 (Debugging & Diagnostics)**: The Roslyn-generated artifacts MUST include Portable PDBs with full line-and-column mapping for statements and expressions in the original .5th source so that breakpoints, step-over/into, variable inspection and source-level stack traces map precisely to original source locations. Acceptance: setting breakpoints on any statement or emitted expression resolves to the correct file, start-line/start-column and end-line/end-column as recorded in the baseline tests; PDBs must include SequencePoints or equivalent mapping data to support this fidelity.
 
 **FR-004 (Performance Constraints)**: Performance validation is intentionally deferred during CI gating for this migration. Acceptance: CI will not block migration merges on performance regressions; performance benchmarks in `test/perf/` should be executed during the stabilization phase and documented. Significant regressions discovered post-cutover will trigger a documented remediation plan. (Decision: performance testing ignored for CI gating during migration.)
+ - **FR-005 (Feature Parity)**: Language constructs currently supported by the legacy backend (including corner cases implemented via direct IL emission) MUST be supported by the Roslyn pipeline, or have documented, approved deviations. Default acceptance: test-suite equivalence is sufficient; IL differences are acceptable if the baseline test harness passes. Preservation candidates (reflection/interop-sensitive members) must be inventoried and addressed explicitly. Preservation inventory completed: none identified requiring special handling.
 
-- **FR-005 (Feature Parity)**: Language constructs currently supported by the legacy backend (including corner cases implemented via direct IL emission) MUST be supported by the Roslyn pipeline, or have documented, approved deviations. Default acceptance: test-suite equivalence is sufficient; IL differences are acceptable if the baseline test harness passes. Preservation candidates (reflection/interop-sensitive members) must be inventoried and addressed explicitly. [NEEDS CLARIFICATION: canonical list of such constructs].
+    - Default disposition for preservation candidates: do not require exact IL equivalence. Prefer implementing a small runtime shim or converting low-level IL tests into behavior-focused tests that assert observable semantics. Use the legacy-emitter fallback only as a documented, approved last resort with an assigned owner and acceptance test.
 
-- **FR-006 (Incremental Rollout)**: The project MUST provide a controlled rollout path, allowing the new backend to be enabled/disabled per-build or via CI gating to facilitate staged verification and rollback. Acceptance: a build flag or CI job configuration exists to select backend.
+ - **FR-006 (Incremental Rollout)**: The project MUST provide a controlled rollout path, allowing the new backend to be enabled/disabled per-build or via CI gating to facilitate staged verification and rollback. Default selection mechanism: a build-time compiler option `--backend=roslyn|legacy` that developers can use locally and CI job configs use for matrixed validation. Acceptance: a build-time flag exists and CI job configurations are wired to run both backends as job variants when required.
 
 - **FR-007 (CI & Tests Integration)**: The CI pipeline MUST be extended to run the full validation matrix against the Roslyn backend (including parser, AST, runtime, and integration tests) and fail the merge if behavioral regressions are detected without documented exceptions.
 
@@ -113,15 +120,17 @@ Build environments with different .NET SDKs or toolchains may produce different 
 
    Acceptance: A single, gated deletion PR that removes the legacy emitter files will only be merged after (A) the preservation inventory dispositions are satisfied (tests or shims present for flagged candidates), (B) the generator-consistency check passes in CI, (C) CI is green across the SDK matrix, and (D) the constitutional-deviation checklist has recorded owner approvals. Deletion PRs must reference FR-009 and the corresponding checklist entries.
 
+   - Designated migration owner/approver: aabs (repo owner). This person is responsible for final sign-off recorded in T019 and for coordinating preservation-inventory dispositions and gating approvals.
+
 - **FR-010 (Observability & Telemetry)**: Add test/CI hooks and runtime checks that allow verification of the backend used for each build, artifact identity, and a post-deployment monitor for any runtime regressions.
 
 - **FR-011 (Documentation & Maintainer Guidance)**: Provide migration documentation describing the new backend's architecture at a high level, how to run the Roslyn-based compilation locally for debugging, and steps to reproduce the acceptance test suite.
 
-- **FR-012 (Security & Signing)**: Ensure support for existing assembly signing, strong-name handling, and security-relevant metadata in produced artifacts. [NEEDS CLARIFICATION: current signing/signature requirements].
+- **FR-012 (Security & Signing)**: Release artifacts produced by the Roslyn backend will NOT be signed as part of this migration; CI and release builds will produce unsigned assemblies and PDBs. Acceptance: CI produces unsigned artifacts and downstream consumers are validated against unsigned artifacts. Any future change to require signing must be proposed as a separate governance ticket, include a key-management plan, and obtain constitutional sign-off prior to enforcement.
 
 - **FR-013 (Target SDKs)**: The Roslyn backend MUST be validated on and support .NET 8 and the .NET 10 release candidate (10-rc). Acceptance: CI runs the baseline test suite on both SDKs and produces consumable artifacts for each target.
 
-- **FR-014 (Roslyn Pinning)**: For deterministic builds and artifact reproducibility, the project MUST pin an explicit Roslyn compiler package/version for release and CI builds. Acceptance: CI reproduces identical build outputs given the same pinned Roslyn version; dev workflows may use SDK-provided Roslyn but releases must use the pinned version.
+ - **FR-014 (Roslyn Pinning)**: For deterministic builds and artifact reproducibility, the project MUST pin Microsoft.CodeAnalysis (Roslyn) at version 4.14.0 for release and CI builds. Acceptance: CI reproduces identical build outputs given the same pinned Roslyn version (4.14.0); dev workflows may use SDK-provided Roslyn for local iteration but release and CI builds must use the pinned version.
 
 *Example of marking unclear requirements:*
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
@@ -182,7 +191,7 @@ Fallback / preservation strategy
 
 Cut‑over mechanics (process)
 1. Add `LoweredAstToRoslynTranslator` to the compilation pipeline in `ParserManager.cs` immediately after the final language transformation visitor.
-2. Introduce a compiler option/feature flag (`--backend=roslyn|legacy`) and CI job variants to build and test both backends in parallel during the rollout.
+2. Introduce and default to a build-time compiler option/feature flag (`--backend=roslyn|legacy`) and CI job variants to build and test both backends in parallel during the rollout. CI job configs MUST set the flag for the SDK matrix runs.
 3. Implement a Roslyn POC that validates core constructs (methods, classes, basic expressions) and produces Portable PDBs with correct #line mapping.
 4. Incrementally translate more constructs and run side-by-side comparisons; keep the legacy pipeline available for preserving enumerated cases until the Roslyn backend matures.
 5. Once coverage and acceptance criteria are met, remove `AstToIlTransformationVisitor`, `ILEmissionVisitor`, `PEEmitter` and any now-unused IL metamodel elements (after a documented deprecation/canary period).
@@ -244,12 +253,7 @@ Developer guidance (local debugging)
 - Risk: Performance regression (compile- or runtime-time). Mitigation: benchmark early, keep legacy emitter as a gated fallback during rollout.
 - Risk: Breakage of downstream consumers expecting a particular IL layout. Mitigation: catalogue public-facing APIs and run downstream integration tests.
 
-### Open Questions / [NEEDS CLARIFICATION]
-- Which Roslyn version should be pinned versus using SDK-provided Roslyn?
-- Which legacy IL constructs require special handling (inventory)?
-- What are the acceptable performance regression thresholds for compile time and runtime (CI gates)?
-- Is a build-time or runtime feature flag required for selecting backend, or should selection be CI-only during rollout?
-- Who is the owner of the migration and who approves the final removal of the legacy backend?
+ 
 
 ## Implementation Choices (user directive)
 
@@ -257,13 +261,11 @@ NOTE: The following choices were provided as explicit implementation directives 
 
    - Development focus (preferred development target): **.NET 10** (latest stable in the 10.x line). IMPORTANT: the repository's canonical pinned SDK remains **.NET 8** as recorded in `global.json` to preserve reproducible builds and constitution compliance. CI and release builds MUST validate and produce artifacts on both **.NET 8** and **.NET 10-rc**. Any change to the canonical pinned SDK in `global.json` requires an explicit constitution amendment and a documented migration plan (see Constitution & Governance sections).
 - Generated C# language level: **C# 14** (use LanguageVersion=14 or equivalent MSBuild property).
-- Roslyn toolchain: Use Microsoft.CodeAnalysis (Roslyn) as the canonical compiler API. The project will pin an explicit Roslyn compiler package/version for release and CI reproducibility; developer workflows may use SDK-provided Roslyn for local iteration.
+ - Roslyn toolchain: Use Microsoft.CodeAnalysis (Roslyn) as the canonical compiler API. The project will pin Microsoft.CodeAnalysis 4.14.0 for release and CI reproducibility; developer workflows may use SDK-provided Roslyn for local iteration.
    - Backend removal policy: The user expressed a preference for immediate removal of the legacy backend code-generation phases (IL AST lowering, IL metamodel, ILEmissionVisitor, and PEEmitter). However, to remain consistent with the project's constitution and the FR-009 gated deletion requirements, the project adopts Option A: the legacy emitter will remain available during the migration and will only be removed by a single, auditable, gated deletion PR after all FR-009 preconditions are satisfied. Immediate deletion will not be performed without an explicit constitutional amendment and recorded owner approvals (see FR-009 and `constitutional-deviation.md`).
 - Tests: Remove or convert all *low-level* tests that assert textual `.il` output or directly validate `ILMetamodel` shapes and `PEEmitter` binary layout. Preserve *all other* tests that assert language semantics, runtime behavior, or developer-visible contracts (AST-level, parser tests, integration tests, runtime regression suites). Tests that currently validate IL output should be converted to behavioral tests where possible; where behavioral equivalence cannot be asserted, mark those tests as preservation candidates and address them explicitly in the preservation inventory.
 - Architectural goals to incorporate in this migration: incremental compilation (file- and transformation-level caching), parser error recovery and resilient parsing (partial ASTs & ErrorNode), Language Server Protocol (LSP) readiness (workspace, document, diagnostic services), a composable transformation pipeline (ICompilerPhase and phase orchestration), and a unified diagnostic system with stable diagnostic codes and source-span-aware messages.
 
 These directives are authoritative for the Phase 2 planning tasks that follow. A user preference for immediate deletion was recorded, but the project will not act on that preference without following the constitutional gating in FR-009. The removal of legacy emitters remains a gated operation and requires the preservation inventory, passing PDB/mapping tests, generator-regeneration proof, CI green on the SDK matrix, and explicit constitutional sign-off (T019) before any deletion PR is merged.
-
----
 
 ---

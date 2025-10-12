@@ -385,7 +385,39 @@ T025 - [ ] (polish) Final regression & integration runs, sign-off and merge
 - [ ] CI matrix added and green for POC (T016)
 - [ ] Constitutional-deviation checklist signed (T019)
  - [ ] All [NEEDS CLARIFICATION] resolved (T027)
+ - [x] All contracts have corresponding tests (T004, T005, T006, T030, T031)
 
 ---
 
 If you want I can: 1) run the prerequisite script and confirm available docs (already done), 2) create or update `tasks.md` on disk (done by this change), and 3) start the first task (T001) by creating the branch and applying the Directory.Build.props change. Which one should I do next?
+
+### Additional Contract Tests (generated from `specs/006-roslyn-backend/contracts/`)
+
+T030 - [P] (test) Contract test: Translator API surface
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/ast-tests/TranslatorContractTests.cs`
+- Owner: @aabs
+- Estimate: 0.5d
+- Description: Add a contract test that exercises the translator API defined in `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/contracts/translator-contract.md`.
+  - Construct a minimal `LoweredAstModule` fixture (small module with one method) and call `LoweredAstToRoslynTranslator.Translate(...)`.
+  - Assert that the returned `TranslationResult` contains at least one generated source in `Sources`, that `MappingTable` contains mapping rows for a known `NodeId`, and that diagnostics are surfaced for malformed inputs.
+- Dependencies: T007, T008, T009 (models ready)
+- Acceptance: Test fails until translator implementation exists; when translator skeleton (T012) implements minimal output the test should pass for the POC sample.
+- Agent commands:
+  - `git checkout -b 006-roslyn-T030-translator-contract-test`
+  - Create `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/ast-tests/TranslatorContractTests.cs` with unit tests as described
+  - `dotnet test /Users/aabs/dev/aabs/active/5th-related/fifthlang/test/ast-tests/ast-tests.csproj --filter FullyQualifiedName~TranslatorContractTests`
+
+T031 - [P] (test) Contract test: MappingEntry JSON schema validation
+- Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/ast-tests/MappingEntrySchemaTests.cs`
+- Owner: @aabs
+- Estimate: 0.25d
+- Description: Add a unit test that validates the `MappingEntry` shape produced by the translator against the JSON schema at `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/contracts/mapping-entry-schema.json`.
+  - Instantiate a `MappingEntry` for the POC sample and assert each required numeric field is present and in-range (StartLine, StartColumn, EndLine, EndColumn >= 1).
+  - Optionally load the JSON schema and perform validation using a simple schema validator library (or manual assertions if a validator is not added).
+- Dependencies: T009 (MappingEntry model)
+- Acceptance: Test fails until MappingEntry is emitted by translator; should pass once mapping entries are produced.
+- Agent commands:
+  - `git checkout -b 006-roslyn-T031-mapping-schema-test`
+  - Create `/Users/aabs/dev/aabs/active/5th-related/fifthlang/test/ast-tests/MappingEntrySchemaTests.cs` with the described assertions
+  - `dotnet test /Users/aabs/dev/aabs/active/5th-related/fifthlang/test/ast-tests/ast-tests.csproj --filter FullyQualifiedName~MappingEntrySchemaTests`
+

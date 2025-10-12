@@ -1,0 +1,38 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MappingEntry",
+    "type": "object",
+    "properties": {
+        "NodeId": {
+            "type": "string"
+        },
+        "SourceIndex": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "StartLine": {
+            "type": "integer",
+            "minimum": 1
+        },
+        "StartColumn": {
+            "type": "integer",
+            "minimum": 1
+        },
+        "EndLine": {
+            "type": "integer",
+            "minimum": 1
+        },
+        "EndColumn": {
+            "type": "integer",
+            "minimum": 1
+        }
+    },
+    "required": [
+        "NodeId",
+        "SourceIndex",
+        "StartLine",
+        "StartColumn",
+        "EndLine",
+        "EndColumn"
+    ]
+}
