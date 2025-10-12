@@ -34,6 +34,29 @@ public class Compiler
     {
         ArgumentNullException.ThrowIfNull(options);
 
+        // Allow environment override for backend selection to facilitate parity testing
+        // FIFTH_BACKEND=roslyn|legacy
+        try
+        {
+            var envBackend = Environment.GetEnvironmentVariable("FIFTH_BACKEND");
+            if (!string.IsNullOrWhiteSpace(envBackend))
+            {
+                var lower = envBackend.Trim().ToLowerInvariant();
+                if (lower == "roslyn")
+                {
+                    options = options with { Backend = CompilerBackend.Roslyn };
+                }
+                else if (lower == "legacy")
+                {
+                    options = options with { Backend = CompilerBackend.Legacy };
+                }
+            }
+        }
+        catch
+        {
+            // Ignore env read errors
+        }
+
         var validationError = options.Validate();
         if (validationError != null)
         {
@@ -70,6 +93,8 @@ public class Compiler
 
         try
         {
+            // Report chosen backend at the start of build for easy verification
+            diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Backend selected: {options.Backend}"));
             // Phase 1: Parse
             if (options.Diagnostics)
             {
@@ -388,10 +413,10 @@ Examples:
 
             // Create the Roslyn translator
             var translator = new LoweredAstToRoslynTranslator();
-            
+
             // Translate the AST to C# sources
             var translationResult = translator.Translate(assemblyDef);
-            
+
             // Check for translation diagnostics
             if (translationResult.Diagnostics != null && translationResult.Diagnostics.Any())
             {
@@ -399,7 +424,7 @@ Examples:
                 {
                     diagnostics.Add(diag);
                 }
-                
+
                 // If there are any errors, fail the compilation
                 if (translationResult.Diagnostics.Any(d => d.Level == DiagnosticLevel.Error))
                 {
@@ -414,7 +439,7 @@ Examples:
                 {
                     var debugDir = Path.Combine(Directory.GetCurrentDirectory(), "build_debug_roslyn");
                     Directory.CreateDirectory(debugDir);
-                    
+
                     for (int i = 0; i < translationResult.Sources.Count; i++)
                     {
                         var csPath = Path.Combine(debugDir, $"generated_{i}.cs");
@@ -445,24 +470,66 @@ Examples:
                 syntaxTrees.Add(syntaxTree);
             }
 
-            // Get required references
-            var references = new List<Microsoft.CodeAnalysis.MetadataReference>
-            {
-                Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
-                Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly.Location),
-            };
-
-            // Add System.Runtime reference if available
+            // Get required references using Trusted Platform Assemblies for robustness
+            var references = new List<Microsoft.CodeAnalysis.MetadataReference>();
             try
             {
-                var systemRuntimePath = Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "", "System.Runtime.dll");
-                if (File.Exists(systemRuntimePath))
+                var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
+                if (!string.IsNullOrWhiteSpace(tpa))
                 {
-                    references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(systemRuntimePath));
+                    var paths = tpa.Split(Path.PathSeparator);
+                    foreach (var p in paths)
+                    {
+                        try
+                        {
+                            // Only include core framework assemblies to keep compile fast
+                            var fileName = Path.GetFileName(p);
+                            if (fileName != null && (fileName.StartsWith("System.") || fileName.StartsWith("Microsoft.") || fileName == "netstandard.dll" || fileName == "mscorlib.dll"))
+                            {
+                                references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(p));
+                            }
+                        }
+                        catch { /* ignore bad refs */ }
+                    }
                 }
             }
-            catch { /* Ignore if System.Runtime not found */ }
+            catch { /* ignore */ }
+
+            // Always add essential references
+            references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
+            references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(Console).Assembly.Location));
+
+            // Add references to Fifth.System and dotNetRDF via loaded assembly locations
+            try
+            {
+                var fifthSystemAsm = typeof(Fifth.System.KG).Assembly.Location;
+                if (!string.IsNullOrWhiteSpace(fifthSystemAsm) && File.Exists(fifthSystemAsm))
+                {
+                    references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(fifthSystemAsm));
+                }
+            }
+            catch { /* ignore if assembly not available */ }
+
+            try
+            {
+                var dotNetRdfAsm = typeof(VDS.RDF.IGraph).Assembly.Location;
+                if (!string.IsNullOrWhiteSpace(dotNetRdfAsm) && File.Exists(dotNetRdfAsm))
+                {
+                    references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(dotNetRdfAsm));
+                }
+            }
+            catch { /* ignore if assembly not available */ }
+
+            // Include local project/runtime dependencies if present (Fifth.System, VDS.RDF)
+            void TryAddRef(string path)
+            {
+                try { if (File.Exists(path)) references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(path)); } catch { }
+            }
+            var baseDir = Path.GetDirectoryName(options.Output) ?? Directory.GetCurrentDirectory();
+            // Typical location next to emitted exe
+            TryAddRef(Path.Combine(baseDir, "Fifth.System.dll"));
+            // Common dotNetRDF locations: next to exe or in NuGet cache not resolved here; try sibling bin
+            TryAddRef(Path.Combine(baseDir, "VDS.RDF.dll"));
 
             // Create the compilation
             var assemblyName = Path.GetFileNameWithoutExtension(options.Output);

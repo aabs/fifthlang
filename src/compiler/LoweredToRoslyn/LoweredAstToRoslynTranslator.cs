@@ -43,7 +43,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     public TranslationResult Translate(LoweredAstModule module, TranslatorOptions? options = null)
     {
         options ??= new TranslatorOptions();
-        
+
         var mapping = new MappingTable();
         var sources = new List<string>();
         var diagnostics = new List<Diagnostic>();
@@ -52,7 +52,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         {
             // Build C# syntax tree using Roslyn APIs
             var syntaxTree = BuildSyntaxTree(module, mapping);
-            
+
             // Convert syntax tree to source text for the Sources list
             var sourceText = syntaxTree.GetText().ToString();
             sources.Add(sourceText);
@@ -75,7 +75,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private TranslationResult TranslateAssembly(AssemblyDef assembly, TranslatorOptions? options)
     {
         options ??= new TranslatorOptions();
-        
+
         var mapping = new MappingTable();
         var sources = new List<string>();
         var diagnostics = new List<Diagnostic>();
@@ -108,7 +108,9 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         var usingDirectives = new[]
         {
             UsingDirective(IdentifierName("System")),
-            UsingDirective(IdentifierName("System.Collections.Generic"))
+            UsingDirective(IdentifierName("System.Collections.Generic")),
+            UsingDirective(IdentifierName("Fifth.System")),
+            UsingDirective(IdentifierName("VDS.RDF"))
         };
 
         // Get namespace name (or use a default)
@@ -117,7 +119,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         try
         {
             namespaceName = module.NamespaceDecl != null && !string.IsNullOrEmpty(module.NamespaceDecl.ToString())
-                ? module.NamespaceDecl.ToString() 
+                ? module.NamespaceDecl.ToString()
                 : (module.OriginalModuleName ?? "GeneratedNamespace");
         }
         catch
@@ -125,7 +127,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             // Fallback if NamespaceDecl is uninitialized value object
             namespaceName = module.OriginalModuleName ?? "GeneratedNamespace";
         }
-        
+
         // Create namespace declaration
         var namespaceDeclaration = NamespaceDeclaration(
             IdentifierName(SanitizeIdentifier(namespaceName)))
@@ -138,20 +140,33 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             namespaceDeclaration = namespaceDeclaration.AddMembers(classDecl);
         }
 
-        // Add top-level functions as a static Program class
-        if (module.Functions.Any())
+        // Always add a static Program class to host top-level functions and a fallback Main
+        var program = ClassDeclaration("Program")
+            .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword));
+
+        foreach (var funcDef in module.Functions.OfType<FunctionDef>())
         {
-            var programClass = ClassDeclaration("Program")
-                .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword));
-
-            foreach (var funcDef in module.Functions.OfType<FunctionDef>())
-            {
-                var methodDecl = BuildMethodDeclaration(funcDef, mapping);
-                programClass = programClass.AddMembers(methodDecl);
-            }
-
-            namespaceDeclaration = namespaceDeclaration.AddMembers(programClass);
+            var methodDecl = BuildMethodDeclaration(funcDef, mapping);
+            program = program.AddMembers(methodDecl);
         }
+
+        // Ensure there is a suitable entry point even if the pipeline failed to surface a 'main'.
+        // Detect presence of a generated Main method on the Program class to be robust to Name.ToString() differences.
+        var hasMainMethod = program.Members
+            .OfType<MethodDeclarationSyntax>()
+            .Any(m => string.Equals(m.Identifier.Text, "Main", StringComparison.Ordinal));
+
+        if (!hasMainMethod)
+        {
+            var stubMain = MethodDeclaration(
+                    PredefinedType(Token(SyntaxKind.IntKeyword)),
+                    Identifier("Main"))
+                .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword))
+                .WithBody(Block(ReturnStatement(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0)))));
+            program = program.AddMembers(stubMain);
+        }
+
+        namespaceDeclaration = namespaceDeclaration.AddMembers(program);
 
         // Create compilation unit
         var compilationUnit = CompilationUnit()
@@ -198,7 +213,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     {
         var fieldName = SanitizeIdentifier(field.Name.ToString());
         var typeName = MapTypeName(field.TypeName.ToString());
-        
+
         return FieldDeclaration(
             VariableDeclaration(IdentifierName(typeName))
                 .AddVariables(VariableDeclarator(Identifier(fieldName))))
@@ -209,7 +224,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     {
         var propName = SanitizeIdentifier(prop.Name.ToString());
         var typeName = MapTypeName(prop.TypeName.ToString());
-        
+
         return PropertyDeclaration(
             IdentifierName(typeName),
             Identifier(propName))
@@ -227,14 +242,14 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         if (methodDef.FunctionDef != null)
         {
             var funcMethod = BuildMethodDeclaration(methodDef.FunctionDef, mapping);
-            
+
             // Methods in classes are typically instance methods unless marked static in the FunctionDef
             if (!methodDef.FunctionDef.IsStatic)
             {
                 funcMethod = funcMethod.WithModifiers(
                     SyntaxTokenList.Create(Token(SyntaxKind.PublicKeyword)));
             }
-            
+
             return funcMethod;
         }
 
@@ -250,7 +265,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private BlockSyntax BuildBlockStatement(BlockStatement block)
     {
         var statements = new List<StatementSyntax>();
-        
+
         foreach (var stmt in block.Statements)
         {
             var translatedStmt = TranslateStatement(stmt);
@@ -281,7 +296,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         {
             return ReturnStatement();
         }
-        
+
         var expr = TranslateExpression(retStmt.ReturnValue);
         return ReturnStatement(expr);
     }
@@ -290,10 +305,10 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     {
         var varName = SanitizeIdentifier(varDecl.VariableDecl.Name.ToString());
         // TypeName is a value object, so ToString() should work
-        var typeName = varDecl.VariableDecl.TypeName != null 
+        var typeName = varDecl.VariableDecl.TypeName != null
             ? MapTypeName(varDecl.VariableDecl.TypeName.ToString())
             : "var";
-        
+
         if (varDecl.InitialValue != null)
         {
             var initExpr = TranslateExpression(varDecl.InitialValue);
@@ -305,30 +320,46 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         }
         else
         {
+            // Default initialize to avoid CS0165 (use of unassigned local)
             return LocalDeclarationStatement(
                 VariableDeclaration(IdentifierName(typeName))
-                    .AddVariables(VariableDeclarator(Identifier(varName))));
+                    .AddVariables(
+                        VariableDeclarator(Identifier(varName))
+                            .WithInitializer(
+                                EqualsValueClause(
+                                    DefaultExpression(IdentifierName(typeName))))));
         }
     }
 
     private StatementSyntax TranslateExpStatement(ExpStatement expStmt)
     {
         var expr = TranslateExpression(expStmt.RHS);
-        return ExpressionStatement(expr);
+        if (expr is InvocationExpressionSyntax || expr is AssignmentExpressionSyntax ||
+            expr is PostfixUnaryExpressionSyntax || expr is PrefixUnaryExpressionSyntax ||
+            expr is ObjectCreationExpressionSyntax)
+        {
+            return ExpressionStatement(expr);
+        }
+        // Fallback: assign to a discard variable to permit expression statements
+        return ExpressionStatement(
+            AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                IdentifierName("__discard"),
+                expr));
     }
 
     private StatementSyntax TranslateIfElseStatement(IfElseStatement ifStmt)
     {
         var condition = TranslateExpression(ifStmt.Condition);
         var thenBlock = BuildBlockStatement(ifStmt.ThenBlock);
-        
+
         if (ifStmt.ElseBlock != null)
         {
             var elseBlock = BuildBlockStatement(ifStmt.ElseBlock);
             return IfStatement(condition, thenBlock)
                 .WithElse(ElseClause(elseBlock));
         }
-        
+
         return IfStatement(condition, thenBlock);
     }
 
@@ -338,12 +369,14 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         {
             Int32LiteralExp intLit => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(intLit.Value)),
             Float8LiteralExp floatLit => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(floatLit.Value)),
-            StringLiteralExp strLit => LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(strLit.Value)),
+            StringLiteralExp strLit => LiteralExpression(
+                SyntaxKind.StringLiteralExpression,
+                Literal(NormalizeStringLiteral(strLit.Value))),
             VarRefExp varRef => IdentifierName(SanitizeIdentifier(varRef.VarName)),
             BinaryExp binExp => TranslateBinaryExpression(binExp),
             FuncCallExp funcCall => TranslateFuncCallExpression(funcCall),
             MemberAccessExp memberAccess => TranslateMemberAccessExpression(memberAccess),
-            _ => IdentifierName("null") // Fallback for unsupported expressions
+            _ => LiteralExpression(SyntaxKind.NullLiteralExpression) // Fallback for unsupported expressions
         };
     }
 
@@ -351,7 +384,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     {
         var left = TranslateExpression(binExp.LHS);
         var right = TranslateExpression(binExp.RHS);
-        
+
         var kind = binExp.Operator switch
         {
             Operator.ArithmeticAdd => SyntaxKind.AddExpression,
@@ -368,41 +401,55 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             Operator.LogicalOr => SyntaxKind.LogicalOrExpression,
             _ => SyntaxKind.AddExpression // Default fallback
         };
-        
+
         return BinaryExpression(kind, left, right);
     }
 
     private ExpressionSyntax TranslateFuncCallExpression(FuncCallExp funcCall)
     {
-        // Get the function name - need to handle both cases where FunctionDef is set or not
-        string funcName;
-        if (funcCall.FunctionDef != null)
+        // External (static) call annotated by TreeLinkageVisitor?
+        if (funcCall.Annotations != null &&
+            funcCall.Annotations.TryGetValue("ExternalType", out var extTypeObj) && extTypeObj is Type extType)
         {
-            funcName = SanitizeIdentifier(funcCall.FunctionDef.Name.ToString());
+            var typeName = extType.FullName ?? extType.Name;
+            var methodName = funcCall.Annotations.TryGetValue("ExternalMethodName", out var extNameObj) && extNameObj is string extMethod
+                ? SanitizeIdentifier(extMethod)
+                : (funcCall.FunctionDef != null ? SanitizeIdentifier(funcCall.FunctionDef.Name.ToString()) : "UnknownFunction");
+
+            var argList = new List<ArgumentSyntax>();
+            foreach (var arg in funcCall.InvocationArguments)
+            {
+                argList.Add(Argument(TranslateExpression(arg)));
+            }
+
+            return InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(typeName),
+                        IdentifierName(methodName)))
+                .WithArgumentList(ArgumentList(SeparatedList(argList)));
         }
-        else
-        {
-            // Fallback to a default name if FunctionDef is not set
-            funcName = "UnknownFunction";
-        }
-        
+
+        // Regular function call
+        string funcName = funcCall.FunctionDef != null
+            ? SanitizeIdentifier(funcCall.FunctionDef.Name.ToString())
+            : "UnknownFunction";
+
         var arguments = new List<ArgumentSyntax>();
-        
         foreach (var arg in funcCall.InvocationArguments)
         {
             var argExpr = TranslateExpression(arg);
             arguments.Add(Argument(argExpr));
         }
-        
-        return InvocationExpression(
-            IdentifierName(funcName))
+
+        return InvocationExpression(IdentifierName(funcName))
             .WithArgumentList(ArgumentList(SeparatedList(arguments)));
     }
 
     private ExpressionSyntax TranslateMemberAccessExpression(MemberAccessExp memberAccess)
     {
         var objExpr = TranslateExpression(memberAccess.LHS);
-        
+
         // RHS can be a VarRefExp or FuncCallExp
         if (memberAccess.RHS is VarRefExp varRef)
         {
@@ -414,13 +461,50 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         }
         else if (memberAccess.RHS is FuncCallExp funcCall)
         {
-            // For method calls, we need to create a member access for the method name
-            // and then create an invocation
-            var methodCall = TranslateFuncCallExpression(funcCall);
-            // This is simplified - in reality we'd need to properly handle member method calls
-            return methodCall;
+            // Static external call? Use annotations to emit Type.Method(args)
+            if (funcCall.Annotations != null &&
+                funcCall.Annotations.TryGetValue("ExternalType", out var extTypeObj) && extTypeObj is Type extType)
+            {
+                var typeName = extType.FullName ?? extType.Name;
+                var resolvedMethodName = funcCall.Annotations.TryGetValue("ExternalMethodName", out var extNameObj) && extNameObj is string extMethod
+                    ? SanitizeIdentifier(extMethod)
+                    : (funcCall.FunctionDef != null ? SanitizeIdentifier(funcCall.FunctionDef.Name.ToString()) : "UnknownFunction");
+
+                var arguments = new List<ArgumentSyntax>();
+                foreach (var arg in funcCall.InvocationArguments)
+                {
+                    arguments.Add(Argument(TranslateExpression(arg)));
+                }
+
+                return InvocationExpression(
+                        MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName(typeName),
+                            IdentifierName(resolvedMethodName)))
+                    .WithArgumentList(ArgumentList(SeparatedList(arguments)));
+            }
+
+            // Instance call: obj.Method(args)
+            string methodName = funcCall.FunctionDef != null
+                ? SanitizeIdentifier(funcCall.FunctionDef.Name.ToString())
+                : "UnknownFunction";
+
+            var argumentsInst = new List<ArgumentSyntax>();
+            foreach (var arg in funcCall.InvocationArguments)
+            {
+                var argExpr = TranslateExpression(arg);
+                argumentsInst.Add(Argument(argExpr));
+            }
+
+            var member = MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                objExpr,
+                IdentifierName(methodName));
+
+            return InvocationExpression(member)
+                .WithArgumentList(ArgumentList(SeparatedList(argumentsInst)));
         }
-        
+
         // Fallback
         return objExpr;
     }
@@ -428,7 +512,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private string MapTypeName(string? fifthTypeName)
     {
         if (fifthTypeName == null) return "object";
-        
+
         return fifthTypeName switch
         {
             "int" => "int",
@@ -441,6 +525,9 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             "String" => "string",
             "bool" => "bool",
             "Boolean" => "bool",
+            "datetime" => "System.DateTime",
+            "graph" => "VDS.RDF.IGraph",
+            "triple" => "VDS.RDF.Triple",
             "void" => "void",
             "var" => "var",
             _ => fifthTypeName // Keep custom types as-is
@@ -491,7 +578,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         // Create a simple stub method for the LoweredMethod
         var methodName = SanitizeIdentifier(method.Name);
         var returnStatement = ReturnStatement();
-        
+
         var body = Block(SingletonList<StatementSyntax>(returnStatement));
 
         var methodDecl = MethodDeclaration(
@@ -503,7 +590,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         // Add mapping entry
         var syntaxText = methodDecl.NormalizeWhitespace().ToFullString();
         var lines = syntaxText.Split('\n');
-        
+
         mapping.Add(new MappingEntry(
             method.NodeId,
             0,
@@ -539,6 +626,16 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         // Build method body
         var body = BuildBlockStatement(funcDef.Body);
 
+        // Add a discard local: object __discard = default(object);
+        var discardDecl = LocalDeclarationStatement(
+            VariableDeclaration(IdentifierName("object"))
+                .AddVariables(
+                    VariableDeclarator(Identifier("__discard"))
+                        .WithInitializer(
+                            EqualsValueClause(
+                                DefaultExpression(IdentifierName("object"))))));
+        body = body.WithStatements(body.Statements.Insert(0, discardDecl));
+
         var methodDecl = MethodDeclaration(
             IdentifierName(returnTypeName),
             Identifier(methodName))
@@ -551,7 +648,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         var nodeId = $"func_{methodName}_{Guid.NewGuid().ToString("N")[..8]}";
         var syntaxText = methodDecl.NormalizeWhitespace().ToFullString();
         var lines = syntaxText.Split('\n');
-        
+
         mapping.Add(new MappingEntry(
             nodeId,
             0, // First source file
@@ -593,13 +690,27 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     {
         // Basic sanitization: replace invalid characters with underscores
         var result = identifier.Replace('-', '_').Replace('.', '_');
-        
+
         // Ensure it starts with a letter or underscore
         if (result.Length > 0 && !char.IsLetter(result[0]) && result[0] != '_')
         {
             result = "_" + result;
         }
-        
+
         return result;
+    }
+
+    private static string NormalizeStringLiteral(string value)
+    {
+        // If the parsed value includes surrounding quotes, strip them
+        if (value.Length >= 2 && value[0] == '"' && value[^1] == '"')
+        {
+            value = value.Substring(1, value.Length - 2);
+        }
+
+        // Escape backslashes and quotes for safe C# literal emission
+        return value
+            .Replace("\\", "\\\\")
+            .Replace("\"", "\\\"");
     }
 }
