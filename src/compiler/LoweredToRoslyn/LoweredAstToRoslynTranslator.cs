@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using ast;
+using ast_model.TypeSystem;
 
 /// <summary>
 /// Roslyn-based translator that converts lowered AST modules into C# syntax trees.
@@ -111,9 +112,19 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         };
 
         // Get namespace name (or use a default)
-        var namespaceName = module.NamespaceDecl != null 
-            ? module.NamespaceDecl.ToString() 
-            : (module.OriginalModuleName ?? "GeneratedNamespace");
+        // Handle potentially uninitialized NamespaceDecl value object
+        string namespaceName;
+        try
+        {
+            namespaceName = module.NamespaceDecl != null && !string.IsNullOrEmpty(module.NamespaceDecl.ToString())
+                ? module.NamespaceDecl.ToString() 
+                : (module.OriginalModuleName ?? "GeneratedNamespace");
+        }
+        catch
+        {
+            // Fallback if NamespaceDecl is uninitialized value object
+            namespaceName = module.OriginalModuleName ?? "GeneratedNamespace";
+        }
         
         // Create namespace declaration
         var namespaceDeclaration = NamespaceDeclaration(
@@ -421,10 +432,15 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         return fifthTypeName switch
         {
             "int" => "int",
+            "Int32" => "int",
             "float" => "float",
+            "Float" => "float",
             "double" => "double",
+            "Double" => "double",
             "string" => "string",
+            "String" => "string",
             "bool" => "bool",
+            "Boolean" => "bool",
             "void" => "void",
             "var" => "var",
             _ => fifthTypeName // Keep custom types as-is
@@ -501,8 +517,10 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private MethodDeclarationSyntax BuildMethodDeclaration(FunctionDef funcDef, MappingTable mapping)
     {
-        var methodName = SanitizeIdentifier(funcDef.Name.ToString());
-        var returnTypeName = MapTypeName(funcDef.ReturnType?.ToString());
+        var functionName = funcDef.Name.ToString();
+        // Translate 'main' to 'Main' for C# entry point convention
+        var methodName = functionName == "main" ? "Main" : SanitizeIdentifier(functionName);
+        var returnTypeName = ExtractTypeName(funcDef.ReturnType);
 
         // Build parameters
         var parameters = new List<ParameterSyntax>();
@@ -543,6 +561,32 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             lines.LastOrDefault()?.Length ?? 1)); // End column (approximate)
 
         return methodDecl;
+    }
+
+    /// <summary>
+    /// Extract a simple type name string from a FifthType
+    /// </summary>
+    private string ExtractTypeName(FifthType? fifthType)
+    {
+        if (fifthType == null)
+            return "void";
+
+        try
+        {
+            // FifthType has a Name property that is a TypeName
+            var typeName = fifthType.Name.ToString();
+            return MapTypeName(typeName);
+        }
+        catch
+        {
+            // Fallback for complex types or errors
+            return fifthType switch
+            {
+                FifthType.TVoidType => "void",
+                FifthType.TDotnetType dotnetType => dotnetType.TheType.Name,
+                _ => "object"
+            };
+        }
     }
 
     private static string SanitizeIdentifier(string identifier)
