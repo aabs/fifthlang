@@ -286,6 +286,8 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             VarDeclStatement varDecl => TranslateVarDeclStatement(varDecl),
             ExpStatement expStmt => TranslateExpStatement(expStmt),
             IfElseStatement ifStmt => TranslateIfElseStatement(ifStmt),
+            WhileStatement whileStmt => TranslateWhileStatement(whileStmt),
+            AssignmentStatement assignStmt => TranslateAssignmentStatement(assignStmt),
             _ => null // Unsupported statement types return null for now
         };
     }
@@ -364,6 +366,28 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         }
 
         return IfStatement(condition, thenBlock);
+    }
+
+    private StatementSyntax TranslateWhileStatement(WhileStatement whileStmt)
+    {
+        var condition = TranslateExpression(whileStmt.Condition);
+        // Fifth uses int for bool (0=false, non-zero=true), but comparison operators return bool
+        condition = EnsureBooleanExpression(condition, whileStmt.Condition);
+        var body = BuildBlockStatement(whileStmt.Body);
+        
+        return WhileStatement(condition, body);
+    }
+
+    private StatementSyntax TranslateAssignmentStatement(AssignmentStatement assignStmt)
+    {
+        var target = TranslateExpression(assignStmt.LValue);
+        var value = TranslateExpression(assignStmt.RValue);
+        
+        return ExpressionStatement(
+            AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                target,
+                value));
     }
 
     private ExpressionSyntax TranslateExpression(Expression expr)
