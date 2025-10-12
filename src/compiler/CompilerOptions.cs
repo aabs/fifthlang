@@ -9,18 +9,20 @@ namespace compiler;
 /// <param name="Args">Arguments to pass to the program when running</param>
 /// <param name="KeepTemp">Whether to keep temporary IL files</param>
 /// <param name="Diagnostics">Whether to emit diagnostic information</param>
+/// <param name="Backend">Backend to use for code generation (legacy or roslyn)</param>
 public record CompilerOptions(
     CompilerCommand Command = CompilerCommand.Build,
     string Source = "",
     string Output = "",
     string[] Args = null!,
     bool KeepTemp = false,
-    bool Diagnostics = false)
+    bool Diagnostics = false,
+    CompilerBackend Backend = CompilerBackend.Legacy)
 {
     /// <summary>
     /// Create default options
     /// </summary>
-    public CompilerOptions() : this(CompilerCommand.Build, "", "", Array.Empty<string>(), false, false)
+    public CompilerOptions() : this(CompilerCommand.Build, "", "", Array.Empty<string>(), false, false, CompilerBackend.Legacy)
     {
     }
 
