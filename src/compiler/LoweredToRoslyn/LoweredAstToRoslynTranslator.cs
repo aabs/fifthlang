@@ -464,9 +464,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 case Operator.GreaterThan:
                 case Operator.LessThanOrEqual:
                 case Operator.GreaterThanOrEqual:
+                    // These already return bool, no conversion needed
+                    return expr;
+                
                 case Operator.LogicalAnd:
                 case Operator.LogicalOr:
-                    // These already return bool, no conversion needed
+                    // These will be handled by TranslateBinaryExpression which already
+                    // converts their operands, so the result is bool
                     return expr;
             }
         }
