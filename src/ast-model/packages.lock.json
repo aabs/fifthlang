@@ -8,6 +8,12 @@
         "resolved": "1.11.2",
         "contentHash": "T6dfqSJ9+gSqnopeuBv6gtnpHlC0lru6XK3NtQQ9fTeDQQa1ynuI8AmDfEcpQu/rWFYJTbu8ZYR5ED8IScVK7A=="
       },
+      "Microsoft.Net.Compilers.Toolset": {
+        "type": "Direct",
+        "requested": "[4.11.0, )",
+        "resolved": "4.11.0",
+        "contentHash": "arJ0+L3uOu8spoRsKt5clvvxa7kHko80pXb/J4V92VJJZ7NMn8fC27N80W6Ro5CtcdzTDQtLXfBLfISSr6I3Zw=="
+      },
       "Vogen": {
         "type": "Direct",
         "requested": "[6.0.0, )",
