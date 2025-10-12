@@ -156,7 +156,7 @@ T011 - [P] (model) Create `DiagnosticRecord` and align existing Diagnostic type
 - Acceptance: Tests and translator diagnostics compile and the translator can return diagnostics into `TranslationResult`.
 - Agent commands: `git checkout -b 006-roslyn-T011-diagnostic-record && add file && dotnet build`
 
-T012 - [ ] (core) Implement `LoweredAstToRoslynTranslator` skeleton
+T012 - [x] (core) Implement `LoweredAstToRoslynTranslator` skeleton
 - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/src/compiler/LoweredAstToRoslynTranslator.cs`
 - Owner: @aabs
 - Estimate: 2d
@@ -166,6 +166,7 @@ T012 - [ ] (core) Implement `LoweredAstToRoslynTranslator` skeleton
   - Returns diagnostics if translation cannot proceed for certain nodes
 - Dependencies: T005-T011 (tests and models)
 - Acceptance: `RoslynPdbVerificationTests` (T004) and mapping tests (T005) now pass for the minimal sample.
+- Status: COMPLETED - Translator now uses Roslyn's SyntaxFactory APIs to build C# syntax trees and populate mapping entries.
 - Agent commands:
   - `git checkout -b 006-roslyn-T012-implement-translator`
   - Edit `LoweredAstToRoslynTranslator.cs` to produce a small SyntaxTree via Roslyn APIs or to return equivalent generated sources expected by the test harness

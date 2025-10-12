@@ -1107,6 +1107,7 @@
         "type": "Project",
         "dependencies": {
           "Fifth.System": "[1.0.0, )",
+          "Microsoft.CodeAnalysis.CSharp": "[4.11.0, )",
           "System.CommandLine": "[2.0.0-beta4.22272.1, )",
           "ast_generated": "[1.0.0, )",
           "ast_model": "[1.0.0, )",
