@@ -3,10 +3,10 @@ namespace compiler;
 using System.Collections.Generic;
 
 /// <summary>
-/// Minimal translator skeleton for the Roslyn backend POC.
-/// The implementation intentionally returns an empty TranslationResult so
-/// tests that express the desired mapping/PDB behavior fail and drive
-/// further implementation (TDD-first).
+/// First-pass translator for the Roslyn backend POC.
+/// Generates C# source code from a lowered AST module and creates mapping entries
+/// that link lowered AST node IDs to generated source code locations.
+/// This enables source-level debugging and PDB generation in future passes.
 /// </summary>
 public enum BackendCompatibilityMode
 {
