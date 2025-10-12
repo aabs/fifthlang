@@ -19,6 +19,6 @@ Checklist:
 
 - Acceptance: `signing-policy.md` enumerates existing signed artifacts, a recommended key-storage approach, and exact CI steps to produce and verify signed artifacts.
 
-Owner: TBD
+Owner: @aabs
 
 ```

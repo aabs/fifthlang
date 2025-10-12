@@ -1,0 +1,12 @@
+// Simple POC for Roslyn translator tests
+// Purpose: exercise function declaration, call, basic expression and return
+
+main(): int {
+    x: int = 5;
+    y: int = add(x, 7);
+    return y;
+}
+
+add(int a, int b): int {
+    return a + b;
+}

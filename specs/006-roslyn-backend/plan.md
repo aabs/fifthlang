@@ -215,7 +215,7 @@ directories captured above]
  - [ ] All NEEDS CLARIFICATION resolved
  - [ ] Complexity deviations documented
 
-**Constitutional Deviation Note**: The user's directive requests the immediate removal of legacy IL emission code rather than phasing it behind a feature flag. This is a deviation from the constitution's recommended deprecation strategy. Before any deletion occurs, the following must be completed: 1) document the rationale in Complexity Tracking, 2) obtain explicit owner approval, and 3) create a canary/rollout plan with CI gates that validate the Roslyn backend across the defined SDK matrix.
+**Constitutional Deviation Note (Option A adopted)**: The user requested immediate removal of legacy IL emission code. Per the constitution and FR-009, the project rejects immediate deletion and adopts Option A (gated removal). Legacy emitters will remain present and selectable during the migration. Deletion will only proceed after all FR-009 preconditions are satisfied: (1) preservation inventory and dispositions, (2) successful PDB/mapping verification, (3) CI matrix validation producing inspection artifacts, (4) regeneration proof and generator-consistency checks, and (5) explicit owner/constitutional sign-off (T019). Any attempt to change the canonical SDK or to delete the legacy emitter before these conditions are met requires a constitution amendment recorded in the repository.
 
 ---
 *Based on Constitution v2.1.1 - See `/memory/constitution.md`*
