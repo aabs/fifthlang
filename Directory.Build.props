@@ -17,4 +17,11 @@
     <!-- Use pinned Roslyn by default for Release builds (CI / release); developers may override locally -->
     <UsePinnedRoslyn Condition="'$(UsePinnedRoslyn)'=='' and '$(Configuration)'=='Release'">true</UsePinnedRoslyn>
   </PropertyGroup>
+
+  <!-- When we ask to use the pinned Roslyn toolset, also reference the
+       compiler toolset package so MSBuild will drive the compilation with
+       the package-provided csc that understands the chosen LangVersion. -->
+  <ItemGroup Condition="'$(UsePinnedRoslyn)' == 'true'">
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="$(RoslynVersion)" PrivateAssets="all" />
+  </ItemGroup>
 </Project>
