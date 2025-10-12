@@ -236,14 +236,7 @@ public class ExpressionEmitter
                 sequence.Add(new ArithmeticInstruction("ceq"));
                 break;
 
-            case Operator.ArithmeticPow:
-                // a ** b  ==>  call Math.Pow(double a, double b)
-                // Note: operands are already on stack and converted to double in GenerateBinaryExpression
-                // Stack: [double base, double exponent]
-                sequence.Add(new CallInstruction("call", "extcall:Asm=System.Runtime;Ns=System;Type=Math;Method=Pow;Params=System.Double,System.Double;Return=System.Double") { ArgCount = 2 });
-                // Result is a double, may need to convert back to int for integer contexts
-                sequence.Add(new ArithmeticInstruction("conv.i4")); // Convert result back to int
-                break;
+            // ...existing code handles ArithmeticPow above; duplicate case removed to avoid CS0152
 
             case Operator.ArithmeticPow:
                 // a ** b  ==>  call Math.Pow(double a, double b)
