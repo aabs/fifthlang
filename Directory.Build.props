@@ -5,5 +5,12 @@
     <RestoreTool>NuGet</RestoreTool>
     <UseNETSdkDefaults>true</UseNETSdkDefaults>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+    <!-- Roslyn pin and language version for generated sources -->
+    <!-- Pin candidate for Roslyn used in CI/release artifacts -->
+    <RoslynVersion>4.1.0</RoslynVersion>
+    <!-- Default language version for generated C# sources -->
+    <LangVersion>14</LangVersion>
+    <!-- Use pinned Roslyn by default for Release builds (CI / release); developers may override locally -->
+    <UsePinnedRoslyn Condition="'$(UsePinnedRoslyn)'=='' and '$(Configuration)'=='Release'">true</UsePinnedRoslyn>
   </PropertyGroup>
 </Project>

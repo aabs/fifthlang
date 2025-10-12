@@ -252,9 +252,25 @@ T018 - [ ] (ci) Canary: CI-overlay of legacy emitters for non-destructive valida
   - Add `scripts/ci-overlay-legacy.sh` and update CI dispatch or `roslyn-backend-validation.yml` to include an overlay step gated behind a 'canary' label or a workflow input
   - Push branch and request a canary run (label PR with `canary` or use workflow dispatch)
 
+T028 - [ ] (security) Signing inventory & CI signing verification
+- Path(s): `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/signing-policy.md` and CI (`.github/workflows/roslyn-backend-validation.yml`)
+- Owner: @aabs
+- Estimate: 1d
+- Description: Enumerate current signing usage across projects and artifacts (which assemblies are strong-named, which NuGet packages are signed, and any external signing requirements). Implement a CI verification step that validates the presence and correctness of signatures for release artifacts produced by both legacy and Roslyn backends. Document required keys, signing processes, and change controls in `signing-policy.md`.
+- Dependencies: T016 (CI matrix), T012 (translator POC for artifacts to sign)
+- Acceptance: `signing-policy.md` contains a definitive inventory and CI includes a `verify-signature` job that checks signatures for published artifacts; verification logs are uploaded as CI artifacts. Signing compatibility issues must be documented as preservation candidates in `preservation-inventory.md`.
+
+T029 - [ ] (observability) Observability & artifact identity
+- Path(s): `specs/006-roslyn-backend/` and CI script(s) (e.g., `scripts/emit-artifact-manifest.sh`)
+- Owner: @aabs
+- Estimate: 0.5d
+- Description: Implement an artifact identity scheme and CI manifest generation that records for each artifact: backend used (legacy|roslyn), Roslyn version (when Roslyn used), git commit sha, build configuration, and PDB presence. Create a simple `artifact-manifest.json` produced by the CI matrix and uploaded alongside assembly artifacts to assist reviewers and downstream consumers.
+- Dependencies: T016 (CI matrix)
+- Acceptance: For every CI artifact upload in the roslyn-backend-validation workflow, an `artifact-manifest.json` is present and tests assert the manifest contains `backend`, `roslynVersion` (if applicable), and `commit` fields. The manifests are searchable by reviewers and referenced in the constitutional-deviation checklist for deletion PRs.
+
 T019 - [ ] (governance) Complete constitutional deviation sign-off checklist
 - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/constitutional-deviation.md`
-- Owner: Project lead (TBD)
+- Owner: @aabs
 - Estimate: 0.5d
 - Description: Ensure preservation inventory, CI green (on matrix), PDB mapping tests passing, and obtain owner approval recorded in the deviation document.
 - Dependencies: T010, T012, T016
@@ -263,7 +279,7 @@ T019 - [ ] (governance) Complete constitutional deviation sign-off checklist
 
 T026 - [ ] (governance) Codify toolchain policy (Option A) and add CI enforcement
 - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/spec.md` and `.github/workflows/roslyn-backend-validation.yml`
-- Owner: Project lead (TBD)
+- Owner: @aabs
 - Estimate: 0.25d
 - Description: Record the decision to keep the repository canonical SDK pinned to .NET 8 in `global.json` while treating .NET 10 as the development focus. Update `spec.md` (this file) and `plan.md` to reflect the policy (done). Add CI guard(s) to the T016 workflow that detect changes to `global.json` and require a special label/approval and a constitution amendment before allowing such PRs to proceed. Document the policy in the top-level README or `docs/` as appropriate.
 - Dependencies: T016
@@ -276,7 +292,7 @@ T026 - [ ] (governance) Codify toolchain policy (Option A) and add CI enforcemen
 
 T027 - [ ] (research) Resolve outstanding clarifications and close [NEEDS CLARIFICATION]
 - Path: `/Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/clarifications.md`
-- Owner: TBD
+- Owner: @aabs
 - Estimate: 2d
 - Description: Collect and resolve every `[NEEDS CLARIFICATION]` in `spec.md` and record each decision in `clarifications.md`. For each clarification record: question, chosen decision, rationale, owner, and date. Examples to resolve: canonical list of IL preservation candidates, signing requirements, named approvers for deletion, Roslyn pining policy for release builds, and performance measurement definitions.
 - Dependencies: none
@@ -332,7 +348,7 @@ T024 - [ ] (perf & polish) Add unit tests, docs and perf harness entries
 
 T025 - [ ] (polish) Final regression & integration runs, sign-off and merge
 - Path: N/A (process)
-- Owner: Project lead
+- Owner: @aabs
 - Estimate: 1d
 - Description: Run the full test suite (parser, ast, runtime-integration, kg-smoke) on the release pipeline and obtain final sign-off before removal of legacy emitters.
 - Dependencies: T019, T020, T024
