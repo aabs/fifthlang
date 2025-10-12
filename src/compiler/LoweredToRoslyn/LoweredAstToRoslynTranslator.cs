@@ -351,8 +351,9 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private StatementSyntax TranslateIfElseStatement(IfElseStatement ifStmt)
     {
         var condition = TranslateExpression(ifStmt.Condition);
-        // Fifth uses int for bool (0=false, non-zero=true), so convert to bool for C# if statement
-        condition = IntToBoolConversion(condition);
+        // Fifth uses int for bool (0=false, non-zero=true), but comparison operators return bool
+        // Only convert if the condition is not already a comparison/relational expression
+        condition = EnsureBooleanExpression(condition, ifStmt.Condition);
         var thenBlock = BuildBlockStatement(ifStmt.ThenBlock);
 
         if (ifStmt.ElseBlock != null)
@@ -415,11 +416,45 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         // For logical operators, convert int operands to bool (Fifth uses int for bool: 0=false, non-zero=true)
         if (binExp.Operator == Operator.LogicalAnd || binExp.Operator == Operator.LogicalOr)
         {
-            left = IntToBoolConversion(left);
-            right = IntToBoolConversion(right);
+            left = EnsureBooleanExpression(left, binExp.LHS);
+            right = EnsureBooleanExpression(right, binExp.RHS);
         }
 
         return BinaryExpression(kind, left, right);
+    }
+
+    /// <summary>
+    /// Ensure an expression is suitable for use in a boolean context.
+    /// Comparison operators already return bool, but int expressions need conversion.
+    /// </summary>
+    private ExpressionSyntax EnsureBooleanExpression(ExpressionSyntax expr, Expression originalExpr)
+    {
+        // Check if the original expression is a comparison/relational that already returns bool
+        if (originalExpr is BinaryExp binExpr)
+        {
+            switch (binExpr.Operator)
+            {
+                case Operator.Equal:
+                case Operator.NotEqual:
+                case Operator.LessThan:
+                case Operator.GreaterThan:
+                case Operator.LessThanOrEqual:
+                case Operator.GreaterThanOrEqual:
+                case Operator.LogicalAnd:
+                case Operator.LogicalOr:
+                    // These already return bool, no conversion needed
+                    return expr;
+            }
+        }
+        
+        // For boolean literals, no conversion needed
+        if (originalExpr is BooleanLiteralExp)
+        {
+            return expr;
+        }
+        
+        // For other expressions (likely integers), add the != 0 check
+        return IntToBoolConversion(expr);
     }
 
     private ExpressionSyntax TranslateFuncCallExpression(FuncCallExp funcCall)
