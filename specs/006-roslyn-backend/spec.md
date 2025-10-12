@@ -244,6 +244,19 @@ Developer guidance (local debugging)
 - Is a build-time or runtime feature flag required for selecting backend, or should selection be CI-only during rollout?
 - Who is the owner of the migration and who approves the final removal of the legacy backend?
 
+## Implementation Choices (user directive)
+
+NOTE: The following choices were provided as explicit implementation directives and must be 1) recorded in the spec, and 2) reconciled with the project's constitution and release gating before deletion occurs.
+
+- Primary Target Platform: **.NET 10** (latest stable in the 10.x line). .NET 8 support is retained for compatibility and CI verification, but the Roslyn backend will be developed primarily for .NET 10 toolchain and runtime.
+- Generated C# language level: **C# 14** (use LanguageVersion=14 or equivalent MSBuild property).
+- Roslyn toolchain: Use Microsoft.CodeAnalysis (Roslyn) as the canonical compiler API. The project will pin an explicit Roslyn compiler package/version for release and CI reproducibility; developer workflows may use SDK-provided Roslyn for local iteration.
+- Backend removal policy: The user has requested immediate removal of the existing backend code-generation phases (IL AST lowering, IL metamodel, ILEmissionVisitor, and PEEmitter) rather than hiding them behind a feature flag. This is a deliberate deviation from the earlier deprecation approach and therefore must be recorded as a constitutional deviation and handled via an explicit approval and rollout plan (see Complexity Tracking below).
+- Tests: Remove or convert all *low-level* tests that assert textual `.il` output or directly validate `ILMetamodel` shapes and `PEEmitter` binary layout. Preserve *all other* tests that assert language semantics, runtime behavior, or developer-visible contracts (AST-level, parser tests, integration tests, runtime regression suites). Tests that currently validate IL output should be converted to behavioral tests where possible; where behavioral equivalence cannot be asserted, mark those tests as preservation candidates and address them explicitly in the preservation inventory.
+- Architectural goals to incorporate in this migration: incremental compilation (file- and transformation-level caching), parser error recovery and resilient parsing (partial ASTs & ErrorNode), Language Server Protocol (LSP) readiness (workspace, document, diagnostic services), a composable transformation pipeline (ICompilerPhase and phase orchestration), and a unified diagnostic system with stable diagnostic codes and source-span-aware messages.
+
+These directives are authoritative for the Phase 2 planning tasks that follow, but they also introduce a constitutional deviation that requires documented justification and owner approval before removal of legacy emitters is executed.
+
 ---
 
 ---

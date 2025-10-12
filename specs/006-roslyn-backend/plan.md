@@ -34,37 +34,20 @@
 [Extract from feature spec: primary requirement + technical approach from research]
 
 ## Technical Context
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: C# 14 (generated sources; set MSBuild LangVersion to 14 for generated compilation)
+**Primary Dependencies**: Microsoft.CodeAnalysis (Roslyn) — explicit pinned package for release/CI; Antlr4.Runtime.Standard for parsing; System.Reflection.Metadata retained for narrow preservation shims.
+**Storage**: N/A
+**Testing**: TUnit + FluentAssertions for unit/integration tests; add translator unit tests and mapping/PDB verification harness tests.
+**Target Platform**: .NET 10 (primary); validate on .NET 8 for compatibility. Generated assemblies and CI matrix must cover platforms supported by Roslyn (Windows, macOS, Linux).
+**Project Type**: Multi-project .NET compiler toolchain
+**Performance Goals**: Not enforced as a CI gate for migration (per FR-004). Benchmark and document compile/runtime performance in `test/perf/` and treat regressions as remediation items.
+**Constraints**: Full Portable PDB SequencePoint fidelity required; Roslyn package must be pinned for deterministic releases; immediate removal of legacy emitters is a constitutional deviation and requires explicit owner approval before code deletion.
+**Scale/Scope**: Repository-wide migration affecting `src/code_generator`, `src/compiler`, CI pipelines, and test suites that reference IL artifacts.
 
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 [Gates determined based on constitution file]
-
-### Initial Constitution Check (summary)
-
-- Library-First, Contracts-First: PASS — translator will be implemented as a focused library under `src/compiler` and will expose a clear contract (TranslationResult API).
-- Generator-as-Source-of-Truth: PASS — we will not hand-edit generated code; translator will produce C# sources and PDBs; we will maintain `ast-generated` policy.
-- Test-First: PARTIAL — additional unit tests and integration tests required to cover translator; plan creates test harness tasks in Phase 2.
-- Reproducible Builds & Toolchain Discipline: PARTIAL — Roslyn pinning required; plan includes adding `RoslynVersion` to Directory.Build.props.
-- Multi-Pass Compilation Philosophy: PASS with deviation — migration removes the IL-lowering pass from the main emission chain; mitigation: maintain legacy pipeline behind feature flag during canary period and ensure tests exercise transformation equivalence.
-
-### Constitution violations and complexity tracking
-
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|---|---|---|
-| Removal of IL-level pipeline | Removing the IL AST and PEEmitter reduces duplicated maintenance cost but is a breaking architectural change | Keeping both pipelines long-term would maintain compatibility but increase maintenance and prevent leveraging Roslyn benefits
-| Incremental compilation & LSP readiness | Requires building persistent Roslyn workspace and mapping infrastructure | Doing nothing prevents LSP and incremental capabilities; unacceptable for roadmap
-
-Mitigations are included in research.md and Phase 1 designs: maintain legacy pipeline behind a feature flag, implement translator incremental design and mapping tables, and pin Roslyn for deterministic builds.
 
 ## Project Structure
 
@@ -221,23 +204,18 @@ directories captured above]
 **Phase Status**:
  - [x] Phase 0: Research complete (/plan command)
  - [x] Phase 1: Design complete (/plan command)
-- [ ] Phase 2: Task planning complete (/plan command - describe approach only)
-- [ ] Phase 3: Tasks generated (/tasks command)
-- [ ] Phase 4: Implementation complete
-- [ ] Phase 5: Validation passed
+ - [ ] Phase 2: Task planning complete (/tasks command to generate tasks.md)
+ - [ ] Phase 3: Tasks generated (/tasks command)
+ - [ ] Phase 4: Implementation complete
+ - [ ] Phase 5: Validation passed
 
 **Gate Status**:
-- [ ] Initial Constitution Check: PASS
-- [ ] Post-Design Constitution Check: PASS
-- [ ] All NEEDS CLARIFICATION resolved
-- [ ] Complexity deviations documented
+ - [ ] Initial Constitution Check: PASS
+ - [ ] Post-Design Constitution Check: PASS
+ - [ ] All NEEDS CLARIFICATION resolved
+ - [ ] Complexity deviations documented
 
-Generated artifacts (absolute paths):
-- /Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/research.md
-- /Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/data-model.md
-- /Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/quickstart.md
-- /Users/aabs/dev/aabs/active/5th-related/fifthlang/specs/006-roslyn-backend/contracts/README.md
-
+**Constitutional Deviation Note**: The user's directive requests the immediate removal of legacy IL emission code rather than phasing it behind a feature flag. This is a deviation from the constitution's recommended deprecation strategy. Before any deletion occurs, the following must be completed: 1) document the rationale in Complexity Tracking, 2) obtain explicit owner approval, and 3) create a canary/rollout plan with CI gates that validate the Roslyn backend across the defined SDK matrix.
 
 ---
 *Based on Constitution v2.1.1 - See `/memory/constitution.md`*
