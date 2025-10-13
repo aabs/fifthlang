@@ -436,6 +436,10 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             StringLiteralExp strLit => LiteralExpression(
                 SyntaxKind.StringLiteralExpression,
                 Literal(NormalizeStringLiteral(strLit.Value))),
+            UriLiteralExp uriLit => ObjectCreationExpression(IdentifierName("Uri"))
+                .WithArgumentList(ArgumentList(SingletonSeparatedList(
+                    Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, 
+                        Literal(uriLit.Value.ToString())))))),
             VarRefExp varRef => IdentifierName(SanitizeIdentifier(varRef.VarName)),
             BinaryExp binExp => TranslateBinaryExpression(binExp),
             FuncCallExp funcCall => TranslateFuncCallExpression(funcCall),
@@ -444,6 +448,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             List list => TranslateListExpression(list),
             ObjectInitializerExp objInit => TranslateObjectInitializerExpression(objInit),
             UnaryExp unary => TranslateUnaryExpression(unary),
+            TripleLiteralExp triple => TranslateTripleLiteralExpression(triple),
             _ => DefaultExpression(IdentifierName("object")) // Fallback for unsupported expressions
         };
     }
@@ -737,6 +742,25 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         };
 
         return PrefixUnaryExpression(kind, operand);
+    }
+
+    private ExpressionSyntax TranslateTripleLiteralExpression(TripleLiteralExp triple)
+    {
+        // Translate <subj, pred, obj> to new Triple(subj, pred, obj)
+        var subject = TranslateExpression(triple.SubjectExp);
+        var predicate = TranslateExpression(triple.PredicateExp);
+        var obj = TranslateExpression(triple.ObjectExp);
+        
+        var arguments = new List<ArgumentSyntax>
+        {
+            Argument(subject),
+            Argument(predicate),
+            Argument(obj)
+        };
+        
+        // Generate: new Triple(subject, predicate, object)
+        return ObjectCreationExpression(IdentifierName("Triple"))
+            .WithArgumentList(ArgumentList(SeparatedList(arguments)));
     }
 
     private string MapTypeName(string? fifthTypeName)
