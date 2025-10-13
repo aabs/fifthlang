@@ -316,6 +316,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         var typeName = varDecl.VariableDecl.TypeName != null
             ? MapTypeName(varDecl.VariableDecl.TypeName.ToString())
             : "var";
+        
+        // If the initializer is a list/array literal, use 'var' to let C# infer the array type
+        // This handles cases where Fifth's type system represents int[] differently than expected
+        if (varDecl.InitialValue is List)
+        {
+            typeName = "var";
+        }
 
         if (varDecl.InitialValue != null)
         {
@@ -717,6 +724,14 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private string MapTypeName(string? fifthTypeName)
     {
         if (fifthTypeName == null) return "object";
+
+        // Handle list/array types - Fifth uses list<T> syntax, C# uses T[]
+        if (fifthTypeName.StartsWith("list<") && fifthTypeName.EndsWith(">"))
+        {
+            var innerType = fifthTypeName.Substring(5, fifthTypeName.Length - 6);
+            var mappedInner = MapTypeName(innerType);
+            return $"{mappedInner}[]";
+        }
 
         return fifthTypeName switch
         {
