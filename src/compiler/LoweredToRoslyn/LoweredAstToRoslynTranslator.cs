@@ -626,9 +626,33 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private ExpressionSyntax TranslateObjectInitializerExpression(ObjectInitializerExp objInit)
     {
-        // Create object creation with initializers: new TypeName { ... }
-        var typeName = MapTypeName(objInit.TypeToInitialize.ToString());
+        // Get the type name - TypeToInitialize is a FifthType, need to extract the name properly
+        string typeName;
+        try
+        {
+            // Try to get the type name from the FifthType
+            if (objInit.TypeToInitialize != null)
+            {
+                typeName = SanitizeIdentifier(objInit.TypeToInitialize.Name.ToString());
+            }
+            else
+            {
+                typeName = "object";
+            }
+        }
+        catch
+        {
+            typeName = "object";
+        }
         
+        // If there are no property initializers, create simple object creation: new TypeName()
+        if (objInit.PropertyInitialisers == null || objInit.PropertyInitialisers.Count == 0)
+        {
+            return ObjectCreationExpression(IdentifierName(typeName))
+                .WithArgumentList(ArgumentList());
+        }
+        
+        // Create object creation with initializers: new TypeName { Prop = Value, ... }
         var initializers = new List<ExpressionSyntax>();
         foreach (var propInit in objInit.PropertyInitialisers)
         {
