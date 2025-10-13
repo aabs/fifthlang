@@ -689,7 +689,25 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         var initializers = new List<ExpressionSyntax>();
         foreach (var propInit in objInit.PropertyInitialisers)
         {
-            var propName = SanitizeIdentifier(propInit.PropertyToInitialize.ToString());
+            // Extract property name from PropertyDef to avoid potential stack overflow from ToString()
+            string propName;
+            try
+            {
+                if (propInit.PropertyToInitialize?.Property != null)
+                {
+                    propName = SanitizeIdentifier(propInit.PropertyToInitialize.Property.Name.ToString());
+                }
+                else
+                {
+                    // Fallback - try ToString() on PropertyToInitialize
+                    propName = SanitizeIdentifier(propInit.PropertyToInitialize.ToString());
+                }
+            }
+            catch
+            {
+                propName = "UnknownProperty";
+            }
+            
             var valueExpr = TranslateExpression(propInit.RHS);
             
             var assignment = AssignmentExpression(
