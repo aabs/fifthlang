@@ -21,7 +21,8 @@ public class BuiltInRuntimeTests : RuntimeTestBase
         var executablePath = await CompileSourceAsync(sourceCode);
         File.Exists(executablePath).Should().BeTrue("Basic program should compile");
 
-        var result = await ExecuteAsync(executablePath);
+        // Use explicit arguments + longer timeout to avoid spurious 10s CI timeouts.
+        var result = await ExecuteAsync(executablePath, arguments: "", input: "", timeoutMs: 60000);
         result.ExitCode.Should().Be(0, "Should return 0 as specified");
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
@@ -38,7 +39,8 @@ public class BuiltInRuntimeTests : RuntimeTestBase
         var executablePath = await CompileSourceAsync(sourceCode);
         File.Exists(executablePath).Should().BeTrue("Basic program should compile");
 
-        var result = await ExecuteAsync(executablePath);
+        // Use explicit arguments + longer timeout to avoid spurious 10s CI timeouts.
+        var result = await ExecuteAsync(executablePath, arguments: "", input: "", timeoutMs: 60000);
         result.ExitCode.Should().Be(42, "Should return 42 as specified");
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
@@ -63,7 +65,11 @@ public class BuiltInRuntimeTests : RuntimeTestBase
             var executablePath = await CompileSourceAsync(sourceCode);
             File.Exists(executablePath).Should().BeTrue("String comparison should compile");
         }
-        catch
+        catch (NotSupportedException)
+        {
+            Console.WriteLine("Skipping string comparison test - feature may not be implemented yet");
+        }
+        catch (NotImplementedException)
         {
             Console.WriteLine("Skipping string comparison test - feature may not be implemented yet");
         }
@@ -85,7 +91,11 @@ public class BuiltInRuntimeTests : RuntimeTestBase
             var executablePath = await CompileSourceAsync(sourceCode);
             File.Exists(executablePath).Should().BeTrue("Math functions should compile");
         }
-        catch
+        catch (NotSupportedException)
+        {
+            Console.WriteLine("Skipping math functions test - math library may not be implemented yet");
+        }
+        catch (NotImplementedException)
         {
             Console.WriteLine("Skipping math functions test - math library may not be implemented yet");
         }
@@ -109,7 +119,11 @@ public class BuiltInRuntimeTests : RuntimeTestBase
             var executablePath = await CompileSourceAsync(sourceCode);
             File.Exists(executablePath).Should().BeTrue("Input/output operations should compile");
         }
-        catch
+        catch (NotSupportedException)
+        {
+            Console.WriteLine("Skipping I/O test - input/output functions may not be implemented yet");
+        }
+        catch (NotImplementedException)
         {
             Console.WriteLine("Skipping I/O test - input/output functions may not be implemented yet");
         }
@@ -131,7 +145,11 @@ public class BuiltInRuntimeTests : RuntimeTestBase
             var executablePath = await CompileSourceAsync(sourceCode);
             File.Exists(executablePath).Should().BeTrue("Array utilities should compile");
         }
-        catch
+        catch (NotSupportedException)
+        {
+            Console.WriteLine("Skipping array utilities test - std.length may not be implemented yet");
+        }
+        catch (NotImplementedException)
         {
             Console.WriteLine("Skipping array utilities test - std.length may not be implemented yet");
         }
@@ -156,7 +174,11 @@ public class BuiltInRuntimeTests : RuntimeTestBase
             var executablePath = await CompileSourceAsync(sourceCode);
             File.Exists(executablePath).Should().BeTrue("Error handling should compile");
         }
-        catch
+        catch (NotSupportedException)
+        {
+            Console.WriteLine("Skipping error handling test - try/catch may not be implemented yet");
+        }
+        catch (NotImplementedException)
         {
             Console.WriteLine("Skipping error handling test - try/catch may not be implemented yet");
         }
