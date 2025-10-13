@@ -58,15 +58,8 @@ public class BuiltInRuntimeTests : RuntimeTestBase
             }
             """;
 
-        try
-        {
-            var executablePath = await CompileSourceAsync(sourceCode);
-            File.Exists(executablePath).Should().BeTrue("String comparison should compile");
-        }
-        catch
-        {
-            Console.WriteLine("Skipping string comparison test - feature may not be implemented yet");
-        }
+        var executablePath = await CompileSourceAsync(sourceCode);
+        File.Exists(executablePath).Should().BeTrue("String comparison should compile");
     }
 
     [Test]
@@ -80,15 +73,8 @@ public class BuiltInRuntimeTests : RuntimeTestBase
             }
             """;
 
-        try
-        {
-            var executablePath = await CompileSourceAsync(sourceCode);
-            File.Exists(executablePath).Should().BeTrue("Math functions should compile");
-        }
-        catch
-        {
-            Console.WriteLine("Skipping math functions test - math library may not be implemented yet");
-        }
+        var executablePath = await CompileSourceAsync(sourceCode);
+        File.Exists(executablePath).Should().BeTrue("Math functions should compile");
     }
 
     [Test]
@@ -104,15 +90,8 @@ public class BuiltInRuntimeTests : RuntimeTestBase
             }
             """;
 
-        try
-        {
-            var executablePath = await CompileSourceAsync(sourceCode);
-            File.Exists(executablePath).Should().BeTrue("Input/output operations should compile");
-        }
-        catch
-        {
-            Console.WriteLine("Skipping I/O test - input/output functions may not be implemented yet");
-        }
+        var executablePath = await CompileSourceAsync(sourceCode);
+        File.Exists(executablePath).Should().BeTrue("Input/output operations should compile");
     }
 
     [Test]
@@ -126,15 +105,8 @@ public class BuiltInRuntimeTests : RuntimeTestBase
             }
             """;
 
-        try
-        {
-            var executablePath = await CompileSourceAsync(sourceCode);
-            File.Exists(executablePath).Should().BeTrue("Array utilities should compile");
-        }
-        catch
-        {
-            Console.WriteLine("Skipping array utilities test - std.length may not be implemented yet");
-        }
+        var executablePath = await CompileSourceAsync(sourceCode);
+        File.Exists(executablePath).Should().BeTrue("Array utilities should compile");
     }
 
     [Test]
@@ -151,14 +123,7 @@ public class BuiltInRuntimeTests : RuntimeTestBase
             }
             """;
 
-        try
-        {
-            var executablePath = await CompileSourceAsync(sourceCode);
-            File.Exists(executablePath).Should().BeTrue("Error handling should compile");
-        }
-        catch
-        {
-            Console.WriteLine("Skipping error handling test - try/catch may not be implemented yet");
-        }
+        var executablePath = await CompileSourceAsync(sourceCode);
+        File.Exists(executablePath).Should().BeTrue("Error handling should compile");
     }
 }
