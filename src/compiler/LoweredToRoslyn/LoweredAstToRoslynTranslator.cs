@@ -29,6 +29,9 @@ public class TranslatorOptions
 
 public class LoweredAstToRoslynTranslator : IBackendTranslator
 {
+    // Track variables that have been declared in the current method scope
+    private HashSet<string> _declaredVariables = new HashSet<string>();
+    
     /// <summary>
     /// Translate AssemblyDef (from IBackendTranslator interface)
     /// </summary>
@@ -306,6 +309,9 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private StatementSyntax TranslateVarDeclStatement(VarDeclStatement varDecl)
     {
         var varName = SanitizeIdentifier(varDecl.VariableDecl.Name.ToString());
+        // Track that this variable has been declared
+        _declaredVariables.Add(varName);
+        
         // TypeName is a value object, so ToString() should work
         var typeName = varDecl.VariableDecl.TypeName != null
             ? MapTypeName(varDecl.VariableDecl.TypeName.ToString())
@@ -380,14 +386,34 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private StatementSyntax TranslateAssignmentStatement(AssignmentStatement assignStmt)
     {
+        // Check if LValue is a simple variable reference (not member access or indexer)
+        if (assignStmt.LValue is VarRefExp varRef)
+        {
+            var varName = SanitizeIdentifier(varRef.VarName);
+            
+            // If this variable hasn't been declared yet, create a declaration with var
+            if (!_declaredVariables.Contains(varName))
+            {
+                _declaredVariables.Add(varName);
+                var value = TranslateExpression(assignStmt.RValue);
+                
+                return LocalDeclarationStatement(
+                    VariableDeclaration(IdentifierName("var"))
+                        .AddVariables(
+                            VariableDeclarator(Identifier(varName))
+                                .WithInitializer(EqualsValueClause(value))));
+            }
+        }
+        
+        // Regular assignment for already-declared variables or complex lvalues
         var target = TranslateExpression(assignStmt.LValue);
-        var value = TranslateExpression(assignStmt.RValue);
+        var valueExpr = TranslateExpression(assignStmt.RValue);
         
         return ExpressionStatement(
             AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 target,
-                value));
+                valueExpr));
     }
 
     private ExpressionSyntax TranslateExpression(Expression expr)
@@ -803,6 +829,14 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         }
 
         // Build method body
+        // Clear the declared variables set for this method
+        _declaredVariables.Clear();
+        // Add parameters to declared variables
+        foreach (var param in funcDef.Params)
+        {
+            _declaredVariables.Add(SanitizeIdentifier(param.Name.ToString()));
+        }
+        
         var body = BuildBlockStatement(funcDef.Body);
 
         // Add a discard local: object __discard = default(object);
