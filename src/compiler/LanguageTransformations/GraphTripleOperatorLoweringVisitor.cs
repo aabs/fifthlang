@@ -319,21 +319,21 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
                     builder = LowerTripleToAssertChain(graphVarRef, leftTriple, dedupe);
                 }
 
-                // Process right operand
+                // Process right operand - chain on top of the builder from the left operand
                 if (rhs != null)
                 {
                     if (rhs is BinaryExp rightLowered && rightLowered.Annotations != null && rightLowered.Annotations.ContainsKey(LoweredGraphAnnotation))
                     {
                         AppendSignaturesFromAnnotations(rightLowered.Annotations, dedupe);
-                        builder = AppendGraphOperand(graphVarRef, rightLowered.RHS ?? rhs, loc, dedupe);
+                        builder = AppendGraphOperand(builder, rightLowered.RHS ?? rhs, loc, dedupe);
                     }
                     else if (rightIsGraphLike)
                     {
-                        builder = AppendGraphOperand(graphVarRef, rhs, loc, dedupe);
+                        builder = AppendGraphOperand(builder, rhs, loc, dedupe);
                     }
                     else if (rightIsTriple && rhs is TripleLiteralExp rightTriple)
                     {
-                        builder = LowerTripleToAssertChain(graphVarRef, rightTriple, dedupe);
+                        builder = LowerTripleToAssertChain(builder, rightTriple, dedupe);
                     }
                 }
 
