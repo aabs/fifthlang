@@ -36,7 +36,9 @@ public class FunctionRuntimeTests : RuntimeTestBase
         // Arrange
         var sourceCode = """
             calculate(a: int, b: int, c: int): int {
-                return (a + b) * c;
+                // compute sum first to avoid relying on parser/operator-precedence behavior
+                sum: int = a + b;
+                return sum * c;
             }
 
             main(): int {
