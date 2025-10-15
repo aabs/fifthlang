@@ -5288,8 +5288,8 @@ public partial class FifthParser : FifthParserBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode COLON() { return GetToken(FifthParser.COLON, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode GRAPH() { return GetToken(FifthParser.GRAPH, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ASSIGN() { return GetToken(FifthParser.ASSIGN, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public GraphAssertionBlockContext graphAssertionBlock() {
-			return GetRuleContext<GraphAssertionBlockContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public ExpressionContext expression() {
+			return GetRuleContext<ExpressionContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SEMI() { return GetToken(FifthParser.SEMI, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IDENTIFIER() { return GetToken(FifthParser.IDENTIFIER, 0); }
@@ -5349,7 +5349,7 @@ public partial class FifthParser : FifthParserBase {
 			State = 587;
 			Match(ASSIGN);
 			State = 588;
-			graphAssertionBlock();
+			expression(0);
 			State = 589;
 			Match(SEMI);
 			}
@@ -5734,7 +5734,7 @@ public partial class FifthParser : FifthParserBase {
 		573,1,0,0,0,575,576,1,0,0,0,576,578,1,0,0,0,577,575,1,0,0,0,578,579,5,
 		44,0,0,579,109,1,0,0,0,580,581,5,40,0,0,581,582,5,52,0,0,582,585,5,17,
 		0,0,583,584,5,20,0,0,584,586,3,112,56,0,585,583,1,0,0,0,585,586,1,0,0,
-		0,586,587,1,0,0,0,587,588,5,49,0,0,588,589,3,32,16,0,589,590,5,51,0,0,
+		0,586,587,1,0,0,0,587,588,5,49,0,0,588,589,3,68,34,0,589,590,5,51,0,0,
 		590,111,1,0,0,0,591,594,5,40,0,0,592,594,3,106,53,0,593,591,1,0,0,0,593,
 		592,1,0,0,0,594,113,1,0,0,0,595,596,5,40,0,0,596,597,5,52,0,0,597,598,
 		5,29,0,0,598,599,5,49,0,0,599,600,5,28,0,0,600,601,5,41,0,0,601,602,3,
