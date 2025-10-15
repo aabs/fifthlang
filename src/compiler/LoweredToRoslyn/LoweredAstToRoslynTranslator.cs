@@ -906,6 +906,31 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                                 DefaultExpression(IdentifierName("object"))))));
         body = body.WithStatements(body.Statements.Insert(0, discardDecl));
 
+        // For non-void functions, ensure all code paths return a value by adding a fallback throw
+        // This handles guard clauses that may be exhaustive but the C# compiler can't verify
+        if (returnTypeName != "void")
+        {
+            var lastStatement = body.Statements.LastOrDefault();
+            var endsWithReturn = lastStatement is ReturnStatementSyntax;
+            
+            if (!endsWithReturn)
+            {
+                // Add: throw new InvalidOperationException("No matching guard clause");
+                var throwStmt = ThrowStatement(
+                    ObjectCreationExpression(
+                        IdentifierName("InvalidOperationException"))
+                        .WithArgumentList(
+                            ArgumentList(
+                                SingletonSeparatedList(
+                                    Argument(
+                                        LiteralExpression(
+                                            SyntaxKind.StringLiteralExpression,
+                                            Literal("No matching guard clause")))))));
+                
+                body = body.AddStatements(throwStmt);
+            }
+        }
+
         var methodDecl = MethodDeclaration(
             IdentifierName(returnTypeName),
             Identifier(methodName))
