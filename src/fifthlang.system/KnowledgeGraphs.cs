@@ -278,6 +278,98 @@ public static class KG
         return g.CreateLiteralNode(value ? "true" : "false", UriFactory.Create("http://www.w3.org/2001/XMLSchema#boolean"));
     }
 
+    // Graph-independent node creation methods for triple literals
+    // These methods don't require a graph context and are used for creating standalone triples
+
+    /// <summary>
+    /// Creates a URI node without requiring a graph context.
+    /// Useful for creating standalone triples.
+    /// </summary>
+    /// <param name="uri">an absolute URI string.</param>
+    /// <returns>a URI node.</returns>
+    [BuiltinFunction]
+    public static IUriNode CreateUriNode(string uri)
+    {
+        return new UriNode(new Uri(uri));
+    }
+
+    /// <summary>
+    /// Creates a URI node without requiring a graph context.
+    /// </summary>
+    /// <param name="uri">an absolute URI.</param>
+    /// <returns>a URI node.</returns>
+    [BuiltinFunction]
+    public static IUriNode CreateUriNode(Uri uri)
+    {
+        return new UriNode(uri);
+    }
+
+    /// <summary>
+    /// Creates a literal node for an integer value.
+    /// </summary>
+    /// <param name="value">the integer value.</param>
+    /// <returns>a typed literal node with xsd:int datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteralNode(int value)
+    {
+        return new LiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#int"));
+    }
+
+    /// <summary>
+    /// Creates a literal node for a long value.
+    /// </summary>
+    /// <param name="value">the long value.</param>
+    /// <returns>a typed literal node with xsd:long datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteralNode(long value)
+    {
+        return new LiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#long"));
+    }
+
+    /// <summary>
+    /// Creates a literal node for a string value.
+    /// </summary>
+    /// <param name="value">the string value.</param>
+    /// <returns>a literal node.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteralNode(string value)
+    {
+        return new LiteralNode(value);
+    }
+
+    /// <summary>
+    /// Creates a literal node for a double value.
+    /// </summary>
+    /// <param name="value">the double value.</param>
+    /// <returns>a typed literal node with xsd:double datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteralNode(double value)
+    {
+        return new LiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#double"));
+    }
+
+    /// <summary>
+    /// Creates a literal node for a float value.
+    /// </summary>
+    /// <param name="value">the float value.</param>
+    /// <returns>a typed literal node with xsd:float datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteralNode(float value)
+    {
+        return new LiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#float"));
+    }
+
+    /// <summary>
+    /// Creates a literal node for a boolean value.
+    /// </summary>
+    /// <param name="value">the boolean value.</param>
+    /// <returns>a typed literal node with xsd:boolean datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteralNode(bool value)
+    {
+        return new LiteralNode(value ? "true" : "false", UriFactory.Create("http://www.w3.org/2001/XMLSchema#boolean"));
+    }
+
     /// <summary>
     /// Creates a triple with the given subject, predicate, and object nodes.
     /// </summary>
