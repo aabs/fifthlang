@@ -469,20 +469,25 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             // Translate the graph initialization (LHS)
             var graphInit = TranslateExpression(binExp.LHS);
 
-            // Translate the operations (RHS) which uses the graph variable
-            var operations = TranslateExpression(binExp.RHS);
+            // Collect all Assert operations from the RHS into separate statements
+            var operationStatements = new List<StatementSyntax>();
+            CollectGraphOperations(binExp.RHS, graphVarName, operationStatements);
 
-            // Generate IIFE: (() => { var g = init; operations; return g; })()
+            // Generate IIFE: (() => { var g = init; operations...; return g; })()
             var statements = new List<StatementSyntax>
             {
                 LocalDeclarationStatement(
                     VariableDeclaration(IdentifierName("var"))
                         .WithVariables(SingletonSeparatedList(
                             VariableDeclarator(Identifier(graphVarName))
-                                .WithInitializer(EqualsValueClause(graphInit))))),
-                ExpressionStatement(operations),
-                ReturnStatement(IdentifierName(graphVarName))
+                                .WithInitializer(EqualsValueClause(graphInit)))))
             };
+            
+            // Add all the operation statements
+            statements.AddRange(operationStatements);
+            
+            // Add return statement
+            statements.Add(ReturnStatement(IdentifierName(graphVarName)));
 
             var lambda = ParenthesizedLambdaExpression()
                 .WithBlock(Block(statements));
@@ -529,6 +534,71 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         }
 
         return BinaryExpression(kind, left, right);
+    }
+
+    /// <summary>
+    /// Recursively collect graph operations (like Assert calls) from a chained expression tree
+    /// and generate separate statements for each operation.
+    /// </summary>
+    private void CollectGraphOperations(Expression expr, string graphVarName, List<StatementSyntax> statements)
+    {
+        // If it's a MemberAccessExp with an Assert call, generate a statement for it
+        if (expr is MemberAccessExp memberAccess)
+        {
+            // First, recursively process the LHS (which might be another chained operation)
+            if (memberAccess.LHS is MemberAccessExp lhsMember)
+            {
+                CollectGraphOperations(lhsMember, graphVarName, statements);
+            }
+
+            // Then generate a statement for this operation
+            if (memberAccess.RHS is FuncCallExp funcCall &&
+                funcCall.Annotations != null &&
+                funcCall.Annotations.TryGetValue("FunctionName", out var funcNameObj) &&
+                funcNameObj as string == "Assert")
+            {
+                // Generate: KG.Assert(graphVar, triple);
+                var tripleExpr = funcCall.InvocationArguments.Count > 0
+                    ? TranslateExpression(funcCall.InvocationArguments[0])
+                    : throw new InvalidOperationException("Assert call missing triple argument");
+
+                var assertCall = InvocationExpression(
+                        MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("KG"),
+                            IdentifierName("Assert")))
+                    .WithArgumentList(ArgumentList(SeparatedList(new[]
+                    {
+                        Argument(IdentifierName(graphVarName)),
+                        Argument(tripleExpr)
+                    })));
+
+                statements.Add(ExpressionStatement(assertCall));
+            }
+            else if (memberAccess.RHS is FuncCallExp otherFunc &&
+                     otherFunc.Annotations != null &&
+                     otherFunc.Annotations.TryGetValue("FunctionName", out var otherFuncNameObj) &&
+                     otherFuncNameObj as string == "Merge")
+            {
+                // Generate: KG.Merge(graphVar, sourceGraph);
+                var sourceGraphExpr = otherFunc.InvocationArguments.Count > 0
+                    ? TranslateExpression(otherFunc.InvocationArguments[0])
+                    : throw new InvalidOperationException("Merge call missing source graph argument");
+
+                var mergeCall = InvocationExpression(
+                        MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("KG"),
+                            IdentifierName("Merge")))
+                    .WithArgumentList(ArgumentList(SeparatedList(new[]
+                    {
+                        Argument(IdentifierName(graphVarName)),
+                        Argument(sourceGraphExpr)
+                    })));
+
+                statements.Add(ExpressionStatement(mergeCall));
+            }
+        }
     }
 
     /// <summary>
@@ -660,27 +730,43 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                     ? SanitizeIdentifier(extMethod)
                     : (funcCall.FunctionDef != null ? SanitizeIdentifier(funcCall.FunctionDef.Name.ToString()) : "UnknownFunction");
 
-                var arguments = new List<ArgumentSyntax>();
-                // For extension methods in MemberAccessExp, add the LHS (object) as the first argument
-                // UNLESS the LHS is just a type reference (e.g., VarRefExp with VarName = "KG")
+                // Check if the LHS is a type reference (e.g., VarRefExp with VarName = "KG")
                 bool lhsIsTypeReference = memberAccess.LHS is VarRefExp varRefLhs && 
                     (varRefLhs.VarName == "KG" || varRefLhs.VarName == extType.Name);
                 
-                if (!lhsIsTypeReference)
+                if (lhsIsTypeReference)
                 {
-                    arguments.Add(Argument(objExpr));
-                }
-                foreach (var arg in funcCall.InvocationArguments)
-                {
-                    arguments.Add(Argument(TranslateExpression(arg)));
-                }
+                    // Static method call: KG.CreateGraph()
+                    var arguments = new List<ArgumentSyntax>();
+                    foreach (var arg in funcCall.InvocationArguments)
+                    {
+                        arguments.Add(Argument(TranslateExpression(arg)));
+                    }
 
-                return InvocationExpression(
-                        MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            IdentifierName(typeName),
-                            IdentifierName(resolvedMethodName)))
-                    .WithArgumentList(ArgumentList(SeparatedList(arguments)));
+                    return InvocationExpression(
+                            MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                IdentifierName(typeName),
+                                IdentifierName(resolvedMethodName)))
+                        .WithArgumentList(ArgumentList(SeparatedList(arguments)));
+                }
+                else
+                {
+                    // Extension method call: obj.Method(args) 
+                    var argumentsInst = new List<ArgumentSyntax>();
+                    foreach (var arg in funcCall.InvocationArguments)
+                    {
+                        argumentsInst.Add(Argument(TranslateExpression(arg)));
+                    }
+
+                    var member = MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        objExpr,
+                        IdentifierName(resolvedMethodName));
+
+                    return InvocationExpression(member)
+                        .WithArgumentList(ArgumentList(SeparatedList(argumentsInst)));
+                }
             }
 
             // Instance call: obj.Method(args)
@@ -688,20 +774,20 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 ? SanitizeIdentifier(funcCall.FunctionDef.Name.ToString())
                 : "UnknownFunction";
 
-            var argumentsInst = new List<ArgumentSyntax>();
+            var argumentsInst2 = new List<ArgumentSyntax>();
             foreach (var arg in funcCall.InvocationArguments)
             {
                 var argExpr = TranslateExpression(arg);
-                argumentsInst.Add(Argument(argExpr));
+                argumentsInst2.Add(Argument(argExpr));
             }
 
-            var member = MemberAccessExpression(
+            var member2 = MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 objExpr,
                 IdentifierName(methodName));
 
-            return InvocationExpression(member)
-                .WithArgumentList(ArgumentList(SeparatedList(argumentsInst)));
+            return InvocationExpression(member2)
+                .WithArgumentList(ArgumentList(SeparatedList(argumentsInst2)));
         }
 
         // Fallback
