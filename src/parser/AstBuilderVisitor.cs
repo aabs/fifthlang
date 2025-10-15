@@ -1332,26 +1332,34 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var name = context.name?.Text ?? string.Empty;
 
-        // For now we ignore inline assertions and just create an empty graph via KG.CreateGraph().
-        // TODO: Lower the graphAssertionBlock contents into imperative assertions after creation.
-        var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
-        var func = new FuncCallExp
+        // Visit the expression on the right-hand side of the assignment
+        // This can be a graphAssertionBlock, a binary operation on graphs/triples, or any other expression
+        var initExpr = context.expression() != null 
+            ? Visit(context.expression()) as Expression 
+            : null;
+
+        // If no expression provided, create an empty graph via KG.CreateGraph()
+        if (initExpr == null)
         {
-            FunctionDef = null,
-            InvocationArguments = [],
-            Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateGraph" },
-            Location = GetLocationDetails(context),
-            Parent = null,
-            Type = null
-        };
-        var call = new MemberAccessExp
-        {
-            Annotations = [],
-            LHS = kgVar,
-            RHS = func,
-            Location = GetLocationDetails(context),
-            Type = Void
-        };
+            var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
+            var func = new FuncCallExp
+            {
+                FunctionDef = null,
+                InvocationArguments = [],
+                Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateGraph" },
+                Location = GetLocationDetails(context),
+                Parent = null,
+                Type = null
+            };
+            initExpr = new MemberAccessExp
+            {
+                Annotations = [],
+                LHS = kgVar,
+                RHS = func,
+                Location = GetLocationDetails(context),
+                Type = Void
+            };
+        }
 
         var varDecl = new VariableDecl
         {
@@ -1366,7 +1374,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         {
             Annotations = new Dictionary<string, object> { ["Kind"] = "GraphDecl" },
             VariableDecl = varDecl,
-            InitialValue = call,
+            InitialValue = initExpr,
             Location = GetLocationDetails(context),
             Type = Void
         };

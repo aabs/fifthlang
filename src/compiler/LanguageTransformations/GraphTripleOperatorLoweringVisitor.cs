@@ -139,7 +139,12 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         var createGraphCall = new FuncCallExp
         {
             InvocationArguments = new List<Expression>(),
-            Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateGraph" },
+            Annotations = new Dictionary<string, object> 
+            { 
+                ["FunctionName"] = "CreateGraph",
+                ["ExternalType"] = typeof(Fifth.System.KG),
+                ["ExternalMethodName"] = "CreateGraph"
+            },
             Location = loc,
             Parent = null
         };
@@ -151,7 +156,12 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         var call = new FuncCallExp
         {
             InvocationArguments = new List<Expression> { left, right },
-            Annotations = new Dictionary<string, object> { ["FunctionName"] = "Difference" },
+            Annotations = new Dictionary<string, object> 
+            { 
+                ["FunctionName"] = "Difference",
+                ["ExternalType"] = typeof(Fifth.System.KG),
+                ["ExternalMethodName"] = "Difference"
+            },
             Location = loc,
             Parent = null
         };
@@ -163,7 +173,18 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         if (uriExp is UriLiteralExp uri)
         {
             var uriLiteral = new StringLiteralExp { Annotations = new Dictionary<string, object>(), Location = uri.Location, Parent = null, Value = uri.Value.AbsoluteUri };
-            var createUri = new FuncCallExp { InvocationArguments = new List<Expression> { graphExpr, uriLiteral }, Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateUri" }, Location = uri.Location, Parent = null };
+            var createUri = new FuncCallExp 
+            { 
+                InvocationArguments = new List<Expression> { graphExpr, uriLiteral }, 
+                Annotations = new Dictionary<string, object> 
+                { 
+                    ["FunctionName"] = "CreateUri",
+                    ["ExternalType"] = typeof(Fifth.System.KG),
+                    ["ExternalMethodName"] = "CreateUri"
+                }, 
+                Location = uri.Location, 
+                Parent = null 
+            };
             return new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = uri.Location }, RHS = createUri, Location = uri.Location };
         }
         return new VarRefExp { VarName = "null", Annotations = new Dictionary<string, object>(), Location = loc };
@@ -175,11 +196,33 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         {
             case StringLiteralExp s:
                 var lit = new StringLiteralExp { Annotations = new Dictionary<string, object>(), Location = s.Location, Parent = null, Value = s.Value };
-                var createLiteralCall = new FuncCallExp { InvocationArguments = new List<Expression> { graphExpr, lit }, Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" }, Location = s.Location, Parent = null };
+                var createLiteralCall = new FuncCallExp 
+                { 
+                    InvocationArguments = new List<Expression> { graphExpr, lit }, 
+                    Annotations = new Dictionary<string, object> 
+                    { 
+                        ["FunctionName"] = "CreateLiteral",
+                        ["ExternalType"] = typeof(Fifth.System.KG),
+                        ["ExternalMethodName"] = "CreateLiteral"
+                    }, 
+                    Location = s.Location, 
+                    Parent = null 
+                };
                 return new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = s.Location }, RHS = createLiteralCall, Location = s.Location };
             case Int32LiteralExp i32:
                 var iLit = new Int32LiteralExp { Annotations = new Dictionary<string, object>(), Location = i32.Location, Parent = null, Value = i32.Value };
-                var createIntLit = new FuncCallExp { InvocationArguments = new List<Expression> { graphExpr, iLit }, Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateLiteral" }, Location = i32.Location, Parent = null };
+                var createIntLit = new FuncCallExp 
+                { 
+                    InvocationArguments = new List<Expression> { graphExpr, iLit }, 
+                    Annotations = new Dictionary<string, object> 
+                    { 
+                        ["FunctionName"] = "CreateLiteral",
+                        ["ExternalType"] = typeof(Fifth.System.KG),
+                        ["ExternalMethodName"] = "CreateLiteral"
+                    }, 
+                    Location = i32.Location, 
+                    Parent = null 
+                };
                 return new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = i32.Location }, RHS = createIntLit, Location = i32.Location };
             default:
                 return new VarRefExp { VarName = "null", Annotations = new Dictionary<string, object>(), Location = loc };
@@ -200,7 +243,18 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
         var objNode = CreateObjectNodeExpression(createGraphExpr, triple.ObjectExp, loc);
 
         // Create triple: KG.CreateTriple(subjNode,predNode,objNode)
-        var createTripleCall = new FuncCallExp { InvocationArguments = new List<Expression> { subjNode, predNode, objNode }, Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateTriple" }, Location = triple.Location, Parent = null };
+        var createTripleCall = new FuncCallExp 
+        { 
+            InvocationArguments = new List<Expression> { subjNode, predNode, objNode }, 
+            Annotations = new Dictionary<string, object> 
+            { 
+                ["FunctionName"] = "CreateTriple",
+                ["ExternalType"] = typeof(Fifth.System.KG),
+                ["ExternalMethodName"] = "CreateTriple"
+            }, 
+            Location = triple.Location, 
+            Parent = null 
+        };
         var tripleExpr = new MemberAccessExp { Annotations = new Dictionary<string, object>(), LHS = new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = triple.Location }, RHS = createTripleCall, Location = triple.Location };
 
         // Assert: <createGraphExpr>.Assert(tripleExpr)
@@ -239,41 +293,50 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
                 var loc = result.Location ?? new SourceLocationMetadata(0, string.Empty, 0, string.Empty);
                 var dedupe = new HashSet<string>(StringComparer.Ordinal);
 
-                Expression builder;
+                // Use a placeholder VarRefExp to represent the graph variable during lowering
+                var graphVarPlaceholder = new VarRefExp 
+                { 
+                    VarName = "__graphVar__", 
+                    Annotations = new Dictionary<string, object> { ["IsGraphVarPlaceholder"] = true },
+                    Location = loc 
+                };
+
+                Expression builder = graphVarPlaceholder;
+                
+                // Process left operand
                 if (TryExtractLoweredGraph(lhs, dedupe, out var reusedBuilder))
                 {
-                    builder = reusedBuilder;
+                    // If LHS is already a lowered graph, we need to merge it
+                    builder = AppendGraphOperand(graphVarPlaceholder, lhs, loc, dedupe);
                 }
-                else
+                else if (leftIsGraphLike && lhs != null)
                 {
-                    builder = MakeKgCreateGraphExpression(loc);
-                    if (leftIsGraphLike && lhs != null)
-                    {
-                        builder = AppendGraphOperand(builder, lhs, loc, dedupe);
-                    }
-                    else if (leftIsTriple && lhs is TripleLiteralExp leftTriple)
-                    {
-                        builder = LowerTripleToAssertChain(builder, leftTriple, dedupe);
-                    }
+                    builder = AppendGraphOperand(graphVarPlaceholder, lhs, loc, dedupe);
+                }
+                else if (leftIsTriple && lhs is TripleLiteralExp leftTriple)
+                {
+                    builder = LowerTripleToAssertChain(graphVarPlaceholder, leftTriple, dedupe);
                 }
 
+                // Process right operand
                 if (rhs != null)
                 {
                     if (rhs is BinaryExp rightLowered && rightLowered.Annotations != null && rightLowered.Annotations.ContainsKey(LoweredGraphAnnotation))
                     {
                         AppendSignaturesFromAnnotations(rightLowered.Annotations, dedupe);
-                        builder = AppendGraphOperand(builder, rightLowered.RHS ?? rhs, loc, dedupe);
+                        builder = AppendGraphOperand(graphVarPlaceholder, rightLowered.RHS ?? rhs, loc, dedupe);
                     }
                     else if (rightIsGraphLike)
                     {
-                        builder = AppendGraphOperand(builder, rhs, loc, dedupe);
+                        builder = AppendGraphOperand(graphVarPlaceholder, rhs, loc, dedupe);
                     }
                     else if (rightIsTriple && rhs is TripleLiteralExp rightTriple)
                     {
-                        builder = LowerTripleToAssertChain(builder, rightTriple, dedupe);
+                        builder = LowerTripleToAssertChain(graphVarPlaceholder, rightTriple, dedupe);
                     }
                 }
 
+                // Mark the builder with annotations
                 if (builder is MemberAccessExp member)
                 {
                     var annotations = member.Annotations != null
@@ -283,26 +346,22 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
                     builder = member with { Annotations = annotations };
                 }
 
-                var placeholderLeft = new Int32LiteralExp
-                {
-                    Annotations = new Dictionary<string, object>(),
-                    Location = loc,
-                    Value = 0,
-                    Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From("int") }
-                };
-
+                // Create the lowered expression with special annotations
+                // The LHS will be the graph initialization (CreateGraph())
+                // The RHS will be the operations chain (using __graphVar__ placeholder)
                 var loweredAnnotations = result.Annotations != null
                     ? new Dictionary<string, object>(result.Annotations)
                     : new Dictionary<string, object>();
                 loweredAnnotations[LoweredGraphAnnotation] = true;
+                loweredAnnotations["RequiresIIFE"] = true; // Signal to Roslyn translator
                 loweredAnnotations[TripleSignaturesAnnotation] = new List<string>(dedupe);
 
                 var lowered = new BinaryExp
                 {
                     Annotations = loweredAnnotations,
                     Location = loc,
-                    LHS = placeholderLeft,
-                    RHS = builder,
+                    LHS = MakeKgCreateGraphExpression(loc), // Graph initialization
+                    RHS = builder, // Operations using placeholder
                     Operator = op
                 };
                 return lowered;

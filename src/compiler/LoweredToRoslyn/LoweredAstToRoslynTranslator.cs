@@ -440,7 +440,9 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 .WithArgumentList(ArgumentList(SingletonSeparatedList(
                     Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, 
                         Literal(uriLit.Value.ToString())))))),
-            VarRefExp varRef => IdentifierName(SanitizeIdentifier(varRef.VarName)),
+            VarRefExp varRef => varRef.VarName == "__graphVar__" 
+                ? TranslateExpression(new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = varRef.Location })
+                : IdentifierName(SanitizeIdentifier(varRef.VarName)),
             BinaryExp binExp => TranslateBinaryExpression(binExp),
             FuncCallExp funcCall => TranslateFuncCallExpression(funcCall),
             MemberAccessExp memberAccess => TranslateMemberAccessExpression(memberAccess),
@@ -455,8 +457,29 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private ExpressionSyntax TranslateBinaryExpression(BinaryExp binExp)
     {
+        // Check if this requires an immediately-invoked function expression (IIFE)
+        // This is used for graph operations that need a temporary variable
+        if (binExp.Annotations != null && binExp.Annotations.ContainsKey("RequiresIIFE"))
+        {
+            // For now, just translate the RHS which has operations using the placeholder
+            // The placeholder will be replaced during translation
+            // TODO: Implement proper IIFE with recursive placeholder replacement
+            return TranslateExpression(binExp.RHS);
+        }
+
         var left = TranslateExpression(binExp.LHS);
         var right = TranslateExpression(binExp.RHS);
+
+        // Special handling for graph merging: g1 + g2 => g1.Merge(g2)
+        if (binExp.Operator == Operator.ArithmeticAdd && IsGraphType(binExp.LHS))
+        {
+            return InvocationExpression(
+                MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    left,
+                    IdentifierName("Merge")))
+                .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(right))));
+        }
 
         var kind = binExp.Operator switch
         {
@@ -483,6 +506,31 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         }
 
         return BinaryExpression(kind, left, right);
+    }
+
+    /// <summary>
+    /// Translates an expression, replacing the __graphVar__ placeholder with the actual variable name
+    /// </summary>
+    private ExpressionSyntax TranslateExpressionReplacingPlaceholder(Expression expr, string graphVarName)
+    {
+        // Replace VarRefExp with VarName == "__graphVar__" with the actual graph variable
+        if (expr is VarRefExp varRef && varRef.VarName == "__graphVar__")
+        {
+            return IdentifierName(graphVarName);
+        }
+        
+        // Otherwise translate normally
+        return TranslateExpression(expr);
+    }
+
+    private bool IsGraphType(Expression expr)
+    {
+        if (expr == null) return false;
+        
+        // Check if the expression's type is "graph" or "IGraph"
+        var typeName = expr.Type?.ToString() ?? "";
+        return typeName.Contains("graph", StringComparison.OrdinalIgnoreCase) ||
+               typeName.Contains("IGraph", StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -580,6 +628,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         else if (memberAccess.RHS is FuncCallExp funcCall)
         {
             // Static external call? Use annotations to emit Type.Method(args)
+            // For extension methods in a MemberAccessExp, the LHS is the target object
             if (funcCall.Annotations != null &&
                 funcCall.Annotations.TryGetValue("ExternalType", out var extTypeObj) && extTypeObj is Type extType)
             {
@@ -589,6 +638,15 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                     : (funcCall.FunctionDef != null ? SanitizeIdentifier(funcCall.FunctionDef.Name.ToString()) : "UnknownFunction");
 
                 var arguments = new List<ArgumentSyntax>();
+                // For extension methods in MemberAccessExp, add the LHS (object) as the first argument
+                // UNLESS the LHS is just a type reference (e.g., VarRefExp with VarName = "KG")
+                bool lhsIsTypeReference = memberAccess.LHS is VarRefExp varRefLhs && 
+                    (varRefLhs.VarName == "KG" || varRefLhs.VarName == extType.Name);
+                
+                if (!lhsIsTypeReference)
+                {
+                    arguments.Add(Argument(objExpr));
+                }
                 foreach (var arg in funcCall.InvocationArguments)
                 {
                     arguments.Add(Argument(TranslateExpression(arg)));
