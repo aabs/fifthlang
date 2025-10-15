@@ -461,10 +461,33 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         // This is used for graph operations that need a temporary variable
         if (binExp.Annotations != null && binExp.Annotations.ContainsKey("RequiresIIFE"))
         {
-            // For now, just translate the RHS which has operations using the placeholder
-            // The placeholder will be replaced during translation
-            // TODO: Implement proper IIFE with recursive placeholder replacement
-            return TranslateExpression(binExp.RHS);
+            // Get the graph variable name from annotations
+            var graphVarName = binExp.Annotations.TryGetValue("GraphVarName", out var varNameObj) && varNameObj is string varName
+                ? varName
+                : "__g__";
+
+            // Translate the graph initialization (LHS)
+            var graphInit = TranslateExpression(binExp.LHS);
+
+            // Translate the operations (RHS) which uses the graph variable
+            var operations = TranslateExpression(binExp.RHS);
+
+            // Generate IIFE: (() => { var g = init; operations; return g; })()
+            var statements = new List<StatementSyntax>
+            {
+                LocalDeclarationStatement(
+                    VariableDeclaration(IdentifierName("var"))
+                        .WithVariables(SingletonSeparatedList(
+                            VariableDeclarator(Identifier(graphVarName))
+                                .WithInitializer(EqualsValueClause(graphInit))))),
+                ExpressionStatement(operations),
+                ReturnStatement(IdentifierName(graphVarName))
+            };
+
+            var lambda = ParenthesizedLambdaExpression()
+                .WithBlock(Block(statements));
+
+            return InvocationExpression(ParenthesizedExpression(lambda));
         }
 
         var left = TranslateExpression(binExp.LHS);
