@@ -455,6 +455,25 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         };
     }
 
+    /// <summary>
+    /// Creates a qualified name from a dotted string (e.g., "Fifth.System.KG")
+    /// </summary>
+    private NameSyntax CreateQualifiedName(string fullName)
+    {
+        if (string.IsNullOrEmpty(fullName) || !fullName.Contains('.'))
+        {
+            return IdentifierName(fullName ?? "object");
+        }
+
+        var parts = fullName.Split('.');
+        NameSyntax result = IdentifierName(parts[0]);
+        for (int i = 1; i < parts.Length; i++)
+        {
+            result = QualifiedName(result, IdentifierName(parts[i]));
+        }
+        return result;
+    }
+
     private ExpressionSyntax TranslateBinaryExpression(BinaryExp binExp)
     {
         // Check if this requires an immediately-invoked function expression (IIFE)
@@ -743,10 +762,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                         arguments.Add(Argument(TranslateExpression(arg)));
                     }
 
+                    // Create qualified name for the type (e.g., "Fifth.System.KG" -> Fifth.System.KG)
+                    var typeNameSyntax = CreateQualifiedName(typeName);
+
                     return InvocationExpression(
                             MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression,
-                                IdentifierName(typeName),
+                                typeNameSyntax,
                                 IdentifierName(resolvedMethodName)))
                         .WithArgumentList(ArgumentList(SeparatedList(arguments)));
                 }
