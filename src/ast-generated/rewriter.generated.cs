@@ -248,17 +248,21 @@ public class DefaultAstRewriter : IAstRewriter
             tmpParams.Add((ast.ParamDef)rr.Node);
             prologue.AddRange(rr.Prologue);
         }
+        var rrBody = Rewrite((AstThing)ctx.Body);
+        prologue.AddRange(rrBody.Prologue);
         var rebuilt = ctx with {
          Params = tmpParams
-        ,Body = (ast.BlockStatement)Rewrite((AstThing)ctx.Body).Node
+        ,Body = (ast.BlockStatement)rrBody.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitFunctorDef(FunctorDef ctx)
     {
         var prologue = new List<Statement>();
+        var rrInvocationFuncDev = Rewrite((AstThing)ctx.InvocationFuncDev);
+        prologue.AddRange(rrInvocationFuncDev.Prologue);
         var rebuilt = ctx with {
-         InvocationFuncDev = (ast.FunctionDef)Rewrite((AstThing)ctx.InvocationFuncDev).Node
+         InvocationFuncDev = (ast.FunctionDef)rrInvocationFuncDev.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -272,18 +276,26 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitPropertyDef(PropertyDef ctx)
     {
         var prologue = new List<Statement>();
+        var rrBackingField = Rewrite((AstThing)ctx.BackingField);
+        prologue.AddRange(rrBackingField.Prologue);
+        var rrGetter = Rewrite((AstThing)ctx.Getter);
+        prologue.AddRange(rrGetter.Prologue);
+        var rrSetter = Rewrite((AstThing)ctx.Setter);
+        prologue.AddRange(rrSetter.Prologue);
         var rebuilt = ctx with {
-         BackingField = (ast.FieldDef)Rewrite((AstThing)ctx.BackingField).Node
-        ,Getter = (ast.MethodDef)Rewrite((AstThing)ctx.Getter).Node
-        ,Setter = (ast.MethodDef)Rewrite((AstThing)ctx.Setter).Node
+         BackingField = (ast.FieldDef)rrBackingField.Node
+        ,Getter = (ast.MethodDef)rrGetter.Node
+        ,Setter = (ast.MethodDef)rrSetter.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitMethodDef(MethodDef ctx)
     {
         var prologue = new List<Statement>();
+        var rrFunctionDef = Rewrite((AstThing)ctx.FunctionDef);
+        prologue.AddRange(rrFunctionDef.Prologue);
         var rebuilt = ctx with {
-         FunctionDef = (ast.FunctionDef)Rewrite((AstThing)ctx.FunctionDef).Node
+         FunctionDef = (ast.FunctionDef)rrFunctionDef.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -304,27 +316,37 @@ public class DefaultAstRewriter : IAstRewriter
             tmpParams.Add((ast.ParamDef)rr.Node);
             prologue.AddRange(rr.Prologue);
         }
+        var rrBody = Rewrite((AstThing)ctx.Body);
+        prologue.AddRange(rrBody.Prologue);
         var rebuilt = ctx with {
          Params = tmpParams
-        ,Body = (ast.BlockStatement)Rewrite((AstThing)ctx.Body).Node
+        ,Body = (ast.BlockStatement)rrBody.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitInferenceRuleDef(InferenceRuleDef ctx)
     {
         var prologue = new List<Statement>();
+        var rrAntecedent = Rewrite((AstThing)ctx.Antecedent);
+        prologue.AddRange(rrAntecedent.Prologue);
+        var rrConsequent = Rewrite((AstThing)ctx.Consequent);
+        prologue.AddRange(rrConsequent.Prologue);
         var rebuilt = ctx with {
-         Antecedent = (ast.Expression)Rewrite((AstThing)ctx.Antecedent).Node
-        ,Consequent = (ast.KnowledgeManagementBlock)Rewrite((AstThing)ctx.Consequent).Node
+         Antecedent = (ast.Expression)rrAntecedent.Node
+        ,Consequent = (ast.KnowledgeManagementBlock)rrConsequent.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitParamDef(ParamDef ctx)
     {
         var prologue = new List<Statement>();
+        var rrParameterConstraint = Rewrite((AstThing)ctx.ParameterConstraint);
+        prologue.AddRange(rrParameterConstraint.Prologue);
+        var rrDestructureDef = Rewrite((AstThing)ctx.DestructureDef);
+        prologue.AddRange(rrDestructureDef.Prologue);
         var rebuilt = ctx with {
-         ParameterConstraint = (ast.Expression)Rewrite((AstThing)ctx.ParameterConstraint).Node
-        ,DestructureDef = (ast.ParamDestructureDef)Rewrite((AstThing)ctx.DestructureDef).Node
+         ParameterConstraint = (ast.Expression)rrParameterConstraint.Node
+        ,DestructureDef = (ast.ParamDestructureDef)rrDestructureDef.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -346,10 +368,16 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitPropertyBindingDef(PropertyBindingDef ctx)
     {
         var prologue = new List<Statement>();
+        var rrReferencedProperty = Rewrite((AstThing)ctx.ReferencedProperty);
+        prologue.AddRange(rrReferencedProperty.Prologue);
+        var rrDestructureDef = Rewrite((AstThing)ctx.DestructureDef);
+        prologue.AddRange(rrDestructureDef.Prologue);
+        var rrConstraint = Rewrite((AstThing)ctx.Constraint);
+        prologue.AddRange(rrConstraint.Prologue);
         var rebuilt = ctx with {
-         ReferencedProperty = (ast.PropertyDef)Rewrite((AstThing)ctx.ReferencedProperty).Node
-        ,DestructureDef = (ast.ParamDestructureDef)Rewrite((AstThing)ctx.DestructureDef).Node
-        ,Constraint = (ast.Expression)Rewrite((AstThing)ctx.Constraint).Node
+         ReferencedProperty = (ast.PropertyDef)rrReferencedProperty.Node
+        ,DestructureDef = (ast.ParamDestructureDef)rrDestructureDef.Node
+        ,Constraint = (ast.Expression)rrConstraint.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -392,16 +420,20 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitMemberRef(MemberRef ctx)
     {
         var prologue = new List<Statement>();
+        var rrMember = Rewrite((AstThing)ctx.Member);
+        prologue.AddRange(rrMember.Prologue);
         var rebuilt = ctx with {
-         Member = (ast.MemberDef)Rewrite((AstThing)ctx.Member).Node
+         Member = (ast.MemberDef)rrMember.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitPropertyRef(PropertyRef ctx)
     {
         var prologue = new List<Statement>();
+        var rrProperty = Rewrite((AstThing)ctx.Property);
+        prologue.AddRange(rrProperty.Prologue);
         var rebuilt = ctx with {
-         Property = (ast.PropertyDef)Rewrite((AstThing)ctx.Property).Node
+         Property = (ast.PropertyDef)rrProperty.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -429,9 +461,13 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitAssignmentStatement(AssignmentStatement ctx)
     {
         var prologue = new List<Statement>();
+        var rrLValue = Rewrite((AstThing)ctx.LValue);
+        prologue.AddRange(rrLValue.Prologue);
+        var rrRValue = Rewrite((AstThing)ctx.RValue);
+        prologue.AddRange(rrRValue.Prologue);
         var rebuilt = ctx with {
-         LValue = (ast.Expression)Rewrite((AstThing)ctx.LValue).Node
-        ,RValue = (ast.Expression)Rewrite((AstThing)ctx.RValue).Node
+         LValue = (ast.Expression)rrLValue.Node
+        ,RValue = (ast.Expression)rrRValue.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -465,93 +501,139 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitExpStatement(ExpStatement ctx)
     {
         var prologue = new List<Statement>();
+        var rrRHS = Rewrite((AstThing)ctx.RHS);
+        prologue.AddRange(rrRHS.Prologue);
         var rebuilt = ctx with {
-         RHS = (ast.Expression)Rewrite((AstThing)ctx.RHS).Node
+         RHS = (ast.Expression)rrRHS.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitForStatement(ForStatement ctx)
     {
         var prologue = new List<Statement>();
+        var rrInitialValue = Rewrite((AstThing)ctx.InitialValue);
+        prologue.AddRange(rrInitialValue.Prologue);
+        var rrConstraint = Rewrite((AstThing)ctx.Constraint);
+        prologue.AddRange(rrConstraint.Prologue);
+        var rrIncrementExpression = Rewrite((AstThing)ctx.IncrementExpression);
+        prologue.AddRange(rrIncrementExpression.Prologue);
+        var rrLoopVariable = Rewrite((AstThing)ctx.LoopVariable);
+        prologue.AddRange(rrLoopVariable.Prologue);
+        var rrBody = Rewrite((AstThing)ctx.Body);
+        prologue.AddRange(rrBody.Prologue);
         var rebuilt = ctx with {
-         InitialValue = (ast.Expression)Rewrite((AstThing)ctx.InitialValue).Node
-        ,Constraint = (ast.Expression)Rewrite((AstThing)ctx.Constraint).Node
-        ,IncrementExpression = (ast.Expression)Rewrite((AstThing)ctx.IncrementExpression).Node
-        ,LoopVariable = (ast.VariableDecl)Rewrite((AstThing)ctx.LoopVariable).Node
-        ,Body = (ast.BlockStatement)Rewrite((AstThing)ctx.Body).Node
+         InitialValue = (ast.Expression)rrInitialValue.Node
+        ,Constraint = (ast.Expression)rrConstraint.Node
+        ,IncrementExpression = (ast.Expression)rrIncrementExpression.Node
+        ,LoopVariable = (ast.VariableDecl)rrLoopVariable.Node
+        ,Body = (ast.BlockStatement)rrBody.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitForeachStatement(ForeachStatement ctx)
     {
         var prologue = new List<Statement>();
+        var rrCollection = Rewrite((AstThing)ctx.Collection);
+        prologue.AddRange(rrCollection.Prologue);
+        var rrLoopVariable = Rewrite((AstThing)ctx.LoopVariable);
+        prologue.AddRange(rrLoopVariable.Prologue);
+        var rrBody = Rewrite((AstThing)ctx.Body);
+        prologue.AddRange(rrBody.Prologue);
         var rebuilt = ctx with {
-         Collection = (ast.Expression)Rewrite((AstThing)ctx.Collection).Node
-        ,LoopVariable = (ast.VariableDecl)Rewrite((AstThing)ctx.LoopVariable).Node
-        ,Body = (ast.BlockStatement)Rewrite((AstThing)ctx.Body).Node
+         Collection = (ast.Expression)rrCollection.Node
+        ,LoopVariable = (ast.VariableDecl)rrLoopVariable.Node
+        ,Body = (ast.BlockStatement)rrBody.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitGuardStatement(GuardStatement ctx)
     {
         var prologue = new List<Statement>();
+        var rrCondition = Rewrite((AstThing)ctx.Condition);
+        prologue.AddRange(rrCondition.Prologue);
         var rebuilt = ctx with {
-         Condition = (ast.Expression)Rewrite((AstThing)ctx.Condition).Node
+         Condition = (ast.Expression)rrCondition.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitIfElseStatement(IfElseStatement ctx)
     {
         var prologue = new List<Statement>();
+        var rrCondition = Rewrite((AstThing)ctx.Condition);
+        prologue.AddRange(rrCondition.Prologue);
+        var rrThenBlock = Rewrite((AstThing)ctx.ThenBlock);
+        prologue.AddRange(rrThenBlock.Prologue);
+        var rrElseBlock = Rewrite((AstThing)ctx.ElseBlock);
+        prologue.AddRange(rrElseBlock.Prologue);
         var rebuilt = ctx with {
-         Condition = (ast.Expression)Rewrite((AstThing)ctx.Condition).Node
-        ,ThenBlock = (ast.BlockStatement)Rewrite((AstThing)ctx.ThenBlock).Node
-        ,ElseBlock = (ast.BlockStatement)Rewrite((AstThing)ctx.ElseBlock).Node
+         Condition = (ast.Expression)rrCondition.Node
+        ,ThenBlock = (ast.BlockStatement)rrThenBlock.Node
+        ,ElseBlock = (ast.BlockStatement)rrElseBlock.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitReturnStatement(ReturnStatement ctx)
     {
         var prologue = new List<Statement>();
+        var rrReturnValue = Rewrite((AstThing)ctx.ReturnValue);
+        prologue.AddRange(rrReturnValue.Prologue);
         var rebuilt = ctx with {
-         ReturnValue = (ast.Expression)Rewrite((AstThing)ctx.ReturnValue).Node
+         ReturnValue = (ast.Expression)rrReturnValue.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitVarDeclStatement(VarDeclStatement ctx)
     {
         var prologue = new List<Statement>();
+        var rrVariableDecl = Rewrite((AstThing)ctx.VariableDecl);
+        prologue.AddRange(rrVariableDecl.Prologue);
+        var rrInitialValue = Rewrite((AstThing)ctx.InitialValue);
+        prologue.AddRange(rrInitialValue.Prologue);
         var rebuilt = ctx with {
-         VariableDecl = (ast.VariableDecl)Rewrite((AstThing)ctx.VariableDecl).Node
-        ,InitialValue = (ast.Expression)Rewrite((AstThing)ctx.InitialValue).Node
+         VariableDecl = (ast.VariableDecl)rrVariableDecl.Node
+        ,InitialValue = (ast.Expression)rrInitialValue.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitWhileStatement(WhileStatement ctx)
     {
         var prologue = new List<Statement>();
+        var rrCondition = Rewrite((AstThing)ctx.Condition);
+        prologue.AddRange(rrCondition.Prologue);
+        var rrBody = Rewrite((AstThing)ctx.Body);
+        prologue.AddRange(rrBody.Prologue);
         var rebuilt = ctx with {
-         Condition = (ast.Expression)Rewrite((AstThing)ctx.Condition).Node
-        ,Body = (ast.BlockStatement)Rewrite((AstThing)ctx.Body).Node
+         Condition = (ast.Expression)rrCondition.Node
+        ,Body = (ast.BlockStatement)rrBody.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx)
     {
         var prologue = new List<Statement>();
+        var rrContent = Rewrite((AstThing)ctx.Content);
+        prologue.AddRange(rrContent.Prologue);
         var rebuilt = ctx with {
-         Content = (ast.GraphAssertionBlockExp)Rewrite((AstThing)ctx.Content).Node
+         Content = (ast.GraphAssertionBlockExp)rrContent.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitAssertionStatement(AssertionStatement ctx)
     {
         var prologue = new List<Statement>();
+        var rrAssertion = Rewrite((AstThing)ctx.Assertion);
+        prologue.AddRange(rrAssertion.Prologue);
+        var rrAssertionSubject = Rewrite((AstThing)ctx.AssertionSubject);
+        prologue.AddRange(rrAssertionSubject.Prologue);
+        var rrAssertionPredicate = Rewrite((AstThing)ctx.AssertionPredicate);
+        prologue.AddRange(rrAssertionPredicate.Prologue);
+        var rrAssertionObject = Rewrite((AstThing)ctx.AssertionObject);
+        prologue.AddRange(rrAssertionObject.Prologue);
         var rebuilt = ctx with {
-         Assertion = (ast.TripleLiteralExp)Rewrite((AstThing)ctx.Assertion).Node
-        ,AssertionSubject = (ast.AssertionSubject)Rewrite((AstThing)ctx.AssertionSubject).Node
-        ,AssertionPredicate = (ast.AssertionPredicate)Rewrite((AstThing)ctx.AssertionPredicate).Node
-        ,AssertionObject = (ast.AssertionObject)Rewrite((AstThing)ctx.AssertionObject).Node
+         Assertion = (ast.TripleLiteralExp)rrAssertion.Node
+        ,AssertionSubject = (ast.AssertionSubject)rrAssertionSubject.Node
+        ,AssertionPredicate = (ast.AssertionPredicate)rrAssertionPredicate.Node
+        ,AssertionObject = (ast.AssertionObject)rrAssertionObject.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -593,17 +675,23 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitGraphAssertionBlockExp(GraphAssertionBlockExp ctx)
     {
         var prologue = new List<Statement>();
+        var rrContent = Rewrite((AstThing)ctx.Content);
+        prologue.AddRange(rrContent.Prologue);
         var rebuilt = ctx with {
-         Content = (ast.BlockStatement)Rewrite((AstThing)ctx.Content).Node
+         Content = (ast.BlockStatement)rrContent.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitBinaryExp(BinaryExp ctx)
     {
         var prologue = new List<Statement>();
+        var rrLHS = Rewrite((AstThing)ctx.LHS);
+        prologue.AddRange(rrLHS.Prologue);
+        var rrRHS = Rewrite((AstThing)ctx.RHS);
+        prologue.AddRange(rrRHS.Prologue);
         var rebuilt = ctx with {
-         LHS = (ast.Expression)Rewrite((AstThing)ctx.LHS).Node
-        ,RHS = (ast.Expression)Rewrite((AstThing)ctx.RHS).Node
+         LHS = (ast.Expression)rrLHS.Node
+        ,RHS = (ast.Expression)rrRHS.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -617,8 +705,10 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitLambdaExp(LambdaExp ctx)
     {
         var prologue = new List<Statement>();
+        var rrFunctorDef = Rewrite((AstThing)ctx.FunctorDef);
+        prologue.AddRange(rrFunctorDef.Prologue);
         var rebuilt = ctx with {
-         FunctorDef = (ast.FunctorDef)Rewrite((AstThing)ctx.FunctorDef).Node
+         FunctorDef = (ast.FunctorDef)rrFunctorDef.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -632,8 +722,10 @@ public class DefaultAstRewriter : IAstRewriter
             tmpInvocationArguments.Add((ast.Expression)rr.Node);
             prologue.AddRange(rr.Prologue);
         }
+        var rrFunctionDef = Rewrite((AstThing)ctx.FunctionDef);
+        prologue.AddRange(rrFunctionDef.Prologue);
         var rebuilt = ctx with {
-         FunctionDef = (ast.FunctionDef)Rewrite((AstThing)ctx.FunctionDef).Node
+         FunctionDef = (ast.FunctionDef)rrFunctionDef.Node
         ,InvocationArguments = tmpInvocationArguments
         };
         return new RewriteResult(rebuilt, prologue);
@@ -781,18 +873,26 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitMemberAccessExp(MemberAccessExp ctx)
     {
         var prologue = new List<Statement>();
+        var rrLHS = Rewrite((AstThing)ctx.LHS);
+        prologue.AddRange(rrLHS.Prologue);
+        var rrRHS = Rewrite((AstThing)ctx.RHS);
+        prologue.AddRange(rrRHS.Prologue);
         var rebuilt = ctx with {
-         LHS = (ast.Expression)Rewrite((AstThing)ctx.LHS).Node
-        ,RHS = (ast.Expression)Rewrite((AstThing)ctx.RHS).Node
+         LHS = (ast.Expression)rrLHS.Node
+        ,RHS = (ast.Expression)rrRHS.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitIndexerExpression(IndexerExpression ctx)
     {
         var prologue = new List<Statement>();
+        var rrIndexExpression = Rewrite((AstThing)ctx.IndexExpression);
+        prologue.AddRange(rrIndexExpression.Prologue);
+        var rrOffsetExpression = Rewrite((AstThing)ctx.OffsetExpression);
+        prologue.AddRange(rrOffsetExpression.Prologue);
         var rebuilt = ctx with {
-         IndexExpression = (ast.Expression)Rewrite((AstThing)ctx.IndexExpression).Node
-        ,OffsetExpression = (ast.Expression)Rewrite((AstThing)ctx.OffsetExpression).Node
+         IndexExpression = (ast.Expression)rrIndexExpression.Node
+        ,OffsetExpression = (ast.Expression)rrOffsetExpression.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -814,25 +914,33 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitPropertyInitializerExp(PropertyInitializerExp ctx)
     {
         var prologue = new List<Statement>();
+        var rrPropertyToInitialize = Rewrite((AstThing)ctx.PropertyToInitialize);
+        prologue.AddRange(rrPropertyToInitialize.Prologue);
+        var rrRHS = Rewrite((AstThing)ctx.RHS);
+        prologue.AddRange(rrRHS.Prologue);
         var rebuilt = ctx with {
-         PropertyToInitialize = (ast.PropertyRef)Rewrite((AstThing)ctx.PropertyToInitialize).Node
-        ,RHS = (ast.Expression)Rewrite((AstThing)ctx.RHS).Node
+         PropertyToInitialize = (ast.PropertyRef)rrPropertyToInitialize.Node
+        ,RHS = (ast.Expression)rrRHS.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitUnaryExp(UnaryExp ctx)
     {
         var prologue = new List<Statement>();
+        var rrOperand = Rewrite((AstThing)ctx.Operand);
+        prologue.AddRange(rrOperand.Prologue);
         var rebuilt = ctx with {
-         Operand = (ast.Expression)Rewrite((AstThing)ctx.Operand).Node
+         Operand = (ast.Expression)rrOperand.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitVarRefExp(VarRefExp ctx)
     {
         var prologue = new List<Statement>();
+        var rrVariableDecl = Rewrite((AstThing)ctx.VariableDecl);
+        prologue.AddRange(rrVariableDecl.Prologue);
         var rebuilt = ctx with {
-         VariableDecl = (ast.VariableDecl)Rewrite((AstThing)ctx.VariableDecl).Node
+         VariableDecl = (ast.VariableDecl)rrVariableDecl.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -854,26 +962,36 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitListComprehension(ListComprehension ctx)
     {
         var prologue = new List<Statement>();
+        var rrMembershipConstraint = Rewrite((AstThing)ctx.MembershipConstraint);
+        prologue.AddRange(rrMembershipConstraint.Prologue);
         var rebuilt = ctx with {
-         MembershipConstraint = (ast.Expression)Rewrite((AstThing)ctx.MembershipConstraint).Node
+         MembershipConstraint = (ast.Expression)rrMembershipConstraint.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitAtom(Atom ctx)
     {
         var prologue = new List<Statement>();
+        var rrAtomExp = Rewrite((AstThing)ctx.AtomExp);
+        prologue.AddRange(rrAtomExp.Prologue);
         var rebuilt = ctx with {
-         AtomExp = (ast.AtomLiteralExp)Rewrite((AstThing)ctx.AtomExp).Node
+         AtomExp = (ast.AtomLiteralExp)rrAtomExp.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitTripleLiteralExp(TripleLiteralExp ctx)
     {
         var prologue = new List<Statement>();
+        var rrSubjectExp = Rewrite((AstThing)ctx.SubjectExp);
+        prologue.AddRange(rrSubjectExp.Prologue);
+        var rrPredicateExp = Rewrite((AstThing)ctx.PredicateExp);
+        prologue.AddRange(rrPredicateExp.Prologue);
+        var rrObjectExp = Rewrite((AstThing)ctx.ObjectExp);
+        prologue.AddRange(rrObjectExp.Prologue);
         var rebuilt = ctx with {
-         SubjectExp = (ast.UriLiteralExp)Rewrite((AstThing)ctx.SubjectExp).Node
-        ,PredicateExp = (ast.UriLiteralExp)Rewrite((AstThing)ctx.PredicateExp).Node
-        ,ObjectExp = (ast.Expression)Rewrite((AstThing)ctx.ObjectExp).Node
+         SubjectExp = (ast.UriLiteralExp)rrSubjectExp.Node
+        ,PredicateExp = (ast.UriLiteralExp)rrPredicateExp.Node
+        ,ObjectExp = (ast.Expression)rrObjectExp.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -902,8 +1020,10 @@ public class DefaultAstRewriter : IAstRewriter
             tmpTriples.Add((ast.TripleLiteralExp)rr.Node);
             prologue.AddRange(rr.Prologue);
         }
+        var rrGraphUri = Rewrite((AstThing)ctx.GraphUri);
+        prologue.AddRange(rrGraphUri.Prologue);
         var rebuilt = ctx with {
-         GraphUri = (ast.UriLiteralExp)Rewrite((AstThing)ctx.GraphUri).Node
+         GraphUri = (ast.UriLiteralExp)rrGraphUri.Node
         ,Triples = tmpTriples
         };
         return new RewriteResult(rebuilt, prologue);

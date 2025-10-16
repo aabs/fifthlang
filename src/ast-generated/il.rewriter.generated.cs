@@ -102,9 +102,13 @@ public class DefaultAstRewriter : IAstRewriter
             tmpAssemblyReferences.Add((il_ast.AssemblyReference)rr.Node);
             prologue.AddRange(rr.Prologue);
         }
+        var rrVersion = Rewrite((AstThing)ctx.Version);
+        prologue.AddRange(rrVersion.Prologue);
+        var rrPrimeModule = Rewrite((AstThing)ctx.PrimeModule);
+        prologue.AddRange(rrPrimeModule.Prologue);
         var rebuilt = ctx with {
-         Version = (il_ast.Version)Rewrite((AstThing)ctx.Version).Node
-        ,PrimeModule = (il_ast.ModuleDeclaration)Rewrite((AstThing)ctx.PrimeModule).Node
+         Version = (il_ast.Version)rrVersion.Node
+        ,PrimeModule = (il_ast.ModuleDeclaration)rrPrimeModule.Node
         ,AssemblyReferences = tmpAssemblyReferences
         };
         return new RewriteResult(rebuilt, prologue);
@@ -112,8 +116,10 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitAssemblyReference(AssemblyReference ctx)
     {
         var prologue = new List<Statement>();
+        var rrVersion = Rewrite((AstThing)ctx.Version);
+        prologue.AddRange(rrVersion.Prologue);
         var rebuilt = ctx with {
-         Version = (il_ast.Version)Rewrite((AstThing)ctx.Version).Node
+         Version = (il_ast.Version)rrVersion.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -178,12 +184,14 @@ public class DefaultAstRewriter : IAstRewriter
             tmpBaseClasses.Add((il_ast.ClassDefinition)rr.Node);
             prologue.AddRange(rr.Prologue);
         }
+        var rrParentAssembly = Rewrite((AstThing)ctx.ParentAssembly);
+        prologue.AddRange(rrParentAssembly.Prologue);
         var rebuilt = ctx with {
          Fields = tmpFields
         ,Properties = tmpProperties
         ,Methods = tmpMethods
         ,BaseClasses = tmpBaseClasses
-        ,ParentAssembly = (il_ast.AssemblyDeclaration)Rewrite((AstThing)ctx.ParentAssembly).Node
+        ,ParentAssembly = (il_ast.AssemblyDeclaration)rrParentAssembly.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -197,8 +205,10 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitParameterSignature(ParameterSignature ctx)
     {
         var prologue = new List<Statement>();
+        var rrTypeReference = Rewrite((AstThing)ctx.TypeReference);
+        prologue.AddRange(rrTypeReference.Prologue);
         var rebuilt = ctx with {
-         TypeReference = (il_ast.TypeReference)Rewrite((AstThing)ctx.TypeReference).Node
+         TypeReference = (il_ast.TypeReference)rrTypeReference.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -212,9 +222,11 @@ public class DefaultAstRewriter : IAstRewriter
             tmpParameterSignatures.Add((il_ast.ParameterSignature)rr.Node);
             prologue.AddRange(rr.Prologue);
         }
+        var rrReturnTypeSignature = Rewrite((AstThing)ctx.ReturnTypeSignature);
+        prologue.AddRange(rrReturnTypeSignature.Prologue);
         var rebuilt = ctx with {
          ParameterSignatures = tmpParameterSignatures
-        ,ReturnTypeSignature = (il_ast.TypeReference)Rewrite((AstThing)ctx.ReturnTypeSignature).Node
+        ,ReturnTypeSignature = (il_ast.TypeReference)rrReturnTypeSignature.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -228,31 +240,51 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitMethodRef(MethodRef ctx)
     {
         var prologue = new List<Statement>();
+        var rrClassDefinition = Rewrite((AstThing)ctx.ClassDefinition);
+        prologue.AddRange(rrClassDefinition.Prologue);
+        var rrSig = Rewrite((AstThing)ctx.Sig);
+        prologue.AddRange(rrSig.Prologue);
+        var rrField = Rewrite((AstThing)ctx.Field);
+        prologue.AddRange(rrField.Prologue);
         var rebuilt = ctx with {
-         ClassDefinition = (il_ast.ClassDefinition)Rewrite((AstThing)ctx.ClassDefinition).Node
-        ,Sig = (il_ast.MethodSignature)Rewrite((AstThing)ctx.Sig).Node
-        ,Field = (il_ast.FieldDefinition)Rewrite((AstThing)ctx.Field).Node
+         ClassDefinition = (il_ast.ClassDefinition)rrClassDefinition.Node
+        ,Sig = (il_ast.MethodSignature)rrSig.Node
+        ,Field = (il_ast.FieldDefinition)rrField.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitMethodImpl(MethodImpl ctx)
     {
         var prologue = new List<Statement>();
+        var rrBody = Rewrite((AstThing)ctx.Body);
+        prologue.AddRange(rrBody.Prologue);
         var rebuilt = ctx with {
-         Body = (il_ast.Block)Rewrite((AstThing)ctx.Body).Node
+         Body = (il_ast.Block)rrBody.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitMethodDefinition(MethodDefinition ctx)
     {
         var prologue = new List<Statement>();
+        var rrHeader = Rewrite((AstThing)ctx.Header);
+        prologue.AddRange(rrHeader.Prologue);
+        var rrSignature = Rewrite((AstThing)ctx.Signature);
+        prologue.AddRange(rrSignature.Prologue);
+        var rrImpl = Rewrite((AstThing)ctx.Impl);
+        prologue.AddRange(rrImpl.Prologue);
+        var rrTheType = Rewrite((AstThing)ctx.TheType);
+        prologue.AddRange(rrTheType.Prologue);
+        var rrParentClass = Rewrite((AstThing)ctx.ParentClass);
+        prologue.AddRange(rrParentClass.Prologue);
+        var rrAssociatedProperty = Rewrite((AstThing)ctx.AssociatedProperty);
+        prologue.AddRange(rrAssociatedProperty.Prologue);
         var rebuilt = ctx with {
-         Header = (il_ast.MethodHeader)Rewrite((AstThing)ctx.Header).Node
-        ,Signature = (il_ast.MethodSignature)Rewrite((AstThing)ctx.Signature).Node
-        ,Impl = (il_ast.MethodImpl)Rewrite((AstThing)ctx.Impl).Node
-        ,TheType = (il_ast.TypeReference)Rewrite((AstThing)ctx.TheType).Node
-        ,ParentClass = (il_ast.ClassDefinition)Rewrite((AstThing)ctx.ParentClass).Node
-        ,AssociatedProperty = (il_ast.PropertyDefinition)Rewrite((AstThing)ctx.AssociatedProperty).Node
+         Header = (il_ast.MethodHeader)rrHeader.Node
+        ,Signature = (il_ast.MethodSignature)rrSignature.Node
+        ,Impl = (il_ast.MethodImpl)rrImpl.Node
+        ,TheType = (il_ast.TypeReference)rrTheType.Node
+        ,ParentClass = (il_ast.ClassDefinition)rrParentClass.Node
+        ,AssociatedProperty = (il_ast.PropertyDefinition)rrAssociatedProperty.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -266,31 +298,51 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitMemberRef(MemberRef ctx)
     {
         var prologue = new List<Statement>();
+        var rrClassDefinition = Rewrite((AstThing)ctx.ClassDefinition);
+        prologue.AddRange(rrClassDefinition.Prologue);
+        var rrSig = Rewrite((AstThing)ctx.Sig);
+        prologue.AddRange(rrSig.Prologue);
+        var rrField = Rewrite((AstThing)ctx.Field);
+        prologue.AddRange(rrField.Prologue);
         var rebuilt = ctx with {
-         ClassDefinition = (il_ast.ClassDefinition)Rewrite((AstThing)ctx.ClassDefinition).Node
-        ,Sig = (il_ast.MethodSignature)Rewrite((AstThing)ctx.Sig).Node
-        ,Field = (il_ast.FieldDefinition)Rewrite((AstThing)ctx.Field).Node
+         ClassDefinition = (il_ast.ClassDefinition)rrClassDefinition.Node
+        ,Sig = (il_ast.MethodSignature)rrSig.Node
+        ,Field = (il_ast.FieldDefinition)rrField.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitFieldDefinition(FieldDefinition ctx)
     {
         var prologue = new List<Statement>();
+        var rrTheType = Rewrite((AstThing)ctx.TheType);
+        prologue.AddRange(rrTheType.Prologue);
+        var rrParentClass = Rewrite((AstThing)ctx.ParentClass);
+        prologue.AddRange(rrParentClass.Prologue);
+        var rrAssociatedProperty = Rewrite((AstThing)ctx.AssociatedProperty);
+        prologue.AddRange(rrAssociatedProperty.Prologue);
         var rebuilt = ctx with {
-         TheType = (il_ast.TypeReference)Rewrite((AstThing)ctx.TheType).Node
-        ,ParentClass = (il_ast.ClassDefinition)Rewrite((AstThing)ctx.ParentClass).Node
-        ,AssociatedProperty = (il_ast.PropertyDefinition)Rewrite((AstThing)ctx.AssociatedProperty).Node
+         TheType = (il_ast.TypeReference)rrTheType.Node
+        ,ParentClass = (il_ast.ClassDefinition)rrParentClass.Node
+        ,AssociatedProperty = (il_ast.PropertyDefinition)rrAssociatedProperty.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
     public virtual RewriteResult VisitPropertyDefinition(PropertyDefinition ctx)
     {
         var prologue = new List<Statement>();
+        var rrFieldDefinition = Rewrite((AstThing)ctx.FieldDefinition);
+        prologue.AddRange(rrFieldDefinition.Prologue);
+        var rrTheType = Rewrite((AstThing)ctx.TheType);
+        prologue.AddRange(rrTheType.Prologue);
+        var rrParentClass = Rewrite((AstThing)ctx.ParentClass);
+        prologue.AddRange(rrParentClass.Prologue);
+        var rrAssociatedProperty = Rewrite((AstThing)ctx.AssociatedProperty);
+        prologue.AddRange(rrAssociatedProperty.Prologue);
         var rebuilt = ctx with {
-         FieldDefinition = (il_ast.FieldDefinition)Rewrite((AstThing)ctx.FieldDefinition).Node
-        ,TheType = (il_ast.TypeReference)Rewrite((AstThing)ctx.TheType).Node
-        ,ParentClass = (il_ast.ClassDefinition)Rewrite((AstThing)ctx.ParentClass).Node
-        ,AssociatedProperty = (il_ast.PropertyDefinition)Rewrite((AstThing)ctx.AssociatedProperty).Node
+         FieldDefinition = (il_ast.FieldDefinition)rrFieldDefinition.Node
+        ,TheType = (il_ast.TypeReference)rrTheType.Node
+        ,ParentClass = (il_ast.ClassDefinition)rrParentClass.Node
+        ,AssociatedProperty = (il_ast.PropertyDefinition)rrAssociatedProperty.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -368,8 +420,10 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitInstructionStatement(InstructionStatement ctx)
     {
         var prologue = new List<Statement>();
+        var rrInstructions = Rewrite((AstThing)ctx.Instructions);
+        prologue.AddRange(rrInstructions.Prologue);
         var rebuilt = ctx with {
-         Instructions = (il_ast.InstructionSequence)Rewrite((AstThing)ctx.Instructions).Node
+         Instructions = (il_ast.InstructionSequence)rrInstructions.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
