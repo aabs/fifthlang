@@ -7,46 +7,9 @@ namespace compiler.LanguageTransformations;
 
 public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisitor
 {
-    private const string LoweredGraphAnnotation = "LoweredGraphExpr";
-    private const string TripleSignaturesAnnotation = "TripleSignatures";
-
-    private static void AppendSignaturesFromAnnotations(IDictionary<string, object>? annotations, HashSet<string> dedupe)
-    {
-        if (annotations == null)
-        {
-            return;
-        }
-
-        if (annotations.TryGetValue(TripleSignaturesAnnotation, out var value) && value is List<string> list)
-        {
-            foreach (var signature in list)
-            {
-                dedupe.Add(signature);
-            }
-        }
-    }
-
-    private static bool TryExtractLoweredGraph(Expression? operand, HashSet<string> dedupe, out Expression builder)
-    {
-        builder = default!;
-        if (operand is not BinaryExp binary || binary.Annotations == null || !binary.Annotations.ContainsKey(LoweredGraphAnnotation))
-        {
-            return false;
-        }
-
-        AppendSignaturesFromAnnotations(binary.Annotations, dedupe);
-        builder = binary.RHS ?? operand;
-        return true;
-    }
-
     private static Expression AppendGraphOperand(Expression builder, Expression operand, SourceLocationMetadata loc, HashSet<string> dedupe)
     {
         Expression mergeArgument = operand;
-        if (operand is BinaryExp lowered && lowered.Annotations != null && lowered.Annotations.ContainsKey(LoweredGraphAnnotation))
-        {
-            AppendSignaturesFromAnnotations(lowered.Annotations, dedupe);
-            mergeArgument = lowered.RHS ?? operand;
-        }
 
         var mergeCall = new FuncCallExp
         {
@@ -84,12 +47,13 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
             return false;
         }
 
-        if (expr is MemberAccessExp member && member.Annotations != null && member.Annotations.ContainsKey("GraphExpr"))
+        // Check if it's a MemberAccessExp that represents a graph operation result
+        if (expr is MemberAccessExp)
         {
             return true;
         }
 
-        return expr is BinaryExp binary && binary.Annotations != null && binary.Annotations.ContainsKey(LoweredGraphAnnotation);
+        return false;
     }
 
     private static string? TryComputeTripleSignature(TripleLiteralExp triple)
@@ -293,41 +257,23 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
                 var loc = result.Location ?? new SourceLocationMetadata(0, string.Empty, 0, string.Empty);
                 var dedupe = new HashSet<string>(StringComparer.Ordinal);
 
-                // Create a temporary graph variable name
-                var graphVarName = "__g__";
-                var graphVarRef = new VarRefExp 
-                { 
-                    VarName = graphVarName, 
-                    Annotations = new Dictionary<string, object>(),
-                    Location = loc 
-                };
-
-                Expression builder = graphVarRef;
+                // Start with CreateGraph() call
+                Expression builder = MakeKgCreateGraphExpression(loc);
                 
                 // Process left operand
-                if (TryExtractLoweredGraph(lhs, dedupe, out var reusedBuilder))
+                if (leftIsGraphLike && lhs != null)
                 {
-                    // If LHS is already a lowered graph, we need to merge it
-                    builder = AppendGraphOperand(graphVarRef, lhs, loc, dedupe);
-                }
-                else if (leftIsGraphLike && lhs != null)
-                {
-                    builder = AppendGraphOperand(graphVarRef, lhs, loc, dedupe);
+                    builder = AppendGraphOperand(builder, lhs, loc, dedupe);
                 }
                 else if (leftIsTriple && lhs is TripleLiteralExp leftTriple)
                 {
-                    builder = LowerTripleToAssertChain(graphVarRef, leftTriple, dedupe);
+                    builder = LowerTripleToAssertChain(builder, leftTriple, dedupe);
                 }
 
                 // Process right operand - chain on top of the builder from the left operand
                 if (rhs != null)
                 {
-                    if (rhs is BinaryExp rightLowered && rightLowered.Annotations != null && rightLowered.Annotations.ContainsKey(LoweredGraphAnnotation))
-                    {
-                        AppendSignaturesFromAnnotations(rightLowered.Annotations, dedupe);
-                        builder = AppendGraphOperand(builder, rightLowered.RHS ?? rhs, loc, dedupe);
-                    }
-                    else if (rightIsGraphLike)
+                    if (rightIsGraphLike)
                     {
                         builder = AppendGraphOperand(builder, rhs, loc, dedupe);
                     }
@@ -337,36 +283,18 @@ public class GraphTripleOperatorLoweringVisitor : NullSafeRecursiveDescentVisito
                     }
                 }
 
-                // Mark the builder with annotations
-                if (builder is MemberAccessExp member)
+                // Return the fully lowered call chain directly
+                // Wrap in a BinaryExp for type compatibility, but with a special marker
+                // The Roslyn translator will recognize this and just translate the RHS (the call chain)
+                var wrapper = new BinaryExp
                 {
-                    var annotations = member.Annotations != null
-                        ? new Dictionary<string, object>(member.Annotations)
-                        : new Dictionary<string, object>();
-                    annotations["GraphExpr"] = true;
-                    builder = member with { Annotations = annotations };
-                }
-
-                // Create the lowered expression with special annotations
-                // The LHS will be the graph initialization (CreateGraph())
-                // The RHS will be the operations chain (using graph variable)
-                var loweredAnnotations = result.Annotations != null
-                    ? new Dictionary<string, object>(result.Annotations)
-                    : new Dictionary<string, object>();
-                loweredAnnotations[LoweredGraphAnnotation] = true;
-                loweredAnnotations["RequiresIIFE"] = true; // Signal to Roslyn translator
-                loweredAnnotations[TripleSignaturesAnnotation] = new List<string>(dedupe);
-                loweredAnnotations["GraphVarName"] = graphVarName;
-
-                var lowered = new BinaryExp
-                {
-                    Annotations = loweredAnnotations,
+                    Annotations = new Dictionary<string, object> { ["FullyLowered"] = true },
                     Location = loc,
-                    LHS = MakeKgCreateGraphExpression(loc), // Graph initialization
-                    RHS = builder, // Operations using graph variable
-                    Operator = op
+                    LHS = new VarRefExp { VarName = "__dummy__", Annotations = new Dictionary<string, object>(), Location = loc },
+                    RHS = builder,
+                    Operator = Operator.ArithmeticAdd
                 };
-                return lowered;
+                return wrapper;
             }
         }
 

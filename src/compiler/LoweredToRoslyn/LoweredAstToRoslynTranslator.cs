@@ -440,9 +440,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 .WithArgumentList(ArgumentList(SingletonSeparatedList(
                     Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, 
                         Literal(uriLit.Value.ToString())))))),
-            VarRefExp varRef => varRef.VarName == "__graphVar__" 
-                ? TranslateExpression(new VarRefExp { VarName = "KG", Annotations = new Dictionary<string, object>(), Location = varRef.Location })
-                : IdentifierName(SanitizeIdentifier(varRef.VarName)),
+            VarRefExp varRef => IdentifierName(SanitizeIdentifier(varRef.VarName)),
             BinaryExp binExp => TranslateBinaryExpression(binExp),
             FuncCallExp funcCall => TranslateFuncCallExpression(funcCall),
             MemberAccessExp memberAccess => TranslateMemberAccessExpression(memberAccess),
@@ -476,42 +474,11 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private ExpressionSyntax TranslateBinaryExpression(BinaryExp binExp)
     {
-        // Check if this requires an immediately-invoked function expression (IIFE)
-        // This is used for graph operations that need a temporary variable
-        if (binExp.Annotations != null && binExp.Annotations.ContainsKey("RequiresIIFE"))
+        // Check if this is a fully lowered graph operation
+        // In this case, just translate the RHS (the call chain) and ignore the wrapper
+        if (binExp.Annotations != null && binExp.Annotations.ContainsKey("FullyLowered"))
         {
-            // Get the graph variable name from annotations
-            var graphVarName = binExp.Annotations.TryGetValue("GraphVarName", out var varNameObj) && varNameObj is string varName
-                ? varName
-                : "__g__";
-
-            // Translate the graph initialization (LHS)
-            var graphInit = TranslateExpression(binExp.LHS);
-
-            // Collect all Assert operations from the RHS into separate statements
-            var operationStatements = new List<StatementSyntax>();
-            CollectGraphOperations(binExp.RHS, graphVarName, operationStatements);
-
-            // Generate IIFE: (() => { var g = init; operations...; return g; })()
-            var statements = new List<StatementSyntax>
-            {
-                LocalDeclarationStatement(
-                    VariableDeclaration(IdentifierName("var"))
-                        .WithVariables(SingletonSeparatedList(
-                            VariableDeclarator(Identifier(graphVarName))
-                                .WithInitializer(EqualsValueClause(graphInit)))))
-            };
-            
-            // Add all the operation statements
-            statements.AddRange(operationStatements);
-            
-            // Add return statement
-            statements.Add(ReturnStatement(IdentifierName(graphVarName)));
-
-            var lambda = ParenthesizedLambdaExpression()
-                .WithBlock(Block(statements));
-
-            return InvocationExpression(ParenthesizedExpression(lambda));
+            return TranslateExpression(binExp.RHS);
         }
 
         var left = TranslateExpression(binExp.LHS);
@@ -553,86 +520,6 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         }
 
         return BinaryExpression(kind, left, right);
-    }
-
-    /// <summary>
-    /// Recursively collect graph operations (like Assert calls) from a chained expression tree
-    /// and generate separate statements for each operation.
-    /// </summary>
-    private void CollectGraphOperations(Expression expr, string graphVarName, List<StatementSyntax> statements)
-    {
-        // If it's a MemberAccessExp with an Assert call, generate a statement for it
-        if (expr is MemberAccessExp memberAccess)
-        {
-            // First, recursively process the LHS (which might be another chained operation)
-            if (memberAccess.LHS is MemberAccessExp lhsMember)
-            {
-                CollectGraphOperations(lhsMember, graphVarName, statements);
-            }
-
-            // Then generate a statement for this operation
-            if (memberAccess.RHS is FuncCallExp funcCall &&
-                funcCall.Annotations != null &&
-                funcCall.Annotations.TryGetValue("FunctionName", out var funcNameObj) &&
-                funcNameObj as string == "Assert")
-            {
-                // Generate: KG.Assert(graphVar, triple);
-                var tripleExpr = funcCall.InvocationArguments.Count > 0
-                    ? TranslateExpression(funcCall.InvocationArguments[0])
-                    : throw new InvalidOperationException("Assert call missing triple argument");
-
-                var assertCall = InvocationExpression(
-                        MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            IdentifierName("KG"),
-                            IdentifierName("Assert")))
-                    .WithArgumentList(ArgumentList(SeparatedList(new[]
-                    {
-                        Argument(IdentifierName(graphVarName)),
-                        Argument(tripleExpr)
-                    })));
-
-                statements.Add(ExpressionStatement(assertCall));
-            }
-            else if (memberAccess.RHS is FuncCallExp otherFunc &&
-                     otherFunc.Annotations != null &&
-                     otherFunc.Annotations.TryGetValue("FunctionName", out var otherFuncNameObj) &&
-                     otherFuncNameObj as string == "Merge")
-            {
-                // Generate: KG.Merge(graphVar, sourceGraph);
-                var sourceGraphExpr = otherFunc.InvocationArguments.Count > 0
-                    ? TranslateExpression(otherFunc.InvocationArguments[0])
-                    : throw new InvalidOperationException("Merge call missing source graph argument");
-
-                var mergeCall = InvocationExpression(
-                        MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            IdentifierName("KG"),
-                            IdentifierName("Merge")))
-                    .WithArgumentList(ArgumentList(SeparatedList(new[]
-                    {
-                        Argument(IdentifierName(graphVarName)),
-                        Argument(sourceGraphExpr)
-                    })));
-
-                statements.Add(ExpressionStatement(mergeCall));
-            }
-        }
-    }
-
-    /// <summary>
-    /// Translates an expression, replacing the __graphVar__ placeholder with the actual variable name
-    /// </summary>
-    private ExpressionSyntax TranslateExpressionReplacingPlaceholder(Expression expr, string graphVarName)
-    {
-        // Replace VarRefExp with VarName == "__graphVar__" with the actual graph variable
-        if (expr is VarRefExp varRef && varRef.VarName == "__graphVar__")
-        {
-            return IdentifierName(graphVarName);
-        }
-        
-        // Otherwise translate normally
-        return TranslateExpression(expr);
     }
 
     private bool IsGraphType(Expression expr)
