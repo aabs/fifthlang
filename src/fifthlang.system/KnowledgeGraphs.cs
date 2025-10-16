@@ -362,8 +362,8 @@ public static class KG
     /// <summary>
     /// Creates a literal node for a boolean value.
     /// </summary>
-    /// <param name="value">the boolean value.</param>
-    /// <returns>a typed literal node with xsd:boolean datatype.</returns>
+    /// <param name="value">The boolean value.</param>
+    /// <returns>A typed literal node with xsd:boolean datatype.</returns>
     [BuiltinFunction]
     public static ILiteralNode CreateLiteralNode(bool value)
     {
