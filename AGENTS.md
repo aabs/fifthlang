@@ -146,6 +146,37 @@ just run-generator (or: make run-generator)
 - Update transformation pipeline in `src/compiler/ParserManager.cs`
 - See constitution for complete transformation phase descriptions
 
+**Choosing the Right Pattern for Transformations**:
+
+When implementing AST transformations, use the appropriate visitor/rewriter pattern:
+
+- **`BaseAstVisitor`** - Read-only analysis (symbol tables, diagnostics, validation)
+- **`DefaultRecursiveDescentVisitor`** - Type-preserving AST modifications
+- **`DefaultAstRewriter`** ⭐ **PREFERRED for new lowering passes** - Statement-level lowering with hoisting
+
+**Use `DefaultAstRewriter` when you need**:
+- Statement-level desugaring (introduce temporary variables, pre-computation)
+- Cross-type rewrites (transform BinaryExp → FuncCallExp)
+- Expression hoisting (pull sub-expressions into separate statements)
+- Any transformation requiring statement insertion
+
+Example lowering with statement hoisting:
+```csharp
+public class MyLoweringPass : DefaultAstRewriter
+{
+    public override RewriteResult VisitBinaryExp(BinaryExp ctx)
+    {
+        var prologue = new List<Statement>();
+        // Hoist temp declaration
+        prologue.Add(new VarDeclStatement { /* ... */ });
+        // Return different node type + prologue
+        return new RewriteResult(new VarRefExp { /* ... */ }, prologue);
+    }
+}
+```
+
+**See**: `src/ast_generator/README.md` for comprehensive visitor/rewriter pattern guide.
+
 ## Expected Build Warnings (Safe to Ignore)
 - ANTLR: "rule expression contains an assoc terminal option in an unrecognized location"
 - Various C# nullable reference warnings throughout the codebase
