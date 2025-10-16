@@ -115,6 +115,34 @@ When designing language features and solving problems:
 - Document dependencies between transformation passes
 - Each pass should preserve AST validity and type safety
 
+**Choosing the Right Transformation Pattern**
+
+The AST generator provides three main patterns for AST traversal and transformation:
+
+1. **`BaseAstVisitor`** (read-only analysis)
+   - Use for: Symbol table building, diagnostics, validation, metrics collection
+   - Characteristics: Enter/leave pattern, no return values, side effects only
+   - Cannot modify AST
+
+2. **`DefaultRecursiveDescentVisitor`** (type-preserving transformations)
+   - Use for: Simple AST modifications, structure-preserving rewrites
+   - Characteristics: Type-safe returns (BinaryExp → BinaryExp), recursive descent
+   - Cannot change node types or hoist statements
+
+3. **`DefaultAstRewriter`** ⭐ **PREFERRED for new lowering passes**
+   - Use for: Statement-level desugaring, cross-type rewrites, expression hoisting
+   - Characteristics: Returns `RewriteResult` with node + prologue, category-level flexibility
+   - Enables: Temporary variables, pre-computation statements, cross-type transformations
+   - Example: Transform `BinaryExp` → `FuncCallExp` with hoisted temp declaration
+
+**When to Use DefaultAstRewriter**:
+- Introducing temporary variables or pre-computation
+- Breaking down high-level constructs into multiple statements
+- Transforming expression types (e.g., operators to function calls)
+- Any lowering that requires statement insertion before the current statement
+
+See `src/ast_generator/README.md` for comprehensive visitor/rewriter pattern guide.
+
 ### IX. Parser & Grammar Integrity
 The grammar is split into lexer and parser components:
 - **FifthLexer.g4**: Defines tokens, keywords, literals, and lexical structure
@@ -167,7 +195,9 @@ src/
 ├── ast-generated/      # Auto-generated AST builders and visitors  
 │   ├── builders.generated.cs       # Builder pattern classes
 │   ├── visitors.generated.cs       # Visitor pattern classes
+│   ├── rewriter.generated.cs       # Rewriter pattern for lowering (NEW)
 │   ├── il.builders.generated.cs    # IL-specific builders
+│   ├── il.rewriter.generated.cs    # IL rewriter pattern (NEW)
 │   └── typeinference.generated.cs  # Type inference support
 ├── ast_generator/      # Code generator that creates AST infrastructure
 │   ├── Program.cs              # CLI entry point
@@ -310,11 +340,14 @@ myprint(int x) => std.print(x);
 - The generator reads from `src/ast-model/AstMetamodel.cs` and `src/ast-model/ILMetamodel.cs`
 - Generated files include:
   - `builders.generated.cs` (Builder pattern classes)
-  - `visitors.generated.cs` (Visitor pattern classes)  
+  - `visitors.generated.cs` (Visitor pattern classes)
+  - `rewriter.generated.cs` (Rewriter pattern for lowering - NEW)
   - `il.builders.generated.cs` (IL-specific builders)
+  - `il.rewriter.generated.cs` (IL rewriter pattern - NEW)
   - `typeinference.generated.cs` (Type inference support)
 - Update metamodels/templates only; regenerate instead of manual edits
 - PRs modifying generated folders must include the upstream metamodel/template changes and the regeneration command used
+- See `src/ast_generator/README.md` for guidance on choosing the right visitor/rewriter pattern
 
 ### Testing Requirements
 - Unit tests: TUnit with FluentAssertions

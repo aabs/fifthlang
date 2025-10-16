@@ -98,10 +98,58 @@ dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-
 
 # The generator reads from src/ast-model/AstMetamodel.cs and generates:
 # - builders.generated.cs          (Builder pattern classes)
-# - visitors.generated.cs          (Visitor pattern classes)  
+# - visitors.generated.cs          (Visitor pattern classes)
+# - rewriter.generated.cs          (Rewriter pattern for lowering - NEW)
 # - il.builders.generated.cs       (IL-specific builders)
+# - il.rewriter.generated.cs       (IL rewriter pattern - NEW)
 # - typeinference.generated.cs     (Type inference support)
 ```
+
+### Choosing the Right Visitor/Rewriter Pattern
+
+When implementing AST transformations, choose the appropriate pattern based on your needs:
+
+**Use `BaseAstVisitor`** (read-only) when:
+- ✅ Analyzing the AST without modifications (e.g., symbol table building, diagnostics)
+- ✅ Collecting information or metrics
+- ✅ Validation passes
+
+**Use `DefaultRecursiveDescentVisitor`** when:
+- ✅ Modifying AST with type-preserving rewrites (BinaryExp → BinaryExp)
+- ✅ Simple transformations that don't change node types
+- ✅ No statement hoisting needed
+
+**Use `DefaultAstRewriter`** (⭐ PREFERRED for new lowering passes) when:
+- ✅ **Statement-level lowering** - introducing temporary variables, pre-computation
+- ✅ **Cross-type rewrites** - transforming node types (BinaryExp → FuncCallExp)
+- ✅ **Desugaring operations** - breaking down high-level constructs
+- ✅ **Expression hoisting** - pulling sub-expressions into statements
+- ✅ Any transformation requiring statement insertion before the current statement
+
+**Example: Using DefaultAstRewriter for Statement Hoisting**
+```csharp
+public class MyLoweringRewriter : DefaultAstRewriter
+{
+    public override RewriteResult VisitBinaryExp(BinaryExp ctx)
+    {
+        var lhs = Rewrite(ctx.LHS);
+        var rhs = Rewrite(ctx.RHS);
+        var prologue = new List<Statement>();
+        prologue.AddRange(lhs.Prologue);
+        prologue.AddRange(rhs.Prologue);
+        
+        // Hoist to temp variable
+        var tmpDecl = new VarDeclStatement { /* ... */ };
+        prologue.Add(tmpDecl);
+        
+        // Return reference to temp (cross-type rewrite!)
+        return new RewriteResult(new VarRefExp { /* ... */ }, prologue);
+    }
+}
+```
+
+**See also**: `src/ast_generator/README.md` for detailed visitor/rewriter pattern guide.
+
 
 ### Parser Development
 When working with grammar files:
