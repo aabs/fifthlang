@@ -85,6 +85,13 @@ else
 @:            prologue.AddRange(rr.Prologue);
 @:        }
 }
+@foreach(var prop in allProps.Where(p => !p.PropertyType.IsCollectionType()))
+{
+    var varName = $"rr{prop.Name}";
+    var propTypeName = prop.PropertyType.BuildTypeName();
+@:        var @(varName) = Rewrite((AstThing)ctx.@(prop.Name));
+@:        prologue.AddRange(@(varName).Prologue);
+}
 @:        var rebuilt = ctx with {
     var sep = " ";
     foreach (var prop in allProps)
@@ -96,8 +103,9 @@ else
         }
         else
         {
+            var varName = $"rr{prop.Name}";
             var propTypeName = prop.PropertyType.BuildTypeName();
-@:        @(sep)@(prop.Name) = (@(propTypeName))Rewrite((AstThing)ctx.@(prop.Name)).Node
+@:        @(sep)@(prop.Name) = (@(propTypeName))@(varName).Node
         }
         sep = ",";
     }
