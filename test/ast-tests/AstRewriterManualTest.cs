@@ -1,5 +1,6 @@
 using ast;
 using ast_generated;
+using ast_model.TypeSystem;
 using System;
 using System.Collections.Generic;
 
@@ -11,6 +12,7 @@ namespace ast_tests;
 /// </summary>
 public static class AstRewriterManualTest
 {
+    /* Commented out to avoid TUnit error - this is a manual test
     public static void Main(string[] args)
     {
         Console.WriteLine("=== AST Rewriter Manual Test ===\n");
@@ -21,6 +23,7 @@ public static class AstRewriterManualTest
         
         Console.WriteLine("\n=== All manual tests passed! ===");
     }
+    */
 
     private static void TestDefaultRewriterPreservesStructure()
     {
@@ -119,7 +122,7 @@ public static class AstRewriterManualTest
                 var tmpDecl = new VariableDecl 
                 { 
                     Name = tmpName,
-                    TypeName = new TypeName("int"),
+                    TypeName = TypeName.From("int"),
                     CollectionType = CollectionType.SingleInstance,
                     Visibility = Visibility.Private
                 };
