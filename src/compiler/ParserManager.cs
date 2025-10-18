@@ -152,7 +152,7 @@ public static class FifthParserManager
         }
 
         if (upTo >= AnalysisPhase.GraphTripleOperatorLowering)
-            ast = new GraphTripleOperatorLoweringVisitor().Visit(ast);
+            ast = (AstThing)new TripleGraphAdditionLoweringRewriter().Rewrite(ast).Node;
 
         if (upTo >= AnalysisPhase.SymbolTableFinal)
             ast = new SymbolTableBuilderVisitor().Visit(ast);
