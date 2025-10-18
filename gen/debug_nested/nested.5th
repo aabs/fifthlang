@@ -1,0 +1,33 @@
+class Address {
+    Street: string;
+    City: string;
+    ZipCode: int;
+}
+
+class Person {
+    Name: string;
+    Age: int;
+    Address: Address;
+}
+
+get_zip(person: Person { 
+    address: Address { zipCode: ZipCode }
+}): int {
+    return zipCode;
+}
+
+main(): int {
+    addr: Address = new Address {
+        Street = "Main St",
+        City = "Anytown", 
+        ZipCode = 12345
+    };
+    
+    person: Person = new Person {
+        Name = "John",
+        Age = 30,
+        Address = addr
+    };
+    
+    return get_zip(person);
+}
