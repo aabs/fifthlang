@@ -81,8 +81,10 @@ public static class FifthParserManager
             throw;
         }
 
-        if (upTo >= AnalysisPhase.DestructurePatternFlatten)
-            ast = new DestructuringPatternFlattenerVisitor().Visit(ast);
+        // DestructurePatternFlatten is now replaced by DestructuringLoweringRewriter (below)
+        // The constraint collection and variable declaration logic has been moved to the rewriter
+        // if (upTo >= AnalysisPhase.DestructurePatternFlatten)
+        //     ast = new DestructuringPatternFlattenerVisitor().Visit(ast);
 
         if (upTo >= AnalysisPhase.OverloadGroup)
             ast = new OverloadGatheringVisitor().Visit(ast);
@@ -130,9 +132,17 @@ public static class FifthParserManager
             var mainMethod2 = asmAfter.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
         }
 
-        // Now lower destructuring assignments
+        // Resolve property references in destructuring (still needed for property resolution)
         if (upTo >= AnalysisPhase.DestructuringLowering)
-            ast = new DestructuringVisitor().Visit(ast);  // Handle destructuring transformation
+            ast = new DestructuringVisitor().Visit(ast);
+        
+        // Now lower destructuring to variable declarations
+        if (upTo >= AnalysisPhase.DestructuringLowering)
+        {
+            var rewriter = new DestructuringLoweringRewriter();
+            var result = rewriter.Rewrite(ast);
+            ast = result.Node;
+        }
 
         if (upTo >= AnalysisPhase.TreeRelink)
             ast = new TreeLinkageVisitor().Visit(ast);
