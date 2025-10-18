@@ -209,14 +209,27 @@ public abstract class RuntimeTestBase : IDisposable
         }
 
         var systemDeps = Path.Combine(systemBin, "Fifth.System.deps.json");
+        // To avoid cross-test contention on a shared deps.json during parallel runs,
+        // copy the deps file into the per-test execution directory and use that local copy.
+        string depsFileToUse = systemDeps;
+        try
+        {
+            if (File.Exists(systemDeps))
+            {
+                var localDeps = Path.Combine(exeDir, Path.GetFileName(systemDeps));
+                // Best-effort copy; ignore if fails as the global path will still be used
+                try { File.Copy(systemDeps, localDeps, overwrite: true); depsFileToUse = localDeps; } catch { /* ignore */ }
+            }
+        }
+        catch { /* ignore */ }
         var nugetCache = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
 
         var startInfo = new ProcessStartInfo
         {
             FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet" : "dotnet",
             Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? $"exec --depsfile \"{systemDeps}\" --runtimeconfig \"{runtimeConfigPath}\" --additionalprobingpath \"{nugetCache}\" \"{executablePath}\" {arguments ?? string.Empty}".Trim()
-                : $"exec --depsfile \"{systemDeps}\" --runtimeconfig \"{runtimeConfigPath}\" --additionalprobingpath \"{nugetCache}\" \"{executablePath}\" {arguments ?? string.Empty}".Trim(),
+                ? $"exec --depsfile \"{depsFileToUse}\" --runtimeconfig \"{runtimeConfigPath}\" --additionalprobingpath \"{nugetCache}\" \"{executablePath}\" {arguments ?? string.Empty}".Trim()
+                : $"exec --depsfile \"{depsFileToUse}\" --runtimeconfig \"{runtimeConfigPath}\" --additionalprobingpath \"{nugetCache}\" \"{executablePath}\" {arguments ?? string.Empty}".Trim(),
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             RedirectStandardInput = input != null,

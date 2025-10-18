@@ -48,10 +48,25 @@ public class DestructuringVisitor : DefaultRecursiveDescentVisitor
         }
         else if (ctx.Parent is PropertyBindingDef db)
         {
-            var propdecl = db.ReferencedPropertyName;
-            if (ctx.NearestScope().TryResolveByName(propdecl.Value, out var paramType))
+            // For nested destructuring, set scope to the TYPE of the referenced property
+            // Prefer the already-resolved property reference; fall back to resolving by name in current class scope
+            string? propertyTypeName = db.ReferencedProperty?.TypeName.Value;
+
+            if (propertyTypeName is null && ResolutionScope.Count > 0)
             {
-                ResolutionScope.Push((propdecl.Value, paramType));
+                var (_, currentScope) = ResolutionScope.Peek();
+                if (currentScope.Symbol.Kind == SymbolKind.ClassDef && currentScope.OriginatingAstThing is ClassDef c)
+                {
+                    var prop = c.MemberDefs.OfType<PropertyDef>().FirstOrDefault(p => p.Name == db.ReferencedPropertyName);
+                    propertyTypeName = prop?.TypeName.Value;
+                }
+            }
+
+            if (propertyTypeName != null && ctx.NearestScope().TryResolveByName(propertyTypeName, out var propertyTypeSymbol))
+            {
+                // Use introduced variable name for clarity; the value isn't used elsewhere currently
+                var scopeVar = db.IntroducedVariable.Value;
+                ResolutionScope.Push((scopeVar, propertyTypeSymbol));
             }
         }
         ParamDestructureDef result;
@@ -86,6 +101,7 @@ public class DestructuringVisitor : DefaultRecursiveDescentVisitor
             }
         }
 
-        return ctx;
+        // Continue traversal so nested destructuring (ctx.DestructureDef) can be processed
+        return base.VisitPropertyBindingDef(ctx);
     }
 }
