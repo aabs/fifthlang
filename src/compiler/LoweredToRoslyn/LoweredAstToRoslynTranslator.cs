@@ -474,26 +474,8 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private ExpressionSyntax TranslateBinaryExpression(BinaryExp binExp)
     {
-        // Check if this is a fully lowered graph operation
-        // In this case, just translate the RHS (the call chain) and ignore the wrapper
-        if (binExp.Annotations != null && binExp.Annotations.ContainsKey("FullyLowered"))
-        {
-            return TranslateExpression(binExp.RHS);
-        }
-
         var left = TranslateExpression(binExp.LHS);
         var right = TranslateExpression(binExp.RHS);
-
-        // Special handling for graph merging: g1 + g2 => g1.Merge(g2)
-        if (binExp.Operator == Operator.ArithmeticAdd && IsGraphType(binExp.LHS))
-        {
-            return InvocationExpression(
-                MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    left,
-                    IdentifierName("Merge")))
-                .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(right))));
-        }
 
         var kind = binExp.Operator switch
         {
