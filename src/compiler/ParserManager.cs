@@ -81,11 +81,6 @@ public static class FifthParserManager
             throw;
         }
 
-        // DestructurePatternFlatten is now replaced by DestructuringLoweringRewriter (below)
-        // The constraint collection and variable declaration logic has been moved to the rewriter
-        // if (upTo >= AnalysisPhase.DestructurePatternFlatten)
-        //     ast = new DestructuringPatternFlattenerVisitor().Visit(ast);
-
         if (upTo >= AnalysisPhase.OverloadGroup)
             ast = new OverloadGatheringVisitor().Visit(ast);
 
