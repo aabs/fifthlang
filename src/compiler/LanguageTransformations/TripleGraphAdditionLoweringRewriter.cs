@@ -82,7 +82,8 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
                 TypeName = TypeName.From("graph"),
                 CollectionType = CollectionType.SingleInstance,
                 Visibility = Visibility.Private,
-                Location = loc
+                Location = loc,
+                Annotations = new Dictionary<string, object>()
             };
 
             var createGraphCall = MakeCreateGraphCall(loc);
@@ -90,7 +91,8 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             {
                 VariableDecl = tmpDecl,
                 InitialValue = createGraphCall,
-                Location = loc
+                Location = loc,
+                Annotations = new Dictionary<string, object>()
             };
             prologue.Add(declStmt);
 
@@ -180,7 +182,7 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
 
     private Expression CreateUriNodeExpression(UriLiteralExp? uriExp, SourceLocationMetadata loc)
     {
-        if (uriExp is UriLiteralExp uri)
+        if (uriExp is UriLiteralExp uri && uri.Value != null)
         {
             var uriLiteral = new StringLiteralExp 
             { 
@@ -315,7 +317,7 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             Location = loc
         };
         
-        return new ExpStatement { RHS = assertExpr, Location = loc };
+        return new ExpStatement { RHS = assertExpr, Location = loc, Annotations = new Dictionary<string, object>() };
     }
 
     /// <summary>
@@ -344,7 +346,7 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             Location = loc
         };
         
-        return new ExpStatement { RHS = mergeExpr, Location = loc };
+        return new ExpStatement { RHS = mergeExpr, Location = loc, Annotations = new Dictionary<string, object>() };
     }
 
     /// <summary>
@@ -401,7 +403,8 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
                         TypeName = TypeName.From("graph"),
                         CollectionType = CollectionType.SingleInstance,
                         Visibility = Visibility.Private,
-                        Location = loc
+                        Location = loc,
+                        Annotations = new Dictionary<string, object>()
                     };
                     
                     var createGraphCall = MakeCreateGraphCall(loc);
@@ -409,7 +412,8 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
                     {
                         VariableDecl = tmpDecl,
                         InitialValue = createGraphCall,
-                        Location = loc
+                        Location = loc,
+                        Annotations = new Dictionary<string, object>()
                     };
                     prologue.Add(declStmt);
 
