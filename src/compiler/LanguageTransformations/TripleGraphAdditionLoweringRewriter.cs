@@ -24,9 +24,41 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
     private int _tmpCounter = 0;
 
     /// <summary>
-    /// Check if expression is a triple literal
+    /// Check if expression represents a triple (literal or lowered KG.CreateTriple call)
     /// </summary>
-    private static bool IsTriple(Expression? expr) => expr is TripleLiteralExp;
+    private static bool IsTriple(Expression? expr)
+    {
+        if (expr is TripleLiteralExp) return true;
+        if (expr is MemberAccessExp ma && TryGetKGFunctionName(ma, out var fn)
+            && string.Equals(fn, "CreateTriple", StringComparison.Ordinal))
+        {
+            return true;
+        }
+        // If we already have type info, detect variables typed as 'triple'
+        if (expr is VarRefExp vr && vr.Type is FifthType.TType ttype &&
+            ttype.Name.Value != null && ttype.Name.Value.Equals("triple", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Try to extract the KG function name (Annotations["FunctionName"]) from a MemberAccessExp.
+    /// Returns true when RHS is a FuncCallExp with a string FunctionName annotation.
+    /// </summary>
+    private static bool TryGetKGFunctionName(MemberAccessExp ma, out string functionName)
+    {
+        functionName = string.Empty;
+        if (ma.RHS is FuncCallExp call && call.Annotations is not null
+            && call.Annotations.TryGetValue("FunctionName", out var fnObj)
+            && fnObj is string fn && !string.IsNullOrWhiteSpace(fn))
+        {
+            functionName = fn;
+            return true;
+        }
+        return false;
+    }
 
     /// <summary>
     /// Check if expression is graph-like (Graph literal, GraphAssertionBlockExp, or typed as graph)
@@ -43,13 +75,18 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
         // Check if variable reference is typed as a graph
         if (expr is VarRefExp varRef && varRef.Type is FifthType.TType ttype)
         {
-            return ttype.Name.Value != null && 
+            return ttype.Name.Value != null &&
                    ttype.Name.Value.Equals("graph", StringComparison.OrdinalIgnoreCase);
         }
 
-        // Member access expressions that represent graph operations
-        if (expr is MemberAccessExp)
-            return true;
+        // Avoid blindly treating MemberAccessExp as graph; rely on type info instead.
+        // Some member-access nodes (e.g., KG.CreateTriple) are NOT graphs.
+        // When type info is available and indicates 'graph', consider it graph-like.
+        if (expr is MemberAccessExp ma && ma.Type is FifthType.TType ttype2)
+        {
+            return ttype2.Name.Value != null &&
+                   ttype2.Name.Value.Equals("graph", StringComparison.OrdinalIgnoreCase);
+        }
 
         return false;
     }
@@ -71,10 +108,10 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
         }
 
         // If it's a triple, create a new graph and assert it
-        if (IsTriple(expr) && expr is TripleLiteralExp triple)
+        if (IsTriple(expr))
         {
             var tmpName = $"__graph{_tmpCounter++}";
-            
+
             // var g: graph = CreateGraph()
             var tmpDecl = new VariableDecl
             {
@@ -96,14 +133,18 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             };
             prologue.Add(declStmt);
 
-            // g.Assert(triple)
+            // g.Assert(<triple-expr>)
             var graphRef = new VarRefExp { VarName = tmpName, Location = loc };
-            var assertStmt = MakeAssertStatement(graphRef, triple, loc);
-            prologue.Add(assertStmt);
+            var tripleExpr = GetTripleExpression(expr, loc);
+            if (tripleExpr != null)
+            {
+                var assertStmt = MakeAssertStatement(graphRef, tripleExpr, loc);
+                prologue.Add(assertStmt);
+            }
 
-            var graphVarRef = new VarRefExp 
-            { 
-                VarName = tmpName, 
+            var graphVarRef = new VarRefExp
+            {
+                VarName = tmpName,
                 Location = loc,
                 Type = new FifthType.TType { Name = TypeName.From("graph") }
             };
@@ -119,13 +160,13 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
     /// </summary>
     private static Expression MakeCreateGraphCall(SourceLocationMetadata loc)
     {
-        var kgVar = new VarRefExp 
-        { 
-            VarName = "KG", 
-            Annotations = new Dictionary<string, object>(), 
-            Location = loc 
+        var kgVar = new VarRefExp
+        {
+            VarName = "KG",
+            Annotations = new Dictionary<string, object>(),
+            Location = loc
         };
-        
+
         var createGraphCall = new FuncCallExp
         {
             InvocationArguments = new List<Expression>(),
@@ -138,13 +179,13 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             Location = loc,
             Parent = null
         };
-        
-        return new MemberAccessExp 
-        { 
-            Annotations = new Dictionary<string, object>(), 
-            LHS = kgVar, 
-            RHS = createGraphCall, 
-            Location = loc 
+
+        return new MemberAccessExp
+        {
+            Annotations = new Dictionary<string, object>(),
+            LHS = kgVar,
+            RHS = createGraphCall,
+            Location = loc
         };
     }
 
@@ -170,7 +211,7 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             Location = loc,
             Parent = null
         };
-        
+
         return new MemberAccessExp
         {
             Annotations = new Dictionary<string, object>(),
@@ -184,14 +225,14 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
     {
         if (uriExp is UriLiteralExp uri && uri.Value != null)
         {
-            var uriLiteral = new StringLiteralExp 
-            { 
-                Annotations = new Dictionary<string, object>(), 
-                Location = uri.Location, 
-                Parent = null, 
-                Value = uri.Value.AbsoluteUri 
+            var uriLiteral = new StringLiteralExp
+            {
+                Annotations = new Dictionary<string, object>(),
+                Location = uri.Location,
+                Parent = null,
+                Value = uri.Value.AbsoluteUri
             };
-            
+
             var createUriNode = new FuncCallExp
             {
                 InvocationArguments = new List<Expression> { uriLiteral },
@@ -204,7 +245,7 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
                 Location = uri.Location,
                 Parent = null
             };
-            
+
             return new MemberAccessExp
             {
                 Annotations = new Dictionary<string, object>(),
@@ -213,7 +254,7 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
                 Location = uri.Location
             };
         }
-        
+
         return new VarRefExp { VarName = "null", Annotations = new Dictionary<string, object>(), Location = loc };
     }
 
@@ -223,16 +264,16 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
         {
             case UriLiteralExp uri:
                 return CreateUriNodeExpression(uri, loc);
-                
+
             case StringLiteralExp s:
-                var lit = new StringLiteralExp 
-                { 
-                    Annotations = new Dictionary<string, object>(), 
-                    Location = s.Location, 
-                    Parent = null, 
-                    Value = s.Value 
+                var lit = new StringLiteralExp
+                {
+                    Annotations = new Dictionary<string, object>(),
+                    Location = s.Location,
+                    Parent = null,
+                    Value = s.Value
                 };
-                
+
                 var createLiteralCall = new FuncCallExp
                 {
                     InvocationArguments = new List<Expression> { lit },
@@ -245,7 +286,7 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
                     Location = s.Location,
                     Parent = null
                 };
-                
+
                 return new MemberAccessExp
                 {
                     Annotations = new Dictionary<string, object>(),
@@ -253,16 +294,16 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
                     RHS = createLiteralCall,
                     Location = s.Location
                 };
-                
+
             case Int32LiteralExp i32:
-                var iLit = new Int32LiteralExp 
-                { 
-                    Annotations = new Dictionary<string, object>(), 
-                    Location = i32.Location, 
-                    Parent = null, 
-                    Value = i32.Value 
+                var iLit = new Int32LiteralExp
+                {
+                    Annotations = new Dictionary<string, object>(),
+                    Location = i32.Location,
+                    Parent = null,
+                    Value = i32.Value
                 };
-                
+
                 var createIntLit = new FuncCallExp
                 {
                     InvocationArguments = new List<Expression> { iLit },
@@ -275,7 +316,7 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
                     Location = i32.Location,
                     Parent = null
                 };
-                
+
                 return new MemberAccessExp
                 {
                     Annotations = new Dictionary<string, object>(),
@@ -283,19 +324,19 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
                     RHS = createIntLit,
                     Location = i32.Location
                 };
-                
+
             default:
                 return new VarRefExp { VarName = "null", Annotations = new Dictionary<string, object>(), Location = loc };
         }
     }
 
     /// <summary>
-    /// Create statement: graphExpr.Assert(triple)
+    /// Create statement: graphExpr.Assert(tripleLiteral)
     /// </summary>
     private ExpStatement MakeAssertStatement(Expression graphExpr, TripleLiteralExp triple, SourceLocationMetadata loc)
     {
         var tripleExpr = CreateTripleExpression(triple, loc);
-        
+
         var assertCall = new FuncCallExp
         {
             InvocationArguments = new List<Expression> { tripleExpr },
@@ -308,7 +349,7 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             Location = loc,
             Parent = null
         };
-        
+
         var assertExpr = new MemberAccessExp
         {
             Annotations = new Dictionary<string, object>(),
@@ -316,7 +357,36 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             RHS = assertCall,
             Location = loc
         };
-        
+
+        return new ExpStatement { RHS = assertExpr, Location = loc, Annotations = new Dictionary<string, object>() };
+    }
+
+    /// <summary>
+    /// Create statement: graphExpr.Assert(<tripleExpr>) where tripleExpr is already a KG.CreateTriple expression
+    /// </summary>
+    private ExpStatement MakeAssertStatement(Expression graphExpr, Expression tripleExpr, SourceLocationMetadata loc)
+    {
+        var assertCall = new FuncCallExp
+        {
+            InvocationArguments = new List<Expression> { tripleExpr },
+            Annotations = new Dictionary<string, object>
+            {
+                ["FunctionName"] = "Assert",
+                ["ExternalType"] = typeof(Fifth.System.KG),
+                ["ExternalMethodName"] = "Assert"
+            },
+            Location = loc,
+            Parent = null
+        };
+
+        var assertExpr = new MemberAccessExp
+        {
+            Annotations = new Dictionary<string, object>(),
+            LHS = graphExpr,
+            RHS = assertCall,
+            Location = loc
+        };
+
         return new ExpStatement { RHS = assertExpr, Location = loc, Annotations = new Dictionary<string, object>() };
     }
 
@@ -337,7 +407,7 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             Location = loc,
             Parent = null
         };
-        
+
         var mergeExpr = new MemberAccessExp
         {
             Annotations = new Dictionary<string, object>(),
@@ -345,8 +415,68 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             RHS = mergeCall,
             Location = loc
         };
-        
+
         return new ExpStatement { RHS = mergeExpr, Location = loc, Annotations = new Dictionary<string, object>() };
+    }
+
+    /// <summary>
+    /// Create statement: graphExpr.Retract(tripleLiteral)
+    /// </summary>
+    private ExpStatement MakeRetractStatement(Expression graphExpr, TripleLiteralExp triple, SourceLocationMetadata loc)
+    {
+        var tripleExpr = CreateTripleExpression(triple, loc);
+
+        var retractCall = new FuncCallExp
+        {
+            InvocationArguments = new List<Expression> { tripleExpr },
+            Annotations = new Dictionary<string, object>
+            {
+                ["FunctionName"] = "Retract",
+                ["ExternalType"] = typeof(Fifth.System.KG),
+                ["ExternalMethodName"] = "Retract"
+            },
+            Location = loc,
+            Parent = null
+        };
+
+        var retractExpr = new MemberAccessExp
+        {
+            Annotations = new Dictionary<string, object>(),
+            LHS = graphExpr,
+            RHS = retractCall,
+            Location = loc
+        };
+
+        return new ExpStatement { RHS = retractExpr, Location = loc, Annotations = new Dictionary<string, object>() };
+    }
+
+    /// <summary>
+    /// Create statement: graphExpr.Retract(<tripleExpr>) where tripleExpr is already a KG.CreateTriple expression
+    /// </summary>
+    private ExpStatement MakeRetractStatement(Expression graphExpr, Expression tripleExpr, SourceLocationMetadata loc)
+    {
+        var retractCall = new FuncCallExp
+        {
+            InvocationArguments = new List<Expression> { tripleExpr },
+            Annotations = new Dictionary<string, object>
+            {
+                ["FunctionName"] = "Retract",
+                ["ExternalType"] = typeof(Fifth.System.KG),
+                ["ExternalMethodName"] = "Retract"
+            },
+            Location = loc,
+            Parent = null
+        };
+
+        var retractExpr = new MemberAccessExp
+        {
+            Annotations = new Dictionary<string, object>(),
+            LHS = graphExpr,
+            RHS = retractCall,
+            Location = loc
+        };
+
+        return new ExpStatement { RHS = retractExpr, Location = loc, Annotations = new Dictionary<string, object>() };
     }
 
     /// <summary>
@@ -355,7 +485,7 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
     private List<Statement> EmitAssertTriples(Expression graphExpr, Graph graphLiteral, SourceLocationMetadata loc)
     {
         var statements = new List<Statement>();
-        
+
         if (graphLiteral.Triples != null)
         {
             foreach (var triple in graphLiteral.Triples)
@@ -363,8 +493,26 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
                 statements.Add(MakeAssertStatement(graphExpr, triple, loc));
             }
         }
-        
+
         return statements;
+    }
+
+    /// <summary>
+    /// Given an expression that represents a triple (literal or KG.CreateTriple), return an expression that constructs it.
+    /// Returns null if the expression does not represent a triple.
+    /// </summary>
+    private Expression? GetTripleExpression(Expression expr, SourceLocationMetadata loc)
+    {
+        if (expr is TripleLiteralExp tl)
+        {
+            return CreateTripleExpression(tl, loc);
+        }
+        if (expr is MemberAccessExp ma && TryGetKGFunctionName(ma, out var fn)
+            && string.Equals(fn, "CreateTriple", StringComparison.Ordinal))
+        {
+            return expr;
+        }
+        return null;
     }
 
     public override RewriteResult VisitBinaryExp(BinaryExp ctx)
@@ -381,115 +529,191 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
         var rhs = (Expression)rhsResult.Node;
         var loc = ctx.Location ?? new SourceLocationMetadata(0, string.Empty, 0, string.Empty);
 
-        // Only lower addition if at least one operand is triple or graph-like
-        if (ctx.Operator == Operator.ArithmeticAdd)
+        // Helper: detect when this binary expression is expected to yield a graph (e.g., in a graph-typed variable initializer)
+        bool ExpectedGraphResult()
+        {
+            try
+            {
+                if (ctx.Parent is VarDeclStatement vds && vds.VariableDecl != null)
+                {
+                    var tn = vds.VariableDecl.TypeName.Value;
+                    if (!string.IsNullOrEmpty(tn))
+                    {
+                        return tn.Equals("graph", StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+            }
+            catch { /* best-effort heuristic */ }
+            return false;
+        }
+
+        // Lower addition/subtraction for graph/triple composition if any operand indicates triple/graph intent
+        if (ctx.Operator == Operator.ArithmeticAdd || ctx.Operator == Operator.ArithmeticSubtract)
         {
             bool leftIsTriple = IsTriple(lhs);
             bool rightIsTriple = IsTriple(rhs);
             bool leftIsGraph = IsGraph(lhs);
             bool rightIsGraph = IsGraph(rhs);
+            bool expectedGraph = ExpectedGraphResult();
 
-            if (leftIsTriple || rightIsTriple || leftIsGraph || rightIsGraph)
+            if (leftIsTriple || rightIsTriple || leftIsGraph || rightIsGraph || expectedGraph)
             {
-                // Case 1: triple + triple
-                if (leftIsTriple && rightIsTriple)
+                // Handle subtraction first: graph - triple => Retract
+                if (ctx.Operator == Operator.ArithmeticSubtract)
                 {
-                    var tmpName = $"__graph{_tmpCounter++}";
-                    
-                    // var g: graph = CreateGraph()
-                    var tmpDecl = new VariableDecl
+                    if (rightIsTriple)
                     {
-                        Name = tmpName,
-                        TypeName = TypeName.From("graph"),
-                        CollectionType = CollectionType.SingleInstance,
-                        Visibility = Visibility.Private,
-                        Location = loc,
-                        Annotations = new Dictionary<string, object>()
-                    };
-                    
-                    var createGraphCall = MakeCreateGraphCall(loc);
-                    var declStmt = new VarDeclStatement
-                    {
-                        VariableDecl = tmpDecl,
-                        InitialValue = createGraphCall,
-                        Location = loc,
-                        Annotations = new Dictionary<string, object>()
-                    };
-                    prologue.Add(declStmt);
-
-                    // g.Assert(lhs)
-                    var graphRef = new VarRefExp { VarName = tmpName, Location = loc };
-                    prologue.Add(MakeAssertStatement(graphRef, (TripleLiteralExp)lhs, loc));
-                    
-                    // g.Assert(rhs)
-                    prologue.Add(MakeAssertStatement(graphRef, (TripleLiteralExp)rhs, loc));
-
-                    // Result: VarRefExp(g) with graph type
-                    var resultVarRef = new VarRefExp 
-                    { 
-                        VarName = tmpName, 
-                        Location = loc,
-                        Type = new FifthType.TType { Name = TypeName.From("graph") }
-                    };
-                    return new RewriteResult(resultVarRef, prologue);
+                        var (graphExpr, ensurePrologue) = EnsureGraph(lhs, loc);
+                        prologue.AddRange(ensurePrologue);
+                        var tripleExpr = GetTripleExpression(rhs, loc);
+                        if (tripleExpr is not null)
+                        {
+                            prologue.Add(MakeRetractStatement(graphExpr, tripleExpr, loc));
+                            return new RewriteResult(graphExpr, prologue);
+                        }
+                        // If triple expression couldn't be recovered but LHS is graph-like,
+                        // assume RHS is a triple-typed expression and emit Retract(graph, rhs)
+                        if (leftIsGraph)
+                        {
+                            prologue.Add(MakeRetractStatement(graphExpr, rhs, loc));
+                            return new RewriteResult(graphExpr, prologue);
+                        }
+                        // If not graph-like, fall-through to preserve subtraction
+                        return new RewriteResult(ctx with { LHS = lhs, RHS = rhs }, prologue);
+                    }
+                    // Fallback: preserve subtraction for other types
                 }
 
-                // Case 2: graph + triple
-                if (leftIsGraph && rightIsTriple)
+                // Addition cases
+                if (ctx.Operator == Operator.ArithmeticAdd)
                 {
-                    // Ensure LHS is a graph reference
-                    var (graphExpr, ensurePrologue) = EnsureGraph(lhs, loc);
-                    prologue.AddRange(ensurePrologue);
-
-                    // graphLHS.Assert(triple)
-                    prologue.Add(MakeAssertStatement(graphExpr, (TripleLiteralExp)rhs, loc));
-
-                    // Result: VarRefExp to the graph
-                    return new RewriteResult(graphExpr, prologue);
-                }
-
-                // Case 3: triple + graph
-                if (leftIsTriple && rightIsGraph)
-                {
-                    // Ensure LHS is a graph (create temp, assert lhs triple)
-                    var (graphLHS, ensurePrologue) = EnsureGraph(lhs, loc);
-                    prologue.AddRange(ensurePrologue);
-
-                    // If RHS is a Graph literal, expand as per-triple Assert
-                    if (rhs is Graph graphLiteral)
+                    // Contextual fallback: if the expected result is a graph (e.g., g: graph = a + b),
+                    // ensure LHS is a graph and then merge/assert RHS accordingly, even if types aren't annotated yet.
+                    if (expectedGraph && !leftIsTriple && !rightIsTriple && !leftIsGraph && !rightIsGraph)
                     {
-                        prologue.AddRange(EmitAssertTriples(graphLHS, graphLiteral, loc));
-                    }
-                    else
-                    {
-                        // Non-literal RHS: use Merge
-                        prologue.Add(MakeMergeStatement(graphLHS, rhs, loc));
+                        var (graphLHS, ensurePrologue) = EnsureGraph(lhs, loc);
+                        prologue.AddRange(ensurePrologue);
+
+                        // Prefer merge semantics assuming RHS is a graph variable; if it's a graph literal, expand; if triple, assert.
+                        if (rhs is Graph graphLiteral0)
+                        {
+                            prologue.AddRange(EmitAssertTriples(graphLHS, graphLiteral0, loc));
+                        }
+                        else if (IsTriple(rhs))
+                        {
+                            var tripleExpr0 = GetTripleExpression(rhs, loc) ?? rhs;
+                            prologue.Add(MakeAssertStatement(graphLHS, tripleExpr0, loc));
+                        }
+                        else
+                        {
+                            // Assume RHS is a graph-typed expression and emit Merge
+                            prologue.Add(MakeMergeStatement(graphLHS, rhs, loc));
+                        }
+                        return new RewriteResult(graphLHS, prologue);
                     }
 
-                    // Result: VarRefExp to graphLHS
-                    return new RewriteResult(graphLHS, prologue);
-                }
-
-                // Case 4: graph + graph
-                if (leftIsGraph && rightIsGraph)
-                {
-                    // Ensure LHS is a graph reference
-                    var (graphLHS, ensurePrologue) = EnsureGraph(lhs, loc);
-                    prologue.AddRange(ensurePrologue);
-
-                    // If RHS is a Graph literal, expand as per-triple Assert
-                    if (rhs is Graph graphLiteral)
+                    // Case: triple + triple => new graph with both asserted
+                    if (leftIsTriple && rightIsTriple)
                     {
-                        prologue.AddRange(EmitAssertTriples(graphLHS, graphLiteral, loc));
-                    }
-                    else
-                    {
-                        // Non-literal RHS: use Merge
-                        prologue.Add(MakeMergeStatement(graphLHS, rhs, loc));
+                        var tmpName = $"__graph{_tmpCounter++}";
+
+                        var tmpDecl = new VariableDecl
+                        {
+                            Name = tmpName,
+                            TypeName = TypeName.From("graph"),
+                            CollectionType = CollectionType.SingleInstance,
+                            Visibility = Visibility.Private,
+                            Location = loc,
+                            Annotations = new Dictionary<string, object>()
+                        };
+
+                        var createGraphCall = MakeCreateGraphCall(loc);
+                        var declStmt = new VarDeclStatement
+                        {
+                            VariableDecl = tmpDecl,
+                            InitialValue = createGraphCall,
+                            Location = loc,
+                            Annotations = new Dictionary<string, object>()
+                        };
+                        prologue.Add(declStmt);
+
+                        var graphRef = new VarRefExp { VarName = tmpName, Location = loc };
+                        var leftTripleExpr = GetTripleExpression(lhs, loc);
+                        var rightTripleExpr = GetTripleExpression(rhs, loc);
+                        if (leftTripleExpr != null) prologue.Add(MakeAssertStatement(graphRef, leftTripleExpr, loc));
+                        if (rightTripleExpr != null) prologue.Add(MakeAssertStatement(graphRef, rightTripleExpr, loc));
+
+                        var resultVarRef = new VarRefExp
+                        {
+                            VarName = tmpName,
+                            Location = loc,
+                            Type = new FifthType.TType { Name = TypeName.From("graph") }
+                        };
+                        return new RewriteResult(resultVarRef, prologue);
                     }
 
-                    // Result: VarRefExp to graphLHS
-                    return new RewriteResult(graphLHS, prologue);
+                    // Case: <any> + triple => ensure LHS treated as graph, then Assert
+                    if (rightIsTriple)
+                    {
+                        var (graphExpr, ensurePrologue) = EnsureGraph(lhs, loc);
+                        prologue.AddRange(ensurePrologue);
+                        var tripleExpr = GetTripleExpression(rhs, loc);
+                        if (tripleExpr is not null)
+                        {
+                            prologue.Add(MakeAssertStatement(graphExpr, tripleExpr, loc));
+                        }
+                        else if (leftIsGraph)
+                        {
+                            // If triple expression couldn't be recovered but LHS is graph-like,
+                            // assume RHS is a triple expression and emit Assert(graph, rhs)
+                            prologue.Add(MakeAssertStatement(graphExpr, rhs, loc));
+                        }
+                        return new RewriteResult(graphExpr, prologue);
+                    }
+
+                    // Case: triple + graph-like => ensure LHS graph from triple, then Merge/expand RHS
+                    if (leftIsTriple && rightIsGraph)
+                    {
+                        var (graphLHS, ensurePrologue) = EnsureGraph(lhs, loc);
+                        prologue.AddRange(ensurePrologue);
+
+                        if (rhs is Graph graphLiteral2)
+                        {
+                            prologue.AddRange(EmitAssertTriples(graphLHS, graphLiteral2, loc));
+                        }
+                        else
+                        {
+                            prologue.Add(MakeMergeStatement(graphLHS, rhs, loc));
+                        }
+                        return new RewriteResult(graphLHS, prologue);
+                    }
+
+                    // Case: <any> + graph-like => ensure LHS is graph (pass-through if already var), then Merge/expand RHS
+                    if (rightIsGraph)
+                    {
+                        var (graphLHS, ensurePrologue) = EnsureGraph(lhs, loc);
+                        prologue.AddRange(ensurePrologue);
+
+                        if (rhs is Graph graphLiteral3)
+                        {
+                            prologue.AddRange(EmitAssertTriples(graphLHS, graphLiteral3, loc));
+                        }
+                        else
+                        {
+                            prologue.Add(MakeMergeStatement(graphLHS, rhs, loc));
+                        }
+                        return new RewriteResult(graphLHS, prologue);
+                    }
+
+                    // Additional heuristic: if LHS is graph-like and RHS is not graph-like but we're here
+                    // due to graph/triple intent, treat RHS as a triple expression and Assert it.
+                    if (leftIsGraph)
+                    {
+                        var (graphExpr, ensurePrologue) = EnsureGraph(lhs, loc);
+                        prologue.AddRange(ensurePrologue);
+                        prologue.Add(MakeAssertStatement(graphExpr, rhs, loc));
+                        return new RewriteResult(graphExpr, prologue);
+                    }
                 }
             }
         }
@@ -500,7 +724,7 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             LHS = lhs,
             RHS = rhs
         };
-        
+
         return new RewriteResult(rewrittenBinary, prologue);
     }
 }

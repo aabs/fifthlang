@@ -290,7 +290,8 @@ public static class KG
     [BuiltinFunction]
     public static IUriNode CreateUriNode(string uri)
     {
-        return new UriNode(new Uri(uri));
+        var factory = new NodeFactory();
+        return factory.CreateUriNode(new Uri(uri));
     }
 
     /// <summary>
@@ -301,7 +302,8 @@ public static class KG
     [BuiltinFunction]
     public static IUriNode CreateUriNode(Uri uri)
     {
-        return new UriNode(uri);
+        var factory = new NodeFactory();
+        return factory.CreateUriNode(uri);
     }
 
     /// <summary>
@@ -312,7 +314,8 @@ public static class KG
     [BuiltinFunction]
     public static ILiteralNode CreateLiteralNode(int value)
     {
-        return new LiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#int"));
+        var factory = new NodeFactory();
+        return factory.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#int"));
     }
 
     /// <summary>
@@ -323,7 +326,8 @@ public static class KG
     [BuiltinFunction]
     public static ILiteralNode CreateLiteralNode(long value)
     {
-        return new LiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#long"));
+        var factory = new NodeFactory();
+        return factory.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#long"));
     }
 
     /// <summary>
@@ -334,7 +338,8 @@ public static class KG
     [BuiltinFunction]
     public static ILiteralNode CreateLiteralNode(string value)
     {
-        return new LiteralNode(value);
+        var factory = new NodeFactory();
+        return factory.CreateLiteralNode(value);
     }
 
     /// <summary>
@@ -345,7 +350,8 @@ public static class KG
     [BuiltinFunction]
     public static ILiteralNode CreateLiteralNode(double value)
     {
-        return new LiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#double"));
+        var factory = new NodeFactory();
+        return factory.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#double"));
     }
 
     /// <summary>
@@ -356,7 +362,8 @@ public static class KG
     [BuiltinFunction]
     public static ILiteralNode CreateLiteralNode(float value)
     {
-        return new LiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#float"));
+        var factory = new NodeFactory();
+        return factory.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#float"));
     }
 
     /// <summary>
@@ -367,7 +374,8 @@ public static class KG
     [BuiltinFunction]
     public static ILiteralNode CreateLiteralNode(bool value)
     {
-        return new LiteralNode(value ? "true" : "false", UriFactory.Create("http://www.w3.org/2001/XMLSchema#boolean"));
+        var factory = new NodeFactory();
+        return factory.CreateLiteralNode(value ? "true" : "false", UriFactory.Create("http://www.w3.org/2001/XMLSchema#boolean"));
     }
 
     /// <summary>
@@ -392,7 +400,17 @@ public static class KG
     [BuiltinFunction]
     public static IGraph Assert(this IGraph g, Triple t)
     {
-        g.Assert(t);
+        // Avoid calling this extension recursively: prefer concrete Graph instance method,
+        // otherwise fall back to an enumerable-based Assert on the interface.
+        if (g is Graph concrete)
+        {
+            concrete.Assert(t);
+        }
+        else
+        {
+            // Use IEnumerable/params-based overload on IGraph to avoid extension recursion
+            g.Assert(new[] { t });
+        }
         try
         {
             Console.WriteLine($"KG.DEBUG: Assert called. Graph baseUri={g.BaseUri?.AbsoluteUri ?? "(null)"}, triples={g.Triples.Count}");
@@ -413,7 +431,16 @@ public static class KG
     [BuiltinFunction]
     public static IGraph Retract(this IGraph g, Triple t)
     {
-        g.Retract(t);
+        // Avoid calling this extension recursively: prefer concrete Graph instance method,
+        // otherwise fall back to an enumerable-based Retract on the interface.
+        if (g is Graph concrete)
+        {
+            concrete.Retract(t);
+        }
+        else
+        {
+            g.Retract(new[] { t });
+        }
         return g;
     }
     /// <summary>
@@ -425,7 +452,18 @@ public static class KG
     [BuiltinFunction]
     public static IGraph Merge(this IGraph target, IGraph source)
     {
-        target.Merge(source);
+        // Avoid calling this extension recursively: explicitly copy triples
+        foreach (var t in source.Triples)
+        {
+            if (target is Graph concrete)
+            {
+                concrete.Assert(t);
+            }
+            else
+            {
+                target.Assert(new[] { t });
+            }
+        }
         return target;
     }
 
@@ -438,7 +476,11 @@ public static class KG
     public static IGraph CopyGraph(IGraph source)
     {
         var result = new Graph();
-        result.Merge(source);
+        // Copy triples explicitly to avoid relying on extension methods
+        foreach (var t in source.Triples)
+        {
+            result.Assert(t);
+        }
         return result;
     }
 
@@ -449,7 +491,12 @@ public static class KG
     public static IGraph Difference(IGraph a, IGraph b)
     {
         var result = new Graph();
-        result.Merge(a);
+        // Start with a copy of 'a'
+        foreach (var t in a.Triples)
+        {
+            result.Assert(t);
+        }
+        // Remove all triples from 'b'
         foreach (var t in b.Triples)
         {
             result.Retract(t);

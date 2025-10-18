@@ -33,6 +33,10 @@ public static class FifthParserManager
         SymbolTableFinal = 16,
         VarRefResolver = 17,
         TypeAnnotation = 18,
+        // All should run through the graph/triple operator lowering so downstream backends never
+        // see raw '+'/'-' between graphs/triples.
+        // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
+        // All must be >= TypeAnnotation to ensure that block executes and the lowering runs.
         All = TypeAnnotation
     }
 
@@ -156,12 +160,9 @@ public static class FifthParserManager
             ast = new TripleExpansionVisitor(diagnostics).Visit(ast);
         }
 
-        if (upTo >= AnalysisPhase.GraphTripleOperatorLowering)
-        {
-            ast = (AstThing)new TripleGraphAdditionLoweringRewriter().Rewrite(ast).Node;
-            // Re-link tree after rewriter creates new nodes
-            ast = new TreeLinkageVisitor().Visit(ast);
-        }
+        // NOTE: GraphTripleOperatorLowering moved to after TypeAnnotation so that
+        // VarRefExp nodes have proper types (e.g., 'graph') and lowering can make
+        // reliable decisions (graph+graph, graph+triple, etc.).
 
         if (upTo >= AnalysisPhase.SymbolTableFinal)
             ast = new SymbolTableBuilderVisitor().Visit(ast);
@@ -173,13 +174,13 @@ public static class FifthParserManager
         {
             var typeAnnotationVisitor = new TypeAnnotationVisitor();
             ast = typeAnnotationVisitor.Visit(ast);
-            
+
             // Rebuild symbol table after type annotation to ensure all references point to
             // the updated AST nodes with proper types and CollectionType information.
             // This fixes the stale reference issue where the symbol table contains old nodes
             // from before type annotation transformed the immutable AST.
             ast = new SymbolTableBuilderVisitor().Visit(ast);
-            
+
             // Collect type checking errors (only Error severity, not Info)
             if (diagnostics != null)
             {
@@ -192,10 +193,41 @@ public static class FifthParserManager
                         "TYPE_ERROR");
                     diagnostics.Add(diagnostic);
                 }
-                
+
                 if (diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
                 {
                     return null;
+                }
+            }
+
+            // Now run GraphTripleOperatorLowering with full type info available.
+            if (upTo >= AnalysisPhase.GraphTripleOperatorLowering)
+            {
+                ast = (AstThing)new TripleGraphAdditionLoweringRewriter().Rewrite(ast).Node;
+                // Re-link after rewriting, then rebuild symbol table and re-run var ref resolver + type annotation
+                ast = new TreeLinkageVisitor().Visit(ast);
+                ast = new SymbolTableBuilderVisitor().Visit(ast);
+                ast = new VarRefResolverVisitor().Visit(ast);
+                var typeAnnotationVisitor2 = new TypeAnnotationVisitor();
+                ast = typeAnnotationVisitor2.Visit(ast);
+                ast = new SymbolTableBuilderVisitor().Visit(ast);
+
+                if (diagnostics != null)
+                {
+                    foreach (var error in typeAnnotationVisitor2.Errors.Where(e => e.Severity == TypeCheckingSeverity.Error))
+                    {
+                        var diagnostic = new compiler.Diagnostic(
+                            compiler.DiagnosticLevel.Error,
+                            $"{error.Message} at {error.Filename}:{error.Line}:{error.Column}",
+                            error.Filename,
+                            "TYPE_ERROR");
+                        diagnostics.Add(diagnostic);
+                    }
+
+                    if (diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
+                    {
+                        return null;
+                    }
                 }
             }
         }

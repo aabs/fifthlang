@@ -92,75 +92,50 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             var lhsExpr = (Expression)Visit(context.lvalue);
             var rhsExpr = (Expression)Visit(context.rvalue);
 
-            // Determine operation type based on rhs:
-            // - If rhs is a TripleLiteralExp: graph += triple -> graph = graph + triple
-            // - Otherwise: store operation (KG.SaveGraph)
-            if (rhsExpr is TripleLiteralExp)
+            // Heuristic: prefer graph-add semantics unless RHS is clearly a graph
+            bool RhsLooksLikeGraph(Expression e)
             {
-                // Graph operation: desugar to lvalue = lvalue + rvalue
-                var addExpr = new BinaryExp
+                if (e is Graph || e is GraphAssertionBlockExp) return true;
+                if (e is MemberAccessExp ma && ma.RHS is FuncCallExp fc &&
+                    fc.Annotations != null && fc.Annotations.TryGetValue("FunctionName", out var fnObj) && fnObj is string fn &&
+                    string.Equals(fn, "CreateGraph", StringComparison.Ordinal))
                 {
-                    Annotations = [],
-                    LHS = lhsExpr,
-                    RHS = rhsExpr,
-                    Operator = Operator.ArithmeticAdd,
-                    Location = GetLocationDetails(context),
-                    Type = Void
-                };
-
-                var b = new AssignmentStatementBuilder()
-                    .WithAnnotations([])
-                    .WithLValue(lhsExpr)
-                    .WithRValue(addExpr);
-                var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-                return result;
+                    return true;
+                }
+                return false;
             }
-            else
-            {
-                // Original store operation: desugar to KG.SaveGraph(lvalue, rvalue)
-                // Prefer using an in-scope variable for the store if available; else fallback to KG.CreateStore()
-                Expression storeArg;
-                if (lhsExpr is VarRefExp v && IsNameInCurrentFunctionScope(v.VarName))
-                {
-                    storeArg = v;
-                }
-                else
-                {
-                    var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
-                    storeArg = new MemberAccessExp
-                    {
-                        Annotations = [],
-                        LHS = kgVar,
-                        RHS = new FuncCallExp
-                        {
-                            FunctionDef = null,
-                            InvocationArguments = [],
-                            Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateStore" },
-                            Location = GetLocationDetails(context),
-                            Parent = null,
-                            Type = null
-                        },
-                        Location = GetLocationDetails(context),
-                        Type = Void
-                    };
-                }
 
-                var kgVar2 = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
-                var func = new FuncCallExp
+            bool RhsLooksLikeTriple(Expression e)
+            {
+                if (e is TripleLiteralExp) return true;
+                if (e is MemberAccessExp ma && ma.RHS is FuncCallExp fc &&
+                    fc.Annotations != null && fc.Annotations.TryGetValue("FunctionName", out var fnObj) && fnObj is string fn &&
+                    string.Equals(fn, "CreateTriple", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+                if (e is VarRefExp) return true; // treat unknown var as likely triple to enable lowering later
+                return false;
+            }
+
+            if (RhsLooksLikeTriple(rhsExpr) || !RhsLooksLikeGraph(rhsExpr))
+            {
+                // Graph operation: emit extension call lhs.Assert(rhs)
+                var assertCall = new FuncCallExp
                 {
                     FunctionDef = null,
-                    InvocationArguments = [storeArg, rhsExpr],
-                    Annotations = new Dictionary<string, object> { ["FunctionName"] = "SaveGraph" },
+                    InvocationArguments = [rhsExpr],
+                    Annotations = new Dictionary<string, object> { ["FunctionName"] = "Assert" },
                     Location = GetLocationDetails(context),
                     Parent = null,
                     Type = null
                 };
 
-                var call = new MemberAccessExp
+                var member = new MemberAccessExp
                 {
                     Annotations = [],
-                    LHS = kgVar2,
-                    RHS = func,
+                    LHS = lhsExpr,
+                    RHS = assertCall,
                     Location = GetLocationDetails(context),
                     Type = Void
                 };
@@ -168,11 +143,67 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 return new ExpStatement
                 {
                     Annotations = [],
-                    RHS = call,
+                    RHS = member,
                     Location = GetLocationDetails(context),
                     Type = Void
                 };
             }
+
+            // Otherwise treat as store operation: desugar to KG.SaveGraph(lvalue, rvalue)
+            // Prefer using an in-scope variable for the store if available; else fallback to KG.CreateStore()
+            Expression storeArg2;
+            if (lhsExpr is VarRefExp v2 && IsNameInCurrentFunctionScope(v2.VarName))
+            {
+                storeArg2 = v2;
+            }
+            else
+            {
+                var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
+                storeArg2 = new MemberAccessExp
+                {
+                    Annotations = [],
+                    LHS = kgVar,
+                    RHS = new FuncCallExp
+                    {
+                        FunctionDef = null,
+                        InvocationArguments = [],
+                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateStore" },
+                        Location = GetLocationDetails(context),
+                        Parent = null,
+                        Type = null
+                    },
+                    Location = GetLocationDetails(context),
+                    Type = Void
+                };
+            }
+
+            var kgVar3 = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
+            var func2 = new FuncCallExp
+            {
+                FunctionDef = null,
+                InvocationArguments = [storeArg2, rhsExpr],
+                Annotations = new Dictionary<string, object> { ["FunctionName"] = "SaveGraph" },
+                Location = GetLocationDetails(context),
+                Parent = null,
+                Type = null
+            };
+
+            var call2 = new MemberAccessExp
+            {
+                Annotations = [],
+                LHS = kgVar3,
+                RHS = func2,
+                Location = GetLocationDetails(context),
+                Type = Void
+            };
+
+            return new ExpStatement
+            {
+                Annotations = [],
+                RHS = call2,
+                Location = GetLocationDetails(context),
+                Type = Void
+            };
         }
 
         // Support '-=' by desugaring to: lvalue = lvalue - rvalue
@@ -180,8 +211,52 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         {
             var lhsExpr = (Expression)Visit(context.lvalue);
             var rhsExpr = (Expression)Visit(context.rvalue);
-            
-            // Create binary expression: lvalue - rvalue
+
+            // If RHS looks like a triple, emit lhs.Retract(rhs); otherwise fall back to binary '-'
+            bool RhsLooksLikeTriple(Expression e)
+            {
+                if (e is TripleLiteralExp) return true;
+                if (e is MemberAccessExp ma && ma.RHS is FuncCallExp fc &&
+                    fc.Annotations != null && fc.Annotations.TryGetValue("FunctionName", out var fnObj) && fnObj is string fn &&
+                    string.Equals(fn, "CreateTriple", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+                if (e is VarRefExp) return true;
+                return false;
+            }
+
+            if (RhsLooksLikeTriple(rhsExpr))
+            {
+                var retractCall = new FuncCallExp
+                {
+                    FunctionDef = null,
+                    InvocationArguments = [rhsExpr],
+                    Annotations = new Dictionary<string, object> { ["FunctionName"] = "Retract" },
+                    Location = GetLocationDetails(context),
+                    Parent = null,
+                    Type = null
+                };
+
+                var member = new MemberAccessExp
+                {
+                    Annotations = [],
+                    LHS = lhsExpr,
+                    RHS = retractCall,
+                    Location = GetLocationDetails(context),
+                    Type = Void
+                };
+
+                return new ExpStatement
+                {
+                    Annotations = [],
+                    RHS = member,
+                    Location = GetLocationDetails(context),
+                    Type = Void
+                };
+            }
+
+            // Fallback: lvalue = lvalue - rvalue
             var subtractExpr = new BinaryExp
             {
                 Annotations = [],
@@ -192,7 +267,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 Type = Void
             };
 
-            // Create assignment: lvalue = (lvalue - rvalue)
             var b = new AssignmentStatementBuilder()
                 .WithAnnotations([])
                 .WithLValue(lhsExpr)
@@ -1039,7 +1113,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
          .WithAccessConstraints([AccessConstraint.None])
          .WithIsReadOnly(false)
          .WithIsWriteOnly(false);
-        
+
         // Parse type_spec to support arrays, lists, and generic types
         var typeSpec = context.type;
         if (typeSpec != null)
@@ -1048,7 +1122,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             b.WithTypeName(typeName);
             b.WithCollectionType(collectionType);
         }
-        
+
         // todo:  There's a lot more detail that could be filled in here, and a lot more
         // sophistication needed in the grammar of the decl
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
@@ -1100,7 +1174,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             // [type_spec] - list of type_spec
             var innerTypeSpec = listType.type_spec();
             var (innerTypeName, innerCollectionType) = ParseTypeSpec(innerTypeSpec);
-            
+
             // For now, flatten nested collections - this is a limitation
             // TODO: Support fully nested types in AST model
             if (innerCollectionType != CollectionType.SingleInstance)
@@ -1115,7 +1189,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             // type_spec[] - array of type_spec
             var innerTypeSpec = arrayType.type_spec();
             var (innerTypeName, innerCollectionType) = ParseTypeSpec(innerTypeSpec);
-            
+
             // For now, flatten nested collections
             if (innerCollectionType != CollectionType.SingleInstance)
             {
@@ -1129,7 +1203,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             var genericName = genericType.IDENTIFIER().GetText();
             var innerTypeSpec = genericType.type_spec();
             var (innerTypeName, _) = ParseTypeSpec(innerTypeSpec);
-            
+
             if (string.Equals(genericName, "list", StringComparison.OrdinalIgnoreCase))
             {
                 return (innerTypeName, CollectionType.List);
@@ -1143,7 +1217,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 return (innerTypeName, CollectionType.SingleInstance);
             }
         }
-        
+
         // Fallback
         return (TypeName.From(typeSpec.GetText()), CollectionType.SingleInstance);
     }
@@ -1334,8 +1408,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
         // Visit the expression on the right-hand side of the assignment
         // This can be a graphAssertionBlock, a binary operation on graphs/triples, or any other expression
-        var initExpr = context.expression() != null 
-            ? Visit(context.expression()) as Expression 
+        var initExpr = context.expression() != null
+            ? Visit(context.expression()) as Expression
             : null;
 
         // If no expression provided, create an empty graph via KG.CreateGraph()
@@ -1526,7 +1600,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         {
             annotations["ArraySize"] = arraySizeExpr;
         }
-        
+
         var result = new ObjectInitializerExp
         {
             TypeToInitialize = typeToInitialize,
@@ -1544,7 +1618,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         // Create base type
         var baseType = new FifthType.TType() { Name = typeName };
-        
+
         // Wrap in collection type if needed
         return collectionType switch
         {

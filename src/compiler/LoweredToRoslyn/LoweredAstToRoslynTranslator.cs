@@ -31,7 +31,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 {
     // Track variables that have been declared in the current method scope
     private HashSet<string> _declaredVariables = new HashSet<string>();
-    
+
     /// <summary>
     /// Translate AssemblyDef (from IBackendTranslator interface)
     /// </summary>
@@ -311,12 +311,12 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         var varName = SanitizeIdentifier(varDecl.VariableDecl.Name.ToString());
         // Track that this variable has been declared
         _declaredVariables.Add(varName);
-        
+
         // TypeName is a value object, so ToString() should work
         var typeName = varDecl.VariableDecl.TypeName != null
             ? MapTypeName(varDecl.VariableDecl.TypeName.ToString())
             : "var";
-        
+
         // If the initializer is a list/array literal, use 'var' to let C# infer the array type
         // This handles cases where Fifth's type system represents int[] differently than expected
         if (varDecl.InitialValue is List)
@@ -387,7 +387,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         // Fifth uses int for bool (0=false, non-zero=true), but comparison operators return bool
         condition = EnsureBooleanExpression(condition, whileStmt.Condition);
         var body = BuildBlockStatement(whileStmt.Body);
-        
+
         return WhileStatement(condition, body);
     }
 
@@ -397,13 +397,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         if (assignStmt.LValue is VarRefExp varRef)
         {
             var varName = SanitizeIdentifier(varRef.VarName);
-            
+
             // If this variable hasn't been declared yet, create a declaration with var
             if (!_declaredVariables.Contains(varName))
             {
                 _declaredVariables.Add(varName);
                 var value = TranslateExpression(assignStmt.RValue);
-                
+
                 return LocalDeclarationStatement(
                     VariableDeclaration(IdentifierName("var"))
                         .AddVariables(
@@ -411,11 +411,11 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                                 .WithInitializer(EqualsValueClause(value))));
             }
         }
-        
+
         // Regular assignment for already-declared variables or complex lvalues
         var target = TranslateExpression(assignStmt.LValue);
         var valueExpr = TranslateExpression(assignStmt.RValue);
-        
+
         return ExpressionStatement(
             AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
@@ -438,7 +438,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 Literal(NormalizeStringLiteral(strLit.Value))),
             UriLiteralExp uriLit => ObjectCreationExpression(IdentifierName("Uri"))
                 .WithArgumentList(ArgumentList(SingletonSeparatedList(
-                    Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, 
+                    Argument(LiteralExpression(SyntaxKind.StringLiteralExpression,
                         Literal(uriLit.Value.ToString())))))),
             VarRefExp varRef => IdentifierName(SanitizeIdentifier(varRef.VarName)),
             BinaryExp binExp => TranslateBinaryExpression(binExp),
@@ -449,8 +449,30 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             ObjectInitializerExp objInit => TranslateObjectInitializerExpression(objInit),
             UnaryExp unary => TranslateUnaryExpression(unary),
             TripleLiteralExp triple => TranslateTripleLiteralExpression(triple),
+            GraphAssertionBlockExp gab => TranslateGraphAssertionBlockExpression(gab),
             _ => DefaultExpression(IdentifierName("object")) // Fallback for unsupported expressions
         };
+    }
+
+    private ExpressionSyntax TranslateGraphAssertionBlockExpression(GraphAssertionBlockExp gab)
+    {
+        // Preferred: the GraphAssertionLoweringVisitor annotates expression-form GABs
+        // with a lowered expression under Annotations["GraphExpr"]. Use that if present.
+        if (gab.Annotations != null &&
+            gab.Annotations.TryGetValue("GraphExpr", out var loweredExprObj) &&
+            loweredExprObj is Expression loweredExpr)
+        {
+            return TranslateExpression(loweredExpr);
+        }
+
+        // Fallback: emit an empty graph creation so "<{}>" compiles to a valid IGraph
+        // Generate: Fifth.System.KG.CreateGraph()
+        return InvocationExpression(
+                MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    CreateQualifiedName("Fifth.System.KG"),
+                    IdentifierName("CreateGraph")))
+            .WithArgumentList(ArgumentList());
     }
 
     /// <summary>
@@ -474,6 +496,42 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private ExpressionSyntax TranslateBinaryExpression(BinaryExp binExp)
     {
+        // Special-case graph/triple operators to avoid emitting raw '+'/'-' for graphs
+        // This is a defensive fallback; the normal pipeline should lower these earlier.
+        bool lhsIsGraphLike = IsGraphType(binExp.LHS);
+        bool rhsIsGraphLike = IsGraphType(binExp.RHS);
+
+        if (binExp.Operator == Operator.ArithmeticAdd && (lhsIsGraphLike || rhsIsGraphLike))
+        {
+            // Emit: KG.Merge(KG.CopyGraph(lhsGraph), rhsGraph)
+            var lhsExpr = TranslateExpression(binExp.LHS);
+            var rhsExpr = TranslateExpression(binExp.RHS);
+            var copyCall = InvocationExpression(
+                MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                CreateQualifiedName("Fifth.System.KG"),
+                IdentifierName("CopyGraph")))
+            .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(lhsExpr))));
+            return InvocationExpression(
+                MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                CreateQualifiedName("Fifth.System.KG"),
+                IdentifierName("Merge")))
+            .WithArgumentList(ArgumentList(SeparatedList(new[] { Argument(copyCall), Argument(rhsExpr) })));
+        }
+        if (binExp.Operator == Operator.ArithmeticSubtract && (lhsIsGraphLike || rhsIsGraphLike))
+        {
+            // Emit: KG.Difference(lhsGraph, rhsGraph)
+            var lhsExpr = TranslateExpression(binExp.LHS);
+            var rhsExpr = TranslateExpression(binExp.RHS);
+            return InvocationExpression(
+                MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                CreateQualifiedName("Fifth.System.KG"),
+                IdentifierName("Difference")))
+            .WithArgumentList(ArgumentList(SeparatedList(new[] { Argument(lhsExpr), Argument(rhsExpr) })));
+        }
+
         var left = TranslateExpression(binExp.LHS);
         var right = TranslateExpression(binExp.RHS);
 
@@ -507,7 +565,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private bool IsGraphType(Expression expr)
     {
         if (expr == null) return false;
-        
+
         // Check if the expression's type is "graph" or "IGraph"
         var typeName = expr.Type?.ToString() ?? "";
         return typeName.Contains("graph", StringComparison.OrdinalIgnoreCase) ||
@@ -533,7 +591,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 case Operator.GreaterThanOrEqual:
                     // These already return bool, no conversion needed
                     return expr;
-                
+
                 case Operator.LogicalAnd:
                 case Operator.LogicalOr:
                     // These will be handled by TranslateBinaryExpression which already
@@ -541,13 +599,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                     return expr;
             }
         }
-        
+
         // For boolean literals, no conversion needed
         if (originalExpr is BooleanLiteralExp)
         {
             return expr;
         }
-        
+
         // For other expressions (likely integers), add the != 0 check
         return IntToBoolConversion(expr);
     }
@@ -559,9 +617,28 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             funcCall.Annotations.TryGetValue("ExternalType", out var extTypeObj) && extTypeObj is Type extType)
         {
             var typeName = extType.FullName ?? extType.Name;
-            var methodName = funcCall.Annotations.TryGetValue("ExternalMethodName", out var extNameObj) && extNameObj is string extMethod
-                ? SanitizeIdentifier(extMethod)
-                : (funcCall.FunctionDef != null ? SanitizeIdentifier(funcCall.FunctionDef.Name.ToString()) : "UnknownFunction");
+            // Resolve method name preference order:
+            // 1) Explicit ExternalMethodName (set by linkage)
+            // 2) Resolved FunctionDef name
+            // 3) Parser-provided FunctionName annotation
+            // 4) Fallback: UnknownFunction (should be rare)
+            string methodName;
+            if (funcCall.Annotations.TryGetValue("ExternalMethodName", out var extNameObj) && extNameObj is string extMethod)
+            {
+                methodName = SanitizeIdentifier(extMethod);
+            }
+            else if (funcCall.FunctionDef != null)
+            {
+                methodName = SanitizeIdentifier(funcCall.FunctionDef.Name.ToString());
+            }
+            else if (funcCall.Annotations != null && funcCall.Annotations.TryGetValue("FunctionName", out var fnAnno) && fnAnno is string fnStr && !string.IsNullOrWhiteSpace(fnStr))
+            {
+                methodName = SanitizeIdentifier(fnStr);
+            }
+            else
+            {
+                methodName = "UnknownFunction";
+            }
 
             var argList = new List<ArgumentSyntax>();
             foreach (var arg in funcCall.InvocationArguments)
@@ -569,18 +646,31 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 argList.Add(Argument(TranslateExpression(arg)));
             }
 
+            // Always emit fully-qualified static call: Type.Method(args)
+            var typeNameSyntax = CreateQualifiedName(typeName);
             return InvocationExpression(
                     MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName(typeName),
+                        typeNameSyntax,
                         IdentifierName(methodName)))
                 .WithArgumentList(ArgumentList(SeparatedList(argList)));
         }
 
         // Regular function call
-        string funcName = funcCall.FunctionDef != null
-            ? SanitizeIdentifier(funcCall.FunctionDef.Name.ToString())
-            : "UnknownFunction";
+        // Best-effort resolution for unbound calls: prefer FunctionDef, then FunctionName annotation
+        string funcName;
+        if (funcCall.FunctionDef != null)
+        {
+            funcName = SanitizeIdentifier(funcCall.FunctionDef.Name.ToString());
+        }
+        else if (funcCall.Annotations != null && funcCall.Annotations.TryGetValue("FunctionName", out var fnAnno2) && fnAnno2 is string fnStr2 && !string.IsNullOrWhiteSpace(fnStr2))
+        {
+            funcName = SanitizeIdentifier(fnStr2);
+        }
+        else
+        {
+            funcName = "UnknownFunction";
+        }
 
         var arguments = new List<ArgumentSyntax>();
         foreach (var arg in funcCall.InvocationArguments)
@@ -614,25 +704,39 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 funcCall.Annotations.TryGetValue("ExternalType", out var extTypeObj) && extTypeObj is Type extType)
             {
                 var typeName = extType.FullName ?? extType.Name;
-                var resolvedMethodName = funcCall.Annotations.TryGetValue("ExternalMethodName", out var extNameObj) && extNameObj is string extMethod
-                    ? SanitizeIdentifier(extMethod)
-                    : (funcCall.FunctionDef != null ? SanitizeIdentifier(funcCall.FunctionDef.Name.ToString()) : "UnknownFunction");
+                // Resolve external method name with sane fallbacks (ExternalMethodName -> FunctionDef -> FunctionName)
+                string resolvedMethodName;
+                if (funcCall.Annotations.TryGetValue("ExternalMethodName", out var extNameObj) && extNameObj is string extMethod)
+                {
+                    resolvedMethodName = SanitizeIdentifier(extMethod);
+                }
+                else if (funcCall.FunctionDef != null)
+                {
+                    resolvedMethodName = SanitizeIdentifier(funcCall.FunctionDef.Name.ToString());
+                }
+                else if (funcCall.Annotations != null && funcCall.Annotations.TryGetValue("FunctionName", out var fnAnno3) && fnAnno3 is string fnStr3 && !string.IsNullOrWhiteSpace(fnStr3))
+                {
+                    resolvedMethodName = SanitizeIdentifier(fnStr3);
+                }
+                else
+                {
+                    resolvedMethodName = "UnknownFunction";
+                }
 
-                // Check if the LHS is a type reference (e.g., VarRefExp with VarName = "KG")
-                bool lhsIsTypeReference = memberAccess.LHS is VarRefExp varRefLhs && 
-                    (varRefLhs.VarName == "KG" || varRefLhs.VarName == extType.Name);
-                
+                // Check if the LHS is a type reference (e.g., VarRefExp with VarName = "KG" or resolved type name)
+                bool lhsIsTypeReference = memberAccess.LHS is VarRefExp varRefLhs &&
+                    (varRefLhs.VarName == "KG" || varRefLhs.VarName == extType.Name || varRefLhs.VarName == "std");
+
+                var typeNameSyntax = CreateQualifiedName(typeName);
+
                 if (lhsIsTypeReference)
                 {
-                    // Static method call: KG.CreateGraph()
+                    // Static method call: KG.Method(args)
                     var arguments = new List<ArgumentSyntax>();
                     foreach (var arg in funcCall.InvocationArguments)
                     {
                         arguments.Add(Argument(TranslateExpression(arg)));
                     }
-
-                    // Create qualified name for the type (e.g., "Fifth.System.KG" -> Fifth.System.KG)
-                    var typeNameSyntax = CreateQualifiedName(typeName);
 
                     return InvocationExpression(
                             MemberAccessExpression(
@@ -643,27 +747,40 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 }
                 else
                 {
-                    // Extension method call: obj.Method(args) 
-                    var argumentsInst = new List<ArgumentSyntax>();
+                    // For external calls on an instance (extension methods), emit static invocation
+                    // Special handling for Fifth.System.KG extension methods: KG.Method(obj, args)
+                    var arguments = new List<ArgumentSyntax>();
+                    // First argument is the instance (for extension methods)
+                    arguments.Add(Argument(objExpr));
                     foreach (var arg in funcCall.InvocationArguments)
                     {
-                        argumentsInst.Add(Argument(TranslateExpression(arg)));
+                        arguments.Add(Argument(TranslateExpression(arg)));
                     }
 
-                    var member = MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        objExpr,
-                        IdentifierName(resolvedMethodName));
-
-                    return InvocationExpression(member)
-                        .WithArgumentList(ArgumentList(SeparatedList(argumentsInst)));
+                    return InvocationExpression(
+                            MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                typeNameSyntax,
+                                IdentifierName(resolvedMethodName)))
+                        .WithArgumentList(ArgumentList(SeparatedList(arguments)));
                 }
             }
 
             // Instance call: obj.Method(args)
-            string methodName = funcCall.FunctionDef != null
-                ? SanitizeIdentifier(funcCall.FunctionDef.Name.ToString())
-                : "UnknownFunction";
+            // Instance call fallback: prefer FunctionDef name, then FunctionName annotation
+            string methodName;
+            if (funcCall.FunctionDef != null)
+            {
+                methodName = SanitizeIdentifier(funcCall.FunctionDef.Name.ToString());
+            }
+            else if (funcCall.Annotations != null && funcCall.Annotations.TryGetValue("FunctionName", out var fnAnno4) && fnAnno4 is string fnStr4 && !string.IsNullOrWhiteSpace(fnStr4))
+            {
+                methodName = SanitizeIdentifier(fnStr4);
+            }
+            else
+            {
+                methodName = "UnknownFunction";
+            }
 
             var argumentsInst2 = new List<ArgumentSyntax>();
             foreach (var arg in funcCall.InvocationArguments)
@@ -689,7 +806,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     {
         var target = TranslateExpression(indexer.IndexExpression);
         var index = TranslateExpression(indexer.OffsetExpression);
-        
+
         // Generate: target[index]
         return ElementAccessExpression(target)
             .WithArgumentList(
@@ -715,7 +832,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                     SyntaxKind.ArrayInitializerExpression,
                     SeparatedList(elements)));
         }
-        
+
         // Fallback for unsupported list types
         return DefaultExpression(IdentifierName("object"));
     }
@@ -740,14 +857,14 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         {
             typeName = "object";
         }
-        
+
         // If there are no property initializers, create simple object creation: new TypeName()
         if (objInit.PropertyInitialisers == null || objInit.PropertyInitialisers.Count == 0)
         {
             return ObjectCreationExpression(IdentifierName(typeName))
                 .WithArgumentList(ArgumentList());
         }
-        
+
         // Create object creation with initializers: new TypeName { Prop = Value, ... }
         var initializers = new List<ExpressionSyntax>();
         foreach (var propInit in objInit.PropertyInitialisers)
@@ -770,14 +887,14 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             {
                 propName = "UnknownProperty";
             }
-            
+
             var valueExpr = TranslateExpression(propInit.RHS);
-            
+
             var assignment = AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 IdentifierName(propName),
                 valueExpr);
-            
+
             initializers.Add(assignment);
         }
 
@@ -791,7 +908,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private ExpressionSyntax TranslateUnaryExpression(UnaryExp unary)
     {
         var operand = TranslateExpression(unary.Operand);
-        
+
         var kind = unary.Operator switch
         {
             Operator.ArithmeticNegative => SyntaxKind.UnaryMinusExpression,
@@ -804,21 +921,56 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private ExpressionSyntax TranslateTripleLiteralExpression(TripleLiteralExp triple)
     {
-        // Translate <subj, pred, obj> to new Triple(subj, pred, obj)
-        var subject = TranslateExpression(triple.SubjectExp);
-        var predicate = TranslateExpression(triple.PredicateExp);
-        var obj = TranslateExpression(triple.ObjectExp);
-        
-        var arguments = new List<ArgumentSyntax>
+        // Translate <subj, pred, obj> to Fifth.System.KG.CreateTriple(KG.CreateUriNode(...), KG.CreateUriNode(...), KG.CreateLiteralNode(...))
+        ExpressionSyntax TranslateNode(Expression e)
         {
-            Argument(subject),
-            Argument(predicate),
-            Argument(obj)
+            // If it's a URI literal, wrap with KG.CreateUriNode(value)
+            if (e is UriLiteralExp)
+            {
+                var uriExpr = TranslateExpression(e);
+                return InvocationExpression(
+                        MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            CreateQualifiedName("Fifth.System.KG"),
+                            IdentifierName("CreateUriNode")))
+                    .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(uriExpr))));
+            }
+
+            // For primitives, create literal nodes
+            if (e is Int32LiteralExp || e is Int64LiteralExp || e is Float8LiteralExp || e is Float4LiteralExp
+                || e is BooleanLiteralExp || e is StringLiteralExp)
+            {
+                var valExpr = TranslateExpression(e);
+                return InvocationExpression(
+                        MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            CreateQualifiedName("Fifth.System.KG"),
+                            IdentifierName("CreateLiteralNode")))
+                    .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(valExpr))));
+            }
+
+            // Fallback: assume it's already an INode-producing expression (e.g., a variable of INode)
+            // Pass through without wrapping to avoid type mismatches
+            return TranslateExpression(e);
+        }
+
+        var subjNode = TranslateNode(triple.SubjectExp);
+        var predNode = TranslateNode(triple.PredicateExp);
+        var objNode = TranslateNode(triple.ObjectExp);
+
+        var args = new List<ArgumentSyntax>
+        {
+            Argument(subjNode),
+            Argument(predNode),
+            Argument(objNode)
         };
-        
-        // Generate: new Triple(subject, predicate, object)
-        return ObjectCreationExpression(IdentifierName("Triple"))
-            .WithArgumentList(ArgumentList(SeparatedList(arguments)));
+
+        return InvocationExpression(
+                MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    CreateQualifiedName("Fifth.System.KG"),
+                    IdentifierName("CreateTriple")))
+            .WithArgumentList(ArgumentList(SeparatedList(args)));
     }
 
     private string MapTypeName(string? fifthTypeName)
@@ -951,7 +1103,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         {
             _declaredVariables.Add(SanitizeIdentifier(param.Name.ToString()));
         }
-        
+
         var body = BuildBlockStatement(funcDef.Body);
 
         // Add a discard local: object __discard = default(object);
@@ -970,7 +1122,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         {
             var lastStatement = body.Statements.LastOrDefault();
             var endsWithReturn = lastStatement is ReturnStatementSyntax;
-            
+
             if (!endsWithReturn)
             {
                 // Add: throw new InvalidOperationException("No matching guard clause");
@@ -984,7 +1136,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                                         LiteralExpression(
                                             SyntaxKind.StringLiteralExpression,
                                             Literal("No matching guard clause")))))));
-                
+
                 body = body.AddStatements(throwStmt);
             }
         }

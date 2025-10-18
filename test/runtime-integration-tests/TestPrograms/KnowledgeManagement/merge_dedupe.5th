@@ -10,7 +10,7 @@ main(): int {
     std.print("DEBUG START");
     g1: graph = <x:s1, x:p, 42> + <x:s2, x:p, 43>;
     g2: graph = <x:s1, x:p, 42> + <x:s2, x:p, 43>;
-    g3 = g1 + g2;
+    g3: graph = g1 + g2;
     std.print("TRIPLE_COUNT:");
     std.print(KG.CountTriples(g3));
 
