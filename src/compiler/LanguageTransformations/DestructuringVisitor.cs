@@ -7,9 +7,9 @@ namespace compiler.LanguageTransformations;
 /// to their corresponding property definitions. This visitor focuses on establishing the structural
 /// relationships between destructured parameters and their underlying types.
 /// 
-/// Architectural responsibility: Converting nested destructuring declarations into local variable 
-/// declarations within function overloads. Does NOT handle constraint processing - that is handled 
-/// by DestructuringPatternFlattenerVisitor.
+/// Architectural responsibility: Resolves property references in destructuring patterns by linking
+/// PropertyBindingDef nodes to their corresponding PropertyDef nodes. This is a prerequisite for
+/// the DestructuringLoweringRewriter which performs the actual lowering to variable declarations.
 /// </summary>
 public class DestructuringVisitor : DefaultRecursiveDescentVisitor
 {

@@ -81,10 +81,10 @@ Multiple passes through the AST apply increasingly sophisticated transformations
 3. **ClassCtorInserter**: Adds default constructors where needed
 4. **SymbolTableBuilderVisitor**: Builds symbol tables for scoping
 5. **PropertyToFieldExpander**: Expands property syntax to underlying field access
-6. **DestructuringPatternFlattenerVisitor**: Flattens destructuring patterns into constraints
-7. **OverloadGatheringVisitor**: Groups function overloads together
-8. **OverloadTransformingVisitor**: Transforms overloaded functions into guard/subclause pattern
-9. **DestructuringVisitor**: Lowers destructuring assignments to simple assignments
+6. **OverloadGatheringVisitor**: Groups function overloads together
+7. **OverloadTransformingVisitor**: Transforms overloaded functions into guard/subclause pattern
+8. **DestructuringVisitor**: Resolves property references in destructuring patterns
+9. **DestructuringLoweringRewriter**: Lowers destructuring to variable declarations with constraint collection
 10. **TypeAnnotationVisitor**: Performs type inference and annotation
 
 #### Phase 3: IL Transformation
