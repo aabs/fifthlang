@@ -16,12 +16,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 {
     public static readonly FifthType Void = new FifthType.TVoidType() { Name = TypeName.From("void") };
 
-    // Track function-scoped variable and parameter names to decide on '+=' desugaring
-    private readonly Stack<HashSet<string>> _functionLocals = new();
-    private HashSet<string> CurrentFunctionLocals => _functionLocals.Count > 0 ? _functionLocals.Peek() : null;
-    private bool IsNameInCurrentFunctionScope(string name)
-        => !string.IsNullOrEmpty(name) && CurrentFunctionLocals != null && CurrentFunctionLocals.Contains(name);
-
     #region Helper Functions
 
     private TAstType CreateLiteral<TAstType, TBaseType>(ParserRuleContext ctx, Func<string, TBaseType> x)
@@ -86,180 +80,40 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitAssignment_statement([NotNull] FifthParser.Assignment_statementContext context)
     {
-        // Support '+=' sugar
+        var lhsExpr = (Expression)Visit(context.lvalue);
+        var rhsExpr = (Expression)Visit(context.rvalue);
+        
+        var annotations = new Dictionary<string, object>();
+        
+        // Support '+=' - desugar to lvalue = lvalue + rvalue with marker annotation
         if (context.op != null && context.op.Type == FifthParser.PLUS_ASSIGN)
         {
-            var lhsExpr = (Expression)Visit(context.lvalue);
-            var rhsExpr = (Expression)Visit(context.rvalue);
-
-            // Heuristic: prefer graph-add semantics unless RHS is clearly a graph
-            bool RhsLooksLikeGraph(Expression e)
+            annotations["AugmentedOp"] = "PlusAssign";
+            var addExpr = new BinaryExp
             {
-                if (e is Graph || e is GraphAssertionBlockExp) return true;
-                if (e is MemberAccessExp ma && ma.RHS is FuncCallExp fc &&
-                    fc.Annotations != null && fc.Annotations.TryGetValue("FunctionName", out var fnObj) && fnObj is string fn &&
-                    string.Equals(fn, "CreateGraph", StringComparison.Ordinal))
-                {
-                    return true;
-                }
-                return false;
-            }
-
-            bool RhsLooksLikeTriple(Expression e)
-            {
-                if (e is TripleLiteralExp) return true;
-                if (e is MemberAccessExp ma && ma.RHS is FuncCallExp fc &&
-                    fc.Annotations != null && fc.Annotations.TryGetValue("FunctionName", out var fnObj) && fnObj is string fn &&
-                    string.Equals(fn, "CreateTriple", StringComparison.Ordinal))
-                {
-                    return true;
-                }
-                if (e is VarRefExp) return true; // treat unknown var as likely triple to enable lowering later
-                return false;
-            }
-
-            if (RhsLooksLikeTriple(rhsExpr) || !RhsLooksLikeGraph(rhsExpr))
-            {
-                // Graph operation: emit extension call lhs.Assert(rhs)
-                var assertCall = new FuncCallExp
-                {
-                    FunctionDef = null,
-                    InvocationArguments = [rhsExpr],
-                    Annotations = new Dictionary<string, object> { ["FunctionName"] = "Assert" },
-                    Location = GetLocationDetails(context),
-                    Parent = null,
-                    Type = null
-                };
-
-                var member = new MemberAccessExp
-                {
-                    Annotations = [],
-                    LHS = lhsExpr,
-                    RHS = assertCall,
-                    Location = GetLocationDetails(context),
-                    Type = Void
-                };
-
-                return new ExpStatement
-                {
-                    Annotations = [],
-                    RHS = member,
-                    Location = GetLocationDetails(context),
-                    Type = Void
-                };
-            }
-
-            // Otherwise treat as store operation: desugar to KG.SaveGraph(lvalue, rvalue)
-            // Prefer using an in-scope variable for the store if available; else fallback to KG.CreateStore()
-            Expression storeArg2;
-            if (lhsExpr is VarRefExp v2 && IsNameInCurrentFunctionScope(v2.VarName))
-            {
-                storeArg2 = v2;
-            }
-            else
-            {
-                var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
-                storeArg2 = new MemberAccessExp
-                {
-                    Annotations = [],
-                    LHS = kgVar,
-                    RHS = new FuncCallExp
-                    {
-                        FunctionDef = null,
-                        InvocationArguments = [],
-                        Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateStore" },
-                        Location = GetLocationDetails(context),
-                        Parent = null,
-                        Type = null
-                    },
-                    Location = GetLocationDetails(context),
-                    Type = Void
-                };
-            }
-
-            var kgVar3 = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
-            var func2 = new FuncCallExp
-            {
-                FunctionDef = null,
-                InvocationArguments = [storeArg2, rhsExpr],
-                Annotations = new Dictionary<string, object> { ["FunctionName"] = "SaveGraph" },
-                Location = GetLocationDetails(context),
-                Parent = null,
-                Type = null
-            };
-
-            var call2 = new MemberAccessExp
-            {
-                Annotations = [],
-                LHS = kgVar3,
-                RHS = func2,
+                Annotations = new Dictionary<string, object>(),
+                LHS = lhsExpr,
+                RHS = rhsExpr,
+                Operator = Operator.ArithmeticAdd,
                 Location = GetLocationDetails(context),
                 Type = Void
             };
 
-            return new ExpStatement
-            {
-                Annotations = [],
-                RHS = call2,
-                Location = GetLocationDetails(context),
-                Type = Void
-            };
+            var b = new AssignmentStatementBuilder()
+                .WithAnnotations(annotations)
+                .WithLValue(lhsExpr)
+                .WithRValue(addExpr);
+            var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+            return result;
         }
 
-        // Support '-=' by desugaring to: lvalue = lvalue - rvalue
+        // Support '-=' - desugar to lvalue = lvalue - rvalue with marker annotation  
         if (context.op != null && context.op.Type == FifthParser.MINUS_ASSIGN)
         {
-            var lhsExpr = (Expression)Visit(context.lvalue);
-            var rhsExpr = (Expression)Visit(context.rvalue);
-
-            // If RHS looks like a triple, emit lhs.Retract(rhs); otherwise fall back to binary '-'
-            bool RhsLooksLikeTriple(Expression e)
-            {
-                if (e is TripleLiteralExp) return true;
-                if (e is MemberAccessExp ma && ma.RHS is FuncCallExp fc &&
-                    fc.Annotations != null && fc.Annotations.TryGetValue("FunctionName", out var fnObj) && fnObj is string fn &&
-                    string.Equals(fn, "CreateTriple", StringComparison.Ordinal))
-                {
-                    return true;
-                }
-                if (e is VarRefExp) return true;
-                return false;
-            }
-
-            if (RhsLooksLikeTriple(rhsExpr))
-            {
-                var retractCall = new FuncCallExp
-                {
-                    FunctionDef = null,
-                    InvocationArguments = [rhsExpr],
-                    Annotations = new Dictionary<string, object> { ["FunctionName"] = "Retract" },
-                    Location = GetLocationDetails(context),
-                    Parent = null,
-                    Type = null
-                };
-
-                var member = new MemberAccessExp
-                {
-                    Annotations = [],
-                    LHS = lhsExpr,
-                    RHS = retractCall,
-                    Location = GetLocationDetails(context),
-                    Type = Void
-                };
-
-                return new ExpStatement
-                {
-                    Annotations = [],
-                    RHS = member,
-                    Location = GetLocationDetails(context),
-                    Type = Void
-                };
-            }
-
-            // Fallback: lvalue = lvalue - rvalue
+            annotations["AugmentedOp"] = "MinusAssign";
             var subtractExpr = new BinaryExp
             {
-                Annotations = [],
+                Annotations = new Dictionary<string, object>(),
                 LHS = lhsExpr,
                 RHS = rhsExpr,
                 Operator = Operator.ArithmeticSubtract,
@@ -268,7 +122,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             };
 
             var b = new AssignmentStatementBuilder()
-                .WithAnnotations([])
+                .WithAnnotations(annotations)
                 .WithLValue(lhsExpr)
                 .WithRValue(subtractExpr);
             var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
@@ -276,9 +130,9 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         }
 
         var b2 = new AssignmentStatementBuilder()
-            .WithAnnotations([])
-            .WithLValue((Expression)Visit(context.lvalue))
-            .WithRValue((Expression)Visit(context.rvalue));
+            .WithAnnotations(annotations)
+            .WithLValue(lhsExpr)
+            .WithRValue(rhsExpr);
         var result2 = b2.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result2;
     }
@@ -812,8 +666,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitFunction_declaration(FifthParser.Function_declarationContext context)
     {
-        // Begin tracking function-scoped names
-        _functionLocals.Push(new HashSet<string>(StringComparer.Ordinal));
         var returnType = ResolveTypeFromName(context.result_type.GetText());
 
         var b = new FunctionDefBuilder();
@@ -829,8 +681,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         }
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        // End tracking
-        _functionLocals.Pop();
         return result;
     }
 
@@ -1084,8 +934,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 .WithName(context.var_name().GetText())
                 .WithTypeName(TypeName.From(context.type_name().GetText()))
             ;
-        // Record parameter name in current function scope set
-        CurrentFunctionLocals?.Add(context.var_name().GetText());
         if (context.destructuring_decl() is not null)
         {
             var destructuringDef = VisitDestructuring_decl(context.destructuring_decl());
@@ -1146,8 +994,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var b = new VariableDeclBuilder()
             .WithAnnotations([]);
         b.WithName(context.var_name().GetText());
-        // Record variable declaration name in current function scope set
-        CurrentFunctionLocals?.Add(context.var_name().GetText());
 
         var typeSpec = context.type_spec();
         if (typeSpec != null)
