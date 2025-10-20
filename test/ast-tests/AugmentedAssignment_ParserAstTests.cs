@@ -11,7 +11,7 @@ public class AugmentedAssignment_ParserAstTests
     [Test]
     public void PlusAssign_ShouldDesugarTo_KG_SaveGraph_Call()
     {
-        var src = "func main():int { home += g; return 0; }";
+        var src = "main():int { g: graph = <{}>; home: graph; home += g; return 0; }";
         var s = CharStreams.fromString(src);
         var parser = new FifthParser(new CommonTokenStream(new FifthLexer(s)));
         var ctx = parser.function_declaration();
@@ -24,7 +24,7 @@ public class AugmentedAssignment_ParserAstTests
         stmts.Should().NotBeNull();
         stmts.Should().HaveCountGreaterThan(1);
 
-        var expStmt = stmts[0] as ExpStatement;
+        var expStmt = stmts[2] as ExpStatement;
         expStmt.Should().NotBeNull();
         var member = expStmt!.RHS as MemberAccessExp;
         member.Should().NotBeNull();

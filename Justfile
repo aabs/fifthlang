@@ -13,7 +13,7 @@ default := "help"
 build-all:
 	just restore
 	just run-generator
-	dotnet build fifthlang.sln
+	dotnet build fifthlang.sln --no-restore
 
 # Restore NuGet packages for the solution
 restore:
@@ -21,7 +21,7 @@ restore:
 
 # Run all tests
 test:
-	dotnet test
+	dotnet test --no-build --no-restore --verbosity=quiet fifthlang.sln
 
 # Clean then build the full solution
 rebuild:
