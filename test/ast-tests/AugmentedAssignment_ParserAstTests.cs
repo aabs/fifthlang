@@ -3,6 +3,7 @@ using Antlr4.Runtime;
 using ast;
 using Fifth;
 using compiler.LangProcessingPhases;
+using compiler.LanguageTransformations;
 
 namespace ast_tests;
 
@@ -20,11 +21,11 @@ public class AugmentedAssignment_ParserAstTests
         func.Should().NotBeNull();
 
         // Apply type annotation first so the lowerer can use type information
-        var typeAnnotator = new compiler.LanguageTransformations.TypeAnnotationVisitor();
+        var typeAnnotator = new TypeAnnotationVisitor();
         func = typeAnnotator.VisitFunctionDef(func!);
 
         // Apply augmented assignment lowering to transform the AST
-        var lowerer = new compiler.LanguageTransformations.AugmentedAssignmentLoweringRewriter();
+        var lowerer = new AugmentedAssignmentLoweringRewriter();
         func = lowerer.VisitFunctionDef(func!);
 
         // Inspect body statements: expect an ExpStatement wrapping a MemberAccessExp KG.SaveGraph(...)
