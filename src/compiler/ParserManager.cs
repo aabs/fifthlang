@@ -25,14 +25,15 @@ public static class FifthParserManager
         GuardValidation = 8,
         OverloadTransform = 9,
         DestructuringLowering = 10,
-        TreeRelink = 11,
-        GraphAssertionLowering = 12,
-        TripleDiagnostics = 13,
-        TripleExpansion = 14,
-        GraphTripleOperatorLowering = 15,
-        SymbolTableFinal = 16,
-        VarRefResolver = 17,
-        TypeAnnotation = 18,
+        AugmentedAssignmentLowering = 11,
+        TreeRelink = 12,
+        GraphAssertionLowering = 13,
+        TripleDiagnostics = 14,
+        TripleExpansion = 15,
+        GraphTripleOperatorLowering = 16,
+        SymbolTableFinal = 17,
+        VarRefResolver = 18,
+        TypeAnnotation = 19,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
@@ -180,6 +181,10 @@ public static class FifthParserManager
             // This fixes the stale reference issue where the symbol table contains old nodes
             // from before type annotation transformed the immutable AST.
             ast = new SymbolTableBuilderVisitor().Visit(ast);
+
+            // Lower augmented assignments (+= and -=) AFTER type annotation so we can use type information
+            if (upTo >= AnalysisPhase.AugmentedAssignmentLowering)
+                ast = new AugmentedAssignmentLoweringRewriter().Visit(ast);
 
             // Collect type checking errors (only Error severity, not Info)
             if (diagnostics != null)

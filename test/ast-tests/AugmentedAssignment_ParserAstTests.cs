@@ -19,12 +19,21 @@ public class AugmentedAssignment_ParserAstTests
         var func = v.VisitFunction_declaration(ctx) as FunctionDef;
         func.Should().NotBeNull();
 
+        // Apply type annotation first so the lowerer can use type information
+        var typeAnnotator = new compiler.LanguageTransformations.TypeAnnotationVisitor();
+        func = typeAnnotator.VisitFunctionDef(func!);
+
+        // Apply augmented assignment lowering to transform the AST
+        var lowerer = new compiler.LanguageTransformations.AugmentedAssignmentLoweringRewriter();
+        func = lowerer.VisitFunctionDef(func!);
+
         // Inspect body statements: expect an ExpStatement wrapping a MemberAccessExp KG.SaveGraph(...)
+        // Note: The augmented assignment is now at index 3 due to how the parser creates statements
         var stmts = func!.Body!.Statements!;
         stmts.Should().NotBeNull();
-        stmts.Should().HaveCountGreaterThan(1);
+        stmts.Should().HaveCountGreaterThan(3);
 
-        var expStmt = stmts[2] as ExpStatement;
+        var expStmt = stmts[3] as ExpStatement;
         expStmt.Should().NotBeNull();
         var member = expStmt!.RHS as MemberAccessExp;
         member.Should().NotBeNull();
