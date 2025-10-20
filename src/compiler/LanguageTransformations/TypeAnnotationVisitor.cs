@@ -1,11 +1,4 @@
-using ast;
-using ast_generated;
-using ast_model.Symbols;
-using ast_model.TypeSystem;
 using ast_model.TypeSystem.Inference;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Fifth.LangProcessingPhases;
 
@@ -281,14 +274,14 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
         // Default to int if we still don't have a type
         if (elementType == null)
         {
-            elementType = GetLanguageFriendlyType(typeof(int)) ?? 
+            elementType = GetLanguageFriendlyType(typeof(int)) ??
                          new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From("int") };
         }
 
         // Create the array type (lists are always arrays in Fifth currently)
-        var arrayTypeResult = new FifthType.TArrayOf(elementType) 
-        { 
-            Name = TypeName.From($"{GetTypeName(elementType)}[]") 
+        var arrayTypeResult = new FifthType.TArrayOf(elementType)
+        {
+            Name = TypeName.From($"{GetTypeName(elementType)}[]")
         };
 
         OnTypeInferred(result, arrayTypeResult);
@@ -373,7 +366,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
         if (result.LHS?.Type != null)
         {
             var lhsType = result.LHS.Type;
-            
+
             // Check if this is a primitive type (int, float, bool, string, etc.)
             // Primitive types don't have member access (except for built-in methods which would be handled elsewhere)
             if (IsPrimitiveType(lhsType))
@@ -386,7 +379,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
                     new[] { lhsType },
                     TypeCheckingSeverity.Error);
                 errors.Add(error);
-                
+
                 // Return with unknown type
                 var unknownType = new FifthType.UnknownType() { Name = TypeName.From("unknown") };
                 return result with { Type = unknownType };
@@ -400,18 +393,18 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
                 // to get the latest AST nodes with proper CollectionType information
                 var className = userType.Name.Value;
                 ClassDef? classDef = null;
-                
+
                 if (currentModule != null)
                 {
                     classDef = currentModule.Classes.FirstOrDefault(c => c.Name.Value == className);
                 }
-                
+
                 if (classDef != null)
                 {
                     // Find the property/field in the class
                     var memberName = memberRef.VarName;
                     var member = classDef.MemberDefs.FirstOrDefault(m => m.Name.Value == memberName);
-                    
+
                     if (member != null)
                     {
                         // Compute the member's type from its TypeName and CollectionType
@@ -439,7 +432,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
         if (result.IndexExpression?.Type != null)
         {
             var indexedType = result.IndexExpression.Type;
-            
+
             // Extract element type from array or list type
             FifthType? elementType = indexedType switch
             {
@@ -484,7 +477,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             // Arrays and lists are not primitive - they support indexing
             FifthType.TArrayOf => false,
             FifthType.TListOf => false,
-            FifthType.TDotnetType dotnetType => 
+            FifthType.TDotnetType dotnetType =>
                 dotnetType.TheType == typeof(int) ||
                 dotnetType.TheType == typeof(long) ||
                 dotnetType.TheType == typeof(float) ||
@@ -549,7 +542,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
 
         // Create FifthType from TypeName and CollectionType
         FifthType fifthType = CreateFifthType(result.TypeName, result.CollectionType);
-        
+
         OnTypeInferred(result, fifthType);
         return result with { Type = fifthType };
     }
@@ -563,7 +556,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
 
         // Create FifthType from TypeName and CollectionType
         FifthType fifthType = CreateFifthType(result.TypeName, result.CollectionType);
-        
+
         OnTypeInferred(result, fifthType);
         return result with { Type = fifthType };
     }
@@ -612,7 +605,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     private FifthType CreateBaseType(TypeName typeName)
     {
         var typeNameValue = typeName.Value;
-        
+
         // Check if this is a list type notation: [type]
         if (typeNameValue.StartsWith("[") && typeNameValue.EndsWith("]"))
         {
@@ -621,7 +614,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             var innerType = CreateBaseType(TypeName.From(innerTypeName));
             return new FifthType.TListOf(innerType) { Name = TypeName.From($"List<{innerTypeName}>") };
         }
-        
+
         // Check if this is an array type notation: type[]
         if (typeNameValue.EndsWith("[]"))
         {
@@ -630,7 +623,7 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             var innerType = CreateBaseType(TypeName.From(innerTypeName));
             return new FifthType.TArrayOf(innerType) { Name = TypeName.From($"{innerTypeName}[]") };
         }
-        
+
         // Try to get from language-friendly types first
         var friendlyType = GetLanguageFriendlyTypeByName(typeNameValue);
         if (friendlyType != null)
@@ -846,12 +839,12 @@ public enum TypeCheckingSeverity
     /// Informational message (e.g., type couldn't be inferred but it's expected)
     /// </summary>
     Info,
-    
+
     /// <summary>
     /// Warning that should be reported but doesn't fail compilation
     /// </summary>
     Warning,
-    
+
     /// <summary>
     /// Error that should fail compilation
     /// </summary>
