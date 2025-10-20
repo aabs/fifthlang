@@ -82,13 +82,12 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var lhsExpr = (Expression)Visit(context.lvalue);
         var rhsExpr = (Expression)Visit(context.rvalue);
-        
+
         var annotations = new Dictionary<string, object>();
-        
-        // Support '+=' - desugar to lvalue = lvalue + rvalue with marker annotation
+
+        // Support '+=' - desugar to lvalue = lvalue + rvalue (no builder-time marker)
         if (context.op != null && context.op.Type == FifthParser.PLUS_ASSIGN)
         {
-            annotations["AugmentedOp"] = "PlusAssign";
             var addExpr = new BinaryExp
             {
                 Annotations = new Dictionary<string, object>(),
@@ -107,10 +106,9 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             return result;
         }
 
-        // Support '-=' - desugar to lvalue = lvalue - rvalue with marker annotation  
+        // Support '-=' - desugar to lvalue = lvalue - rvalue (no builder-time marker)
         if (context.op != null && context.op.Type == FifthParser.MINUS_ASSIGN)
         {
-            annotations["AugmentedOp"] = "MinusAssign";
             var subtractExpr = new BinaryExp
             {
                 Annotations = new Dictionary<string, object>(),
@@ -1258,42 +1256,21 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             ? Visit(context.expression()) as Expression
             : null;
 
-        // If no expression provided, create an empty graph via KG.CreateGraph()
-        if (initExpr == null)
-        {
-            var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
-            var func = new FuncCallExp
-            {
-                FunctionDef = null,
-                InvocationArguments = [],
-                Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateGraph" },
-                Location = GetLocationDetails(context),
-                Parent = null,
-                Type = null
-            };
-            initExpr = new MemberAccessExp
-            {
-                Annotations = [],
-                LHS = kgVar,
-                RHS = func,
-                Location = GetLocationDetails(context),
-                Type = Void
-            };
-        }
-
         var varDecl = new VariableDecl
         {
             Annotations = [],
             CollectionType = CollectionType.SingleInstance,
             Name = name,
             Visibility = Visibility.Public,
-            TypeName = TypeName.From("IGraph")
+            // Keep language-level type; mapping to IGraph happens in later phases
+            TypeName = TypeName.From("graph")
         };
 
         return new VarDeclStatement
         {
             Annotations = new Dictionary<string, object> { ["Kind"] = "GraphDecl" },
             VariableDecl = varDecl,
+            // Do not inject a default graph; leave uninitialized if no RHS provided
             InitialValue = initExpr,
             Location = GetLocationDetails(context),
             Type = Void

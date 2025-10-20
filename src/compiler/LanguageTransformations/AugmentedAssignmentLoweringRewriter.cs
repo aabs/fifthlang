@@ -25,7 +25,7 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
 {
     private readonly Stack<HashSet<string>> _functionLocals = new();
     private HashSet<string>? CurrentFunctionLocals => _functionLocals.Count > 0 ? _functionLocals.Peek() : null;
-    
+
     private bool IsNameInCurrentFunctionScope(string name)
         => !string.IsNullOrEmpty(name) && CurrentFunctionLocals != null && CurrentFunctionLocals.Contains(name);
 
@@ -34,7 +34,7 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
     public override FunctionDef VisitFunctionDef(FunctionDef ctx)
     {
         _functionLocals.Push(new HashSet<string>(StringComparer.Ordinal));
-        
+
         // Record parameters in scope
         if (ctx.Params != null)
         {
@@ -43,7 +43,7 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
                 CurrentFunctionLocals?.Add(param.Name);
             }
         }
-        
+
         var result = base.VisitFunctionDef(ctx);
         _functionLocals.Pop();
         return result;
@@ -62,40 +62,35 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
     {
         // Visit children first
         var visited = base.VisitBlockStatement(ctx);
-        
-        // Transform augmented assignments
+
+        // Transform augmented assignments by structural pattern (no builder-time markers)
         var newStatements = new List<Statement>();
         foreach (var stmt in visited.Statements)
         {
-            if (stmt is AssignmentStatement assign && 
-                assign.Annotations != null && 
-                assign.Annotations.TryGetValue("AugmentedOp", out var opObj) && 
-                opObj is string op)
+            if (stmt is AssignmentStatement assign && assign.RValue is BinaryExp bin &&
+                IsSameTarget(assign.LValue, bin.LHS))
             {
                 var loc = stmt.Location ?? new SourceLocationMetadata(0, string.Empty, 0, string.Empty);
                 var lhs = assign.LValue;
-                
-                // Extract actual RHS from binary expression
-                Expression actualRhs = assign.RValue;
-                if (assign.RValue is BinaryExp binExp)
-                {
-                    actualRhs = binExp.RHS;
-                }
+                var actualRhs = bin.RHS;
 
-                if (op == "PlusAssign")
+                switch (bin.Operator)
                 {
-                    var lowered = HandlePlusAssign(lhs, actualRhs, loc);
-                    newStatements.Add(lowered);
-                }
-                else if (op == "MinusAssign")
-                {
-                    var lowered = HandleMinusAssign(lhs, actualRhs, loc);
-                    newStatements.Add(lowered);
-                }
-                else
-                {
-                    // Unknown op - keep as-is
-                    newStatements.Add(stmt);
+                    case Operator.ArithmeticAdd:
+                        {
+                            var lowered = HandlePlusAssign(lhs, actualRhs, loc);
+                            newStatements.Add(lowered);
+                            break;
+                        }
+                    case Operator.ArithmeticSubtract:
+                        {
+                            var lowered = HandleMinusAssign(lhs, actualRhs, loc);
+                            newStatements.Add(lowered);
+                            break;
+                        }
+                    default:
+                        newStatements.Add(stmt);
+                        break;
                 }
             }
             else
@@ -105,6 +100,25 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
         }
 
         return visited with { Statements = newStatements };
+    }
+
+    private static bool IsSameTarget(Expression a, Expression b)
+    {
+        if (a is VarRefExp va && b is VarRefExp vb)
+        {
+            return string.Equals(va.VarName, vb.VarName, StringComparison.Ordinal);
+        }
+
+        if (a is MemberAccessExp ma && b is MemberAccessExp mb)
+        {
+            // Simple structural check: same LHS and RHS is null or both varrefs with same name
+            return IsSameTarget(ma.LHS, mb.LHS) &&
+                   ((ma.RHS == null && mb.RHS == null) ||
+                    (ma.RHS is VarRefExp mvr1 && mb.RHS is VarRefExp mvr2 && string.Equals(mvr1.VarName, mvr2.VarName, StringComparison.Ordinal)));
+        }
+
+        // Fallback: no match
+        return false;
     }
 
     private Statement HandlePlusAssign(Expression lhs, Expression rhs, SourceLocationMetadata loc)
@@ -189,7 +203,7 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
             return true;
         }
         // Check type if available
-        if (e.Type is FifthType.TType tt && tt.Name.Value != null && 
+        if (e.Type is FifthType.TType tt && tt.Name.Value != null &&
             tt.Name.Value.Equals("graph", StringComparison.OrdinalIgnoreCase))
         {
             return true;
