@@ -4,6 +4,5 @@ main(): int {
     x = 1;
     if (x > 0) { x = x + 1; } else x = x - 1;
     while (x > 0) x = x - 1;
-    with new Person { Age = 1 } x = 1;
     return 0;
 }
