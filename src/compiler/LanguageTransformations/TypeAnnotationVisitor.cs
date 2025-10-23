@@ -293,7 +293,17 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     /// </summary>
     public override BinaryExp VisitBinaryExp(BinaryExp ctx)
     {
+        if (ctx.Location?.Line == 3)
+        {
+            Console.Error.WriteLine($"DEBUG TypeAnnotation: Visiting BinaryExp at {ctx.Location?.Line}:{ctx.Location?.Column}");
+            Console.Error.WriteLine($"  LHS type: {ctx.LHS?.GetType().Name}, RHS type: {ctx.RHS?.GetType().Name}");
+        }
         var result = base.VisitBinaryExp(ctx);
+        if (ctx.Location?.Line == 3)
+        {
+            Console.Error.WriteLine($"  After base visit - result type: {result.GetType().Name}");
+            Console.Error.WriteLine($"  Result LHS type: {result.LHS?.GetType().Name}, RHS type: {result.RHS?.GetType().Name}");
+        }
 
         // Get the types of the operands  
         var leftType = result.LHS?.Type;
@@ -360,6 +370,12 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     /// </summary>
     public override MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx)
     {
+        Console.Error.WriteLine($"DEBUG: VisitMemberAccessExp called at {ctx.Location?.Line}:{ctx.Location?.Column}");
+        Console.Error.WriteLine($"  ctx.LHS: {ctx.LHS?.GetType().Name}");
+        Console.Error.WriteLine($"  ctx.RHS: {ctx.RHS?.GetType().Name}");
+        Console.Error.WriteLine($"  Stack trace:");
+        Console.Error.WriteLine(Environment.StackTrace);
+        
         var result = base.VisitMemberAccessExp(ctx);
 
         // Check if LHS has a type
@@ -371,6 +387,15 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             // Primitive types don't have member access (except for built-in methods which would be handled elsewhere)
             if (IsPrimitiveType(lhsType))
             {
+                // Debug output
+                Console.Error.WriteLine($"DEBUG: MemberAccessExp detected on primitive type");
+                Console.Error.WriteLine($"  LHS: {result.LHS?.GetType().Name} - Type: {GetTypeName(lhsType)}");
+                Console.Error.WriteLine($"  RHS: {result.RHS?.GetType().Name}");
+                if (result.RHS is VarRefExp varRef)
+                {
+                    Console.Error.WriteLine($"  Member name: {varRef.VarName}");
+                }
+                
                 var error = new TypeCheckingError(
                     $"Cannot access member on primitive type '{GetTypeName(lhsType)}'",
                     result.Location?.Filename ?? "",

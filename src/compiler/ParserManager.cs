@@ -8,6 +8,72 @@ using static Fifth.DebugHelpers;
 
 namespace compiler;
 
+// Debug visitor to detect MemberAccessExp and BinaryExp nodes
+internal class DebugMemberAccessDetector : DefaultRecursiveDescentVisitor
+{
+    public override MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx)
+    {
+        Console.Error.WriteLine($"DEBUG: Found MemberAccessExp at {ctx.Location?.Line}:{ctx.Location?.Column}");
+        Console.Error.WriteLine($"  LHS: {ctx.LHS?.GetType().Name}");
+        Console.Error.WriteLine($"  RHS: {ctx.RHS?.GetType().Name}");
+        return base.VisitMemberAccessExp(ctx);
+    }
+    
+    public override BinaryExp VisitBinaryExp(BinaryExp ctx)
+    {
+        if (ctx.Location?.Line == 3)  // Focus on line 3
+        {
+            Console.Error.WriteLine($"DEBUG: Found BinaryExp at {ctx.Location?.Line}:{ctx.Location?.Column}");
+            Console.Error.WriteLine($"  LHS: {ctx.LHS?.GetType().Name}");
+            Console.Error.WriteLine($"  RHS: {ctx.RHS?.GetType().Name}");
+            Console.Error.WriteLine($"  Operator: {ctx.Operator}");
+        }
+        return base.VisitBinaryExp(ctx);
+    }
+    
+    public override AssignmentStatement VisitAssignmentStatement(AssignmentStatement ctx)
+    {
+        if (ctx.Location?.Line == 3)
+        {
+            Console.Error.WriteLine($"DEBUG: Visiting AssignmentStatement at {ctx.Location?.Line}:{ctx.Location?.Column}");
+            Console.Error.WriteLine($"  LValue: {ctx.LValue?.GetType().Name} at {ctx.LValue?.Location?.Line}:{ctx.LValue?.Location?.Column}");
+            Console.Error.WriteLine($"  RValue: {ctx.RValue?.GetType().Name} at {ctx.RValue?.Location?.Line}:{ctx.RValue?.Location?.Column}");
+        }
+        var result = base.VisitAssignmentStatement(ctx);
+        if (ctx.Location?.Line == 3)
+        {
+            Console.Error.WriteLine($"DEBUG: After visiting AssignmentStatement - result type: {result.GetType().Name}");
+            Console.Error.WriteLine($"  Result LValue: {result.LValue?.GetType().Name} at {result.LValue?.Location?.Line}:{result.LValue?.Location?.Column}");
+            Console.Error.WriteLine($"  Result RValue: {result.RValue?.GetType().Name} at {result.RValue?.Location?.Line}:{result.RValue?.Location?.Column}");
+        }
+        return result;
+    }
+    
+    public override ExpStatement VisitExpStatement(ExpStatement ctx)
+    {
+        if (ctx.Location?.Line == 3)
+        {
+            Console.Error.WriteLine($"DEBUG: Found ExpStatement at {ctx.Location?.Line}:{ctx.Location?.Column}");
+            Console.Error.WriteLine($"  RHS: {ctx.RHS?.GetType().Name}");
+        }
+        return base.VisitExpStatement(ctx);
+    }
+    
+    public override VarRefExp VisitVarRefExp(VarRefExp ctx)
+    {
+        if (ctx.Location?.Line == 3)
+        {
+            Console.Error.WriteLine($"DEBUG: Visiting VarRefExp '{ctx.VarName}' at {ctx.Location?.Line}:{ctx.Location?.Column}");
+        }
+        var result = base.VisitVarRefExp(ctx);
+        if (ctx.Location?.Line == 3)
+        {
+            Console.Error.WriteLine($"DEBUG: After visiting VarRefExp - result type: {result.GetType().Name}");
+        }
+        return result;
+    }
+}
+
 public static class FifthParserManager
 {
     // DebugEnabled and DebugLog are provided by shared DebugHelpers (imported statically above)
@@ -50,7 +116,13 @@ public static class FifthParserManager
         try
         {
             if (upTo >= AnalysisPhase.TreeLink)
+            {
+                Console.Error.WriteLine("DEBUG: Before TreeLink");
+                new DebugMemberAccessDetector().Visit(ast);
                 ast = new TreeLinkageVisitor().Visit(ast);
+                Console.Error.WriteLine("DEBUG: After TreeLink");
+                new DebugMemberAccessDetector().Visit(ast);
+            }
         }
         catch (System.Exception ex)
         {
