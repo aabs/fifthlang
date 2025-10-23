@@ -1,5 +1,4 @@
 using ast_model.TypeSystem.Inference;
-using System;
 
 namespace Fifth.LangProcessingPhases;
 
@@ -292,26 +291,9 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     /// <summary>
     /// Visits a BinaryExp and infers its result type based on the operator and operand types.
     /// </summary>
-    public override AssignmentStatement VisitAssignmentStatement(AssignmentStatement ctx)
-    {
-        Console.Error.WriteLine($"DEBUG TypeAnnotation: VisitAssignmentStatement ENTRY at {ctx.Location?.Line}:{ctx.Location?.Column}");
-        Console.Error.WriteLine($"  LValue type: {ctx.LValue?.GetType().Name}");
-        Console.Error.WriteLine($"  RValue type: {ctx.RValue?.GetType().Name}");
-        
-        var result = base.VisitAssignmentStatement(ctx);
-        
-        Console.Error.WriteLine($"DEBUG TypeAnnotation: VisitAssignmentStatement EXIT at {ctx.Location?.Line}:{ctx.Location?.Column}");
-        Console.Error.WriteLine($"  Result LValue type: {result.LValue?.GetType().Name}");
-        Console.Error.WriteLine($"  Result RValue type: {result.RValue?.GetType().Name}");
-        
-        return result;
-    }
-    
     public override BinaryExp VisitBinaryExp(BinaryExp ctx)
     {
-        Console.Error.WriteLine($"DEBUG TypeAnnotation: VisitBinaryExp ENTRY at {ctx.Location?.Line}:{ctx.Location?.Column}");
         var result = base.VisitBinaryExp(ctx);
-        Console.Error.WriteLine($"DEBUG TypeAnnotation: VisitBinaryExp EXIT at {ctx.Location?.Line}:{ctx.Location?.Column}");
 
         // Get the types of the operands  
         var leftType = result.LHS?.Type;
@@ -378,12 +360,6 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     /// </summary>
     public override MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx)
     {
-        Console.Error.WriteLine($"DEBUG: VisitMemberAccessExp called at {ctx.Location?.Line}:{ctx.Location?.Column}");
-        Console.Error.WriteLine($"  ctx.LHS: {ctx.LHS?.GetType().Name}");
-        Console.Error.WriteLine($"  ctx.RHS: {ctx.RHS?.GetType().Name}");
-        Console.Error.WriteLine($"  Stack trace:");
-        Console.Error.WriteLine(Environment.StackTrace);
-        
         var result = base.VisitMemberAccessExp(ctx);
 
         // Check if LHS has a type
@@ -395,15 +371,6 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
             // Primitive types don't have member access (except for built-in methods which would be handled elsewhere)
             if (IsPrimitiveType(lhsType))
             {
-                // Debug output
-                Console.Error.WriteLine($"DEBUG: MemberAccessExp detected on primitive type");
-                Console.Error.WriteLine($"  LHS: {result.LHS?.GetType().Name} - Type: {GetTypeName(lhsType)}");
-                Console.Error.WriteLine($"  RHS: {result.RHS?.GetType().Name}");
-                if (result.RHS is VarRefExp varRef)
-                {
-                    Console.Error.WriteLine($"  Member name: {varRef.VarName}");
-                }
-                
                 var error = new TypeCheckingError(
                     $"Cannot access member on primitive type '{GetTypeName(lhsType)}'",
                     result.Location?.Filename ?? "",
