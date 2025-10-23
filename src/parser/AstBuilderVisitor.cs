@@ -149,19 +149,10 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 Type = Void
             };
         }
-        // Represent empty ';' as a no-op expression statement
-        var noop = new Int32LiteralExp
+        // Empty expression statement (just a semicolon) - create an EmptyStatement
+        return new EmptyStatement
         {
             Annotations = [],
-            Location = GetLocationDetails(context),
-            Parent = null,
-            Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From(typeof(int).FullName) },
-            Value = 0
-        };
-        return new ExpStatement
-        {
-            Annotations = [],
-            RHS = noop,
             Location = GetLocationDetails(context),
             Type = Void
         };

@@ -31,6 +31,7 @@ public interface ITypeChecker
     public FifthType Infer(ScopeAstThing scope, BlockStatement node);
     public FifthType Infer(ScopeAstThing scope, KnowledgeManagementBlock node);
     public FifthType Infer(ScopeAstThing scope, ExpStatement node);
+    public FifthType Infer(ScopeAstThing scope, EmptyStatement node);
     public FifthType Infer(ScopeAstThing scope, ForStatement node);
     public FifthType Infer(ScopeAstThing scope, ForeachStatement node);
     public FifthType Infer(ScopeAstThing scope, GuardStatement node);
@@ -119,6 +120,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             BlockStatement node => Infer(scope, node),
             KnowledgeManagementBlock node => Infer(scope, node),
             ExpStatement node => Infer(scope, node),
+            EmptyStatement node => Infer(scope, node),
             ForStatement node => Infer(scope, node),
             ForeachStatement node => Infer(scope, node),
             GuardStatement node => Infer(scope, node),
@@ -201,6 +203,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, BlockStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, KnowledgeManagementBlock node);
     public abstract FifthType Infer(ScopeAstThing scope, ExpStatement node);
+    public abstract FifthType Infer(ScopeAstThing scope, EmptyStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, ForStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, ForeachStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, GuardStatement node);

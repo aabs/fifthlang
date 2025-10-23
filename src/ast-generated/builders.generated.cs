@@ -1220,6 +1220,22 @@ public class ExpStatementBuilder : IBuilder<ast.ExpStatement>
     }
 
 }
+public class EmptyStatementBuilder : IBuilder<ast.EmptyStatement>
+{
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.EmptyStatement Build()
+    {
+        return new ast.EmptyStatement(){
+             Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public EmptyStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class ForStatementBuilder : IBuilder<ast.ForStatement>
 {
     private ast.Expression _InitialValue;

@@ -42,6 +42,10 @@ public class StatementEmitter
                 GenerateVarDecl(seq, varDeclStmt);
                 break;
 
+            case EmptyStatement:
+                // Empty statement generates no instructions - it's a no-op
+                break;
+
             case ExpStatement expStmt:
                 GenerateExpStatement(seq, expStmt);
                 break;

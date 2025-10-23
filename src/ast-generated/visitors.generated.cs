@@ -56,6 +56,8 @@ public interface IAstVisitor
     public void LeaveKnowledgeManagementBlock(KnowledgeManagementBlock ctx);
     public void EnterExpStatement(ExpStatement ctx);
     public void LeaveExpStatement(ExpStatement ctx);
+    public void EnterEmptyStatement(EmptyStatement ctx);
+    public void LeaveEmptyStatement(EmptyStatement ctx);
     public void EnterForStatement(ForStatement ctx);
     public void LeaveForStatement(ForStatement ctx);
     public void EnterForeachStatement(ForeachStatement ctx);
@@ -214,6 +216,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveKnowledgeManagementBlock(KnowledgeManagementBlock ctx){}
     public virtual void EnterExpStatement(ExpStatement ctx){}
     public virtual void LeaveExpStatement(ExpStatement ctx){}
+    public virtual void EnterEmptyStatement(EmptyStatement ctx){}
+    public virtual void LeaveEmptyStatement(EmptyStatement ctx){}
     public virtual void EnterForStatement(ForStatement ctx){}
     public virtual void LeaveForStatement(ForStatement ctx){}
     public virtual void EnterForeachStatement(ForeachStatement ctx){}
@@ -348,6 +352,7 @@ public interface IAstRecursiveDescentVisitor
     public BlockStatement VisitBlockStatement(BlockStatement ctx);
     public KnowledgeManagementBlock VisitKnowledgeManagementBlock(KnowledgeManagementBlock ctx);
     public ExpStatement VisitExpStatement(ExpStatement ctx);
+    public EmptyStatement VisitEmptyStatement(EmptyStatement ctx);
     public ForStatement VisitForStatement(ForStatement ctx);
     public ForeachStatement VisitForeachStatement(ForeachStatement ctx);
     public GuardStatement VisitGuardStatement(GuardStatement ctx);
@@ -433,6 +438,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              BlockStatement node => VisitBlockStatement(node),
              KnowledgeManagementBlock node => VisitKnowledgeManagementBlock(node),
              ExpStatement node => VisitExpStatement(node),
+             EmptyStatement node => VisitEmptyStatement(node),
              ForStatement node => VisitForStatement(node),
              ForeachStatement node => VisitForeachStatement(node),
              GuardStatement node => VisitGuardStatement(node),
@@ -666,6 +672,11 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     {
      return ctx with {
          RHS = (ast.Expression)Visit((AstThing)ctx.RHS)
+        };
+    }
+    public virtual EmptyStatement VisitEmptyStatement(EmptyStatement ctx)
+    {
+     return ctx with {
         };
     }
     public virtual ForStatement VisitForStatement(ForStatement ctx)
