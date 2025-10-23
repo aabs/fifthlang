@@ -1,4 +1,5 @@
 using ast_model.TypeSystem.Inference;
+using System;
 
 namespace Fifth.LangProcessingPhases;
 
@@ -291,19 +292,26 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     /// <summary>
     /// Visits a BinaryExp and infers its result type based on the operator and operand types.
     /// </summary>
+    public override AssignmentStatement VisitAssignmentStatement(AssignmentStatement ctx)
+    {
+        Console.Error.WriteLine($"DEBUG TypeAnnotation: VisitAssignmentStatement ENTRY at {ctx.Location?.Line}:{ctx.Location?.Column}");
+        Console.Error.WriteLine($"  LValue type: {ctx.LValue?.GetType().Name}");
+        Console.Error.WriteLine($"  RValue type: {ctx.RValue?.GetType().Name}");
+        
+        var result = base.VisitAssignmentStatement(ctx);
+        
+        Console.Error.WriteLine($"DEBUG TypeAnnotation: VisitAssignmentStatement EXIT at {ctx.Location?.Line}:{ctx.Location?.Column}");
+        Console.Error.WriteLine($"  Result LValue type: {result.LValue?.GetType().Name}");
+        Console.Error.WriteLine($"  Result RValue type: {result.RValue?.GetType().Name}");
+        
+        return result;
+    }
+    
     public override BinaryExp VisitBinaryExp(BinaryExp ctx)
     {
-        if (ctx.Location?.Line == 3)
-        {
-            Console.Error.WriteLine($"DEBUG TypeAnnotation: Visiting BinaryExp at {ctx.Location?.Line}:{ctx.Location?.Column}");
-            Console.Error.WriteLine($"  LHS type: {ctx.LHS?.GetType().Name}, RHS type: {ctx.RHS?.GetType().Name}");
-        }
+        Console.Error.WriteLine($"DEBUG TypeAnnotation: VisitBinaryExp ENTRY at {ctx.Location?.Line}:{ctx.Location?.Column}");
         var result = base.VisitBinaryExp(ctx);
-        if (ctx.Location?.Line == 3)
-        {
-            Console.Error.WriteLine($"  After base visit - result type: {result.GetType().Name}");
-            Console.Error.WriteLine($"  Result LHS type: {result.LHS?.GetType().Name}, RHS type: {result.RHS?.GetType().Name}");
-        }
+        Console.Error.WriteLine($"DEBUG TypeAnnotation: VisitBinaryExp EXIT at {ctx.Location?.Line}:{ctx.Location?.Column}");
 
         // Get the types of the operands  
         var leftType = result.LHS?.Type;

@@ -113,16 +113,14 @@ public static class FifthParserManager
 
         ArgumentNullException.ThrowIfNull(ast);
 
+        // Debug: Check right after parsing
+        Console.Error.WriteLine("DEBUG: Right after parsing, before any transformations");
+        new DebugMemberAccessDetector().Visit(ast);
+        
         try
         {
             if (upTo >= AnalysisPhase.TreeLink)
-            {
-                Console.Error.WriteLine("DEBUG: Before TreeLink");
-                new DebugMemberAccessDetector().Visit(ast);
                 ast = new TreeLinkageVisitor().Visit(ast);
-                Console.Error.WriteLine("DEBUG: After TreeLink");
-                new DebugMemberAccessDetector().Visit(ast);
-            }
         }
         catch (System.Exception ex)
         {
