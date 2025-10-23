@@ -127,26 +127,51 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
         bool rhsIsGraph = RhsLooksLikeGraph(rhs);
         bool rhsIsTriple = RhsLooksLikeTriple(rhs);
 
-        if (rhsIsTriple || !rhsIsGraph)
+        if (rhsIsTriple || rhsIsGraph)
         {
-            // Graph operation: emit lhs.Assert(rhs) as an ExpStatement
-            var assertExpr = CreateAssertCall(lhs, rhs, loc);
-            return new ExpStatement
+            if (rhsIsTriple)
             {
-                Annotations = new Dictionary<string, object>(),
-                RHS = assertExpr,
-                Location = loc,
-                Type = Void
-            };
+                // Triple operation: emit lhs.Assert(rhs) as an ExpStatement
+                var assertExpr = CreateAssertCall(lhs, rhs, loc);
+                return new ExpStatement
+                {
+                    Annotations = new Dictionary<string, object>(),
+                    RHS = assertExpr,
+                    Location = loc,
+                    Type = Void
+                };
+            }
+            else
+            {
+                // Graph operation: emit KG.SaveGraph(store, rhs) as an ExpStatement
+                var saveGraphExpr = CreateSaveGraphCall(lhs, rhs, loc);
+                return new ExpStatement
+                {
+                    Annotations = new Dictionary<string, object>(),
+                    RHS = saveGraphExpr,
+                    Location = loc,
+                    Type = Void
+                };
+            }
         }
         else
         {
-            // Store operation: emit KG.SaveGraph(store, rhs) as an ExpStatement
-            var saveGraphExpr = CreateSaveGraphCall(lhs, rhs, loc);
-            return new ExpStatement
+            // Regular arithmetic addition - keep as assignment with binary expression
+            var addExpr = new BinaryExp
             {
                 Annotations = new Dictionary<string, object>(),
-                RHS = saveGraphExpr,
+                LHS = lhs,
+                RHS = rhs,
+                Operator = Operator.ArithmeticAdd,
+                Location = loc,
+                Type = null
+            };
+
+            return new AssignmentStatement
+            {
+                Annotations = new Dictionary<string, object>(),
+                LValue = lhs,
+                RValue = addExpr,
                 Location = loc,
                 Type = Void
             };
