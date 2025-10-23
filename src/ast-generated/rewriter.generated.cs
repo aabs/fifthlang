@@ -46,6 +46,7 @@ public interface IAstRewriter
     RewriteResult VisitBlockStatement(BlockStatement ctx);
     RewriteResult VisitKnowledgeManagementBlock(KnowledgeManagementBlock ctx);
     RewriteResult VisitExpStatement(ExpStatement ctx);
+    RewriteResult VisitEmptyStatement(EmptyStatement ctx);
     RewriteResult VisitForStatement(ForStatement ctx);
     RewriteResult VisitForeachStatement(ForeachStatement ctx);
     RewriteResult VisitGuardStatement(GuardStatement ctx);
@@ -136,6 +137,7 @@ public class DefaultAstRewriter : IAstRewriter
              BlockStatement node => VisitBlockStatement(node),
              KnowledgeManagementBlock node => VisitKnowledgeManagementBlock(node),
              ExpStatement node => VisitExpStatement(node),
+             EmptyStatement node => VisitEmptyStatement(node),
              ForStatement node => VisitForStatement(node),
              ForeachStatement node => VisitForeachStatement(node),
              GuardStatement node => VisitGuardStatement(node),
@@ -505,6 +507,13 @@ public class DefaultAstRewriter : IAstRewriter
         prologue.AddRange(rrRHS.Prologue);
         var rebuilt = ctx with {
          RHS = (ast.Expression)rrRHS.Node
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
+    public virtual RewriteResult VisitEmptyStatement(EmptyStatement ctx)
+    {
+        var prologue = new List<Statement>();
+        var rebuilt = ctx with {
         };
         return new RewriteResult(rebuilt, prologue);
     }

@@ -287,6 +287,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         {
             ReturnStatement retStmt => TranslateReturnStatement(retStmt),
             VarDeclStatement varDecl => TranslateVarDeclStatement(varDecl),
+            EmptyStatement _ => null, // Empty statements are elided (no code generated)
             ExpStatement expStmt => TranslateExpStatement(expStmt),
             IfElseStatement ifStmt => TranslateIfElseStatement(ifStmt),
             WhileStatement whileStmt => TranslateWhileStatement(whileStmt),

@@ -102,6 +102,7 @@ public enum SymbolKind
     BlockStatement,
     CastExp,
     ClassDef,
+    EmptyStatement,
     Expression,
     ExpStatement,
     FieldDef,
@@ -565,6 +566,13 @@ public record KnowledgeManagementBlock : Statement
 public record ExpStatement : Statement
 {
     public required Expression RHS { get; set; }
+}
+
+/// <summary>
+/// An empty or no-op statement (e.g., a bare semicolon)
+/// </summary>
+public record EmptyStatement : Statement
+{
 }
 
 public record ForStatement : Statement
