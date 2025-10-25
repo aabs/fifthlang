@@ -64,6 +64,8 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
         var visited = base.VisitBlockStatement(ctx);
 
         // Transform augmented assignments by structural pattern (no builder-time markers)
+        // This lowering ONLY handles graph/triple operations. Regular arithmetic operations
+        // are left as-is since they're already in the correct form.
         var newStatements = new List<Statement>();
         foreach (var stmt in visited.Statements)
         {
@@ -74,23 +76,33 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
                 var lhs = assign.LValue;
                 var actualRhs = bin.RHS;
 
+                // Check if this is a graph/triple operation that needs special lowering
+                bool isGraphOrTripleOp = false;
                 switch (bin.Operator)
                 {
                     case Operator.ArithmeticAdd:
-                        {
-                            var lowered = HandlePlusAssign(lhs, actualRhs, loc);
-                            newStatements.Add(lowered);
-                            break;
-                        }
-                    case Operator.ArithmeticSubtract:
-                        {
-                            var lowered = HandleMinusAssign(lhs, actualRhs, loc);
-                            newStatements.Add(lowered);
-                            break;
-                        }
-                    default:
-                        newStatements.Add(stmt);
+                        isGraphOrTripleOp = RhsLooksLikeGraph(actualRhs) || RhsLooksLikeTriple(actualRhs);
                         break;
+                    case Operator.ArithmeticSubtract:
+                        isGraphOrTripleOp = RhsLooksLikeTriple(actualRhs);
+                        break;
+                }
+
+                if (isGraphOrTripleOp)
+                {
+                    // This is a graph/triple operation - apply special lowering
+                    Statement lowered = bin.Operator switch
+                    {
+                        Operator.ArithmeticAdd => HandlePlusAssign(lhs, actualRhs, loc),
+                        Operator.ArithmeticSubtract => HandleMinusAssign(lhs, actualRhs, loc),
+                        _ => stmt
+                    };
+                    newStatements.Add(lowered);
+                }
+                else
+                {
+                    // Regular arithmetic operation - keep as-is
+                    newStatements.Add(stmt);
                 }
             }
             else
@@ -157,10 +169,13 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
         else
         {
             // Regular arithmetic addition - keep as assignment with binary expression
+            // Clone lhs to avoid sharing AST nodes between LValue and BinaryExp.LHS
+            var lhsClone = new DefaultRecursiveDescentVisitor().Visit(lhs) as Expression ?? lhs;
+            
             var addExpr = new BinaryExp
             {
                 Annotations = new Dictionary<string, object>(),
-                LHS = lhs,
+                LHS = lhsClone,
                 RHS = rhs,
                 Operator = Operator.ArithmeticAdd,
                 Location = loc,
@@ -197,10 +212,13 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
         else
         {
             // Regular arithmetic subtraction - keep as assignment with binary expression
+            // Clone lhs to avoid sharing AST nodes between LValue and BinaryExp.LHS
+            var lhsClone = new DefaultRecursiveDescentVisitor().Visit(lhs) as Expression ?? lhs;
+            
             var subtractExpr = new BinaryExp
             {
                 Annotations = new Dictionary<string, object>(),
-                LHS = lhs,
+                LHS = lhsClone,
                 RHS = rhs,
                 Operator = Operator.ArithmeticSubtract,
                 Location = loc,
@@ -251,7 +269,29 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
         {
             return true;
         }
-        if (e is VarRefExp) return true; // treat unknown var as likely triple to enable lowering later
+        // Only treat VarRefExp as triple if it has an unknown/unresolved type
+        // or if its type is explicitly "triple". Don't treat typed primitive variables as triples.
+        if (e is VarRefExp vr)
+        {
+            // If type is known and not triple, don't treat as triple
+            if (vr.Type != null)
+            {
+                if (vr.Type is FifthType.TType vtt && vtt.Name.Value.Equals("triple", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+                if (vr.Type is FifthType.UnknownType)
+                {
+                    // Unknown type - could be triple, allow lowering
+                    return true;
+                }
+                // Known non-triple type - don't treat as triple
+                return false;
+            }
+            // No type info - conservatively treat as potential triple only if we have no other info
+            // This is a fallback for cases where type annotation hasn't run yet
+            return false;
+        }
         return false;
     }
 
