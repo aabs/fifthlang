@@ -642,14 +642,40 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             bool rightIsGraph = IsGraph(rhs);
             bool expectedGraph = ExpectedGraphResult();
             
-            // Fallback heuristic: if both operands are VarRefExp and we have + or -,
-            // assume this might be a graph/triple operation. This handles cases where
-            // type information is not available (e.g., variables created by simple assignment).
-            // NOTE: This is currently disabled because it's too aggressive and lowers integer operations.
-            // TODO: Make this more intelligent by checking variable names or initialization expressions.
-            bool fallbackHeuristic = false;
+            // Check if this binary expression came from an augmented assignment (g += x or g -= x)
+            // In such cases, we're more confident this is a graph/triple operation
+            bool fromAugmentedAssignment = ctx.Annotations != null && 
+                                          ctx.Annotations.ContainsKey("FromAugmentedAssignment");
+            
+            
+            // Additional heuristic: If we can't determine types, but one side is clearly a triple literal
+            // or the result of KG.CreateTriple, then this is likely a graph/triple operation
+            bool likelyGraphTripleOp = false;
+            if (!leftIsTriple && !rightIsTriple && !leftIsGraph && !rightIsGraph)
+            {
+                // Check if RHS is definitely a triple (literal or CreateTriple call)
+                if (rhs is TripleLiteralExp || 
+                    (rhs is MemberAccessExp rhsMa && TryGetKGFunctionName(rhsMa, out var rhsFn) && 
+                     string.Equals(rhsFn, "CreateTriple", StringComparison.Ordinal)))
+                {
+                    likelyGraphTripleOp = true;
+                }
+                // Check if LHS is definitely a graph (CreateGraph call)
+                else if (lhs is MemberAccessExp lhsMa && TryGetKGFunctionName(lhsMa, out var lhsFn) && 
+                         string.Equals(lhsFn, "CreateGraph", StringComparison.Ordinal))
+                {
+                    likelyGraphTripleOp = true;
+                }
+                // If this came from augmented assignment and we have two VarRefs, assume it's graph/triple
+                // This handles cases like `g += triple` where g and triple are variables without type info
+                else if (fromAugmentedAssignment && lhs is VarRefExp && rhs is VarRefExp)
+                {
+                    likelyGraphTripleOp = true;
+                }
+            }
+            
 
-            if (leftIsTriple || rightIsTriple || leftIsGraph || rightIsGraph || expectedGraph || fallbackHeuristic)
+            if (leftIsTriple || rightIsTriple || leftIsGraph || rightIsGraph || expectedGraph || likelyGraphTripleOp)
             {
                 // We have detected graph/triple intent - proceed with lowering
                 // Handle subtraction first: graph - triple => Retract
@@ -809,18 +835,19 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
                         return new RewriteResult(graphExpr, prologue);
                     }
                     
-                    // Fallback for bothAreVarRefs heuristic: assume LHS is graph, RHS is triple
-                    if (fallbackHeuristic)
+                    // Fallback for likelyGraphTripleOp: when we believe this is a graph/triple operation
+                    // but can't determine specific types, assume LHS is graph and RHS is triple
+                    if (likelyGraphTripleOp && !leftIsTriple && !rightIsTriple && !leftIsGraph && !rightIsGraph)
                     {
                         // Assume LHS is graph-like, RHS is triple-like
-                        // Create Assert(lhs, rhs) and return lhs
                         prologue.Add(MakeAssertStatement(lhs, rhs, loc));
                         return new RewriteResult(lhs, prologue);
                     }
                 }
                 
-                // Fallback for subtraction with bothAreVarRefs: assume LHS is graph, RHS is triple
-                if (ctx.Operator == Operator.ArithmeticSubtract && fallbackHeuristic)
+                // Fallback for subtraction with likelyGraphTripleOp
+                if (ctx.Operator == Operator.ArithmeticSubtract && likelyGraphTripleOp && 
+                    !leftIsTriple && !rightIsTriple && !leftIsGraph && !rightIsGraph)
                 {
                     prologue.Add(MakeRetractStatement(lhs, rhs, loc));
                     return new RewriteResult(lhs, prologue);
