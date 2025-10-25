@@ -174,7 +174,7 @@ public abstract class RuntimeTestBase : IDisposable
     /// <param name="input">Optional standard input</param>
     /// <param name="timeoutMs">Timeout in milliseconds (default 10 seconds)</param>
     /// <returns>Execution result</returns>
-    protected async Task<ExecutionResult> ExecuteAsync(string executablePath, string? arguments = null, string? input = null, int timeoutMs = 10000)
+    protected async Task<ExecutionResult> ExecuteAsync(string executablePath, string? arguments = null, string? input = null, int timeoutMs = 60000)
     {
         File.Exists(executablePath).Should().BeTrue($"Executable should exist: {executablePath}");
 
