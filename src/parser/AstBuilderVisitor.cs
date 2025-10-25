@@ -76,6 +76,29 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         return new FifthType.UnknownType() { Name = TypeName.From(typeName) };
     }
 
+    /// <summary>
+    /// Creates a deep copy of an expression by recursively visiting all nodes.
+    /// This is necessary when the same expression needs to appear in multiple places
+    /// in the AST (e.g., in augmented assignments like += where lvalue appears both
+    /// as the assignment target and in the binary expression).
+    /// </summary>
+    private Expression CloneExpression(Expression expr)
+    {
+        // Use the default recursive descent visitor to create a deep copy
+        var cloner = new ExpressionClonerVisitor();
+        return (Expression)cloner.Visit(expr);
+    }
+
+    /// <summary>
+    /// Simple visitor that clones expressions by visiting all children and reconstructing.
+    /// </summary>
+    private class ExpressionClonerVisitor : DefaultRecursiveDescentVisitor
+    {
+        // The base DefaultRecursiveDescentVisitor already implements recursive copying
+        // via the 'with' syntax, which is perfect for our needs.
+        // No overrides needed - just use the default behavior.
+    }
+
     #endregion Helper Functions
 
     public override IAstThing VisitAssignment_statement([NotNull] FifthParser.Assignment_statementContext context)
@@ -91,7 +114,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             var addExpr = new BinaryExp
             {
                 Annotations = new Dictionary<string, object>(),
-                LHS = lhsExpr,
+                LHS = CloneExpression(lhsExpr),  // Clone to avoid sharing AST nodes
                 RHS = rhsExpr,
                 Operator = Operator.ArithmeticAdd,
                 Location = GetLocationDetails(context),
@@ -112,7 +135,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             var subtractExpr = new BinaryExp
             {
                 Annotations = new Dictionary<string, object>(),
-                LHS = lhsExpr,
+                LHS = CloneExpression(lhsExpr),  // Clone to avoid sharing AST nodes
                 RHS = rhsExpr,
                 Operator = Operator.ArithmeticSubtract,
                 Location = GetLocationDetails(context),
