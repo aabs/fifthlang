@@ -647,18 +647,22 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             {
                 if (lhsVr.VariableDecl != null)
                 {
+                    Console.WriteLine($"[DEBUG] LHS VarRefExp: VariableDecl.Name = {lhsVr.VariableDecl.Name}");
                 }
                 if (lhsVr.Type is FifthType.TType lhsttype)
                 {
+                    Console.WriteLine($"[DEBUG] LHS VarRefExp: Type = {lhsttype}");
                 }
             }
             if (rhs is VarRefExp rhsVr)
             {
                 if (rhsVr.VariableDecl != null)
                 {
+                    Console.WriteLine($"[DEBUG] RHS VarRefExp: VariableDecl.Name = {rhsVr.VariableDecl.Name}");
                 }
                 if (rhsVr.Type is FifthType.TType rhsttype)
                 {
+                    Console.WriteLine($"[DEBUG] RHS VarRefExp: Type = {rhsttype}");
                 }
             }
             
