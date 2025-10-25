@@ -34,9 +34,11 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
         {
             return true;
         }
-        // If we already have type info, detect variables typed as 'triple'
+        // If we already have type info, detect variables typed as 'triple' or 'Triple'
         if (expr is VarRefExp vr && vr.Type is FifthType.TType ttype &&
-            ttype.Name.Value != null && ttype.Name.Value.Equals("triple", StringComparison.OrdinalIgnoreCase))
+            ttype.Name.Value != null && 
+            (ttype.Name.Value.Equals("triple", StringComparison.OrdinalIgnoreCase) ||
+             ttype.Name.Value.Equals("Triple", StringComparison.Ordinal)))
         {
             return true;
         }
@@ -72,11 +74,12 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
         if (expr is Graph || expr is GraphAssertionBlockExp)
             return true;
 
-        // Check if variable reference is typed as a graph
+        // Check if variable reference is typed as a graph (could be "graph" or "IGraph")
         if (expr is VarRefExp varRef && varRef.Type is FifthType.TType ttype)
         {
             return ttype.Name.Value != null &&
-                   ttype.Name.Value.Equals("graph", StringComparison.OrdinalIgnoreCase);
+                   (ttype.Name.Value.Equals("graph", StringComparison.OrdinalIgnoreCase) ||
+                    ttype.Name.Value.Equals("IGraph", StringComparison.Ordinal));
         }
 
         // Avoid blindly treating MemberAccessExp as graph; rely on type info instead.
@@ -85,7 +88,8 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
         if (expr is MemberAccessExp ma && ma.Type is FifthType.TType ttype2)
         {
             return ttype2.Name.Value != null &&
-                   ttype2.Name.Value.Equals("graph", StringComparison.OrdinalIgnoreCase);
+                   (ttype2.Name.Value.Equals("graph", StringComparison.OrdinalIgnoreCase) ||
+                    ttype2.Name.Value.Equals("IGraph", StringComparison.Ordinal));
         }
 
         return false;
@@ -513,6 +517,58 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             return expr;
         }
         return null;
+    }
+
+    /// <summary>
+    /// Check if two expressions refer to the same variable (simple structural check).
+    /// </summary>
+    private static bool IsSameVariable(Expression? a, Expression? b)
+    {
+        if (a is VarRefExp varA && b is VarRefExp varB)
+        {
+            return string.Equals(varA.VarName, varB.VarName, StringComparison.Ordinal);
+        }
+        return false;
+    }
+
+    public override RewriteResult VisitAssignmentStatement(AssignmentStatement ctx)
+    {
+        // Rewrite LHS and RHS
+        var lhsResult = Rewrite(ctx.LValue);
+        var rhsResult = Rewrite(ctx.RValue);
+
+        var prologue = new List<Statement>();
+        prologue.AddRange(lhsResult.Prologue);
+        prologue.AddRange(rhsResult.Prologue);
+
+        var lhs = (Expression)lhsResult.Node;
+        var rhs = (Expression)rhsResult.Node;
+
+        // Special case: If the lowering of RHS produced prologue statements (e.g., Assert calls)
+        // and the RHS result expression is the same as LHS (e.g., g = g), 
+        // then the assignment is a no-op and we should omit it.
+        // This happens when `g += triple` is desugared to `g = g + triple` and then
+        // `g + triple` is lowered to `Assert(g, triple); result: g`.
+        if (rhsResult.Prologue.Any() && IsSameVariable(lhs, rhs))
+        {
+            // The assignment is a no-op (g = g), but the prologue contains the actual operations.
+            // Return an empty statement with the prologue.
+            var loc = ctx.Location ?? new SourceLocationMetadata(0, string.Empty, 0, string.Empty);
+            var emptyStmt = new EmptyStatement
+            {
+                Location = loc,
+                Annotations = ctx.Annotations ?? new Dictionary<string, object>()
+            };
+            return new RewriteResult(emptyStmt, prologue);
+        }
+
+        // Normal case: rebuild the assignment with rewritten LHS and RHS
+        var rebuilt = ctx with
+        {
+            LValue = lhs,
+            RValue = rhs
+        };
+        return new RewriteResult(rebuilt, prologue);
     }
 
     public override RewriteResult VisitBinaryExp(BinaryExp ctx)
