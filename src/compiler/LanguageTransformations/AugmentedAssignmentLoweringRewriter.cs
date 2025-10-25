@@ -43,7 +43,12 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
             
             var binaryExpr = new BinaryExp
             {
-                Annotations = new Dictionary<string, object>(),
+                Annotations = new Dictionary<string, object> 
+                { 
+                    // Mark that this came from an augmented assignment, which can help downstream passes
+                    // make more informed decisions about lowering
+                    ["FromAugmentedAssignment"] = true
+                },
                 LHS = clonedLHS,
                 RHS = visited.RValue,
                 Operator = binaryOp,
