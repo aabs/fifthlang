@@ -641,38 +641,13 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             bool leftIsGraph = IsGraph(lhs);
             bool rightIsGraph = IsGraph(rhs);
             bool expectedGraph = ExpectedGraphResult();
-
-            // DEBUG: Log type detection results for ANY binary operation with + or -
-            if (lhs is VarRefExp lhsVr)
-            {
-                if (lhsVr.VariableDecl != null)
-                {
-                    Console.WriteLine($"[DEBUG] LHS VarRefExp: VariableDecl.Name = {lhsVr.VariableDecl.Name}");
-                }
-                if (lhsVr.Type is FifthType.TType lhsttype)
-                {
-                    Console.WriteLine($"[DEBUG] LHS VarRefExp: Type = {lhsttype}");
-                }
-            }
-            if (rhs is VarRefExp rhsVr)
-            {
-                if (rhsVr.VariableDecl != null)
-                {
-                    Console.WriteLine($"[DEBUG] RHS VarRefExp: VariableDecl.Name = {rhsVr.VariableDecl.Name}");
-                }
-                if (rhsVr.Type is FifthType.TType rhsttype)
-                {
-                    Console.WriteLine($"[DEBUG] RHS VarRefExp: Type = {rhsttype}");
-                }
-            }
             
             // Fallback heuristic: if both operands are VarRefExp and we have + or -,
             // assume this might be a graph/triple operation. This handles cases where
             // type information is not available (e.g., variables created by simple assignment).
             // NOTE: This is currently disabled because it's too aggressive and lowers integer operations.
             // TODO: Make this more intelligent by checking variable names or initialization expressions.
-            bool fallbackHeuristic = false; // bothAreVarRefs && !leftIsTriple && !leftIsGraph && !rightIsTriple && !rightIsGraph;
-            
+            bool fallbackHeuristic = false;
 
             if (leftIsTriple || rightIsTriple || leftIsGraph || rightIsGraph || expectedGraph || fallbackHeuristic)
             {

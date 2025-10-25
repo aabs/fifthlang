@@ -108,54 +108,23 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
         var annotations = new Dictionary<string, object>();
 
-        // Support '+=' - desugar to lvalue = lvalue + rvalue (no builder-time marker)
+        // Mark augmented assignments with an annotation instead of expanding them here.
+        // The AugmentedAssignmentLoweringRewriter will handle the expansion in a later pass.
         if (context.op != null && context.op.Type == FifthParser.PLUS_ASSIGN)
         {
-            var addExpr = new BinaryExp
-            {
-                Annotations = new Dictionary<string, object>(),
-                LHS = CloneExpression(lhsExpr),  // Clone to avoid sharing AST nodes
-                RHS = rhsExpr,
-                Operator = Operator.ArithmeticAdd,
-                Location = GetLocationDetails(context),
-                Type = Void
-            };
-
-            var b = new AssignmentStatementBuilder()
-                .WithAnnotations(annotations)
-                .WithLValue(lhsExpr)
-                .WithRValue(addExpr);
-            var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-            return result;
+            annotations["AugmentedOperator"] = "+=";
         }
-
-        // Support '-=' - desugar to lvalue = lvalue - rvalue (no builder-time marker)
-        if (context.op != null && context.op.Type == FifthParser.MINUS_ASSIGN)
+        else if (context.op != null && context.op.Type == FifthParser.MINUS_ASSIGN)
         {
-            var subtractExpr = new BinaryExp
-            {
-                Annotations = new Dictionary<string, object>(),
-                LHS = CloneExpression(lhsExpr),  // Clone to avoid sharing AST nodes
-                RHS = rhsExpr,
-                Operator = Operator.ArithmeticSubtract,
-                Location = GetLocationDetails(context),
-                Type = Void
-            };
-
-            var b = new AssignmentStatementBuilder()
-                .WithAnnotations(annotations)
-                .WithLValue(lhsExpr)
-                .WithRValue(subtractExpr);
-            var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-            return result;
+            annotations["AugmentedOperator"] = "-=";
         }
 
-        var b2 = new AssignmentStatementBuilder()
+        var b = new AssignmentStatementBuilder()
             .WithAnnotations(annotations)
             .WithLValue(lhsExpr)
             .WithRValue(rhsExpr);
-        var result2 = b2.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result2;
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
     }
 
     public override IAstThing VisitExpression_statement([NotNull] FifthParser.Expression_statementContext context)

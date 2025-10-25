@@ -20,48 +20,71 @@ public class AugmentedAssignmentLoweringRewriter : DefaultRecursiveDescentVisito
 {
     private static readonly FifthType Void = new FifthType.TVoidType() { Name = TypeName.From("void") };
 
-    public override BlockStatement VisitBlockStatement(BlockStatement ctx)
+    public override AssignmentStatement VisitAssignmentStatement(AssignmentStatement ctx)
     {
-        // Visit children first
-        var visited = base.VisitBlockStatement(ctx);
+        // First visit children to handle nested structures
+        var visited = base.VisitAssignmentStatement(ctx);
 
-        // Transform augmented assignments by structural pattern (no builder-time markers)
-        // This is a simple type-agnostic expansion: LHS += RHS becomes LHS = LHS + RHS
-        var newStatements = new List<Statement>();
-        foreach (var stmt in visited.Statements)
+        // Check if this is an augmented assignment (marked by parser with annotation)
+        if (visited.Annotations != null && 
+            visited.Annotations.TryGetValue("AugmentedOperator", out var opObj) &&
+            opObj is string op)
         {
-            if (stmt is AssignmentStatement assign && assign.RValue is BinaryExp bin &&
-                IsSameTarget(assign.LValue, bin.LHS))
+            // Expand augmented assignment: LHS op= RHS  →  LHS = LHS op RHS
+            Operator binaryOp = op switch
             {
-                // Pattern detected: LHS = LHS op RHS
-                // This is already the expanded form - keep as-is
-                newStatements.Add(stmt);
-            }
-            else
+                "+=" => Operator.ArithmeticAdd,
+                "-=" => Operator.ArithmeticSubtract,
+                _ => throw new InvalidOperationException($"Unknown augmented operator: {op}")
+            };
+
+            // Clone the LHS to use in the binary expression, preserving all properties including Type
+            var clonedLHS = CloneExpression(visited.LValue);
+            
+            var binaryExpr = new BinaryExp
             {
-                newStatements.Add(stmt);
-            }
+                Annotations = new Dictionary<string, object>(),
+                LHS = clonedLHS,
+                RHS = visited.RValue,
+                Operator = binaryOp,
+                Location = visited.Location,
+                Type = visited.LValue.Type ?? Void
+            };
+
+            // Remove the augmented operator annotation since we've expanded it
+            var newAnnotations = new Dictionary<string, object>(visited.Annotations);
+            newAnnotations.Remove("AugmentedOperator");
+
+            return visited with
+            {
+                RValue = binaryExpr,
+                Annotations = newAnnotations
+            };
         }
 
-        return visited with { Statements = newStatements };
+        return visited;
     }
 
-    private static bool IsSameTarget(Expression a, Expression b)
+    /// <summary>
+    /// Clone an expression, preserving all properties including Type annotations.
+    /// Uses the visitor pattern to recursively copy the entire expression tree.
+    /// </summary>
+    private static Expression CloneExpression(Expression expr)
     {
-        if (a is VarRefExp va && b is VarRefExp vb)
-        {
-            return string.Equals(va.VarName, vb.VarName, StringComparison.Ordinal);
-        }
+        return new ExpressionCloner().VisitExpression(expr);
+    }
 
-        if (a is MemberAccessExp ma && b is MemberAccessExp mb)
+    /// <summary>
+    /// Visitor that performs deep cloning of expressions, preserving all properties.
+    /// </summary>
+    private class ExpressionCloner : DefaultRecursiveDescentVisitor
+    {
+        public Expression VisitExpression(Expression expr)
         {
-            // Simple structural check: same LHS and RHS is null or both varrefs with same name
-            return IsSameTarget(ma.LHS, mb.LHS) &&
-                   ((ma.RHS == null && mb.RHS == null) ||
-                    (ma.RHS is VarRefExp mvr1 && mb.RHS is VarRefExp mvr2 && string.Equals(mvr1.VarName, mvr2.VarName, StringComparison.Ordinal)));
+            return (Expression)Visit(expr);
         }
-
-        // Fallback: no match
-        return false;
+        
+        // The base DefaultRecursiveDescentVisitor uses 'with' syntax to create copies,
+        // which preserves all properties including Type annotations.
     }
 }
