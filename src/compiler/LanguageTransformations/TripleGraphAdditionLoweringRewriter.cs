@@ -42,6 +42,17 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
         {
             return true;
         }
+        // Fallback: check if VariableDecl suggests this is a triple
+        if (expr is VarRefExp vr2 && vr2.VariableDecl != null)
+        {
+            var tn = vr2.VariableDecl.TypeName.Value;
+            if (!string.IsNullOrEmpty(tn) &&
+                (tn.Equals("triple", StringComparison.OrdinalIgnoreCase) ||
+                 tn.Equals("Triple", StringComparison.Ordinal)))
+            {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -82,10 +93,29 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
                     ttype.Name.Value.Equals("IGraph", StringComparison.Ordinal));
         }
 
+        // Fallback: check if VariableDecl suggests this is a graph
+        if (expr is VarRefExp vr2 && vr2.VariableDecl != null)
+        {
+            var tn = vr2.VariableDecl.TypeName.Value;
+            if (!string.IsNullOrEmpty(tn) &&
+                (tn.Equals("graph", StringComparison.OrdinalIgnoreCase) ||
+                 tn.Equals("IGraph", StringComparison.Ordinal)))
+            {
+                return true;
+            }
+        }
+
+        // Check if this looks like a KG.CreateGraph() call
+        if (expr is MemberAccessExp ma && TryGetKGFunctionName(ma, out var fn)
+            && string.Equals(fn, "CreateGraph", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
         // Avoid blindly treating MemberAccessExp as graph; rely on type info instead.
         // Some member-access nodes (e.g., KG.CreateTriple) are NOT graphs.
         // When type info is available and indicates 'graph', consider it graph-like.
-        if (expr is MemberAccessExp ma && ma.Type is FifthType.TType ttype2)
+        if (expr is MemberAccessExp ma2 && ma2.Type is FifthType.TType ttype2)
         {
             return ttype2.Name.Value != null &&
                    (ttype2.Name.Value.Equals("graph", StringComparison.OrdinalIgnoreCase) ||
@@ -612,8 +642,38 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             bool rightIsGraph = IsGraph(rhs);
             bool expectedGraph = ExpectedGraphResult();
 
-            if (leftIsTriple || rightIsTriple || leftIsGraph || rightIsGraph || expectedGraph)
+            // DEBUG: Log type detection results for ANY binary operation with + or -
+            if (lhs is VarRefExp lhsVr)
             {
+                if (lhsVr.VariableDecl != null)
+                {
+                }
+                if (lhsVr.Type is FifthType.TType lhsttype)
+                {
+                }
+            }
+            if (rhs is VarRefExp rhsVr)
+            {
+                if (rhsVr.VariableDecl != null)
+                {
+                }
+                if (rhsVr.Type is FifthType.TType rhsttype)
+                {
+                }
+            }
+            
+            // Fallback heuristic: if both operands are VarRefExp and we have + or -,
+            // assume this might be a graph/triple operation. This handles cases where
+            // type information is not available (e.g., variables created by simple assignment).
+            // NOTE: This is currently disabled because it's too aggressive and lowersinteger operations.
+            // TODO: Make this more intelligent by checking variable names or initialization expressions.
+            bool bothAreVarRefs = lhs is VarRefExp && rhs is VarRefExp;
+            bool fallbackHeuristic = false; // bothAreVarRefs && !leftIsTriple && !leftIsGraph && !rightIsTriple && !rightIsGraph;
+            
+
+            if (leftIsTriple || rightIsTriple || leftIsGraph || rightIsGraph || expectedGraph || fallbackHeuristic)
+            {
+                // We have detected graph/triple intent - proceed with lowering
                 // Handle subtraction first: graph - triple => Retract
                 if (ctx.Operator == Operator.ArithmeticSubtract)
                 {
@@ -770,6 +830,22 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
                         prologue.Add(MakeAssertStatement(graphExpr, rhs, loc));
                         return new RewriteResult(graphExpr, prologue);
                     }
+                    
+                    // Fallback for bothAreVarRefs heuristic: assume LHS is graph, RHS is triple
+                    if (fallbackHeuristic)
+                    {
+                        // Assume LHS is graph-like, RHS is triple-like
+                        // Create Assert(lhs, rhs) and return lhs
+                        prologue.Add(MakeAssertStatement(lhs, rhs, loc));
+                        return new RewriteResult(lhs, prologue);
+                    }
+                }
+                
+                // Fallback for subtraction with bothAreVarRefs: assume LHS is graph, RHS is triple
+                if (ctx.Operator == Operator.ArithmeticSubtract && fallbackHeuristic)
+                {
+                    prologue.Add(MakeRetractStatement(lhs, rhs, loc));
+                    return new RewriteResult(lhs, prologue);
                 }
             }
         }
