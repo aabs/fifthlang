@@ -378,3 +378,4 @@ tmp_*/
 .idea/
 fifthlang.iml
 build_debug_il/
+build_debug_roslyn/generated_0.cs
