@@ -667,7 +667,6 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
             // type information is not available (e.g., variables created by simple assignment).
             // NOTE: This is currently disabled because it's too aggressive and lowersinteger operations.
             // TODO: Make this more intelligent by checking variable names or initialization expressions.
-            bool bothAreVarRefs = lhs is VarRefExp && rhs is VarRefExp;
             bool fallbackHeuristic = false; // bothAreVarRefs && !leftIsTriple && !leftIsGraph && !rightIsTriple && !rightIsGraph;
             
 
