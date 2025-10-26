@@ -1,1 +1,9 @@
-main(): int { xs: [int]; xs = [1+2, foo(1), a.b]; return 0; }
+class A { b: int; }
+foo(x: int): int { return x; }
+main(): int { 
+    a: A; 
+    a = new A { b = 5 };
+    xs: [int]; 
+    xs = [1+2, foo(1), a.b]; 
+    return 0; 
+}
