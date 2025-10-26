@@ -484,16 +484,65 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitExp_unary(FifthParser.Exp_unaryContext context)
     {
-        var b = new UnaryExpBuilder()
-            .WithAnnotations([]);
+        var annotations = new Dictionary<string, object>();
+        
         var op = context.unary_op.Type switch
         {
             FifthParser.PLUS => Operator.ArithmeticAdd,
             FifthParser.MINUS => Operator.ArithmeticNegative,
             FifthParser.LOGICAL_NOT => Operator.LogicalNot,
+            FifthParser.PLUS_PLUS => Operator.ArithmeticAdd,
+            FifthParser.MINUS_MINUS => Operator.ArithmeticSubtract,
             _ => Operator.ArithmeticAdd
         };
-        b.WithOperator(op)
+
+        // Add annotations to distinguish between unary +/- and increment/decrement
+        if (context.unary_op.Type == FifthParser.PLUS_PLUS)
+        {
+            annotations["OperatorType"] = "++";
+            annotations["OperatorPosition"] = OperatorPosition.Prefix;
+        }
+        else if (context.unary_op.Type == FifthParser.MINUS_MINUS)
+        {
+            annotations["OperatorType"] = "--";
+            annotations["OperatorPosition"] = OperatorPosition.Prefix;
+        }
+
+        var b = new UnaryExpBuilder()
+            .WithAnnotations(annotations)
+            .WithOperator(op)
+            .WithOperand((Expression)Visit(context.expression()));
+
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
+
+    public override IAstThing VisitExp_unary_postfix(FifthParser.Exp_unary_postfixContext context)
+    {
+        var annotations = new Dictionary<string, object>();
+        
+        var op = context.unary_op.Type switch
+        {
+            FifthParser.PLUS_PLUS => Operator.ArithmeticAdd,
+            FifthParser.MINUS_MINUS => Operator.ArithmeticSubtract,
+            _ => Operator.ArithmeticAdd
+        };
+
+        // Add annotations to indicate this is a postfix operator
+        if (context.unary_op.Type == FifthParser.PLUS_PLUS)
+        {
+            annotations["OperatorType"] = "++";
+            annotations["OperatorPosition"] = OperatorPosition.Postfix;
+        }
+        else if (context.unary_op.Type == FifthParser.MINUS_MINUS)
+        {
+            annotations["OperatorType"] = "--";
+            annotations["OperatorPosition"] = OperatorPosition.Postfix;
+        }
+
+        var b = new UnaryExpBuilder()
+            .WithAnnotations(annotations)
+            .WithOperator(op)
             .WithOperand((Expression)Visit(context.expression()));
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };

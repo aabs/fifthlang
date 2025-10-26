@@ -25,15 +25,16 @@ public static class FifthParserManager
         GuardValidation = 8,
         OverloadTransform = 9,
         DestructuringLowering = 10,
-        AugmentedAssignmentLowering = 11,
-        TreeRelink = 12,
-        GraphAssertionLowering = 13,
-        TripleDiagnostics = 14,
-        TripleExpansion = 15,
-        GraphTripleOperatorLowering = 16,
-        SymbolTableFinal = 17,
-        VarRefResolver = 18,
-        TypeAnnotation = 19,
+        UnaryOperatorLowering = 11,
+        AugmentedAssignmentLowering = 12,
+        TreeRelink = 13,
+        GraphAssertionLowering = 14,
+        TripleDiagnostics = 15,
+        TripleExpansion = 16,
+        GraphTripleOperatorLowering = 17,
+        SymbolTableFinal = 18,
+        VarRefResolver = 19,
+        TypeAnnotation = 20,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
@@ -146,6 +147,14 @@ public static class FifthParserManager
         if (upTo >= AnalysisPhase.DestructuringLowering)
         {
             var rewriter = new DestructuringLoweringRewriter();
+            var result = rewriter.Rewrite(ast);
+            ast = result.Node;
+        }
+
+        // Lower unary operators (++, --, -, +) to binary expressions
+        if (upTo >= AnalysisPhase.UnaryOperatorLowering)
+        {
+            var rewriter = new UnaryOperatorLoweringRewriter();
             var result = rewriter.Rewrite(ast);
             ast = result.Node;
         }
