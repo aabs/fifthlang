@@ -533,6 +533,37 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             .WithArgumentList(ArgumentList(SeparatedList(new[] { Argument(lhsExpr), Argument(rhsExpr) })));
         }
 
+        // Handle power operator (^) by calling System.Math.Pow
+        if (binExp.Operator == Operator.ArithmeticPow)
+        {
+            var lhsExpr = TranslateExpression(binExp.LHS);
+            var rhsExpr = TranslateExpression(binExp.RHS);
+            
+            // Cast operands to double for Math.Pow
+            var lhsDouble = CastExpression(
+                PredefinedType(Token(SyntaxKind.DoubleKeyword)),
+                lhsExpr);
+            var rhsDouble = CastExpression(
+                PredefinedType(Token(SyntaxKind.DoubleKeyword)),
+                rhsExpr);
+            
+            // Emit: System.Math.Pow((double)base, (double)exponent)
+            var powCall = InvocationExpression(
+                MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName("System"),
+                        IdentifierName("Math")),
+                    IdentifierName("Pow")))
+                .WithArgumentList(ArgumentList(SeparatedList(new[] { Argument(lhsDouble), Argument(rhsDouble) })));
+            
+            // System.Math.Pow returns double, so cast to int for integer expressions
+            return CastExpression(
+                PredefinedType(Token(SyntaxKind.IntKeyword)),
+                powCall);
+        }
+
         var left = TranslateExpression(binExp.LHS);
         var right = TranslateExpression(binExp.RHS);
 
