@@ -1,1 +1,2 @@
+foo(x: int): int {return x;}
 main(): int { foo(1); return 0; }

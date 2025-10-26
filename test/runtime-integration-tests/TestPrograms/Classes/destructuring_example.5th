@@ -8,7 +8,7 @@ calculate_bonus(emp: Employee {
     salary: Salary | salary > 50000,
     department: Department
 }): int {
-    print("in case 1");
+    IO.write("in case 1");
     if (department == "Engineering") {
         return salary / 10;
     }
@@ -20,7 +20,7 @@ calculate_bonus(emp: Employee {
     salary: Salary,
     department: Department
 }): int {
-    print("in base case");
+    IO.write("in base case");
     return salary;
 }
 

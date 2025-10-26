@@ -253,11 +253,11 @@ graphDeclaration:
 	GRAPH name = IDENTIFIER (IN aliasScope = alias_scope_ref)? ASSIGN L_CURLY assignment_statement*
 		R_CURLY;
 
-// Colon form graph variable: g : graph in <scope?> = <{ ... }>;
+// Colon form graph variable: g : graph in <scope?> = <{ ... }> or any graph expression;
 colon_graph_decl:
 	name = IDENTIFIER COLON GRAPH (
 		IN aliasScope = alias_scope_ref
-	)? ASSIGN graphAssertionBlock SEMI;
+	)? ASSIGN expression SEMI;
 
 // Prefer simple identifier first to avoid mispredicting IRI when both are viable
 alias_scope_ref: IDENTIFIER | iri;

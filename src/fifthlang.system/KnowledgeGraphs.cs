@@ -278,6 +278,106 @@ public static class KG
         return g.CreateLiteralNode(value ? "true" : "false", UriFactory.Create("http://www.w3.org/2001/XMLSchema#boolean"));
     }
 
+    // Graph-independent node creation methods for triple literals
+    // These methods don't require a graph context and are used for creating standalone triples
+
+    /// <summary>
+    /// Creates a URI node without requiring a graph context.
+    /// Useful for creating standalone triples.
+    /// </summary>
+    /// <param name="uri">an absolute URI string.</param>
+    /// <returns>a URI node.</returns>
+    [BuiltinFunction]
+    public static IUriNode CreateUriNode(string uri)
+    {
+        var factory = new NodeFactory();
+        return factory.CreateUriNode(new Uri(uri));
+    }
+
+    /// <summary>
+    /// Creates a URI node without requiring a graph context.
+    /// </summary>
+    /// <param name="uri">an absolute URI.</param>
+    /// <returns>a URI node.</returns>
+    [BuiltinFunction]
+    public static IUriNode CreateUriNode(Uri uri)
+    {
+        var factory = new NodeFactory();
+        return factory.CreateUriNode(uri);
+    }
+
+    /// <summary>
+    /// Creates a literal node for an integer value.
+    /// </summary>
+    /// <param name="value">the integer value.</param>
+    /// <returns>a typed literal node with xsd:int datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteralNode(int value)
+    {
+        var factory = new NodeFactory();
+        return factory.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#int"));
+    }
+
+    /// <summary>
+    /// Creates a literal node for a long value.
+    /// </summary>
+    /// <param name="value">the long value.</param>
+    /// <returns>a typed literal node with xsd:long datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteralNode(long value)
+    {
+        var factory = new NodeFactory();
+        return factory.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#long"));
+    }
+
+    /// <summary>
+    /// Creates a literal node for a string value.
+    /// </summary>
+    /// <param name="value">the string value.</param>
+    /// <returns>a literal node.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteralNode(string value)
+    {
+        var factory = new NodeFactory();
+        return factory.CreateLiteralNode(value);
+    }
+
+    /// <summary>
+    /// Creates a literal node for a double value.
+    /// </summary>
+    /// <param name="value">the double value.</param>
+    /// <returns>a typed literal node with xsd:double datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteralNode(double value)
+    {
+        var factory = new NodeFactory();
+        return factory.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#double"));
+    }
+
+    /// <summary>
+    /// Creates a literal node for a float value.
+    /// </summary>
+    /// <param name="value">the float value.</param>
+    /// <returns>a typed literal node with xsd:float datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteralNode(float value)
+    {
+        var factory = new NodeFactory();
+        return factory.CreateLiteralNode(value.ToString(), UriFactory.Create("http://www.w3.org/2001/XMLSchema#float"));
+    }
+
+    /// <summary>
+    /// Creates a literal node for a boolean value.
+    /// </summary>
+    /// <param name="value">The boolean value.</param>
+    /// <returns>A typed literal node with xsd:boolean datatype.</returns>
+    [BuiltinFunction]
+    public static ILiteralNode CreateLiteralNode(bool value)
+    {
+        var factory = new NodeFactory();
+        return factory.CreateLiteralNode(value ? "true" : "false", UriFactory.Create("http://www.w3.org/2001/XMLSchema#boolean"));
+    }
+
     /// <summary>
     /// Creates a triple with the given subject, predicate, and object nodes.
     /// </summary>
@@ -300,7 +400,17 @@ public static class KG
     [BuiltinFunction]
     public static IGraph Assert(this IGraph g, Triple t)
     {
-        g.Assert(t);
+        // Avoid calling this extension recursively: prefer concrete Graph instance method,
+        // otherwise fall back to an enumerable-based Assert on the interface.
+        if (g is Graph concrete)
+        {
+            concrete.Assert(t);
+        }
+        else
+        {
+            // Use IEnumerable/params-based overload on IGraph to avoid extension recursion
+            g.Assert(new[] { t });
+        }
         try
         {
             Console.WriteLine($"KG.DEBUG: Assert called. Graph baseUri={g.BaseUri?.AbsoluteUri ?? "(null)"}, triples={g.Triples.Count}");
@@ -321,7 +431,16 @@ public static class KG
     [BuiltinFunction]
     public static IGraph Retract(this IGraph g, Triple t)
     {
-        g.Retract(t);
+        // Avoid calling this extension recursively: prefer concrete Graph instance method,
+        // otherwise fall back to an enumerable-based Retract on the interface.
+        if (g is Graph concrete)
+        {
+            concrete.Retract(t);
+        }
+        else
+        {
+            g.Retract(new[] { t });
+        }
         return g;
     }
     /// <summary>
@@ -333,7 +452,18 @@ public static class KG
     [BuiltinFunction]
     public static IGraph Merge(this IGraph target, IGraph source)
     {
-        target.Merge(source);
+        // Avoid calling this extension recursively: explicitly copy triples
+        foreach (var t in source.Triples)
+        {
+            if (target is Graph concrete)
+            {
+                concrete.Assert(t);
+            }
+            else
+            {
+                target.Assert(new[] { t });
+            }
+        }
         return target;
     }
 
@@ -346,7 +476,11 @@ public static class KG
     public static IGraph CopyGraph(IGraph source)
     {
         var result = new Graph();
-        result.Merge(source);
+        // Copy triples explicitly to avoid relying on extension methods
+        foreach (var t in source.Triples)
+        {
+            result.Assert(t);
+        }
         return result;
     }
 
@@ -357,7 +491,12 @@ public static class KG
     public static IGraph Difference(IGraph a, IGraph b)
     {
         var result = new Graph();
-        result.Merge(a);
+        // Start with a copy of 'a'
+        foreach (var t in a.Triples)
+        {
+            result.Assert(t);
+        }
+        // Remove all triples from 'b'
         foreach (var t in b.Triples)
         {
             result.Retract(t);

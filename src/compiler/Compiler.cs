@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ast;
-using code_generator;
 
 namespace compiler;
 
@@ -11,8 +10,6 @@ namespace compiler;
 public class Compiler
 {
     private readonly IProcessRunner _processRunner;
-    private readonly ILCodeGenerator _ilCodeGenerator;
-    private readonly PEEmitter _peEmitter;
 
     public Compiler() : this(new ProcessRunner())
     {
@@ -21,8 +18,6 @@ public class Compiler
     public Compiler(IProcessRunner processRunner)
     {
         _processRunner = processRunner;
-        _ilCodeGenerator = new ILCodeGenerator();
-        _peEmitter = new PEEmitter();
     }
 
     /// <summary>
@@ -94,19 +89,19 @@ public class Compiler
                 return CompilationResult.Failed(3, diagnostics);
             }
 
-            // Phase 3: IL Generation
+            // Phase 3: Code Generation using Roslyn backend
             if (options.Diagnostics)
             {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting IL generation phase"));
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting code generation phase using Roslyn backend"));
             }
 
-            // Phase 4: Assembly - use Direct PE emission only
+            // Phase 4: Assembly
             if (options.Diagnostics)
             {
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting assembly phase"));
             }
 
-            var (assemblyResult, assemblyPath) = await DirectPEEmissionPhase(transformedAst, options, diagnostics);
+            var (assemblyResult, assemblyPath) = await RoslynEmissionPhase(transformedAst, options, diagnostics);
 
             if (!assemblyResult)
             {
@@ -115,13 +110,10 @@ public class Compiler
 
             stopwatch.Stop();
 
-            // Determine ILPath for result - not available with direct PE emission
-            string? ilPathForResult = null;
-
             return CompilationResult.Successful(
                 diagnostics,
                 outputPath: assemblyPath,
-                ilPath: ilPathForResult,
+                ilPath: null,
                 elapsed: stopwatch.Elapsed);
         }
         catch (System.Exception ex)
@@ -208,7 +200,7 @@ Fifth Language Compiler (fifthc)
 Usage: fifthc [command] [options]
 
 Commands:
-  build (default)  Parse, transform, generate IL, and assemble to executable
+  build (default)  Parse, transform, and compile to executable
   run              Same as build, then execute the produced binary
   lint             Parse and apply transformations only, report issues
   help             Show this help message
@@ -217,7 +209,7 @@ Options:
   --source <path>      Source file or directory path (required for build/run/lint)
   --output <path>      Output executable path (required for build/run)
   --args <args>        Arguments to pass to program when running
-  --keep-temp          Keep temporary IL files
+  --keep-temp          Keep temporary files
   --diagnostics        Enable diagnostic output
 
 Examples:
@@ -365,36 +357,152 @@ Examples:
     }
 
 
-    private async Task<(bool success, string? outputPath)> DirectPEEmissionPhase(AstThing transformedAst, CompilerOptions options, List<Diagnostic> diagnostics)
+    private async Task<(bool success, string? outputPath)> RoslynEmissionPhase(AstThing transformedAst, CompilerOptions options, List<Diagnostic> diagnostics)
     {
         try
         {
-            // Cast to AssemblyDef as expected by ILCodeGenerator
+            // Cast to AssemblyDef as expected by the Roslyn translator
             if (transformedAst is not AssemblyDef assemblyDef)
             {
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Expected AssemblyDef but got {transformedAst.GetType().Name}"));
                 return (false, null);
             }
 
-            // Transform AST to IL metamodel
-            var ilAssembly = _ilCodeGenerator.TransformToILMetamodel(assemblyDef);
-
-            // When diagnostics are enabled, write the generated IL to disk for inspection
             if (options.Diagnostics)
+            {
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Using Roslyn backend for code generation"));
+            }
+
+            // Create the Roslyn translator
+            var translator = new LoweredAstToRoslynTranslator();
+
+            // Translate the AST to C# sources
+            var translationResult = translator.Translate(assemblyDef);
+
+            // Check for translation diagnostics
+            if (translationResult.Diagnostics != null && translationResult.Diagnostics.Any())
+            {
+                foreach (var diag in translationResult.Diagnostics)
+                {
+                    diagnostics.Add(diag);
+                }
+
+                // If there are any errors, fail the compilation
+                if (translationResult.Diagnostics.Any(d => d.Level == DiagnosticLevel.Error))
+                {
+                    return (false, null);
+                }
+            }
+
+            // For now, write the generated C# sources to disk for inspection
+            if (options.Diagnostics && translationResult.Sources.Any())
             {
                 try
                 {
-                    var debugDir = Path.Combine(Directory.GetCurrentDirectory(), "build_debug_il");
+                    var debugDir = Path.Combine(Directory.GetCurrentDirectory(), "build_debug_roslyn");
                     Directory.CreateDirectory(debugDir);
-                    var ilGen = new code_generator.ILCodeGenerator(new code_generator.ILCodeGeneratorConfiguration { OutputDirectory = debugDir });
-                    var ilPath = ilGen.GenerateCode(assemblyDef);
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated IL written to: {ilPath}"));
+
+                    for (int i = 0; i < translationResult.Sources.Count; i++)
+                    {
+                        var csPath = Path.Combine(debugDir, $"generated_{i}.cs");
+                        await File.WriteAllTextAsync(csPath, translationResult.Sources[i]);
+                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated C# source written to: {csPath}"));
+                    }
                 }
                 catch (System.Exception ex)
                 {
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to write IL file for diagnostics: {ex.Message}"));
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to write C# sources for diagnostics: {ex.Message}"));
                 }
             }
+
+            // Compile the C# sources using Roslyn
+            if (options.Diagnostics)
+            {
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Compiling generated C# sources with Roslyn"));
+            }
+
+            // Parse the C# sources into syntax trees
+            var syntaxTrees = new List<Microsoft.CodeAnalysis.SyntaxTree>();
+            for (int i = 0; i < translationResult.Sources.Count; i++)
+            {
+                var syntaxTree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(
+                    translationResult.Sources[i],
+                    path: $"generated_{i}.cs",
+                    encoding: System.Text.Encoding.UTF8);
+                syntaxTrees.Add(syntaxTree);
+            }
+
+            // Get required references using Trusted Platform Assemblies for robustness
+            var references = new List<Microsoft.CodeAnalysis.MetadataReference>();
+            try
+            {
+                var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
+                if (!string.IsNullOrWhiteSpace(tpa))
+                {
+                    var paths = tpa.Split(Path.PathSeparator);
+                    foreach (var p in paths)
+                    {
+                        try
+                        {
+                            // Only include core framework assemblies to keep compile fast
+                            var fileName = Path.GetFileName(p);
+                            if (fileName != null && (fileName.StartsWith("System.") || fileName.StartsWith("Microsoft.") || fileName == "netstandard.dll" || fileName == "mscorlib.dll"))
+                            {
+                                references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(p));
+                            }
+                        }
+                        catch { /* ignore bad refs */ }
+                    }
+                }
+            }
+            catch { /* ignore */ }
+
+            // Always add essential references
+            references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
+            references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(Console).Assembly.Location));
+
+            // Add references to Fifth.System and dotNetRDF via loaded assembly locations
+            try
+            {
+                var fifthSystemAsm = typeof(Fifth.System.KG).Assembly.Location;
+                if (!string.IsNullOrWhiteSpace(fifthSystemAsm) && File.Exists(fifthSystemAsm))
+                {
+                    references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(fifthSystemAsm));
+                }
+            }
+            catch { /* ignore if assembly not available */ }
+
+            try
+            {
+                var dotNetRdfAsm = typeof(VDS.RDF.IGraph).Assembly.Location;
+                if (!string.IsNullOrWhiteSpace(dotNetRdfAsm) && File.Exists(dotNetRdfAsm))
+                {
+                    references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(dotNetRdfAsm));
+                }
+            }
+            catch { /* ignore if assembly not available */ }
+
+            // Include local project/runtime dependencies if present (Fifth.System, VDS.RDF)
+            void TryAddRef(string path)
+            {
+                try { if (File.Exists(path)) references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(path)); } catch { }
+            }
+            var baseDir = Path.GetDirectoryName(options.Output) ?? Directory.GetCurrentDirectory();
+            // Typical location next to emitted exe
+            TryAddRef(Path.Combine(baseDir, "Fifth.System.dll"));
+            // Common dotNetRDF locations: next to exe or in NuGet cache not resolved here; try sibling bin
+            TryAddRef(Path.Combine(baseDir, "VDS.RDF.dll"));
+
+            // Create the compilation
+            var assemblyName = Path.GetFileNameWithoutExtension(options.Output);
+            var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(
+                assemblyName,
+                syntaxTrees: syntaxTrees,
+                references: references,
+                options: new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(
+                    Microsoft.CodeAnalysis.OutputKind.ConsoleApplication,
+                    optimizationLevel: Microsoft.CodeAnalysis.OptimizationLevel.Debug,
+                    platform: Microsoft.CodeAnalysis.Platform.AnyCpu));
 
             // Ensure output directory exists
             var outputDir = Path.GetDirectoryName(options.Output);
@@ -403,18 +511,30 @@ Examples:
                 Directory.CreateDirectory(outputDir);
             }
 
-            if (options.Diagnostics)
+            // Emit the assembly
+            using var peStream = new FileStream(options.Output, FileMode.Create, FileAccess.Write);
+            using var pdbStream = new FileStream(Path.ChangeExtension(options.Output, ".pdb"), FileMode.Create, FileAccess.Write);
+
+            var emitOptions = new Microsoft.CodeAnalysis.Emit.EmitOptions(
+                debugInformationFormat: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb);
+
+            var emitResult = compilation.Emit(peStream, pdbStream, options: emitOptions);
+
+            if (!emitResult.Success)
             {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Using direct PE emission"));
+                // Report compilation errors
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "Roslyn compilation failed with errors:"));
+                foreach (var diagnostic in emitResult.Diagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error))
+                {
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, diagnostic.ToString()));
+                }
+                return (false, null);
             }
 
-            // Emit PE assembly directly
-            var success = _peEmitter.EmitAssembly(ilAssembly, options.Output);
-
-            if (!success)
+            if (options.Diagnostics)
             {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "Direct PE emission failed"));
-                return (false, null);
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Successfully compiled assembly: {options.Output}"));
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated PDB: {Path.ChangeExtension(options.Output, ".pdb")}"));
             }
 
             // Generate runtime configuration file for framework-dependent execution
@@ -425,7 +545,6 @@ Examples:
             {
                 try
                 {
-                    // Use chmod to set execute permission
                     var chmodResult = await _processRunner.RunAsync("chmod", $"+x \"{options.Output}\"");
                     if (!chmodResult.Success && options.Diagnostics)
                     {
@@ -438,19 +557,15 @@ Examples:
                 }
             }
 
-            if (options.Diagnostics)
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Successfully generated PE assembly: {options.Output}"));
-            }
-
             return (true, options.Output);
         }
         catch (System.Exception ex)
         {
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Direct PE emission error: {ex.Message}"));
+            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Roslyn emission error: {ex.Message}"));
             return (false, null);
         }
     }
+
 
 
 }

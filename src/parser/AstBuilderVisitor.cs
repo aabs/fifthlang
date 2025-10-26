@@ -16,12 +16,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 {
     public static readonly FifthType Void = new FifthType.TVoidType() { Name = TypeName.From("void") };
 
-    // Track function-scoped variable and parameter names to decide on '+=' desugaring
-    private readonly Stack<HashSet<string>> _functionLocals = new();
-    private HashSet<string> CurrentFunctionLocals => _functionLocals.Count > 0 ? _functionLocals.Peek() : null;
-    private bool IsNameInCurrentFunctionScope(string name)
-        => !string.IsNullOrEmpty(name) && CurrentFunctionLocals != null && CurrentFunctionLocals.Contains(name);
-
     #region Helper Functions
 
     private TAstType CreateLiteral<TAstType, TBaseType>(ParserRuleContext ctx, Func<string, TBaseType> x)
@@ -82,131 +76,55 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         return new FifthType.UnknownType() { Name = TypeName.From(typeName) };
     }
 
+    /// <summary>
+    /// Creates a deep copy of an expression by recursively visiting all nodes.
+    /// This is necessary when the same expression needs to appear in multiple places
+    /// in the AST (e.g., in augmented assignments like += where lvalue appears both
+    /// as the assignment target and in the binary expression).
+    /// </summary>
+    private Expression CloneExpression(Expression expr)
+    {
+        // Use the default recursive descent visitor to create a deep copy
+        var cloner = new ExpressionClonerVisitor();
+        return (Expression)cloner.Visit(expr);
+    }
+
+    /// <summary>
+    /// Simple visitor that clones expressions by visiting all children and reconstructing.
+    /// </summary>
+    private class ExpressionClonerVisitor : DefaultRecursiveDescentVisitor
+    {
+        // The base DefaultRecursiveDescentVisitor already implements recursive copying
+        // via the 'with' syntax, which is perfect for our needs.
+        // No overrides needed - just use the default behavior.
+    }
+
     #endregion Helper Functions
 
     public override IAstThing VisitAssignment_statement([NotNull] FifthParser.Assignment_statementContext context)
     {
-        // Support '+=' sugar
+        var lhsExpr = (Expression)Visit(context.lvalue);
+        var rhsExpr = (Expression)Visit(context.rvalue);
+
+        var annotations = new Dictionary<string, object>();
+
+        // Mark augmented assignments with an annotation instead of expanding them here.
+        // The AugmentedAssignmentLoweringRewriter will handle the expansion in a later pass.
         if (context.op != null && context.op.Type == FifthParser.PLUS_ASSIGN)
         {
-            var lhsExpr = (Expression)Visit(context.lvalue);
-            var rhsExpr = (Expression)Visit(context.rvalue);
-
-            // Determine operation type based on rhs:
-            // - If rhs is a TripleLiteralExp: graph += triple -> graph = graph + triple
-            // - Otherwise: store operation (KG.SaveGraph)
-            if (rhsExpr is TripleLiteralExp)
-            {
-                // Graph operation: desugar to lvalue = lvalue + rvalue
-                var addExpr = new BinaryExp
-                {
-                    Annotations = [],
-                    LHS = lhsExpr,
-                    RHS = rhsExpr,
-                    Operator = Operator.ArithmeticAdd,
-                    Location = GetLocationDetails(context),
-                    Type = Void
-                };
-
-                var b = new AssignmentStatementBuilder()
-                    .WithAnnotations([])
-                    .WithLValue(lhsExpr)
-                    .WithRValue(addExpr);
-                var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-                return result;
-            }
-            else
-            {
-                // Original store operation: desugar to KG.SaveGraph(lvalue, rvalue)
-                // Prefer using an in-scope variable for the store if available; else fallback to KG.CreateStore()
-                Expression storeArg;
-                if (lhsExpr is VarRefExp v && IsNameInCurrentFunctionScope(v.VarName))
-                {
-                    storeArg = v;
-                }
-                else
-                {
-                    var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
-                    storeArg = new MemberAccessExp
-                    {
-                        Annotations = [],
-                        LHS = kgVar,
-                        RHS = new FuncCallExp
-                        {
-                            FunctionDef = null,
-                            InvocationArguments = [],
-                            Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateStore" },
-                            Location = GetLocationDetails(context),
-                            Parent = null,
-                            Type = null
-                        },
-                        Location = GetLocationDetails(context),
-                        Type = Void
-                    };
-                }
-
-                var kgVar2 = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
-                var func = new FuncCallExp
-                {
-                    FunctionDef = null,
-                    InvocationArguments = [storeArg, rhsExpr],
-                    Annotations = new Dictionary<string, object> { ["FunctionName"] = "SaveGraph" },
-                    Location = GetLocationDetails(context),
-                    Parent = null,
-                    Type = null
-                };
-
-                var call = new MemberAccessExp
-                {
-                    Annotations = [],
-                    LHS = kgVar2,
-                    RHS = func,
-                    Location = GetLocationDetails(context),
-                    Type = Void
-                };
-
-                return new ExpStatement
-                {
-                    Annotations = [],
-                    RHS = call,
-                    Location = GetLocationDetails(context),
-                    Type = Void
-                };
-            }
+            annotations["AugmentedOperator"] = "+=";
         }
-
-        // Support '-=' by desugaring to: lvalue = lvalue - rvalue
-        if (context.op != null && context.op.Type == FifthParser.MINUS_ASSIGN)
+        else if (context.op != null && context.op.Type == FifthParser.MINUS_ASSIGN)
         {
-            var lhsExpr = (Expression)Visit(context.lvalue);
-            var rhsExpr = (Expression)Visit(context.rvalue);
-            
-            // Create binary expression: lvalue - rvalue
-            var subtractExpr = new BinaryExp
-            {
-                Annotations = [],
-                LHS = lhsExpr,
-                RHS = rhsExpr,
-                Operator = Operator.ArithmeticSubtract,
-                Location = GetLocationDetails(context),
-                Type = Void
-            };
-
-            // Create assignment: lvalue = (lvalue - rvalue)
-            var b = new AssignmentStatementBuilder()
-                .WithAnnotations([])
-                .WithLValue(lhsExpr)
-                .WithRValue(subtractExpr);
-            var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-            return result;
+            annotations["AugmentedOperator"] = "-=";
         }
 
-        var b2 = new AssignmentStatementBuilder()
-            .WithAnnotations([])
-            .WithLValue((Expression)Visit(context.lvalue))
-            .WithRValue((Expression)Visit(context.rvalue));
-        var result2 = b2.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result2;
+        var b = new AssignmentStatementBuilder()
+            .WithAnnotations(annotations)
+            .WithLValue(lhsExpr)
+            .WithRValue(rhsExpr);
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
     }
 
     public override IAstThing VisitExpression_statement([NotNull] FifthParser.Expression_statementContext context)
@@ -223,19 +141,10 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 Type = Void
             };
         }
-        // Represent empty ';' as a no-op expression statement
-        var noop = new Int32LiteralExp
+        // Empty expression statement (just a semicolon) - create an EmptyStatement
+        return new EmptyStatement
         {
             Annotations = [],
-            Location = GetLocationDetails(context),
-            Parent = null,
-            Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From(typeof(int).FullName) },
-            Value = 0
-        };
-        return new ExpStatement
-        {
-            Annotations = [],
-            RHS = noop,
             Location = GetLocationDetails(context),
             Type = Void
         };
@@ -575,20 +484,61 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitExp_unary(FifthParser.Exp_unaryContext context)
     {
-        var b = new UnaryExpBuilder()
-            .WithAnnotations([]);
-        var op = context.unary_op.Type switch
+        var (op, annotations) = GetUnaryOperatorAndAnnotations(context.unary_op.Type, isPostfix: false);
+        return BuildUnaryExpression(op, annotations, context.expression(), context);
+    }
+
+    public override IAstThing VisitExp_unary_postfix(FifthParser.Exp_unary_postfixContext context)
+    {
+        var (op, annotations) = GetUnaryOperatorAndAnnotations(context.unary_op.Type, isPostfix: true);
+        return BuildUnaryExpression(op, annotations, context.expression(), context);
+    }
+
+    /// <summary>
+    /// Helper method to determine the operator and annotations for unary expressions.
+    /// </summary>
+    private (Operator op, Dictionary<string, object> annotations) GetUnaryOperatorAndAnnotations(int tokenType, bool isPostfix)
+    {
+        var annotations = new Dictionary<string, object>();
+        
+        var op = tokenType switch
         {
             FifthParser.PLUS => Operator.ArithmeticAdd,
             FifthParser.MINUS => Operator.ArithmeticNegative,
             FifthParser.LOGICAL_NOT => Operator.LogicalNot,
+            FifthParser.PLUS_PLUS => Operator.ArithmeticAdd,
+            FifthParser.MINUS_MINUS => Operator.ArithmeticSubtract,
             _ => Operator.ArithmeticAdd
         };
-        b.WithOperator(op)
-            .WithOperand((Expression)Visit(context.expression()));
 
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result;
+        // Add annotations to distinguish between unary +/- and increment/decrement
+        if (tokenType == FifthParser.PLUS_PLUS)
+        {
+            annotations["OperatorType"] = "++";
+            annotations["OperatorPosition"] = isPostfix ? OperatorPosition.Postfix : OperatorPosition.Prefix;
+        }
+        else if (tokenType == FifthParser.MINUS_MINUS)
+        {
+            annotations["OperatorType"] = "--";
+            annotations["OperatorPosition"] = isPostfix ? OperatorPosition.Postfix : OperatorPosition.Prefix;
+        }
+
+        return (op, annotations);
+    }
+
+    /// <summary>
+    /// Helper method to build a UnaryExp from operator, annotations, and operand.
+    /// </summary>
+    private UnaryExp BuildUnaryExpression(Operator op, Dictionary<string, object> annotations, 
+                                          FifthParser.ExpressionContext operandContext, 
+                                          ParserRuleContext locationContext)
+    {
+        var b = new UnaryExpBuilder()
+            .WithAnnotations(annotations)
+            .WithOperator(op)
+            .WithOperand((Expression)Visit(operandContext));
+
+        return b.Build() with { Location = GetLocationDetails(locationContext), Type = Void };
     }
 
     public override IAstThing VisitExp_operand([NotNull] FifthParser.Exp_operandContext context)
@@ -738,8 +688,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitFunction_declaration(FifthParser.Function_declarationContext context)
     {
-        // Begin tracking function-scoped names
-        _functionLocals.Push(new HashSet<string>(StringComparer.Ordinal));
         var returnType = ResolveTypeFromName(context.result_type.GetText());
 
         var b = new FunctionDefBuilder();
@@ -755,8 +703,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         }
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        // End tracking
-        _functionLocals.Pop();
         return result;
     }
 
@@ -1010,8 +956,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 .WithName(context.var_name().GetText())
                 .WithTypeName(TypeName.From(context.type_name().GetText()))
             ;
-        // Record parameter name in current function scope set
-        CurrentFunctionLocals?.Add(context.var_name().GetText());
         if (context.destructuring_decl() is not null)
         {
             var destructuringDef = VisitDestructuring_decl(context.destructuring_decl());
@@ -1039,7 +983,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
          .WithAccessConstraints([AccessConstraint.None])
          .WithIsReadOnly(false)
          .WithIsWriteOnly(false);
-        
+
         // Parse type_spec to support arrays, lists, and generic types
         var typeSpec = context.type;
         if (typeSpec != null)
@@ -1048,7 +992,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             b.WithTypeName(typeName);
             b.WithCollectionType(collectionType);
         }
-        
+
         // todo:  There's a lot more detail that could be filled in here, and a lot more
         // sophistication needed in the grammar of the decl
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
@@ -1072,8 +1016,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var b = new VariableDeclBuilder()
             .WithAnnotations([]);
         b.WithName(context.var_name().GetText());
-        // Record variable declaration name in current function scope set
-        CurrentFunctionLocals?.Add(context.var_name().GetText());
 
         var typeSpec = context.type_spec();
         if (typeSpec != null)
@@ -1100,7 +1042,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             // [type_spec] - list of type_spec
             var innerTypeSpec = listType.type_spec();
             var (innerTypeName, innerCollectionType) = ParseTypeSpec(innerTypeSpec);
-            
+
             // For now, flatten nested collections - this is a limitation
             // TODO: Support fully nested types in AST model
             if (innerCollectionType != CollectionType.SingleInstance)
@@ -1115,7 +1057,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             // type_spec[] - array of type_spec
             var innerTypeSpec = arrayType.type_spec();
             var (innerTypeName, innerCollectionType) = ParseTypeSpec(innerTypeSpec);
-            
+
             // For now, flatten nested collections
             if (innerCollectionType != CollectionType.SingleInstance)
             {
@@ -1129,7 +1071,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             var genericName = genericType.IDENTIFIER().GetText();
             var innerTypeSpec = genericType.type_spec();
             var (innerTypeName, _) = ParseTypeSpec(innerTypeSpec);
-            
+
             if (string.Equals(genericName, "list", StringComparison.OrdinalIgnoreCase))
             {
                 return (innerTypeName, CollectionType.List);
@@ -1143,7 +1085,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 return (innerTypeName, CollectionType.SingleInstance);
             }
         }
-        
+
         // Fallback
         return (TypeName.From(typeSpec.GetText()), CollectionType.SingleInstance);
     }
@@ -1332,26 +1274,11 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var name = context.name?.Text ?? string.Empty;
 
-        // For now we ignore inline assertions and just create an empty graph via KG.CreateGraph().
-        // TODO: Lower the graphAssertionBlock contents into imperative assertions after creation.
-        var kgVar = new VarRefExp { VarName = "KG", Annotations = [], Location = GetLocationDetails(context), Type = Void };
-        var func = new FuncCallExp
-        {
-            FunctionDef = null,
-            InvocationArguments = [],
-            Annotations = new Dictionary<string, object> { ["FunctionName"] = "CreateGraph" },
-            Location = GetLocationDetails(context),
-            Parent = null,
-            Type = null
-        };
-        var call = new MemberAccessExp
-        {
-            Annotations = [],
-            LHS = kgVar,
-            RHS = func,
-            Location = GetLocationDetails(context),
-            Type = Void
-        };
+        // Visit the expression on the right-hand side of the assignment
+        // This can be a graphAssertionBlock, a binary operation on graphs/triples, or any other expression
+        var initExpr = context.expression() != null
+            ? Visit(context.expression()) as Expression
+            : null;
 
         var varDecl = new VariableDecl
         {
@@ -1359,14 +1286,16 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             CollectionType = CollectionType.SingleInstance,
             Name = name,
             Visibility = Visibility.Public,
-            TypeName = TypeName.From("IGraph")
+            // Keep language-level type; mapping to IGraph happens in later phases
+            TypeName = TypeName.From("graph")
         };
 
         return new VarDeclStatement
         {
             Annotations = new Dictionary<string, object> { ["Kind"] = "GraphDecl" },
             VariableDecl = varDecl,
-            InitialValue = call,
+            // Do not inject a default graph; leave uninitialized if no RHS provided
+            InitialValue = initExpr,
             Location = GetLocationDetails(context),
             Type = Void
         };
@@ -1518,7 +1447,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         {
             annotations["ArraySize"] = arraySizeExpr;
         }
-        
+
         var result = new ObjectInitializerExp
         {
             TypeToInitialize = typeToInitialize,
@@ -1536,7 +1465,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         // Create base type
         var baseType = new FifthType.TType() { Name = typeName };
-        
+
         // Wrap in collection type if needed
         return collectionType switch
         {

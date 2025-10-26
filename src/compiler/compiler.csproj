@@ -10,13 +10,13 @@
   <ItemGroup>
     <ProjectReference Include="..\ast-generated\ast_generated.csproj" />
     <ProjectReference Include="..\ast-model\ast_model.csproj" />
-    <ProjectReference Include="..\code_generator\code_generator.csproj" />
     <ProjectReference Include="..\fifthlang.system\Fifth.System.csproj" />
     <ProjectReference Include="..\parser\parser.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
   </ItemGroup>
 
 </Project>

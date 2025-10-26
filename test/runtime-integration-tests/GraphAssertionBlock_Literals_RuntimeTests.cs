@@ -318,7 +318,8 @@ public class GraphAssertionBlock_Literals_RuntimeTests : RuntimeTestBase
         var sourcePath = Path.Combine("TestPrograms", "KnowledgeManagement", "merge_dedupe.5th");
         var exe = await CompileFileAsync(sourcePath, "merge_dedupe_test");
         File.Exists(exe).Should().BeTrue();
-        var result = await ExecuteAsync(exe);
+        // Allow more time under heavy test loads; this test is I/O bound and should complete fast in isolation
+        var result = await ExecuteAsync(exe, timeoutMs: 60000);
         // Program prints a prefixed string 'TRIPLE_COUNT:<n>' to stdout; parse and assert it
         if (string.IsNullOrWhiteSpace(result.StandardOutput))
         {

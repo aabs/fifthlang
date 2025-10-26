@@ -1,6 +1,6 @@
 # Fifth Language Compiler (fifthc)
 
-The Fifth Language Compiler provides a complete compilation pipeline for `.5th` source files, including parsing, semantic analysis, IL generation, and executable production.
+The Fifth Language Compiler provides a complete compilation pipeline for `.5th` source files, including parsing, semantic analysis, code generation via Roslyn, and executable production.
 
 ## Usage
 
@@ -20,7 +20,7 @@ fifthc --command help
 
 ## Commands
 
-- **build** (default): Parse, transform, generate IL, and assemble to executable
+- **build** (default): Parse, transform, and compile to executable
 - **run**: Same as build, then execute the produced binary with provided arguments
 - **lint**: Parse and apply transformations only, report issues without generating files
 - **help**: Display usage information
@@ -30,7 +30,7 @@ fifthc --command help
 - `--source <path>`: Source file or directory path (required for build/run/lint)
 - `--output <path>`: Output executable path (required for build/run)  
 - `--args <args>`: Arguments to pass to program when running
-- `--keep-temp`: Keep temporary IL files for debugging
+- `--keep-temp`: Keep temporary files for debugging
 - `--diagnostics`: Enable diagnostic output showing compilation phases and timing
 
 ## Exit Codes
@@ -39,15 +39,16 @@ fifthc --command help
 - **1**: General error (invalid options, unknown command)
 - **2**: Parse error (syntax errors, file not found)
 - **3**: Semantic error (type checking, undefined references)
-- **4**: IL assembly error (ilasm not found, assembly failed)
+- **4**: Code generation error (Roslyn compilation failed)
 - **5**: Runtime error (when using `run` command and program fails)
 
 ## Architecture
 
 The compiler orchestrates several phases:
+1. **Parse Phase**: Converts source text to Abstract Syntax Tree (AST)
 2. **Transform Phase**: Applies language analysis passes (symbol table building, type inference, etc.)
-3. **IL Generation Phase**: Converts AST to Common Language Infrastructure IL code
-4. **Assembly Phase**: Uses `ilasm` to compile IL to executable
+3. **Code Generation Phase**: Translates lowered AST to C# source code
+4. **Assembly Phase**: Uses Roslyn to compile C# to executable
 5. **Run Phase** (optional): Executes the produced binary
 
 ## Requirements

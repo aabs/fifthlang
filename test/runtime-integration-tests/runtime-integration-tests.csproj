@@ -10,10 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="6.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageReference Include="TUnit" Version="0.57.1" />
-    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+  <PackageReference Include="coverlet.collector" Version="6.0.0" />
+  <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+  <PackageReference Include="TUnit" Version="0.57.1" />
+  <PackageReference Include="FluentAssertions" Version="6.12.0" />
+  <!-- Use centralized RoslynVersion from Directory.Build.props for deterministic pinning -->
+  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
+  <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +29,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="GuardValidation\**\*.5th">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <!-- Copy shared CodeSamples so integration tests can reference them at runtime -->
+    <None Include="..\ast-tests\CodeSamples\**\*.5th">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

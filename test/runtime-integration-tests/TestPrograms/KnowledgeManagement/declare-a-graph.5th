@@ -1,25 +1,22 @@
 alias x as <http://example.com/blah#>;
 
-home : store = sparql_store(<http://localhost:8080/graphdb>);
-
 class Person in <x:>
 {
-    dob : datetime ;
+    dob : DateTimeOffset ;
     age : int ;
 }
 
-calculate_age(val : datetime): TimeSpan
+calculate_age(val : DateTimeOffset): TimeSpan
 {
-    return datetime.Now() - val;
+    return DateTimeOffset.Now - val;
 }
 
 foo(a : int, n : string): void
 {
     eric : Person = new Person();
     ericKnowledge : graph in <x:people> = <{
-        d: datetime = datetime(1926, 5, 14);
+        d: datetime = DateTimeOffset(1926, 5, 14, 0, 0, 0, TimeSpan.Zero);
         eric.dob = d;
         eric.age = calculate_age(d);
     }>;
-    home += ericKnowledge;
 }

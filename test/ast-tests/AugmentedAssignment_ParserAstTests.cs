@@ -1,38 +1,49 @@
+using System.Linq;
 using FluentAssertions;
-using Antlr4.Runtime;
 using ast;
-using Fifth;
-using compiler.LangProcessingPhases;
+using compiler;
+using test_infra;
 
 namespace ast_tests;
 
 public class AugmentedAssignment_ParserAstTests
 {
     [Test]
-    public void PlusAssign_ShouldDesugarTo_KG_SaveGraph_Call()
+    public void PlusAssign_ShouldLowerInto_MergeCall()
     {
-        var src = "func main():int { home += g; return 0; }";
-        var s = CharStreams.fromString(src);
-        var parser = new FifthParser(new CommonTokenStream(new FifthLexer(s)));
-        var ctx = parser.function_declaration();
-        var v = new AstBuilderVisitor();
-        var func = v.VisitFunction_declaration(ctx) as FunctionDef;
-        func.Should().NotBeNull();
+        var src = "main():int { g: graph = <{}>; home: graph = <{}>; home += g; return 0; }";
+        var parseResult = ParseHarness.ParseString(src, new ParseOptions(FifthParserManager.AnalysisPhase.TypeAnnotation));
+        parseResult.Diagnostics.Should().BeEmpty();
 
-        // Inspect body statements: expect an ExpStatement wrapping a MemberAccessExp KG.SaveGraph(...)
-        var stmts = func!.Body!.Statements!;
+        var module = parseResult.Root!.Modules.Single();
+        var func = module.Functions.OfType<FunctionDef>().Single(f => f.Name.Value == "main");
+
+        // Inspect body statements: the augmented assignment should become a hoisted home.Merge(g) call
+        // without keeping the original assignment statement.
+        var stmts = func.Body!.Statements!;
         stmts.Should().NotBeNull();
-        stmts.Should().HaveCountGreaterThan(1);
+        stmts.Should().HaveCountGreaterThan(3);
+        stmts.OfType<AssignmentStatement>().Should().BeEmpty();
 
-        var expStmt = stmts[0] as ExpStatement;
+        var expStmt = stmts.OfType<ExpStatement>().FirstOrDefault();
         expStmt.Should().NotBeNull();
-        var member = expStmt!.RHS as MemberAccessExp;
-        member.Should().NotBeNull();
-        (member!.LHS as VarRefExp)!.VarName.Should().Be("KG");
-        var call = member.RHS as FuncCallExp;
+
+        // The lowering now hoists the merge call directly: home.Merge(g);
+        var mergeCall = expStmt!.RHS as MemberAccessExp;
+        mergeCall.Should().NotBeNull();
+
+        var targetGraph = mergeCall!.LHS as VarRefExp;
+        targetGraph.Should().NotBeNull();
+        targetGraph!.VarName.Should().Be("home");
+
+        var call = mergeCall.RHS as FuncCallExp;
         call.Should().NotBeNull();
         call!.Annotations.Should().ContainKey("FunctionName");
-        call!.Annotations!["FunctionName"].Should().Be("SaveGraph");
-        call!.InvocationArguments.Should().HaveCount(2);
+        call!.Annotations!["FunctionName"].Should().Be("Merge");
+        call!.InvocationArguments.Should().HaveCount(1);
+
+        var argument = call.InvocationArguments![0] as VarRefExp;
+        argument.Should().NotBeNull();
+        argument!.VarName.Should().Be("g");
     }
 }

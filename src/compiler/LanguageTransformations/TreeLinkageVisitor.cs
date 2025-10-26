@@ -555,6 +555,28 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
                     }
                 }
             }
+
+            // New: annotate member access where RHS is a FuncCall referring to KG extension methods
+            // e.g., g.CreateUri(...), g.Assert(...), g.Retract(...), g.Merge(...), g.CountTriples()
+            if (result?.RHS is FuncCallExp instCall)
+            {
+                // If unresolved and function name matches known KG extension API, mark as ExternalType=KG
+                if (instCall.FunctionDef == null && instCall.Annotations.TryGetValue("FunctionName", out var fnObj3) && fnObj3 is string fn3)
+                {
+                    // whitelist of KG extension names
+                    var kgExt = new HashSet<string>(StringComparer.Ordinal)
+                    {
+                        "CreateUri", "CreateLiteral", "CreateUriForType", "CreateUriForInstance",
+                        "Assert", "Retract", "Merge", "CountTriples"
+                    };
+                    if (kgExt.Contains(fn3))
+                    {
+                        instCall["ExternalType"] = typeof(Fifth.System.KG);
+                        instCall["ExternalMethodName"] = fn3;
+                        DebugLog($"DEBUG: Instance KG extension annotated: Fifth.System.KG::{fn3}");
+                    }
+                }
+            }
         }
         catch (System.Exception ex)
         {

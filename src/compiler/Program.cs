@@ -13,7 +13,7 @@ commandOption.SetDefaultValue("build");
 
 // Define source option
 var sourceOption = new Option<string>(
-    name: "--source", 
+    name: "--source",
     description: "Source file or directory path");
 
 // Define output option  
@@ -33,14 +33,14 @@ var argsOption = new Option<string[]>(
 // Define keep-temp option
 var keepTempOption = new Option<bool>(
     name: "--keep-temp",
-    description: "Keep temporary IL files")
+    description: "Keep temporary files")
 {
     IsRequired = false
 };
 
 // Define diagnostics option
 var diagnosticsOption = new Option<bool>(
-    name: "--diagnostics", 
+    name: "--diagnostics",
     description: "Enable diagnostic output")
 {
     IsRequired = false
@@ -59,7 +59,7 @@ var rootCommand = new RootCommand("Fifth Language Compiler (fifthc)")
 rootCommand.SetHandler(async (command, source, output, args, keepTemp, diagnostics) =>
 {
     var compilerCommand = ParseCommand(command);
-    
+
     var options = new CompilerOptions(
         Command: compilerCommand,
         Source: source ?? "",
@@ -77,12 +77,12 @@ rootCommand.SetHandler(async (command, source, output, args, keepTemp, diagnosti
         var level = diagnostic.Level switch
         {
             DiagnosticLevel.Error => "ERROR",
-            DiagnosticLevel.Warning => "WARNING", 
+            DiagnosticLevel.Warning => "WARNING",
             DiagnosticLevel.Info => "INFO",
             _ => "UNKNOWN"
         };
 
-        var message = diagnostic.Source != null 
+        var message = diagnostic.Source != null
             ? $"{level}: {diagnostic.Message} ({diagnostic.Source})"
             : $"{level}: {diagnostic.Message}";
 

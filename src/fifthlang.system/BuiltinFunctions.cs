@@ -26,7 +26,11 @@ public static class IO
 public static class Math
 {
 
-
+    [BuiltinFunction]
+    public static int to_int(double f)
+    {
+        return (int)f;
+    }
     [BuiltinFunction]
     public static double sqrt(double f)
     {

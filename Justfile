@@ -6,14 +6,16 @@
 # Example:
 #   just build-all
 
-default := "help"
+# Default recipe: show help
+@_default:
+	just --list
 
 # Build and restore
 # Restore and build the full solution
 build-all:
 	just restore
 	just run-generator
-	dotnet build fifthlang.sln
+	dotnet build fifthlang.sln --no-restore
 
 # Restore NuGet packages for the solution
 restore:
@@ -21,7 +23,7 @@ restore:
 
 # Run all tests
 test:
-	dotnet test
+	dotnet test --no-build --no-restore --verbosity=quiet fifthlang.sln
 
 # Clean then build the full solution
 rebuild:
@@ -42,13 +44,14 @@ coverage:
 
 # Generate an HTML/TextSummary report from Cobertura files
 coverage-report:
+	#!/usr/bin/env sh
 	dotnet tool install -g dotnet-reportgenerator-globaltool || true
 	printf "Ensure dotnet tools are on PATH if needed: $HOME/.dotnet/tools\n"
-	if [ -n "$(find . -type f -name 'coverage.cobertura.xml' -print -quit)" ]; then \
-		reportgenerator -reports:**/coverage.cobertura.xml -targetdir:CoverageReport -reporttypes:Html;TextSummary;Cobertura; \
-		printf "CoverageReport generated at ./CoverageReport\n"; \
-	else \
-		printf "No Cobertura files found. Run 'just coverage' first (or ensure --collect and runsettings are used).\n"; \
+	if [ -n "$(find . -type f -name 'coverage.cobertura.xml' -print -quit)" ]; then
+		reportgenerator -reports:**/coverage.cobertura.xml -targetdir:CoverageReport -reporttypes:Html;TextSummary;Cobertura
+		printf "CoverageReport generated at ./CoverageReport\n"
+	else
+		printf "No Cobertura files found. Run 'just coverage' first (or ensure --collect and runsettings are used).\n"
 	fi
 
 # Run the AST code generator (separate step)
@@ -65,32 +68,45 @@ clean:
 	dotnet clean fifthlang.sln
 
 # Granular build targets
+# Build the AST model project
 build-ast-model:
 	dotnet build src/ast-model/ast_model.csproj
 
+# Build the AST generator project
 build-ast-generator:
 	dotnet build src/ast_generator/ast_generator.csproj
 
+# Build the AST generated project
 build-ast-generated:
 	dotnet build src/ast-generated/ast_generated.csproj
 
+# Build the parser project
 build-parser:
 	dotnet build src/parser/parser.csproj
 
+# Build the compiler project (Release configuration)
 build-compiler:
 	dotnet build src/compiler/compiler.csproj --configuration Release
 
+# Build all test projects
 build-tests:
 	dotnet build test/ast-tests/ast_tests.csproj
 	dotnet build test/runtime-integration-tests/runtime-integration-tests.csproj
 	dotnet build test/syntax-parser-tests/syntax-parser-tests.csproj
 
 # Granular test targets
+# Run AST tests
 test-ast:
 	dotnet test test/ast-tests/ast_tests.csproj
 
+# Run runtime integration tests
 test-runtime:
 	dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj
+
+# Run the entire test matrix and a CLI smoke-compile using the Roslyn backend
+# This target mirrors the CI `roslyn-backend-validation` check for the roslyn backend
+test-all-roslyn:
+	dotnet test -p:UsePinnedRoslyn=true -v minimal
 
 # Important: build before running to ensure updated assets are copied
 test-syntax:
@@ -109,4 +125,4 @@ install-cli: build-compiler
 
 # Help text is generated from comments above each recipe; use `just --summary` for a concise list
 help:
-	just --summary
+	@just --list
