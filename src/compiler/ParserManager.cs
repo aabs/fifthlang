@@ -86,6 +86,12 @@ public static class FifthParserManager
             throw;
         }
 
+        if (upTo >= AnalysisPhase.DestructurePatternFlatten)
+        {
+            ast = new DestructuringVisitor().Visit(ast);
+            ast = new DestructuringConstraintPropagator().Visit(ast);
+        }
+
         if (upTo >= AnalysisPhase.OverloadGroup)
             ast = new OverloadGatheringVisitor().Visit(ast);
 
@@ -135,7 +141,7 @@ public static class FifthParserManager
         // Resolve property references in destructuring (still needed for property resolution)
         if (upTo >= AnalysisPhase.DestructuringLowering)
             ast = new DestructuringVisitor().Visit(ast);
-        
+
         // Now lower destructuring to variable declarations
         if (upTo >= AnalysisPhase.DestructuringLowering)
         {
