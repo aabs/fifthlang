@@ -319,6 +319,10 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             : "var";
 
         // Check if this is a collection type (array or list) and append [] if needed
+        // Note: For nested arrays like [[int]], the parser sets:
+        //   - TypeName = "[int]" (inner type, which MapTypeName converts to "int[]")
+        //   - CollectionType = List
+        // So we append [] to get "int[][]" which is correct
         if (varDecl.VariableDecl.CollectionType == ast.CollectionType.Array ||
             varDecl.VariableDecl.CollectionType == ast.CollectionType.List)
         {
