@@ -495,6 +495,53 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         return result;
     }
 
+    /// <summary>
+    /// Get operator precedence level for Fifth operators.
+    /// Higher numbers = higher precedence (binds tighter).
+    /// Based on standard mathematical operator precedence.
+    /// </summary>
+    private int GetOperatorPrecedence(Operator op)
+    {
+        return op switch
+        {
+            // Highest precedence
+            Operator.ArithmeticPow => 100,  // Power (^)
+            
+            // Multiplicative
+            Operator.ArithmeticMultiply => 90,
+            Operator.ArithmeticDivide => 90,
+            Operator.ArithmeticRem => 90,
+            Operator.ArithmeticMod => 90,
+            Operator.BitwiseLeftShift => 90,
+            Operator.BitwiseRightShift => 90,
+            Operator.BitwiseAnd => 90,
+            
+            // Additive
+            Operator.ArithmeticAdd => 80,
+            Operator.ArithmeticSubtract => 80,
+            Operator.BitwiseOr => 80,
+            Operator.LogicalXor => 80,
+            
+            // Relational
+            Operator.LessThan => 70,
+            Operator.LessThanOrEqual => 70,
+            Operator.GreaterThan => 70,
+            Operator.GreaterThanOrEqual => 70,
+            
+            // Equality
+            Operator.Equal => 60,
+            Operator.NotEqual => 60,
+            
+            // Logical AND
+            Operator.LogicalAnd => 50,
+            
+            // Logical OR (lowest)
+            Operator.LogicalOr => 40,
+            
+            _ => 0  // Unknown operators get lowest precedence
+        };
+    }
+
     private ExpressionSyntax TranslateBinaryExpression(BinaryExp binExp)
     {
         // Special-case graph/triple operators to avoid emitting raw '+'/'-' for graphs
@@ -559,6 +606,32 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
         var left = TranslateExpression(binExp.LHS);
         var right = TranslateExpression(binExp.RHS);
+
+        // Wrap child binary expressions in parentheses if they have lower precedence
+        // This ensures correct evaluation order (e.g., (1 + 2) * 3 stays parenthesized)
+        var parentPrecedence = GetOperatorPrecedence(binExp.Operator);
+        
+        if (binExp.LHS is BinaryExp leftBinExp)
+        {
+            var leftPrecedence = GetOperatorPrecedence(leftBinExp.Operator);
+            // Add parentheses if child has lower precedence (or equal for right-associative)
+            if (leftPrecedence < parentPrecedence)
+            {
+                left = ParenthesizedExpression(left);
+            }
+        }
+        
+        if (binExp.RHS is BinaryExp rightBinExp)
+        {
+            var rightPrecedence = GetOperatorPrecedence(rightBinExp.Operator);
+            // Add parentheses if child has lower precedence
+            // For right side, also parenthesize if equal precedence (left-associative default)
+            if (rightPrecedence < parentPrecedence || 
+                (rightPrecedence == parentPrecedence && binExp.Operator != Operator.ArithmeticPow))
+            {
+                right = ParenthesizedExpression(right);
+            }
+        }
 
         var kind = binExp.Operator switch
         {
