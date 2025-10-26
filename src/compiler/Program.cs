@@ -33,7 +33,7 @@ var argsOption = new Option<string[]>(
 // Define keep-temp option
 var keepTempOption = new Option<bool>(
     name: "--keep-temp",
-    description: "Keep temporary IL files")
+    description: "Keep temporary files")
 {
     IsRequired = false
 };

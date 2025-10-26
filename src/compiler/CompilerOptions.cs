@@ -7,7 +7,7 @@ namespace compiler;
 /// <param name="Source">Source file or directory path</param>
 /// <param name="Output">Output executable path</param>
 /// <param name="Args">Arguments to pass to the program when running</param>
-/// <param name="KeepTemp">Whether to keep temporary IL files</param>
+/// <param name="KeepTemp">Whether to keep temporary files</param>
 /// <param name="Diagnostics">Whether to emit diagnostic information</param>
 public record CompilerOptions(
     CompilerCommand Command = CompilerCommand.Build,
