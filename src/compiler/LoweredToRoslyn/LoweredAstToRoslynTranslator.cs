@@ -1164,7 +1164,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             "String" => "string",
             "bool" => "bool",
             "Boolean" => "bool",
-            "datetime" => "System.DateTime",
+            "datetime" => "System.DateTimeOffset",
             "graph" => "VDS.RDF.IGraph",
             "triple" => "VDS.RDF.Triple",
             "void" => "void",
