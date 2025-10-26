@@ -5,7 +5,7 @@ namespace runtime_integration_tests;
 /// <summary>
 /// Tests for basic arithmetic, expressions, and simple programs
 /// NOTE: Tests have been updated to validate actual execution results where possible.
-/// Complex features like variable declarations are noted as TODO items for future IL generation improvements.
+/// Complex features like variable declarations are noted as TODO items for future improvements.
 /// </summary>
 public class BasicRuntimeTests : RuntimeTestBase
 {
@@ -58,13 +58,13 @@ public class BasicRuntimeTests : RuntimeTestBase
     [Test]
     public async Task ComplexArithmeticExpressions_ShouldCompile()
     {
-        // Test simple arithmetic operations (without variables which have IL generation issues)
+        // Test simple arithmetic operations (without variables)
         var testCases = new[]
         {
             ("Addition", "return 10 + 15;", 25),
             ("Subtraction", "return 50 - 17;", 33),
             ("Multiplication", "return 6 * 7;", 42),
-            // Note: Division and modulo operations may not be fully implemented in IL generation yet
+            // Note: Division and modulo operations may not be fully implemented yet
         };
 
         foreach (var (operation, expression, expectedResult) in testCases)
@@ -90,8 +90,8 @@ main(): int {{
             }
             catch (System.Exception ex)
             {
-                // Some operations may not be fully implemented yet in the IL generation
-                Console.WriteLine($"Skipping {operation} execution test - IL generation may not be complete: {ex.Message}");
+                // Some operations may not be fully implemented yet
+                Console.WriteLine($"Skipping {operation} execution test - operation may not be complete: {ex.Message}");
             }
         }
     }

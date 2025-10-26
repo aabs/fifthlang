@@ -109,7 +109,7 @@ public class BuiltInRuntimeTests : RuntimeTestBase
         File.Exists(executablePath).Should().BeTrue("Array utilities should compile");
     }
 
-    [Test, Skip("Error handling not yet implemented in IL generation")]
+    [Test, Skip("Error handling not yet implemented")]
     public async Task ErrorHandling_ShouldCompile()
     {
         var sourceCode = """
