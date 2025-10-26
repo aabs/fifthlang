@@ -1460,7 +1460,6 @@
           "System.CommandLine": "[2.0.0-beta4.22272.1, )",
           "ast_generated": "[1.0.0, )",
           "ast_model": "[1.0.0, )",
-          "code_generator": "[1.0.0, )",
           "parser": "[1.0.0, )"
         }
       },
