@@ -484,9 +484,24 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitExp_unary(FifthParser.Exp_unaryContext context)
     {
+        var (op, annotations) = GetUnaryOperatorAndAnnotations(context.unary_op.Type, isPostfix: false);
+        return BuildUnaryExpression(op, annotations, context.expression(), context);
+    }
+
+    public override IAstThing VisitExp_unary_postfix(FifthParser.Exp_unary_postfixContext context)
+    {
+        var (op, annotations) = GetUnaryOperatorAndAnnotations(context.unary_op.Type, isPostfix: true);
+        return BuildUnaryExpression(op, annotations, context.expression(), context);
+    }
+
+    /// <summary>
+    /// Helper method to determine the operator and annotations for unary expressions.
+    /// </summary>
+    private (Operator op, Dictionary<string, object> annotations) GetUnaryOperatorAndAnnotations(int tokenType, bool isPostfix)
+    {
         var annotations = new Dictionary<string, object>();
         
-        var op = context.unary_op.Type switch
+        var op = tokenType switch
         {
             FifthParser.PLUS => Operator.ArithmeticAdd,
             FifthParser.MINUS => Operator.ArithmeticNegative,
@@ -497,56 +512,33 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         };
 
         // Add annotations to distinguish between unary +/- and increment/decrement
-        if (context.unary_op.Type == FifthParser.PLUS_PLUS)
+        if (tokenType == FifthParser.PLUS_PLUS)
         {
             annotations["OperatorType"] = "++";
-            annotations["OperatorPosition"] = OperatorPosition.Prefix;
+            annotations["OperatorPosition"] = isPostfix ? OperatorPosition.Postfix : OperatorPosition.Prefix;
         }
-        else if (context.unary_op.Type == FifthParser.MINUS_MINUS)
+        else if (tokenType == FifthParser.MINUS_MINUS)
         {
             annotations["OperatorType"] = "--";
-            annotations["OperatorPosition"] = OperatorPosition.Prefix;
+            annotations["OperatorPosition"] = isPostfix ? OperatorPosition.Postfix : OperatorPosition.Prefix;
         }
 
-        var b = new UnaryExpBuilder()
-            .WithAnnotations(annotations)
-            .WithOperator(op)
-            .WithOperand((Expression)Visit(context.expression()));
-
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result;
+        return (op, annotations);
     }
 
-    public override IAstThing VisitExp_unary_postfix(FifthParser.Exp_unary_postfixContext context)
+    /// <summary>
+    /// Helper method to build a UnaryExp from operator, annotations, and operand.
+    /// </summary>
+    private UnaryExp BuildUnaryExpression(Operator op, Dictionary<string, object> annotations, 
+                                          FifthParser.ExpressionContext operandContext, 
+                                          ParserRuleContext locationContext)
     {
-        var annotations = new Dictionary<string, object>();
-        
-        var op = context.unary_op.Type switch
-        {
-            FifthParser.PLUS_PLUS => Operator.ArithmeticAdd,
-            FifthParser.MINUS_MINUS => Operator.ArithmeticSubtract,
-            _ => Operator.ArithmeticAdd
-        };
-
-        // Add annotations to indicate this is a postfix operator
-        if (context.unary_op.Type == FifthParser.PLUS_PLUS)
-        {
-            annotations["OperatorType"] = "++";
-            annotations["OperatorPosition"] = OperatorPosition.Postfix;
-        }
-        else if (context.unary_op.Type == FifthParser.MINUS_MINUS)
-        {
-            annotations["OperatorType"] = "--";
-            annotations["OperatorPosition"] = OperatorPosition.Postfix;
-        }
-
         var b = new UnaryExpBuilder()
             .WithAnnotations(annotations)
             .WithOperator(op)
-            .WithOperand((Expression)Visit(context.expression()));
+            .WithOperand((Expression)Visit(operandContext));
 
-        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        return result;
+        return b.Build() with { Location = GetLocationDetails(locationContext), Type = Void };
     }
 
     public override IAstThing VisitExp_operand([NotNull] FifthParser.Exp_operandContext context)
