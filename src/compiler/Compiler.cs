@@ -200,7 +200,7 @@ Fifth Language Compiler (fifthc)
 Usage: fifthc [command] [options]
 
 Commands:
-  build (default)  Parse, transform, generate IL, and assemble to executable
+  build (default)  Parse, transform, and compile to executable
   run              Same as build, then execute the produced binary
   lint             Parse and apply transformations only, report issues
   help             Show this help message
@@ -209,7 +209,7 @@ Options:
   --source <path>      Source file or directory path (required for build/run/lint)
   --output <path>      Output executable path (required for build/run)
   --args <args>        Arguments to pass to program when running
-  --keep-temp          Keep temporary IL files
+  --keep-temp          Keep temporary files
   --diagnostics        Enable diagnostic output
 
 Examples:

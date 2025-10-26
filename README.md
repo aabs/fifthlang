@@ -54,7 +54,6 @@ foo(a : int, n : string): void
 ## Prerequisites
 - .NET SDK 8.0+
 - Java 17+ (ANTLR toolchain; 11 may work but 17 is recommended)
-- `ilasm` on PATH or configured via env vars (see `src/compiler/README.md`)
 
 ## Build
 ```fish
