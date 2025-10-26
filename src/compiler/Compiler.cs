@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ast;
-using code_generator;
 
 namespace compiler;
 
@@ -11,8 +10,6 @@ namespace compiler;
 public class Compiler
 {
     private readonly IProcessRunner _processRunner;
-    private readonly ILCodeGenerator _ilCodeGenerator;
-    private readonly PEEmitter _peEmitter;
 
     public Compiler() : this(new ProcessRunner())
     {
@@ -21,8 +18,6 @@ public class Compiler
     public Compiler(IProcessRunner processRunner)
     {
         _processRunner = processRunner;
-        _ilCodeGenerator = new ILCodeGenerator();
-        _peEmitter = new PEEmitter();
     }
 
     /// <summary>
@@ -33,29 +28,6 @@ public class Compiler
     public async Task<CompilationResult> CompileAsync(CompilerOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
-
-        // Allow environment override for backend selection to facilitate parity testing
-        // FIFTH_BACKEND=roslyn|legacy
-        try
-        {
-            var envBackend = Environment.GetEnvironmentVariable("FIFTH_BACKEND");
-            if (!string.IsNullOrWhiteSpace(envBackend))
-            {
-                var lower = envBackend.Trim().ToLowerInvariant();
-                if (lower == "roslyn")
-                {
-                    options = options with { Backend = CompilerBackend.Roslyn };
-                }
-                else if (lower == "legacy")
-                {
-                    options = options with { Backend = CompilerBackend.Legacy };
-                }
-            }
-        }
-        catch
-        {
-            // Ignore env read errors
-        }
 
         var validationError = options.Validate();
         if (validationError != null)
@@ -93,8 +65,6 @@ public class Compiler
 
         try
         {
-            // Report chosen backend at the start of build for easy verification
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Backend selected: {options.Backend}"));
             // Phase 1: Parse
             if (options.Diagnostics)
             {
@@ -119,10 +89,10 @@ public class Compiler
                 return CompilationResult.Failed(3, diagnostics);
             }
 
-            // Phase 3: Code Generation - Select backend
+            // Phase 3: Code Generation using Roslyn backend
             if (options.Diagnostics)
             {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Starting code generation phase using {options.Backend} backend"));
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting code generation phase using Roslyn backend"));
             }
 
             // Phase 4: Assembly
@@ -131,12 +101,7 @@ public class Compiler
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting assembly phase"));
             }
 
-            var (assemblyResult, assemblyPath) = options.Backend switch
-            {
-                CompilerBackend.Roslyn => await RoslynEmissionPhase(transformedAst, options, diagnostics),
-                CompilerBackend.Legacy => await DirectPEEmissionPhase(transformedAst, options, diagnostics),
-                _ => await DirectPEEmissionPhase(transformedAst, options, diagnostics)
-            };
+            var (assemblyResult, assemblyPath) = await RoslynEmissionPhase(transformedAst, options, diagnostics);
 
             if (!assemblyResult)
             {
@@ -145,13 +110,10 @@ public class Compiler
 
             stopwatch.Stop();
 
-            // Determine ILPath for result - not available with direct PE emission
-            string? ilPathForResult = null;
-
             return CompilationResult.Successful(
                 diagnostics,
                 outputPath: assemblyPath,
-                ilPath: ilPathForResult,
+                ilPath: null,
                 elapsed: stopwatch.Elapsed);
         }
         catch (System.Exception ex)
@@ -604,92 +566,6 @@ Examples:
         }
     }
 
-    private async Task<(bool success, string? outputPath)> DirectPEEmissionPhase(AstThing transformedAst, CompilerOptions options, List<Diagnostic> diagnostics)
-    {
-        try
-        {
-            // Cast to AssemblyDef as expected by ILCodeGenerator
-            if (transformedAst is not AssemblyDef assemblyDef)
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Expected AssemblyDef but got {transformedAst.GetType().Name}"));
-                return (false, null);
-            }
-
-            // Transform AST to IL metamodel
-            var ilAssembly = _ilCodeGenerator.TransformToILMetamodel(assemblyDef);
-
-            // When diagnostics are enabled, write the generated IL to disk for inspection
-            if (options.Diagnostics)
-            {
-                try
-                {
-                    var debugDir = Path.Combine(Directory.GetCurrentDirectory(), "build_debug_il");
-                    Directory.CreateDirectory(debugDir);
-                    var ilGen = new code_generator.ILCodeGenerator(new code_generator.ILCodeGeneratorConfiguration { OutputDirectory = debugDir });
-                    var ilPath = ilGen.GenerateCode(assemblyDef);
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated IL written to: {ilPath}"));
-                }
-                catch (System.Exception ex)
-                {
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to write IL file for diagnostics: {ex.Message}"));
-                }
-            }
-
-            // Ensure output directory exists
-            var outputDir = Path.GetDirectoryName(options.Output);
-            if (!string.IsNullOrWhiteSpace(outputDir) && !Directory.Exists(outputDir))
-            {
-                Directory.CreateDirectory(outputDir);
-            }
-
-            if (options.Diagnostics)
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Using direct PE emission"));
-            }
-
-            // Emit PE assembly directly
-            var success = _peEmitter.EmitAssembly(ilAssembly, options.Output);
-
-            if (!success)
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "Direct PE emission failed"));
-                return (false, null);
-            }
-
-            // Generate runtime configuration file for framework-dependent execution
-            await GenerateRuntimeConfigAsync(options.Output, diagnostics);
-
-            // Set execute permission on Unix-like systems
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                try
-                {
-                    // Use chmod to set execute permission
-                    var chmodResult = await _processRunner.RunAsync("chmod", $"+x \"{options.Output}\"");
-                    if (!chmodResult.Success && options.Diagnostics)
-                    {
-                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission on {options.Output}"));
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission: {ex.Message}"));
-                }
-            }
-
-            if (options.Diagnostics)
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Successfully generated PE assembly: {options.Output}"));
-            }
-
-            return (true, options.Output);
-        }
-        catch (System.Exception ex)
-        {
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Direct PE emission error: {ex.Message}"));
-            return (false, null);
-        }
-    }
 
 
 }

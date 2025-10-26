@@ -761,11 +761,6 @@
           "System.Runtime": "4.3.0"
         }
       },
-      "System.Reflection.Emit": {
-        "type": "Transitive",
-        "resolved": "4.7.0",
-        "contentHash": "VR4kk8XLKebQ4MZuKuIni/7oh+QGFmZW3qORd1GvBq/8026OpW501SzT/oypwiQl4TvT8ErnReh/NzY9u+C6wQ=="
-      },
       "System.Reflection.Extensions": {
         "type": "Transitive",
         "resolved": "4.3.0",
@@ -1094,15 +1089,6 @@
           "dunet": "[1.11.2, )"
         }
       },
-      "code_generator": {
-        "type": "Project",
-        "dependencies": {
-          "System.Reflection.Emit": "[4.7.0, )",
-          "System.Reflection.Metadata": "[9.0.0, )",
-          "ast_generated": "[1.0.0, )",
-          "ast_model": "[1.0.0, )"
-        }
-      },
       "compiler": {
         "type": "Project",
         "dependencies": {
@@ -1111,7 +1097,6 @@
           "System.CommandLine": "[2.0.0-beta4.22272.1, )",
           "ast_generated": "[1.0.0, )",
           "ast_model": "[1.0.0, )",
-          "code_generator": "[1.0.0, )",
           "parser": "[1.0.0, )"
         }
       },
