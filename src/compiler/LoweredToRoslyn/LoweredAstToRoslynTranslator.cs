@@ -539,15 +539,8 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             var lhsExpr = TranslateExpression(binExp.LHS);
             var rhsExpr = TranslateExpression(binExp.RHS);
             
-            // Cast operands to double for Math.Pow
-            var lhsDouble = CastExpression(
-                PredefinedType(Token(SyntaxKind.DoubleKeyword)),
-                lhsExpr);
-            var rhsDouble = CastExpression(
-                PredefinedType(Token(SyntaxKind.DoubleKeyword)),
-                rhsExpr);
-            
-            // Emit: System.Math.Pow((double)base, (double)exponent)
+            // Emit: System.Math.Pow(base, exponent)
+            // Math.Pow accepts double arguments and C# will auto-convert ints
             var powCall = InvocationExpression(
                 MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
@@ -556,7 +549,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                         IdentifierName("System"),
                         IdentifierName("Math")),
                     IdentifierName("Pow")))
-                .WithArgumentList(ArgumentList(SeparatedList(new[] { Argument(lhsDouble), Argument(rhsDouble) })));
+                .WithArgumentList(ArgumentList(SeparatedList(new[] { Argument(lhsExpr), Argument(rhsExpr) })));
             
             // System.Math.Pow returns double, so cast to int for integer expressions
             return CastExpression(
