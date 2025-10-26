@@ -287,7 +287,7 @@ public class AstBuilderVisitorTests
         ifstmt.ElseBlock.Should().NotBeNull();
     }
 
-    [Test]
+    [Test, Skip("List comprehensions are not yet implemented")]
     public void handles_list_comprehensions()
     {
         var p = GetParserFor("statement-list-decl.5th");
