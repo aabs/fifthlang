@@ -10,21 +10,22 @@ namespace compiler.LanguageTransformations;
 /// Lowers unary operators to simpler binary expressions or identity operations.
 /// This is a type-agnostic transformation that simplifies:
 /// 
-///   ++p  →  p + 1
-///   --p  →  p - 1
-///   p++  →  p + 1
-///   p--  →  p - 1
-///   -p   →  -1 * p
-///   +p   →  p
+///   ++p  →  p + 1  (prefix/postfix increment)
+///   --p  →  p - 1  (prefix/postfix decrement)
+///   p++  →  p + 1  (prefix/postfix increment)
+///   p--  →  p - 1  (prefix/postfix decrement)
+///   -p   →  -1 * p (unary minus)
+///   +p   →  p      (unary plus - identity)
 /// 
 /// Note: This rewriter operates on UnaryExp nodes in the AST, not on statements.
+/// Both prefix and postfix operators are lowered identically to their binary equivalents.
 /// The actual assignment semantics (for ++ and --) would typically be handled
 /// at a higher level (e.g., in an assignment statement context).
-/// For now, we're just converting the expressions themselves.
 /// </summary>
 public class UnaryOperatorLoweringRewriter : DefaultAstRewriter
 {
     private static readonly FifthType Void = new FifthType.TVoidType() { Name = TypeName.From("void") };
+    private static readonly FifthType IntType = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From("int") };
 
     public override RewriteResult VisitUnaryExp(UnaryExp ctx)
     {
@@ -36,11 +37,11 @@ public class UnaryOperatorLoweringRewriter : DefaultAstRewriter
         // Check if this is an operator we need to lower
         Expression loweredExpr = ctx.Operator switch
         {
-            // Prefix increment: ++p => p + 1
+            // Increment (both prefix and postfix): ++p or p++ => p + 1
             Operator.ArithmeticAdd when IsIncrementDecrement(ctx) => 
                 CreateBinaryExpression(operand, Operator.ArithmeticAdd, CreateIntLiteral(1), ctx),
             
-            // Prefix decrement: --p => p - 1
+            // Decrement (both prefix and postfix): --p or p-- => p - 1
             Operator.ArithmeticSubtract when IsIncrementDecrement(ctx) => 
                 CreateBinaryExpression(operand, Operator.ArithmeticSubtract, CreateIntLiteral(1), ctx),
             
@@ -116,7 +117,7 @@ public class UnaryOperatorLoweringRewriter : DefaultAstRewriter
         return new Int32LiteralExp
         {
             Value = value,
-            Type = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From("int") }
+            Type = IntType
         };
     }
 }
