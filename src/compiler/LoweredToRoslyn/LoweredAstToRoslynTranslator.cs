@@ -15,16 +15,9 @@ using ast_model.TypeSystem;
 /// Uses Microsoft.CodeAnalysis APIs to directly build syntax trees and emit assemblies
 /// without intermediate string-based source generation.
 /// </summary>
-public enum BackendCompatibilityMode
-{
-    LegacyShim,
-    Strict
-}
-
 public class TranslatorOptions
 {
     public bool EmitDebugInfo { get; set; } = true;
-    public BackendCompatibilityMode BackendCompatibilityMode { get; set; } = BackendCompatibilityMode.LegacyShim;
     public IReadOnlyList<string>? AdditionalReferences { get; set; }
 }
 
