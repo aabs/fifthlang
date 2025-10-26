@@ -318,6 +318,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             ? MapTypeName(varDecl.VariableDecl.TypeName.ToString())
             : "var";
 
+        // Check if this is a collection type (array or list) and append [] if needed
+        if (varDecl.VariableDecl.CollectionType == ast.CollectionType.Array ||
+            varDecl.VariableDecl.CollectionType == ast.CollectionType.List)
+        {
+            typeName = $"{typeName}[]";
+        }
+
         // If the initializer is a list/array literal, use 'var' to let C# infer the array type
         // This handles cases where Fifth's type system represents int[] differently than expected
         if (varDecl.InitialValue is List)
@@ -1075,7 +1082,16 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     {
         if (fifthTypeName == null) return "object";
 
-        // Handle list/array types - Fifth uses list<T> syntax, C# uses T[]
+        // Handle list/array types - Fifth uses [T] syntax, C# uses T[]
+        // Examples: [int] -> int[], [[int]] -> int[][]
+        if (fifthTypeName.StartsWith("[") && fifthTypeName.EndsWith("]"))
+        {
+            var innerType = fifthTypeName.Substring(1, fifthTypeName.Length - 2);
+            var mappedInner = MapTypeName(innerType);
+            return $"{mappedInner}[]";
+        }
+
+        // Also handle legacy list<T> syntax for compatibility
         if (fifthTypeName.StartsWith("list<") && fifthTypeName.EndsWith(">"))
         {
             var innerType = fifthTypeName.Substring(5, fifthTypeName.Length - 6);
