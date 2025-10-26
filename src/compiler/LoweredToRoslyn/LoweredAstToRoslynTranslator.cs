@@ -1,5 +1,6 @@
 namespace compiler;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -215,10 +216,10 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private FieldDeclarationSyntax BuildFieldDeclaration(FieldDef field)
     {
         var fieldName = SanitizeIdentifier(field.Name.ToString());
-        var typeName = MapTypeName(field.TypeName.ToString());
+        var fieldType = CreateTypeSyntax(field.TypeName.ToString(), field.CollectionType);
 
         return FieldDeclaration(
-            VariableDeclaration(IdentifierName(typeName))
+            VariableDeclaration(fieldType)
                 .AddVariables(VariableDeclarator(Identifier(fieldName))))
             .AddModifiers(Token(SyntaxKind.PublicKeyword));
     }
@@ -226,10 +227,10 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private PropertyDeclarationSyntax BuildPropertyDeclaration(PropertyDef prop)
     {
         var propName = SanitizeIdentifier(prop.Name.ToString());
-        var typeName = MapTypeName(prop.TypeName.ToString());
+        var propType = CreateTypeSyntax(prop.TypeName.ToString(), prop.CollectionType);
 
         return PropertyDeclaration(
-            IdentifierName(typeName),
+            propType,
             Identifier(propName))
             .AddModifiers(Token(SyntaxKind.PublicKeyword))
             .AddAccessorListAccessors(
@@ -313,48 +314,41 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         // Track that this variable has been declared
         _declaredVariables.Add(varName);
 
-        // TypeName is a value object, so ToString() should work
-        var typeName = varDecl.VariableDecl.TypeName != null
-            ? MapTypeName(varDecl.VariableDecl.TypeName.ToString())
-            : "var";
+        var typeName = MapTypeName(varDecl.VariableDecl.TypeName.ToString());
 
-        // Check if this is a collection type (array or list) and append [] if needed
-        // Note: For nested arrays like [[int]], the parser sets:
-        //   - TypeName = "[int]" (inner type, which MapTypeName converts to "int[]")
-        //   - CollectionType = List
-        // So we append [] to get "int[][]" which is correct
         if (varDecl.VariableDecl.CollectionType == ast.CollectionType.Array ||
             varDecl.VariableDecl.CollectionType == ast.CollectionType.List)
         {
             typeName = $"{typeName}[]";
         }
 
-        // If the initializer is a list/array literal, use 'var' to let C# infer the array type
-        // This handles cases where Fifth's type system represents int[] differently than expected
-        if (varDecl.InitialValue is List)
-        {
-            typeName = "var";
-        }
+        var useVarType = varDecl.InitialValue is List;
+
+        var declaredType = useVarType
+            ? IdentifierName("var")
+            : ParseTypeName(typeName);
 
         if (varDecl.InitialValue != null)
         {
             var initExpr = TranslateExpression(varDecl.InitialValue);
             return LocalDeclarationStatement(
-                VariableDeclaration(IdentifierName(typeName))
+                VariableDeclaration(declaredType)
                     .AddVariables(
                         VariableDeclarator(Identifier(varName))
                             .WithInitializer(EqualsValueClause(initExpr))));
         }
         else
         {
+            var defaultType = useVarType ? ParseTypeName("object") : declaredType;
+
             // Default initialize to avoid CS0165 (use of unassigned local)
             return LocalDeclarationStatement(
-                VariableDeclaration(IdentifierName(typeName))
+                VariableDeclaration(defaultType)
                     .AddVariables(
                         VariableDeclarator(Identifier(varName))
                             .WithInitializer(
                                 EqualsValueClause(
-                                    DefaultExpression(IdentifierName(typeName))))));
+                                    DefaultExpression(defaultType)))));
         }
     }
 
@@ -517,7 +511,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         {
             // Highest precedence
             Operator.ArithmeticPow => 100,  // Power (^)
-            
+
             // Multiplicative
             Operator.ArithmeticMultiply => 90,
             Operator.ArithmeticDivide => 90,
@@ -526,29 +520,29 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             Operator.BitwiseLeftShift => 90,
             Operator.BitwiseRightShift => 90,
             Operator.BitwiseAnd => 90,
-            
+
             // Additive
             Operator.ArithmeticAdd => 80,
             Operator.ArithmeticSubtract => 80,
             Operator.BitwiseOr => 80,
             Operator.LogicalXor => 80,
-            
+
             // Relational
             Operator.LessThan => 70,
             Operator.LessThanOrEqual => 70,
             Operator.GreaterThan => 70,
             Operator.GreaterThanOrEqual => 70,
-            
+
             // Equality
             Operator.Equal => 60,
             Operator.NotEqual => 60,
-            
+
             // Logical AND
             Operator.LogicalAnd => 50,
-            
+
             // Logical OR (lowest)
             Operator.LogicalOr => 40,
-            
+
             _ => 0  // Unknown operators get lowest precedence
         };
     }
@@ -596,7 +590,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         {
             var lhsExpr = TranslateExpression(binExp.LHS);
             var rhsExpr = TranslateExpression(binExp.RHS);
-            
+
             // Emit: System.Math.Pow(base, exponent)
             // Math.Pow accepts double arguments and C# will auto-convert ints
             var powCall = InvocationExpression(
@@ -608,7 +602,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                         IdentifierName("Math")),
                     IdentifierName("Pow")))
                 .WithArgumentList(ArgumentList(SeparatedList(new[] { Argument(lhsExpr), Argument(rhsExpr) })));
-            
+
             // System.Math.Pow returns double, so cast to int for integer expressions
             return CastExpression(
                 PredefinedType(Token(SyntaxKind.IntKeyword)),
@@ -621,7 +615,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         // Wrap child binary expressions in parentheses if they have lower precedence
         // This ensures correct evaluation order (e.g., (1 + 2) * 3 stays parenthesized)
         var parentPrecedence = GetOperatorPrecedence(binExp.Operator);
-        
+
         if (binExp.LHS is BinaryExp leftBinExp)
         {
             var leftPrecedence = GetOperatorPrecedence(leftBinExp.Operator);
@@ -631,13 +625,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 left = ParenthesizedExpression(left);
             }
         }
-        
+
         if (binExp.RHS is BinaryExp rightBinExp)
         {
             var rightPrecedence = GetOperatorPrecedence(rightBinExp.Operator);
             // Add parentheses if child has lower precedence
             // For right side, also parenthesize if equal precedence (left-associative default)
-            if (rightPrecedence < parentPrecedence || 
+            if (rightPrecedence < parentPrecedence ||
                 (rightPrecedence == parentPrecedence && binExp.Operator != Operator.ArithmeticPow))
             {
                 right = ParenthesizedExpression(right);
@@ -949,6 +943,11 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private ExpressionSyntax TranslateObjectInitializerExpression(ObjectInitializerExp objInit)
     {
         // Get the type name - TypeToInitialize is a FifthType, need to extract the name properly
+        if (objInit.TypeToInitialize is FifthType.TArrayOf arrayType)
+        {
+            return TranslateArrayCreationExpression(objInit, arrayType);
+        }
+
         string typeName;
         try
         {
@@ -1012,6 +1011,56 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 InitializerExpression(
                     SyntaxKind.ObjectInitializerExpression,
                     SeparatedList(initializers)));
+    }
+
+    private ExpressionSyntax TranslateArrayCreationExpression(ObjectInitializerExp objInit, FifthType.TArrayOf arrayType)
+    {
+        var elementTypeName = ExtractTypeName(arrayType.ElementType);
+        var elementTypeSyntax = ParseTypeName(elementTypeName);
+
+        ExpressionSyntax? sizeExpression = null;
+        if (objInit.Annotations != null &&
+            objInit.Annotations.TryGetValue("ArraySize", out var sizeObj) &&
+            sizeObj is Expression arraySize)
+        {
+            sizeExpression = TranslateExpression(arraySize);
+        }
+
+        List<ExpressionSyntax>? initializerElements = null;
+        if (objInit.PropertyInitialisers != null && objInit.PropertyInitialisers.Count > 0)
+        {
+            initializerElements = new List<ExpressionSyntax>();
+            foreach (var propInit in objInit.PropertyInitialisers)
+            {
+                if (propInit.RHS != null)
+                {
+                    initializerElements.Add(TranslateExpression(propInit.RHS));
+                }
+            }
+        }
+
+        ExpressionSyntax rankSizeExpression = sizeExpression ??
+            (initializerElements != null
+                ? (ExpressionSyntax)OmittedArraySizeExpression()
+                : LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0)));
+
+        var arrayTypeSyntax = ArrayType(elementTypeSyntax)
+            .WithRankSpecifiers(
+                SingletonList(
+                    ArrayRankSpecifier(
+                        SingletonSeparatedList(rankSizeExpression))));
+
+        var arrayCreation = ArrayCreationExpression(arrayTypeSyntax);
+
+        if (initializerElements != null)
+        {
+            arrayCreation = arrayCreation.WithInitializer(
+                InitializerExpression(
+                    SyntaxKind.ArrayInitializerExpression,
+                    SeparatedList(initializerElements)));
+        }
+
+        return arrayCreation;
     }
 
     private ExpressionSyntax TranslateUnaryExpression(UnaryExp unary)
@@ -1124,6 +1173,19 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         };
     }
 
+    private TypeSyntax CreateTypeSyntax(string typeName, ast.CollectionType collectionType)
+    {
+        var mappedType = MapTypeName(typeName);
+
+        if ((collectionType == ast.CollectionType.Array || collectionType == ast.CollectionType.List)
+            && !mappedType.EndsWith("[]", StringComparison.Ordinal))
+        {
+            mappedType += "[]";
+        }
+
+        return ParseTypeName(mappedType);
+    }
+
     private SyntaxTree BuildSyntaxTree(LoweredAstModule module, MappingTable mapping)
     {
         // Create using directives
@@ -1210,7 +1272,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 : "object";
             parameters.Add(
                 Parameter(Identifier(paramName))
-                    .WithType(IdentifierName(paramTypeName)));
+                    .WithType(ParseTypeName(paramTypeName)));
         }
 
         // Build method body
@@ -1260,7 +1322,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         }
 
         var methodDecl = MethodDeclaration(
-            IdentifierName(returnTypeName),
+            ParseTypeName(returnTypeName),
             Identifier(methodName))
             .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword))
             .WithParameterList(ParameterList(SeparatedList(parameters)))
