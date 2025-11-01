@@ -22,10 +22,6 @@ public interface IAstRewriter
     RewriteResult Rewrite(AstThing ctx);
     RewriteResult VisitAssemblyDef(AssemblyDef ctx);
     RewriteResult VisitModuleDef(ModuleDef ctx);
-    RewriteResult VisitTypeParameterDef(TypeParameterDef ctx);
-    RewriteResult VisitInterfaceConstraint(InterfaceConstraint ctx);
-    RewriteResult VisitBaseClassConstraint(BaseClassConstraint ctx);
-    RewriteResult VisitConstructorConstraint(ConstructorConstraint ctx);
     RewriteResult VisitFunctionDef(FunctionDef ctx);
     RewriteResult VisitFunctorDef(FunctorDef ctx);
     RewriteResult VisitFieldDef(FieldDef ctx);
@@ -58,20 +54,18 @@ public interface IAstRewriter
     RewriteResult VisitReturnStatement(ReturnStatement ctx);
     RewriteResult VisitVarDeclStatement(VarDeclStatement ctx);
     RewriteResult VisitWhileStatement(WhileStatement ctx);
-    RewriteResult VisitTryStatement(TryStatement ctx);
-    RewriteResult VisitCatchClause(CatchClause ctx);
-    RewriteResult VisitThrowStatement(ThrowStatement ctx);
+    RewriteResult VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx);
     RewriteResult VisitAssertionStatement(AssertionStatement ctx);
     RewriteResult VisitAssertionObject(AssertionObject ctx);
     RewriteResult VisitAssertionPredicate(AssertionPredicate ctx);
     RewriteResult VisitAssertionSubject(AssertionSubject ctx);
     RewriteResult VisitRetractionStatement(RetractionStatement ctx);
     RewriteResult VisitWithScopeStatement(WithScopeStatement ctx);
+    RewriteResult VisitGraphAssertionBlockExp(GraphAssertionBlockExp ctx);
     RewriteResult VisitBinaryExp(BinaryExp ctx);
     RewriteResult VisitCastExp(CastExp ctx);
     RewriteResult VisitLambdaExp(LambdaExp ctx);
     RewriteResult VisitFuncCallExp(FuncCallExp ctx);
-    RewriteResult VisitBaseConstructorCall(BaseConstructorCall ctx);
     RewriteResult VisitInt8LiteralExp(Int8LiteralExp ctx);
     RewriteResult VisitInt16LiteralExp(Int16LiteralExp ctx);
     RewriteResult VisitInt32LiteralExp(Int32LiteralExp ctx);
@@ -92,18 +86,11 @@ public interface IAstRewriter
     RewriteResult VisitDurationLiteralExp(DurationLiteralExp ctx);
     RewriteResult VisitUriLiteralExp(UriLiteralExp ctx);
     RewriteResult VisitAtomLiteralExp(AtomLiteralExp ctx);
-    RewriteResult VisitTriGLiteralExpression(TriGLiteralExpression ctx);
-    RewriteResult VisitInterpolatedExpression(InterpolatedExpression ctx);
-    RewriteResult VisitSparqlLiteralExpression(SparqlLiteralExpression ctx);
-    RewriteResult VisitVariableBinding(VariableBinding ctx);
-    RewriteResult VisitInterpolation(Interpolation ctx);
-    RewriteResult VisitQueryApplicationExp(QueryApplicationExp ctx);
     RewriteResult VisitMemberAccessExp(MemberAccessExp ctx);
     RewriteResult VisitIndexerExpression(IndexerExpression ctx);
     RewriteResult VisitObjectInitializerExp(ObjectInitializerExp ctx);
     RewriteResult VisitPropertyInitializerExp(PropertyInitializerExp ctx);
     RewriteResult VisitUnaryExp(UnaryExp ctx);
-    RewriteResult VisitThrowExp(ThrowExp ctx);
     RewriteResult VisitVarRefExp(VarRefExp ctx);
     RewriteResult VisitListLiteral(ListLiteral ctx);
     RewriteResult VisitListComprehension(ListComprehension ctx);
@@ -126,10 +113,6 @@ public class DefaultAstRewriter : IAstRewriter
         {
              AssemblyDef node => VisitAssemblyDef(node),
              ModuleDef node => VisitModuleDef(node),
-             TypeParameterDef node => VisitTypeParameterDef(node),
-             InterfaceConstraint node => VisitInterfaceConstraint(node),
-             BaseClassConstraint node => VisitBaseClassConstraint(node),
-             ConstructorConstraint node => VisitConstructorConstraint(node),
              FunctionDef node => VisitFunctionDef(node),
              FunctorDef node => VisitFunctorDef(node),
              FieldDef node => VisitFieldDef(node),
@@ -162,20 +145,18 @@ public class DefaultAstRewriter : IAstRewriter
              ReturnStatement node => VisitReturnStatement(node),
              VarDeclStatement node => VisitVarDeclStatement(node),
              WhileStatement node => VisitWhileStatement(node),
-             TryStatement node => VisitTryStatement(node),
-             CatchClause node => VisitCatchClause(node),
-             ThrowStatement node => VisitThrowStatement(node),
+             GraphAssertionBlockStatement node => VisitGraphAssertionBlockStatement(node),
              AssertionStatement node => VisitAssertionStatement(node),
              AssertionObject node => VisitAssertionObject(node),
              AssertionPredicate node => VisitAssertionPredicate(node),
              AssertionSubject node => VisitAssertionSubject(node),
              RetractionStatement node => VisitRetractionStatement(node),
              WithScopeStatement node => VisitWithScopeStatement(node),
+             GraphAssertionBlockExp node => VisitGraphAssertionBlockExp(node),
              BinaryExp node => VisitBinaryExp(node),
              CastExp node => VisitCastExp(node),
              LambdaExp node => VisitLambdaExp(node),
              FuncCallExp node => VisitFuncCallExp(node),
-             BaseConstructorCall node => VisitBaseConstructorCall(node),
              Int8LiteralExp node => VisitInt8LiteralExp(node),
              Int16LiteralExp node => VisitInt16LiteralExp(node),
              Int32LiteralExp node => VisitInt32LiteralExp(node),
@@ -196,18 +177,11 @@ public class DefaultAstRewriter : IAstRewriter
              DurationLiteralExp node => VisitDurationLiteralExp(node),
              UriLiteralExp node => VisitUriLiteralExp(node),
              AtomLiteralExp node => VisitAtomLiteralExp(node),
-             TriGLiteralExpression node => VisitTriGLiteralExpression(node),
-             InterpolatedExpression node => VisitInterpolatedExpression(node),
-             SparqlLiteralExpression node => VisitSparqlLiteralExpression(node),
-             VariableBinding node => VisitVariableBinding(node),
-             Interpolation node => VisitInterpolation(node),
-             QueryApplicationExp node => VisitQueryApplicationExp(node),
              MemberAccessExp node => VisitMemberAccessExp(node),
              IndexerExpression node => VisitIndexerExpression(node),
              ObjectInitializerExp node => VisitObjectInitializerExp(node),
              PropertyInitializerExp node => VisitPropertyInitializerExp(node),
              UnaryExp node => VisitUnaryExp(node),
-             ThrowExp node => VisitThrowExp(node),
              VarRefExp node => VisitVarRefExp(node),
              ListLiteral node => VisitListLiteral(node),
              ListComprehension node => VisitListComprehension(node),
@@ -266,52 +240,9 @@ public class DefaultAstRewriter : IAstRewriter
         };
         return new RewriteResult(rebuilt, prologue);
     }
-    public virtual RewriteResult VisitTypeParameterDef(TypeParameterDef ctx)
-    {
-        var prologue = new List<Statement>();
-        List<ast.TypeConstraint> tmpConstraints = [];
-        foreach (var item in ctx.Constraints)
-        {
-            var rr = Rewrite(item);
-            tmpConstraints.Add((ast.TypeConstraint)rr.Node);
-            prologue.AddRange(rr.Prologue);
-        }
-        var rebuilt = ctx with {
-         Constraints = tmpConstraints
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
-    public virtual RewriteResult VisitInterfaceConstraint(InterfaceConstraint ctx)
-    {
-        var prologue = new List<Statement>();
-        var rebuilt = ctx with {
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
-    public virtual RewriteResult VisitBaseClassConstraint(BaseClassConstraint ctx)
-    {
-        var prologue = new List<Statement>();
-        var rebuilt = ctx with {
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
-    public virtual RewriteResult VisitConstructorConstraint(ConstructorConstraint ctx)
-    {
-        var prologue = new List<Statement>();
-        var rebuilt = ctx with {
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
     public virtual RewriteResult VisitFunctionDef(FunctionDef ctx)
     {
         var prologue = new List<Statement>();
-        List<ast.TypeParameterDef> tmpTypeParameters = [];
-        foreach (var item in ctx.TypeParameters)
-        {
-            var rr = Rewrite(item);
-            tmpTypeParameters.Add((ast.TypeParameterDef)rr.Node);
-            prologue.AddRange(rr.Prologue);
-        }
         List<ast.ParamDef> tmpParams = [];
         foreach (var item in ctx.Params)
         {
@@ -321,13 +252,9 @@ public class DefaultAstRewriter : IAstRewriter
         }
         var rrBody = Rewrite((AstThing)ctx.Body);
         prologue.AddRange(rrBody.Prologue);
-        var rrBaseCall = Rewrite((AstThing)ctx.BaseCall);
-        prologue.AddRange(rrBaseCall.Prologue);
         var rebuilt = ctx with {
-         TypeParameters = tmpTypeParameters
-        ,Params = tmpParams
+         Params = tmpParams
         ,Body = (ast.BlockStatement)rrBody.Node
-        ,BaseCall = (ast.BaseConstructorCall)rrBaseCall.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -466,13 +393,6 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitClassDef(ClassDef ctx)
     {
         var prologue = new List<Statement>();
-        List<ast.TypeParameterDef> tmpTypeParameters = [];
-        foreach (var item in ctx.TypeParameters)
-        {
-            var rr = Rewrite(item);
-            tmpTypeParameters.Add((ast.TypeParameterDef)rr.Node);
-            prologue.AddRange(rr.Prologue);
-        }
         List<ast.MemberDef> tmpMemberDefs = [];
         foreach (var item in ctx.MemberDefs)
         {
@@ -481,8 +401,7 @@ public class DefaultAstRewriter : IAstRewriter
             prologue.AddRange(rr.Prologue);
         }
         var rebuilt = ctx with {
-         TypeParameters = tmpTypeParameters
-        ,MemberDefs = tmpMemberDefs
+         MemberDefs = tmpMemberDefs
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -698,47 +617,13 @@ public class DefaultAstRewriter : IAstRewriter
         };
         return new RewriteResult(rebuilt, prologue);
     }
-    public virtual RewriteResult VisitTryStatement(TryStatement ctx)
+    public virtual RewriteResult VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx)
     {
         var prologue = new List<Statement>();
-        List<ast.CatchClause> tmpCatchClauses = [];
-        foreach (var item in ctx.CatchClauses)
-        {
-            var rr = Rewrite(item);
-            tmpCatchClauses.Add((ast.CatchClause)rr.Node);
-            prologue.AddRange(rr.Prologue);
-        }
-        var rrTryBlock = Rewrite((AstThing)ctx.TryBlock);
-        prologue.AddRange(rrTryBlock.Prologue);
-        var rrFinallyBlock = Rewrite((AstThing)ctx.FinallyBlock);
-        prologue.AddRange(rrFinallyBlock.Prologue);
+        var rrContent = Rewrite((AstThing)ctx.Content);
+        prologue.AddRange(rrContent.Prologue);
         var rebuilt = ctx with {
-         TryBlock = (ast.BlockStatement)rrTryBlock.Node
-        ,CatchClauses = tmpCatchClauses
-        ,FinallyBlock = (ast.BlockStatement)rrFinallyBlock.Node
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
-    public virtual RewriteResult VisitCatchClause(CatchClause ctx)
-    {
-        var prologue = new List<Statement>();
-        var rrFilter = Rewrite((AstThing)ctx.Filter);
-        prologue.AddRange(rrFilter.Prologue);
-        var rrBody = Rewrite((AstThing)ctx.Body);
-        prologue.AddRange(rrBody.Prologue);
-        var rebuilt = ctx with {
-         Filter = (ast.Expression)rrFilter.Node
-        ,Body = (ast.BlockStatement)rrBody.Node
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
-    public virtual RewriteResult VisitThrowStatement(ThrowStatement ctx)
-    {
-        var prologue = new List<Statement>();
-        var rrException = Rewrite((AstThing)ctx.Exception);
-        prologue.AddRange(rrException.Prologue);
-        var rebuilt = ctx with {
-         Exception = (ast.Expression)rrException.Node
+         Content = (ast.GraphAssertionBlockExp)rrContent.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -796,6 +681,16 @@ public class DefaultAstRewriter : IAstRewriter
         };
         return new RewriteResult(rebuilt, prologue);
     }
+    public virtual RewriteResult VisitGraphAssertionBlockExp(GraphAssertionBlockExp ctx)
+    {
+        var prologue = new List<Statement>();
+        var rrContent = Rewrite((AstThing)ctx.Content);
+        prologue.AddRange(rrContent.Prologue);
+        var rebuilt = ctx with {
+         Content = (ast.BlockStatement)rrContent.Node
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
     public virtual RewriteResult VisitBinaryExp(BinaryExp ctx)
     {
         var prologue = new List<Statement>();
@@ -836,23 +731,11 @@ public class DefaultAstRewriter : IAstRewriter
             tmpInvocationArguments.Add((ast.Expression)rr.Node);
             prologue.AddRange(rr.Prologue);
         }
+        var rrFunctionDef = Rewrite((AstThing)ctx.FunctionDef);
+        prologue.AddRange(rrFunctionDef.Prologue);
         var rebuilt = ctx with {
-         InvocationArguments = tmpInvocationArguments
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
-    public virtual RewriteResult VisitBaseConstructorCall(BaseConstructorCall ctx)
-    {
-        var prologue = new List<Statement>();
-        List<ast.Expression> tmpArguments = [];
-        foreach (var item in ctx.Arguments)
-        {
-            var rr = Rewrite(item);
-            tmpArguments.Add((ast.Expression)rr.Node);
-            prologue.AddRange(rr.Prologue);
-        }
-        var rebuilt = ctx with {
-         Arguments = tmpArguments
+         FunctionDef = (ast.FunctionDef)rrFunctionDef.Node
+        ,InvocationArguments = tmpInvocationArguments
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -996,87 +879,6 @@ public class DefaultAstRewriter : IAstRewriter
         };
         return new RewriteResult(rebuilt, prologue);
     }
-    public virtual RewriteResult VisitTriGLiteralExpression(TriGLiteralExpression ctx)
-    {
-        var prologue = new List<Statement>();
-        List<ast.InterpolatedExpression> tmpInterpolations = [];
-        foreach (var item in ctx.Interpolations)
-        {
-            var rr = Rewrite(item);
-            tmpInterpolations.Add((ast.InterpolatedExpression)rr.Node);
-            prologue.AddRange(rr.Prologue);
-        }
-        var rebuilt = ctx with {
-         Interpolations = tmpInterpolations
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
-    public virtual RewriteResult VisitInterpolatedExpression(InterpolatedExpression ctx)
-    {
-        var prologue = new List<Statement>();
-        var rrExpression = Rewrite((AstThing)ctx.Expression);
-        prologue.AddRange(rrExpression.Prologue);
-        var rebuilt = ctx with {
-         Expression = (ast.Expression)rrExpression.Node
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
-    public virtual RewriteResult VisitSparqlLiteralExpression(SparqlLiteralExpression ctx)
-    {
-        var prologue = new List<Statement>();
-        List<ast.VariableBinding> tmpBindings = [];
-        foreach (var item in ctx.Bindings)
-        {
-            var rr = Rewrite(item);
-            tmpBindings.Add((ast.VariableBinding)rr.Node);
-            prologue.AddRange(rr.Prologue);
-        }
-        List<ast.Interpolation> tmpInterpolations = [];
-        foreach (var item in ctx.Interpolations)
-        {
-            var rr = Rewrite(item);
-            tmpInterpolations.Add((ast.Interpolation)rr.Node);
-            prologue.AddRange(rr.Prologue);
-        }
-        var rebuilt = ctx with {
-         Bindings = tmpBindings
-        ,Interpolations = tmpInterpolations
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
-    public virtual RewriteResult VisitVariableBinding(VariableBinding ctx)
-    {
-        var prologue = new List<Statement>();
-        var rrResolvedExpression = Rewrite((AstThing)ctx.ResolvedExpression);
-        prologue.AddRange(rrResolvedExpression.Prologue);
-        var rebuilt = ctx with {
-         ResolvedExpression = (ast.Expression)rrResolvedExpression.Node
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
-    public virtual RewriteResult VisitInterpolation(Interpolation ctx)
-    {
-        var prologue = new List<Statement>();
-        var rrExpression = Rewrite((AstThing)ctx.Expression);
-        prologue.AddRange(rrExpression.Prologue);
-        var rebuilt = ctx with {
-         Expression = (ast.Expression)rrExpression.Node
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
-    public virtual RewriteResult VisitQueryApplicationExp(QueryApplicationExp ctx)
-    {
-        var prologue = new List<Statement>();
-        var rrQuery = Rewrite((AstThing)ctx.Query);
-        prologue.AddRange(rrQuery.Prologue);
-        var rrStore = Rewrite((AstThing)ctx.Store);
-        prologue.AddRange(rrStore.Prologue);
-        var rebuilt = ctx with {
-         Query = (ast.Expression)rrQuery.Node
-        ,Store = (ast.Expression)rrStore.Node
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
     public virtual RewriteResult VisitMemberAccessExp(MemberAccessExp ctx)
     {
         var prologue = new List<Statement>();
@@ -1106,13 +908,6 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitObjectInitializerExp(ObjectInitializerExp ctx)
     {
         var prologue = new List<Statement>();
-        List<ast.Expression> tmpConstructorArguments = [];
-        foreach (var item in ctx.ConstructorArguments)
-        {
-            var rr = Rewrite(item);
-            tmpConstructorArguments.Add((ast.Expression)rr.Node);
-            prologue.AddRange(rr.Prologue);
-        }
         List<ast.PropertyInitializerExp> tmpPropertyInitialisers = [];
         foreach (var item in ctx.PropertyInitialisers)
         {
@@ -1120,12 +915,8 @@ public class DefaultAstRewriter : IAstRewriter
             tmpPropertyInitialisers.Add((ast.PropertyInitializerExp)rr.Node);
             prologue.AddRange(rr.Prologue);
         }
-        var rrResolvedConstructor = Rewrite((AstThing)ctx.ResolvedConstructor);
-        prologue.AddRange(rrResolvedConstructor.Prologue);
         var rebuilt = ctx with {
-         ConstructorArguments = tmpConstructorArguments
-        ,PropertyInitialisers = tmpPropertyInitialisers
-        ,ResolvedConstructor = (ast.FunctionDef)rrResolvedConstructor.Node
+         PropertyInitialisers = tmpPropertyInitialisers
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -1149,16 +940,6 @@ public class DefaultAstRewriter : IAstRewriter
         prologue.AddRange(rrOperand.Prologue);
         var rebuilt = ctx with {
          Operand = (ast.Expression)rrOperand.Node
-        };
-        return new RewriteResult(rebuilt, prologue);
-    }
-    public virtual RewriteResult VisitThrowExp(ThrowExp ctx)
-    {
-        var prologue = new List<Statement>();
-        var rrException = Rewrite((AstThing)ctx.Exception);
-        prologue.AddRange(rrException.Prologue);
-        var rebuilt = ctx with {
-         Exception = (ast.Expression)rrException.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -1190,21 +971,10 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitListComprehension(ListComprehension ctx)
     {
         var prologue = new List<Statement>();
-        List<ast.Expression> tmpConstraints = [];
-        foreach (var item in ctx.Constraints)
-        {
-            var rr = Rewrite(item);
-            tmpConstraints.Add((ast.Expression)rr.Node);
-            prologue.AddRange(rr.Prologue);
-        }
-        var rrProjection = Rewrite((AstThing)ctx.Projection);
-        prologue.AddRange(rrProjection.Prologue);
-        var rrSource = Rewrite((AstThing)ctx.Source);
-        prologue.AddRange(rrSource.Prologue);
+        var rrMembershipConstraint = Rewrite((AstThing)ctx.MembershipConstraint);
+        prologue.AddRange(rrMembershipConstraint.Prologue);
         var rebuilt = ctx with {
-         Projection = (ast.Expression)rrProjection.Node
-        ,Source = (ast.Expression)rrSource.Node
-        ,Constraints = tmpConstraints
+         MembershipConstraint = (ast.Expression)rrMembershipConstraint.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }

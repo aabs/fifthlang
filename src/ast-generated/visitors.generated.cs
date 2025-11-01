@@ -8,14 +8,6 @@ public interface IAstVisitor
     public void LeaveAssemblyDef(AssemblyDef ctx);
     public void EnterModuleDef(ModuleDef ctx);
     public void LeaveModuleDef(ModuleDef ctx);
-    public void EnterTypeParameterDef(TypeParameterDef ctx);
-    public void LeaveTypeParameterDef(TypeParameterDef ctx);
-    public void EnterInterfaceConstraint(InterfaceConstraint ctx);
-    public void LeaveInterfaceConstraint(InterfaceConstraint ctx);
-    public void EnterBaseClassConstraint(BaseClassConstraint ctx);
-    public void LeaveBaseClassConstraint(BaseClassConstraint ctx);
-    public void EnterConstructorConstraint(ConstructorConstraint ctx);
-    public void LeaveConstructorConstraint(ConstructorConstraint ctx);
     public void EnterFunctionDef(FunctionDef ctx);
     public void LeaveFunctionDef(FunctionDef ctx);
     public void EnterFunctorDef(FunctorDef ctx);
@@ -80,12 +72,8 @@ public interface IAstVisitor
     public void LeaveVarDeclStatement(VarDeclStatement ctx);
     public void EnterWhileStatement(WhileStatement ctx);
     public void LeaveWhileStatement(WhileStatement ctx);
-    public void EnterTryStatement(TryStatement ctx);
-    public void LeaveTryStatement(TryStatement ctx);
-    public void EnterCatchClause(CatchClause ctx);
-    public void LeaveCatchClause(CatchClause ctx);
-    public void EnterThrowStatement(ThrowStatement ctx);
-    public void LeaveThrowStatement(ThrowStatement ctx);
+    public void EnterGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx);
+    public void LeaveGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx);
     public void EnterAssertionStatement(AssertionStatement ctx);
     public void LeaveAssertionStatement(AssertionStatement ctx);
     public void EnterAssertionObject(AssertionObject ctx);
@@ -98,6 +86,8 @@ public interface IAstVisitor
     public void LeaveRetractionStatement(RetractionStatement ctx);
     public void EnterWithScopeStatement(WithScopeStatement ctx);
     public void LeaveWithScopeStatement(WithScopeStatement ctx);
+    public void EnterGraphAssertionBlockExp(GraphAssertionBlockExp ctx);
+    public void LeaveGraphAssertionBlockExp(GraphAssertionBlockExp ctx);
     public void EnterBinaryExp(BinaryExp ctx);
     public void LeaveBinaryExp(BinaryExp ctx);
     public void EnterCastExp(CastExp ctx);
@@ -106,8 +96,6 @@ public interface IAstVisitor
     public void LeaveLambdaExp(LambdaExp ctx);
     public void EnterFuncCallExp(FuncCallExp ctx);
     public void LeaveFuncCallExp(FuncCallExp ctx);
-    public void EnterBaseConstructorCall(BaseConstructorCall ctx);
-    public void LeaveBaseConstructorCall(BaseConstructorCall ctx);
     public void EnterInt8LiteralExp(Int8LiteralExp ctx);
     public void LeaveInt8LiteralExp(Int8LiteralExp ctx);
     public void EnterInt16LiteralExp(Int16LiteralExp ctx);
@@ -148,18 +136,6 @@ public interface IAstVisitor
     public void LeaveUriLiteralExp(UriLiteralExp ctx);
     public void EnterAtomLiteralExp(AtomLiteralExp ctx);
     public void LeaveAtomLiteralExp(AtomLiteralExp ctx);
-    public void EnterTriGLiteralExpression(TriGLiteralExpression ctx);
-    public void LeaveTriGLiteralExpression(TriGLiteralExpression ctx);
-    public void EnterInterpolatedExpression(InterpolatedExpression ctx);
-    public void LeaveInterpolatedExpression(InterpolatedExpression ctx);
-    public void EnterSparqlLiteralExpression(SparqlLiteralExpression ctx);
-    public void LeaveSparqlLiteralExpression(SparqlLiteralExpression ctx);
-    public void EnterVariableBinding(VariableBinding ctx);
-    public void LeaveVariableBinding(VariableBinding ctx);
-    public void EnterInterpolation(Interpolation ctx);
-    public void LeaveInterpolation(Interpolation ctx);
-    public void EnterQueryApplicationExp(QueryApplicationExp ctx);
-    public void LeaveQueryApplicationExp(QueryApplicationExp ctx);
     public void EnterMemberAccessExp(MemberAccessExp ctx);
     public void LeaveMemberAccessExp(MemberAccessExp ctx);
     public void EnterIndexerExpression(IndexerExpression ctx);
@@ -170,8 +146,6 @@ public interface IAstVisitor
     public void LeavePropertyInitializerExp(PropertyInitializerExp ctx);
     public void EnterUnaryExp(UnaryExp ctx);
     public void LeaveUnaryExp(UnaryExp ctx);
-    public void EnterThrowExp(ThrowExp ctx);
-    public void LeaveThrowExp(ThrowExp ctx);
     public void EnterVarRefExp(VarRefExp ctx);
     public void LeaveVarRefExp(VarRefExp ctx);
     public void EnterListLiteral(ListLiteral ctx);
@@ -194,14 +168,6 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveAssemblyDef(AssemblyDef ctx){}
     public virtual void EnterModuleDef(ModuleDef ctx){}
     public virtual void LeaveModuleDef(ModuleDef ctx){}
-    public virtual void EnterTypeParameterDef(TypeParameterDef ctx){}
-    public virtual void LeaveTypeParameterDef(TypeParameterDef ctx){}
-    public virtual void EnterInterfaceConstraint(InterfaceConstraint ctx){}
-    public virtual void LeaveInterfaceConstraint(InterfaceConstraint ctx){}
-    public virtual void EnterBaseClassConstraint(BaseClassConstraint ctx){}
-    public virtual void LeaveBaseClassConstraint(BaseClassConstraint ctx){}
-    public virtual void EnterConstructorConstraint(ConstructorConstraint ctx){}
-    public virtual void LeaveConstructorConstraint(ConstructorConstraint ctx){}
     public virtual void EnterFunctionDef(FunctionDef ctx){}
     public virtual void LeaveFunctionDef(FunctionDef ctx){}
     public virtual void EnterFunctorDef(FunctorDef ctx){}
@@ -266,12 +232,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveVarDeclStatement(VarDeclStatement ctx){}
     public virtual void EnterWhileStatement(WhileStatement ctx){}
     public virtual void LeaveWhileStatement(WhileStatement ctx){}
-    public virtual void EnterTryStatement(TryStatement ctx){}
-    public virtual void LeaveTryStatement(TryStatement ctx){}
-    public virtual void EnterCatchClause(CatchClause ctx){}
-    public virtual void LeaveCatchClause(CatchClause ctx){}
-    public virtual void EnterThrowStatement(ThrowStatement ctx){}
-    public virtual void LeaveThrowStatement(ThrowStatement ctx){}
+    public virtual void EnterGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx){}
+    public virtual void LeaveGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx){}
     public virtual void EnterAssertionStatement(AssertionStatement ctx){}
     public virtual void LeaveAssertionStatement(AssertionStatement ctx){}
     public virtual void EnterAssertionObject(AssertionObject ctx){}
@@ -284,6 +246,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveRetractionStatement(RetractionStatement ctx){}
     public virtual void EnterWithScopeStatement(WithScopeStatement ctx){}
     public virtual void LeaveWithScopeStatement(WithScopeStatement ctx){}
+    public virtual void EnterGraphAssertionBlockExp(GraphAssertionBlockExp ctx){}
+    public virtual void LeaveGraphAssertionBlockExp(GraphAssertionBlockExp ctx){}
     public virtual void EnterBinaryExp(BinaryExp ctx){}
     public virtual void LeaveBinaryExp(BinaryExp ctx){}
     public virtual void EnterCastExp(CastExp ctx){}
@@ -292,8 +256,6 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveLambdaExp(LambdaExp ctx){}
     public virtual void EnterFuncCallExp(FuncCallExp ctx){}
     public virtual void LeaveFuncCallExp(FuncCallExp ctx){}
-    public virtual void EnterBaseConstructorCall(BaseConstructorCall ctx){}
-    public virtual void LeaveBaseConstructorCall(BaseConstructorCall ctx){}
     public virtual void EnterInt8LiteralExp(Int8LiteralExp ctx){}
     public virtual void LeaveInt8LiteralExp(Int8LiteralExp ctx){}
     public virtual void EnterInt16LiteralExp(Int16LiteralExp ctx){}
@@ -334,18 +296,6 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveUriLiteralExp(UriLiteralExp ctx){}
     public virtual void EnterAtomLiteralExp(AtomLiteralExp ctx){}
     public virtual void LeaveAtomLiteralExp(AtomLiteralExp ctx){}
-    public virtual void EnterTriGLiteralExpression(TriGLiteralExpression ctx){}
-    public virtual void LeaveTriGLiteralExpression(TriGLiteralExpression ctx){}
-    public virtual void EnterInterpolatedExpression(InterpolatedExpression ctx){}
-    public virtual void LeaveInterpolatedExpression(InterpolatedExpression ctx){}
-    public virtual void EnterSparqlLiteralExpression(SparqlLiteralExpression ctx){}
-    public virtual void LeaveSparqlLiteralExpression(SparqlLiteralExpression ctx){}
-    public virtual void EnterVariableBinding(VariableBinding ctx){}
-    public virtual void LeaveVariableBinding(VariableBinding ctx){}
-    public virtual void EnterInterpolation(Interpolation ctx){}
-    public virtual void LeaveInterpolation(Interpolation ctx){}
-    public virtual void EnterQueryApplicationExp(QueryApplicationExp ctx){}
-    public virtual void LeaveQueryApplicationExp(QueryApplicationExp ctx){}
     public virtual void EnterMemberAccessExp(MemberAccessExp ctx){}
     public virtual void LeaveMemberAccessExp(MemberAccessExp ctx){}
     public virtual void EnterIndexerExpression(IndexerExpression ctx){}
@@ -356,8 +306,6 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeavePropertyInitializerExp(PropertyInitializerExp ctx){}
     public virtual void EnterUnaryExp(UnaryExp ctx){}
     public virtual void LeaveUnaryExp(UnaryExp ctx){}
-    public virtual void EnterThrowExp(ThrowExp ctx){}
-    public virtual void LeaveThrowExp(ThrowExp ctx){}
     public virtual void EnterVarRefExp(VarRefExp ctx){}
     public virtual void LeaveVarRefExp(VarRefExp ctx){}
     public virtual void EnterListLiteral(ListLiteral ctx){}
@@ -380,10 +328,6 @@ public interface IAstRecursiveDescentVisitor
     public AstThing Visit(AstThing ctx);
     public AssemblyDef VisitAssemblyDef(AssemblyDef ctx);
     public ModuleDef VisitModuleDef(ModuleDef ctx);
-    public TypeParameterDef VisitTypeParameterDef(TypeParameterDef ctx);
-    public InterfaceConstraint VisitInterfaceConstraint(InterfaceConstraint ctx);
-    public BaseClassConstraint VisitBaseClassConstraint(BaseClassConstraint ctx);
-    public ConstructorConstraint VisitConstructorConstraint(ConstructorConstraint ctx);
     public FunctionDef VisitFunctionDef(FunctionDef ctx);
     public FunctorDef VisitFunctorDef(FunctorDef ctx);
     public FieldDef VisitFieldDef(FieldDef ctx);
@@ -416,20 +360,18 @@ public interface IAstRecursiveDescentVisitor
     public ReturnStatement VisitReturnStatement(ReturnStatement ctx);
     public VarDeclStatement VisitVarDeclStatement(VarDeclStatement ctx);
     public WhileStatement VisitWhileStatement(WhileStatement ctx);
-    public TryStatement VisitTryStatement(TryStatement ctx);
-    public CatchClause VisitCatchClause(CatchClause ctx);
-    public ThrowStatement VisitThrowStatement(ThrowStatement ctx);
+    public GraphAssertionBlockStatement VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx);
     public AssertionStatement VisitAssertionStatement(AssertionStatement ctx);
     public AssertionObject VisitAssertionObject(AssertionObject ctx);
     public AssertionPredicate VisitAssertionPredicate(AssertionPredicate ctx);
     public AssertionSubject VisitAssertionSubject(AssertionSubject ctx);
     public RetractionStatement VisitRetractionStatement(RetractionStatement ctx);
     public WithScopeStatement VisitWithScopeStatement(WithScopeStatement ctx);
+    public GraphAssertionBlockExp VisitGraphAssertionBlockExp(GraphAssertionBlockExp ctx);
     public BinaryExp VisitBinaryExp(BinaryExp ctx);
     public CastExp VisitCastExp(CastExp ctx);
     public LambdaExp VisitLambdaExp(LambdaExp ctx);
     public FuncCallExp VisitFuncCallExp(FuncCallExp ctx);
-    public BaseConstructorCall VisitBaseConstructorCall(BaseConstructorCall ctx);
     public Int8LiteralExp VisitInt8LiteralExp(Int8LiteralExp ctx);
     public Int16LiteralExp VisitInt16LiteralExp(Int16LiteralExp ctx);
     public Int32LiteralExp VisitInt32LiteralExp(Int32LiteralExp ctx);
@@ -450,18 +392,11 @@ public interface IAstRecursiveDescentVisitor
     public DurationLiteralExp VisitDurationLiteralExp(DurationLiteralExp ctx);
     public UriLiteralExp VisitUriLiteralExp(UriLiteralExp ctx);
     public AtomLiteralExp VisitAtomLiteralExp(AtomLiteralExp ctx);
-    public TriGLiteralExpression VisitTriGLiteralExpression(TriGLiteralExpression ctx);
-    public InterpolatedExpression VisitInterpolatedExpression(InterpolatedExpression ctx);
-    public SparqlLiteralExpression VisitSparqlLiteralExpression(SparqlLiteralExpression ctx);
-    public VariableBinding VisitVariableBinding(VariableBinding ctx);
-    public Interpolation VisitInterpolation(Interpolation ctx);
-    public QueryApplicationExp VisitQueryApplicationExp(QueryApplicationExp ctx);
     public MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx);
     public IndexerExpression VisitIndexerExpression(IndexerExpression ctx);
     public ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx);
     public PropertyInitializerExp VisitPropertyInitializerExp(PropertyInitializerExp ctx);
     public UnaryExp VisitUnaryExp(UnaryExp ctx);
-    public ThrowExp VisitThrowExp(ThrowExp ctx);
     public VarRefExp VisitVarRefExp(VarRefExp ctx);
     public ListLiteral VisitListLiteral(ListLiteral ctx);
     public ListComprehension VisitListComprehension(ListComprehension ctx);
@@ -479,10 +414,6 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         {
              AssemblyDef node => VisitAssemblyDef(node),
              ModuleDef node => VisitModuleDef(node),
-             TypeParameterDef node => VisitTypeParameterDef(node),
-             InterfaceConstraint node => VisitInterfaceConstraint(node),
-             BaseClassConstraint node => VisitBaseClassConstraint(node),
-             ConstructorConstraint node => VisitConstructorConstraint(node),
              FunctionDef node => VisitFunctionDef(node),
              FunctorDef node => VisitFunctorDef(node),
              FieldDef node => VisitFieldDef(node),
@@ -515,20 +446,18 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              ReturnStatement node => VisitReturnStatement(node),
              VarDeclStatement node => VisitVarDeclStatement(node),
              WhileStatement node => VisitWhileStatement(node),
-             TryStatement node => VisitTryStatement(node),
-             CatchClause node => VisitCatchClause(node),
-             ThrowStatement node => VisitThrowStatement(node),
+             GraphAssertionBlockStatement node => VisitGraphAssertionBlockStatement(node),
              AssertionStatement node => VisitAssertionStatement(node),
              AssertionObject node => VisitAssertionObject(node),
              AssertionPredicate node => VisitAssertionPredicate(node),
              AssertionSubject node => VisitAssertionSubject(node),
              RetractionStatement node => VisitRetractionStatement(node),
              WithScopeStatement node => VisitWithScopeStatement(node),
+             GraphAssertionBlockExp node => VisitGraphAssertionBlockExp(node),
              BinaryExp node => VisitBinaryExp(node),
              CastExp node => VisitCastExp(node),
              LambdaExp node => VisitLambdaExp(node),
              FuncCallExp node => VisitFuncCallExp(node),
-             BaseConstructorCall node => VisitBaseConstructorCall(node),
              Int8LiteralExp node => VisitInt8LiteralExp(node),
              Int16LiteralExp node => VisitInt16LiteralExp(node),
              Int32LiteralExp node => VisitInt32LiteralExp(node),
@@ -549,18 +478,11 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              DurationLiteralExp node => VisitDurationLiteralExp(node),
              UriLiteralExp node => VisitUriLiteralExp(node),
              AtomLiteralExp node => VisitAtomLiteralExp(node),
-             TriGLiteralExpression node => VisitTriGLiteralExpression(node),
-             InterpolatedExpression node => VisitInterpolatedExpression(node),
-             SparqlLiteralExpression node => VisitSparqlLiteralExpression(node),
-             VariableBinding node => VisitVariableBinding(node),
-             Interpolation node => VisitInterpolation(node),
-             QueryApplicationExp node => VisitQueryApplicationExp(node),
              MemberAccessExp node => VisitMemberAccessExp(node),
              IndexerExpression node => VisitIndexerExpression(node),
              ObjectInitializerExp node => VisitObjectInitializerExp(node),
              PropertyInitializerExp node => VisitPropertyInitializerExp(node),
              UnaryExp node => VisitUnaryExp(node),
-             ThrowExp node => VisitThrowExp(node),
              VarRefExp node => VisitVarRefExp(node),
              ListLiteral node => VisitListLiteral(node),
              ListComprehension node => VisitListComprehension(node),
@@ -595,40 +517,13 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         ,Functions = tmpFunctions
         };
     }
-    public virtual TypeParameterDef VisitTypeParameterDef(TypeParameterDef ctx)
-    {
-        List<ast.TypeConstraint> tmpConstraints = [];
-        tmpConstraints.AddRange(ctx.Constraints.Select(x => (ast.TypeConstraint)Visit(x)));
-     return ctx with {
-         Constraints = tmpConstraints
-        };
-    }
-    public virtual InterfaceConstraint VisitInterfaceConstraint(InterfaceConstraint ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual BaseClassConstraint VisitBaseClassConstraint(BaseClassConstraint ctx)
-    {
-     return ctx with {
-        };
-    }
-    public virtual ConstructorConstraint VisitConstructorConstraint(ConstructorConstraint ctx)
-    {
-     return ctx with {
-        };
-    }
     public virtual FunctionDef VisitFunctionDef(FunctionDef ctx)
     {
-        List<ast.TypeParameterDef> tmpTypeParameters = [];
-        tmpTypeParameters.AddRange(ctx.TypeParameters.Select(x => (ast.TypeParameterDef)Visit(x)));
         List<ast.ParamDef> tmpParams = [];
         tmpParams.AddRange(ctx.Params.Select(x => (ast.ParamDef)Visit(x)));
      return ctx with {
-         TypeParameters = tmpTypeParameters
-        ,Params = tmpParams
+         Params = tmpParams
         ,Body = (ast.BlockStatement)Visit((AstThing)ctx.Body)
-        ,BaseCall = (ast.BaseConstructorCall)Visit((AstThing)ctx.BaseCall)
         };
     }
     public virtual FunctorDef VisitFunctorDef(FunctorDef ctx)
@@ -707,13 +602,10 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     }
     public virtual ClassDef VisitClassDef(ClassDef ctx)
     {
-        List<ast.TypeParameterDef> tmpTypeParameters = [];
-        tmpTypeParameters.AddRange(ctx.TypeParameters.Select(x => (ast.TypeParameterDef)Visit(x)));
         List<ast.MemberDef> tmpMemberDefs = [];
         tmpMemberDefs.AddRange(ctx.MemberDefs.Select(x => (ast.MemberDef)Visit(x)));
      return ctx with {
-         TypeParameters = tmpTypeParameters
-        ,MemberDefs = tmpMemberDefs
+         MemberDefs = tmpMemberDefs
         };
     }
     public virtual VariableDecl VisitVariableDecl(VariableDecl ctx)
@@ -839,27 +731,10 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         ,Body = (ast.BlockStatement)Visit((AstThing)ctx.Body)
         };
     }
-    public virtual TryStatement VisitTryStatement(TryStatement ctx)
-    {
-        List<ast.CatchClause> tmpCatchClauses = [];
-        tmpCatchClauses.AddRange(ctx.CatchClauses.Select(x => (ast.CatchClause)Visit(x)));
-     return ctx with {
-         TryBlock = (ast.BlockStatement)Visit((AstThing)ctx.TryBlock)
-        ,CatchClauses = tmpCatchClauses
-        ,FinallyBlock = (ast.BlockStatement)Visit((AstThing)ctx.FinallyBlock)
-        };
-    }
-    public virtual CatchClause VisitCatchClause(CatchClause ctx)
+    public virtual GraphAssertionBlockStatement VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx)
     {
      return ctx with {
-         Filter = (ast.Expression)Visit((AstThing)ctx.Filter)
-        ,Body = (ast.BlockStatement)Visit((AstThing)ctx.Body)
-        };
-    }
-    public virtual ThrowStatement VisitThrowStatement(ThrowStatement ctx)
-    {
-     return ctx with {
-         Exception = (ast.Expression)Visit((AstThing)ctx.Exception)
+         Content = (ast.GraphAssertionBlockExp)Visit((AstThing)ctx.Content)
         };
     }
     public virtual AssertionStatement VisitAssertionStatement(AssertionStatement ctx)
@@ -896,6 +771,12 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
      return ctx with {
         };
     }
+    public virtual GraphAssertionBlockExp VisitGraphAssertionBlockExp(GraphAssertionBlockExp ctx)
+    {
+     return ctx with {
+         Content = (ast.BlockStatement)Visit((AstThing)ctx.Content)
+        };
+    }
     public virtual BinaryExp VisitBinaryExp(BinaryExp ctx)
     {
      return ctx with {
@@ -919,15 +800,8 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         List<ast.Expression> tmpInvocationArguments = [];
         tmpInvocationArguments.AddRange(ctx.InvocationArguments.Select(x => (ast.Expression)Visit(x)));
      return ctx with {
-         InvocationArguments = tmpInvocationArguments
-        };
-    }
-    public virtual BaseConstructorCall VisitBaseConstructorCall(BaseConstructorCall ctx)
-    {
-        List<ast.Expression> tmpArguments = [];
-        tmpArguments.AddRange(ctx.Arguments.Select(x => (ast.Expression)Visit(x)));
-     return ctx with {
-         Arguments = tmpArguments
+         FunctionDef = (ast.FunctionDef)Visit((AstThing)ctx.FunctionDef)
+        ,InvocationArguments = tmpInvocationArguments
         };
     }
     public virtual Int8LiteralExp VisitInt8LiteralExp(Int8LiteralExp ctx)
@@ -1030,50 +904,6 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
      return ctx with {
         };
     }
-    public virtual TriGLiteralExpression VisitTriGLiteralExpression(TriGLiteralExpression ctx)
-    {
-        List<ast.InterpolatedExpression> tmpInterpolations = [];
-        tmpInterpolations.AddRange(ctx.Interpolations.Select(x => (ast.InterpolatedExpression)Visit(x)));
-     return ctx with {
-         Interpolations = tmpInterpolations
-        };
-    }
-    public virtual InterpolatedExpression VisitInterpolatedExpression(InterpolatedExpression ctx)
-    {
-     return ctx with {
-         Expression = (ast.Expression)Visit((AstThing)ctx.Expression)
-        };
-    }
-    public virtual SparqlLiteralExpression VisitSparqlLiteralExpression(SparqlLiteralExpression ctx)
-    {
-        List<ast.VariableBinding> tmpBindings = [];
-        tmpBindings.AddRange(ctx.Bindings.Select(x => (ast.VariableBinding)Visit(x)));
-        List<ast.Interpolation> tmpInterpolations = [];
-        tmpInterpolations.AddRange(ctx.Interpolations.Select(x => (ast.Interpolation)Visit(x)));
-     return ctx with {
-         Bindings = tmpBindings
-        ,Interpolations = tmpInterpolations
-        };
-    }
-    public virtual VariableBinding VisitVariableBinding(VariableBinding ctx)
-    {
-     return ctx with {
-         ResolvedExpression = (ast.Expression)Visit((AstThing)ctx.ResolvedExpression)
-        };
-    }
-    public virtual Interpolation VisitInterpolation(Interpolation ctx)
-    {
-     return ctx with {
-         Expression = (ast.Expression)Visit((AstThing)ctx.Expression)
-        };
-    }
-    public virtual QueryApplicationExp VisitQueryApplicationExp(QueryApplicationExp ctx)
-    {
-     return ctx with {
-         Query = (ast.Expression)Visit((AstThing)ctx.Query)
-        ,Store = (ast.Expression)Visit((AstThing)ctx.Store)
-        };
-    }
     public virtual MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx)
     {
      return ctx with {
@@ -1090,14 +920,10 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     }
     public virtual ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx)
     {
-        List<ast.Expression> tmpConstructorArguments = [];
-        tmpConstructorArguments.AddRange(ctx.ConstructorArguments.Select(x => (ast.Expression)Visit(x)));
         List<ast.PropertyInitializerExp> tmpPropertyInitialisers = [];
         tmpPropertyInitialisers.AddRange(ctx.PropertyInitialisers.Select(x => (ast.PropertyInitializerExp)Visit(x)));
      return ctx with {
-         ConstructorArguments = tmpConstructorArguments
-        ,PropertyInitialisers = tmpPropertyInitialisers
-        ,ResolvedConstructor = (ast.FunctionDef)Visit((AstThing)ctx.ResolvedConstructor)
+         PropertyInitialisers = tmpPropertyInitialisers
         };
     }
     public virtual PropertyInitializerExp VisitPropertyInitializerExp(PropertyInitializerExp ctx)
@@ -1111,12 +937,6 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     {
      return ctx with {
          Operand = (ast.Expression)Visit((AstThing)ctx.Operand)
-        };
-    }
-    public virtual ThrowExp VisitThrowExp(ThrowExp ctx)
-    {
-     return ctx with {
-         Exception = (ast.Expression)Visit((AstThing)ctx.Exception)
         };
     }
     public virtual VarRefExp VisitVarRefExp(VarRefExp ctx)
@@ -1135,12 +955,8 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     }
     public virtual ListComprehension VisitListComprehension(ListComprehension ctx)
     {
-        List<ast.Expression> tmpConstraints = [];
-        tmpConstraints.AddRange(ctx.Constraints.Select(x => (ast.Expression)Visit(x)));
      return ctx with {
-         Projection = (ast.Expression)Visit((AstThing)ctx.Projection)
-        ,Source = (ast.Expression)Visit((AstThing)ctx.Source)
-        ,Constraints = tmpConstraints
+         MembershipConstraint = (ast.Expression)Visit((AstThing)ctx.MembershipConstraint)
         };
     }
     public virtual Atom VisitAtom(Atom ctx)

@@ -7,10 +7,6 @@ public interface ITypeChecker
 {
     public FifthType Infer(ScopeAstThing scope, AssemblyDef node);
     public FifthType Infer(ScopeAstThing scope, ModuleDef node);
-    public FifthType Infer(ScopeAstThing scope, TypeParameterDef node);
-    public FifthType Infer(ScopeAstThing scope, InterfaceConstraint node);
-    public FifthType Infer(ScopeAstThing scope, BaseClassConstraint node);
-    public FifthType Infer(ScopeAstThing scope, ConstructorConstraint node);
     public FifthType Infer(ScopeAstThing scope, FunctionDef node);
     public FifthType Infer(ScopeAstThing scope, FunctorDef node);
     public FifthType Infer(ScopeAstThing scope, FieldDef node);
@@ -43,20 +39,18 @@ public interface ITypeChecker
     public FifthType Infer(ScopeAstThing scope, ReturnStatement node);
     public FifthType Infer(ScopeAstThing scope, VarDeclStatement node);
     public FifthType Infer(ScopeAstThing scope, WhileStatement node);
-    public FifthType Infer(ScopeAstThing scope, TryStatement node);
-    public FifthType Infer(ScopeAstThing scope, CatchClause node);
-    public FifthType Infer(ScopeAstThing scope, ThrowStatement node);
+    public FifthType Infer(ScopeAstThing scope, GraphAssertionBlockStatement node);
     public FifthType Infer(ScopeAstThing scope, AssertionStatement node);
     public FifthType Infer(ScopeAstThing scope, AssertionObject node);
     public FifthType Infer(ScopeAstThing scope, AssertionPredicate node);
     public FifthType Infer(ScopeAstThing scope, AssertionSubject node);
     public FifthType Infer(ScopeAstThing scope, RetractionStatement node);
     public FifthType Infer(ScopeAstThing scope, WithScopeStatement node);
+    public FifthType Infer(ScopeAstThing scope, GraphAssertionBlockExp node);
     public FifthType Infer(ScopeAstThing scope, BinaryExp node);
     public FifthType Infer(ScopeAstThing scope, CastExp node);
     public FifthType Infer(ScopeAstThing scope, LambdaExp node);
     public FifthType Infer(ScopeAstThing scope, FuncCallExp node);
-    public FifthType Infer(ScopeAstThing scope, BaseConstructorCall node);
     public FifthType Infer(ScopeAstThing scope, Int8LiteralExp node);
     public FifthType Infer(ScopeAstThing scope, Int16LiteralExp node);
     public FifthType Infer(ScopeAstThing scope, Int32LiteralExp node);
@@ -77,18 +71,11 @@ public interface ITypeChecker
     public FifthType Infer(ScopeAstThing scope, DurationLiteralExp node);
     public FifthType Infer(ScopeAstThing scope, UriLiteralExp node);
     public FifthType Infer(ScopeAstThing scope, AtomLiteralExp node);
-    public FifthType Infer(ScopeAstThing scope, TriGLiteralExpression node);
-    public FifthType Infer(ScopeAstThing scope, InterpolatedExpression node);
-    public FifthType Infer(ScopeAstThing scope, SparqlLiteralExpression node);
-    public FifthType Infer(ScopeAstThing scope, VariableBinding node);
-    public FifthType Infer(ScopeAstThing scope, Interpolation node);
-    public FifthType Infer(ScopeAstThing scope, QueryApplicationExp node);
     public FifthType Infer(ScopeAstThing scope, MemberAccessExp node);
     public FifthType Infer(ScopeAstThing scope, IndexerExpression node);
     public FifthType Infer(ScopeAstThing scope, ObjectInitializerExp node);
     public FifthType Infer(ScopeAstThing scope, PropertyInitializerExp node);
     public FifthType Infer(ScopeAstThing scope, UnaryExp node);
-    public FifthType Infer(ScopeAstThing scope, ThrowExp node);
     public FifthType Infer(ScopeAstThing scope, VarRefExp node);
     public FifthType Infer(ScopeAstThing scope, ListLiteral node);
     public FifthType Infer(ScopeAstThing scope, ListComprehension node);
@@ -109,10 +96,6 @@ public abstract class FunctionalTypeChecker : ITypeChecker
         {
             AssemblyDef node => Infer(scope, node),
             ModuleDef node => Infer(scope, node),
-            TypeParameterDef node => Infer(scope, node),
-            InterfaceConstraint node => Infer(scope, node),
-            BaseClassConstraint node => Infer(scope, node),
-            ConstructorConstraint node => Infer(scope, node),
             FunctionDef node => Infer(scope, node),
             FunctorDef node => Infer(scope, node),
             FieldDef node => Infer(scope, node),
@@ -145,20 +128,18 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             ReturnStatement node => Infer(scope, node),
             VarDeclStatement node => Infer(scope, node),
             WhileStatement node => Infer(scope, node),
-            TryStatement node => Infer(scope, node),
-            CatchClause node => Infer(scope, node),
-            ThrowStatement node => Infer(scope, node),
+            GraphAssertionBlockStatement node => Infer(scope, node),
             AssertionStatement node => Infer(scope, node),
             AssertionObject node => Infer(scope, node),
             AssertionPredicate node => Infer(scope, node),
             AssertionSubject node => Infer(scope, node),
             RetractionStatement node => Infer(scope, node),
             WithScopeStatement node => Infer(scope, node),
+            GraphAssertionBlockExp node => Infer(scope, node),
             BinaryExp node => Infer(scope, node),
             CastExp node => Infer(scope, node),
             LambdaExp node => Infer(scope, node),
             FuncCallExp node => Infer(scope, node),
-            BaseConstructorCall node => Infer(scope, node),
             Int8LiteralExp node => Infer(scope, node),
             Int16LiteralExp node => Infer(scope, node),
             Int32LiteralExp node => Infer(scope, node),
@@ -179,18 +160,11 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             DurationLiteralExp node => Infer(scope, node),
             UriLiteralExp node => Infer(scope, node),
             AtomLiteralExp node => Infer(scope, node),
-            TriGLiteralExpression node => Infer(scope, node),
-            InterpolatedExpression node => Infer(scope, node),
-            SparqlLiteralExpression node => Infer(scope, node),
-            VariableBinding node => Infer(scope, node),
-            Interpolation node => Infer(scope, node),
-            QueryApplicationExp node => Infer(scope, node),
             MemberAccessExp node => Infer(scope, node),
             IndexerExpression node => Infer(scope, node),
             ObjectInitializerExp node => Infer(scope, node),
             PropertyInitializerExp node => Infer(scope, node),
             UnaryExp node => Infer(scope, node),
-            ThrowExp node => Infer(scope, node),
             VarRefExp node => Infer(scope, node),
             ListLiteral node => Infer(scope, node),
             ListComprehension node => Infer(scope, node),
@@ -205,10 +179,6 @@ public abstract class FunctionalTypeChecker : ITypeChecker
 
     public abstract FifthType Infer(ScopeAstThing scope, AssemblyDef node);
     public abstract FifthType Infer(ScopeAstThing scope, ModuleDef node);
-    public abstract FifthType Infer(ScopeAstThing scope, TypeParameterDef node);
-    public abstract FifthType Infer(ScopeAstThing scope, InterfaceConstraint node);
-    public abstract FifthType Infer(ScopeAstThing scope, BaseClassConstraint node);
-    public abstract FifthType Infer(ScopeAstThing scope, ConstructorConstraint node);
     public abstract FifthType Infer(ScopeAstThing scope, FunctionDef node);
     public abstract FifthType Infer(ScopeAstThing scope, FunctorDef node);
     public abstract FifthType Infer(ScopeAstThing scope, FieldDef node);
@@ -241,20 +211,18 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, ReturnStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, VarDeclStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, WhileStatement node);
-    public abstract FifthType Infer(ScopeAstThing scope, TryStatement node);
-    public abstract FifthType Infer(ScopeAstThing scope, CatchClause node);
-    public abstract FifthType Infer(ScopeAstThing scope, ThrowStatement node);
+    public abstract FifthType Infer(ScopeAstThing scope, GraphAssertionBlockStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, AssertionStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, AssertionObject node);
     public abstract FifthType Infer(ScopeAstThing scope, AssertionPredicate node);
     public abstract FifthType Infer(ScopeAstThing scope, AssertionSubject node);
     public abstract FifthType Infer(ScopeAstThing scope, RetractionStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, WithScopeStatement node);
+    public abstract FifthType Infer(ScopeAstThing scope, GraphAssertionBlockExp node);
     public abstract FifthType Infer(ScopeAstThing scope, BinaryExp node);
     public abstract FifthType Infer(ScopeAstThing scope, CastExp node);
     public abstract FifthType Infer(ScopeAstThing scope, LambdaExp node);
     public abstract FifthType Infer(ScopeAstThing scope, FuncCallExp node);
-    public abstract FifthType Infer(ScopeAstThing scope, BaseConstructorCall node);
     public abstract FifthType Infer(ScopeAstThing scope, Int8LiteralExp node);
     public abstract FifthType Infer(ScopeAstThing scope, Int16LiteralExp node);
     public abstract FifthType Infer(ScopeAstThing scope, Int32LiteralExp node);
@@ -275,18 +243,11 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, DurationLiteralExp node);
     public abstract FifthType Infer(ScopeAstThing scope, UriLiteralExp node);
     public abstract FifthType Infer(ScopeAstThing scope, AtomLiteralExp node);
-    public abstract FifthType Infer(ScopeAstThing scope, TriGLiteralExpression node);
-    public abstract FifthType Infer(ScopeAstThing scope, InterpolatedExpression node);
-    public abstract FifthType Infer(ScopeAstThing scope, SparqlLiteralExpression node);
-    public abstract FifthType Infer(ScopeAstThing scope, VariableBinding node);
-    public abstract FifthType Infer(ScopeAstThing scope, Interpolation node);
-    public abstract FifthType Infer(ScopeAstThing scope, QueryApplicationExp node);
     public abstract FifthType Infer(ScopeAstThing scope, MemberAccessExp node);
     public abstract FifthType Infer(ScopeAstThing scope, IndexerExpression node);
     public abstract FifthType Infer(ScopeAstThing scope, ObjectInitializerExp node);
     public abstract FifthType Infer(ScopeAstThing scope, PropertyInitializerExp node);
     public abstract FifthType Infer(ScopeAstThing scope, UnaryExp node);
-    public abstract FifthType Infer(ScopeAstThing scope, ThrowExp node);
     public abstract FifthType Infer(ScopeAstThing scope, VarRefExp node);
     public abstract FifthType Infer(ScopeAstThing scope, ListLiteral node);
     public abstract FifthType Infer(ScopeAstThing scope, ListComprehension node);

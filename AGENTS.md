@@ -2,7 +2,7 @@
 
 This file provides operational guidance for GitHub Copilot and automated agents working on the Fifth language codebase. 
 
-**Primary Reference**: All architectural decisions, principles, and comprehensive documentation are in `/specs/.specify/memory/constitution.md`. Always consult the constitution first for authoritative guidance on project structure, build processes, and development philosophy.
+**Primary Reference**: All architectural decisions, principles, and comprehensive documentation are in `/.specify/memory/constitution.md`. Always consult the constitution first for authoritative guidance on project structure, build processes, and development philosophy.
 
 This file contains focused operational commands and agent-specific workflow instructions that complement the constitution.
 
