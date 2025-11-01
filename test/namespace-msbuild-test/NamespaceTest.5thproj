@@ -1,0 +1,10 @@
+<Project Sdk="Fifth.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>NamespaceTest</AssemblyName>
+    <FifthCompilerPath>../../src/compiler/bin/Debug/net8.0/compiler.dll</FifthCompilerPath>
+  </PropertyGroup>
+
+</Project>

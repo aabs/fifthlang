@@ -3,24 +3,56 @@
 
   <!-- Define the core build target for Fifth projects -->
   <Target Name="FifthCompile" 
-          DependsOnTargets="ResolveFifthCompilerPath">
+          DependsOnTargets="ResolveFifthCompilerPath;CollectFifthSources">
     
     <PropertyGroup>
-      <_FifthSourceArg>$(FifthSourceDirectory)</_FifthSourceArg>
-      
       <!-- Compute FifthOutputPath -->
       <FifthOutputPath Condition="'$(FifthOutputPath)' == ''">$(OutputPath)$(AssemblyName).exe</FifthOutputPath>
     </PropertyGroup>
 
     <Message Text="Compiling Fifth project: $(MSBuildProjectName)" Importance="high" />
-    <Message Text="  Source: $(_FifthSourceArg)" Importance="high" />
+    <Message Text="  Sources: @(FifthSource)" Importance="high" />
     <Message Text="  Output: $(FifthOutputPath)" Importance="high" />
     
-    <!-- Run the Fifth compiler -->
-    <Exec Command="dotnet &quot;$(FifthCompilerPath)&quot; --command build --source &quot;$(_FifthSourceArg)&quot; --output &quot;$(FifthOutputPath)&quot;"
-          WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <!-- Run the Fifth compiler with multi-file support -->
+    <!-- Primary source is the first file, additional sources follow -->
+    <Exec Command="dotnet &quot;$(FifthCompilerPath)&quot; --command build --source &quot;$(PrimaryFifthSource)&quot; $(AdditionalFifthSources) --output &quot;$(FifthOutputPath)&quot;"
+          WorkingDirectory="$(MSBuildProjectDirectory)" 
+          Condition="'$(PrimaryFifthSource)' != ''" />
     
     <Message Text="Fifth compilation completed successfully" Importance="high" />
+  </Target>
+
+  <!-- Collect and prepare Fifth source files for compilation -->
+  <Target Name="CollectFifthSources">
+    <!-- Build a semicolon-separated list of all sources -->
+    <ItemGroup>
+      <_AllFifthSources Include="@(FifthSource -> '%(FullPath)')" />
+    </ItemGroup>
+    
+    <PropertyGroup>
+      <!-- Get all sources as a property -->
+      <_AllSourcesList>@(_AllFifthSources, ';')</_AllSourcesList>
+      <!-- Get the first one as primary -->
+      <PrimaryFifthSource>$(_AllSourcesList.Split(';')[0])</PrimaryFifthSource>
+    </PropertyGroup>
+    
+    <!-- Build additional sources by excluding the primary -->
+    <ItemGroup>
+      <_AdditionalFifthSource Include="@(_AllFifthSources)" Condition="'%(FullPath)' != '$(PrimaryFifthSource)'" />
+    </ItemGroup>
+    
+    <PropertyGroup>
+      <!-- Format additional sources as command-line arguments -->
+      <AdditionalFifthSources Condition="'@(_AdditionalFifthSource)' != ''">--additional @(_AdditionalFifthSource -> '&quot;%(Identity)&quot;', ' ')</AdditionalFifthSources>
+      <AdditionalFifthSources Condition="'@(_AdditionalFifthSource)' == ''"></AdditionalFifthSources>
+    </PropertyGroup>
+    
+    <Error Condition="'@(FifthSource)' == ''" 
+           Text="No Fifth source files (*.5th) found in project directory. Please add at least one .5th file to compile." />
+    
+    <Message Text="Primary source: $(PrimaryFifthSource)" Importance="normal" />
+    <Message Text="Additional sources: @(_AdditionalFifthSource)" Importance="normal" Condition="'@(_AdditionalFifthSource)' != ''" />
   </Target>
 
   <!-- Resolve the path to the Fifth compiler -->

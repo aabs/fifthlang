@@ -1,0 +1,10 @@
+// utils.5th - Utility functions in Utilities namespace
+namespace Utilities;
+
+double(x: int): int {
+    return x * 2;
+}
+
+triple(x: int): int {
+    return x * 3;
+}
