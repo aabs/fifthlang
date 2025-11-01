@@ -41,25 +41,45 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitFifth([NotNull] FifthParser.FifthContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.module_import"/>.
+	/// Enter a parse tree produced by <see cref="FifthParser.program"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterModule_import([NotNull] FifthParser.Module_importContext context);
+	void EnterProgram([NotNull] FifthParser.ProgramContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.module_import"/>.
+	/// Exit a parse tree produced by <see cref="FifthParser.program"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitModule_import([NotNull] FifthParser.Module_importContext context);
+	void ExitProgram([NotNull] FifthParser.ProgramContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.module_name"/>.
+	/// Enter a parse tree produced by <see cref="FifthParser.namespace_declaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterModule_name([NotNull] FifthParser.Module_nameContext context);
+	void EnterNamespace_declaration([NotNull] FifthParser.Namespace_declarationContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.module_name"/>.
+	/// Exit a parse tree produced by <see cref="FifthParser.namespace_declaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitModule_name([NotNull] FifthParser.Module_nameContext context);
+	void ExitNamespace_declaration([NotNull] FifthParser.Namespace_declarationContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.import_directive"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterImport_directive([NotNull] FifthParser.Import_directiveContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.import_directive"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitImport_directive([NotNull] FifthParser.Import_directiveContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.qualified_name"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterQualified_name([NotNull] FifthParser.Qualified_nameContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.qualified_name"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitQualified_name([NotNull] FifthParser.Qualified_nameContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.packagename"/>.
 	/// </summary>

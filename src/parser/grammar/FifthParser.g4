@@ -7,13 +7,23 @@ options {
 }
 
 fifth:
-	module_import* alias* (colon_store_decl)* (
+	namespace_declaration? import_directive* alias* (colon_store_decl)* (
 		functions += function_declaration
 		| classes += class_definition
 	)*;
 
-module_import: USE module_name (COMMA module_name)* SEMI;
-module_name: IDENTIFIER;
+// Alias for tests that use program() instead of fifth()
+program: fifth;
+
+// File-scoped namespace declaration (at most one per file)
+namespace_declaration: NAMESPACE qualified_name SEMI;
+
+// Import directive to bring namespace symbols into scope
+import_directive: IMPORT qualified_name SEMI;
+
+// Qualified name for namespace paths (e.g., System.Collections.Generic)
+qualified_name: IDENTIFIER (DOT IDENTIFIER)*;
+
 packagename: IDENTIFIER;
 
 alias: ALIAS name = packagename AS iri SEMI;

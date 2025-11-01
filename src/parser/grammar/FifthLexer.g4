@@ -46,6 +46,7 @@ IMPORT      : 'import';
 IN          : 'in';
 INTERFACE   : 'interface';
 MAP         : 'map';
+NAMESPACE   : 'namespace';
 NEW         : 'new';
 PACKAGE     : 'package';
 RANGE       : 'range';
