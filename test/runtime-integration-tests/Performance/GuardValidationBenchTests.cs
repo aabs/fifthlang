@@ -69,7 +69,7 @@ public class GuardValidationBenchTests : RuntimeTestBase
             // Warmup
             Environment.SetEnvironmentVariable("FIFTH_GUARD_VALIDATION_POOL", "0");
             var compiler = new Compiler();
-            var options = new CompilerOptions(CompilerCommand.Build, srcPath, Array.Empty<string>(), Path.Combine(TempDirectory, $"bench_{id}_nopool.exe"), Diagnostics: true);
+            var options = new CompilerOptions(CompilerCommand.Build, new[] { srcPath }, Path.Combine(TempDirectory, $"bench_{id}_nopool.exe"), Diagnostics: true);
             var warm = await compiler.CompileAsync(options);
 
             int runs = 3;
@@ -87,7 +87,7 @@ public class GuardValidationBenchTests : RuntimeTestBase
 
                 Environment.SetEnvironmentVariable("FIFTH_GUARD_VALIDATION_POOL", "1");
                 compiler = new Compiler();
-                var options2 = new CompilerOptions(CompilerCommand.Build, srcPath, Array.Empty<string>(), Path.Combine(TempDirectory, $"bench_{id}_pool.exe"), Diagnostics: true);
+                var options2 = new CompilerOptions(CompilerCommand.Build, new[] { srcPath }, Path.Combine(TempDirectory, $"bench_{id}_pool.exe"), Diagnostics: true);
                 sw = Stopwatch.StartNew();
                 var res2 = await compiler.CompileAsync(options2);
                 sw.Stop();

@@ -11,18 +11,12 @@ var commandOption = new Option<string>(
 };
 commandOption.SetDefaultValue("build");
 
-// Define source option
-var sourceOption = new Option<string>(
-    name: "--source",
-    description: "Source file or directory path");
-
-// Define additional sources option for multi-file compilation
-var additionalOption = new Option<string[]>(
-    name: "--additional",
-    description: "Additional source files for multi-file compilation")
+// Define source files argument (positional, one or more required)
+var sourcesArgument = new Argument<string[]>(
+    name: "sources",
+    description: "Source file path(s). All files are equal; the one with main() is the entry point.")
 {
-    IsRequired = false,
-    AllowMultipleArgumentsPerToken = true
+    Arity = ArgumentArity.OneOrMore
 };
 
 // Define output option  
@@ -58,22 +52,20 @@ var diagnosticsOption = new Option<bool>(
 var rootCommand = new RootCommand("Fifth Language Compiler (fifthc)")
 {
     commandOption,
-    sourceOption,
-    additionalOption,
+    sourcesArgument,
     outputOption,
     argsOption,
     keepTempOption,
     diagnosticsOption
 };
 
-rootCommand.SetHandler(async (command, source, additional, output, args, keepTemp, diagnostics) =>
+rootCommand.SetHandler(async (command, sources, output, args, keepTemp, diagnostics) =>
 {
     var compilerCommand = ParseCommand(command);
 
     var options = new CompilerOptions(
         Command: compilerCommand,
-        Source: source ?? "",
-        AdditionalSources: additional ?? Array.Empty<string>(),
+        Sources: sources ?? Array.Empty<string>(),
         Output: output ?? "",
         Args: args ?? Array.Empty<string>(),
         KeepTemp: keepTemp,
@@ -108,7 +100,7 @@ rootCommand.SetHandler(async (command, source, additional, output, args, keepTem
     }
 
     Environment.Exit(result.ExitCode);
-}, commandOption, sourceOption, additionalOption, outputOption, argsOption, keepTempOption, diagnosticsOption);
+}, commandOption, sourcesArgument, outputOption, argsOption, keepTempOption, diagnosticsOption);
 
 return await rootCommand.InvokeAsync(args);
 

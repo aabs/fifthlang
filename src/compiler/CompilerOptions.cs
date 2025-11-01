@@ -4,16 +4,14 @@ namespace compiler;
 /// Immutable configuration options for the compiler
 /// </summary>
 /// <param name="Command">The command to execute</param>
-/// <param name="Source">Source file or directory path (primary source)</param>
-/// <param name="AdditionalSources">Additional source files for multi-file compilation</param>
+/// <param name="Sources">Source file path(s). All files are equal; the one with main() is the entry point.</param>
 /// <param name="Output">Output executable path</param>
 /// <param name="Args">Arguments to pass to the program when running</param>
 /// <param name="KeepTemp">Whether to keep temporary files</param>
 /// <param name="Diagnostics">Whether to emit diagnostic information</param>
 public record CompilerOptions(
     CompilerCommand Command = CompilerCommand.Build,
-    string Source = "",
-    string[] AdditionalSources = null!,
+    string[] Sources = null!,
     string Output = "",
     string[] Args = null!,
     bool KeepTemp = false,
@@ -22,25 +20,8 @@ public record CompilerOptions(
     /// <summary>
     /// Create default options
     /// </summary>
-    public CompilerOptions() : this(CompilerCommand.Build, "", Array.Empty<string>(), "", Array.Empty<string>(), false, false)
+    public CompilerOptions() : this(CompilerCommand.Build, Array.Empty<string>(), "", Array.Empty<string>(), false, false)
     {
-    }
-
-    /// <summary>
-    /// Get all source files (primary + additional)
-    /// </summary>
-    public IEnumerable<string> GetAllSourceFiles()
-    {
-        var sources = new List<string>();
-        if (!string.IsNullOrWhiteSpace(Source))
-        {
-            sources.Add(Source);
-        }
-        if (AdditionalSources != null && AdditionalSources.Length > 0)
-        {
-            sources.AddRange(AdditionalSources);
-        }
-        return sources;
     }
 
     /// <summary>
@@ -49,9 +30,9 @@ public record CompilerOptions(
     /// <returns>Validation error message, or null if valid</returns>
     public string? Validate()
     {
-        if (Command != CompilerCommand.Help && string.IsNullOrWhiteSpace(Source))
+        if (Command != CompilerCommand.Help && (Sources == null || Sources.Length == 0))
         {
-            return "Source file or directory must be specified";
+            return "At least one source file must be specified";
         }
 
         if ((Command == CompilerCommand.Build || Command == CompilerCommand.Run) && string.IsNullOrWhiteSpace(Output))
@@ -59,19 +40,14 @@ public record CompilerOptions(
             return "Output path must be specified for build and run commands";
         }
 
-        if (!string.IsNullOrWhiteSpace(Source) && !File.Exists(Source) && !Directory.Exists(Source))
+        // Validate all source files exist
+        if (Sources != null)
         {
-            return $"Source path does not exist: {Source}";
-        }
-
-        // Validate additional sources if provided
-        if (AdditionalSources != null)
-        {
-            foreach (var additionalSource in AdditionalSources)
+            foreach (var source in Sources)
             {
-                if (!string.IsNullOrWhiteSpace(additionalSource) && !File.Exists(additionalSource))
+                if (!string.IsNullOrWhiteSpace(source) && !File.Exists(source) && !Directory.Exists(source))
                 {
-                    return $"Additional source file does not exist: {additionalSource}";
+                    return $"Source file does not exist: {source}";
                 }
             }
         }

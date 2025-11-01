@@ -35,8 +35,7 @@ public class NamespaceImportRuntimeTests : RuntimeTestBase
         var compiler = new Compiler();
         var options = new CompilerOptions(
             Command: CompilerCommand.Build,
-            Source: consumerFile,  // Primary file
-            AdditionalSources: new[] { mathFile },  // Additional file for multi-file compilation
+            Sources: new[] { consumerFile, mathFile },  // All source files
             Output: outputFile,
             Diagnostics: true);
         

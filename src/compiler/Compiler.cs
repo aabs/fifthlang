@@ -197,25 +197,30 @@ public class Compiler
         var helpText = @"
 Fifth Language Compiler (fifthc)
 
-Usage: fifthc [command] [options]
+Usage: fifthc [options] <source-files>...
 
-Commands:
+Commands (via --command option):
   build (default)  Parse, transform, and compile to executable
   run              Same as build, then execute the produced binary
   lint             Parse and apply transformations only, report issues
   help             Show this help message
 
 Options:
-  --source <path>      Source file or directory path (required for build/run/lint)
+  --command <cmd>      Command to execute (build, run, lint, help)
   --output <path>      Output executable path (required for build/run)
   --args <args>        Arguments to pass to program when running
   --keep-temp          Keep temporary files
   --diagnostics        Enable diagnostic output
 
+Arguments:
+  <source-files>...    One or more source files. All files are equal;
+                       the one with main() becomes the entry point.
+
 Examples:
-  fifthc --source hello.5th --output hello.exe
-  fifthc --command run --source hello.5th --output hello.exe --args ""arg1 arg2""
-  fifthc --command lint --source src/
+  fifthc hello.5th --output hello.exe
+  fifthc app.5th utils.5th math.5th --output app.exe
+  fifthc --command run --output hello.exe hello.5th --args ""arg1 arg2""
+  fifthc --command lint app.5th utils.5th
 ";
 
         Console.WriteLine(helpText);
@@ -230,39 +235,42 @@ Examples:
         {
             var sourceFiles = new List<string>();
             
-            // Collect all source files
-            if (File.Exists(options.Source))
+            // Collect all source files from the Sources array
+            foreach (var source in options.Sources)
             {
-                sourceFiles.Add(options.Source);
-            }
-            else if (Directory.Exists(options.Source))
-            {
-                // Directory - find all .5th files
-                var files = Directory.GetFiles(options.Source, "*.5th", SearchOption.AllDirectories)
-                    .OrderBy(f => f) // Deterministic order
-                    .ToArray();
-
-                if (files.Length == 0)
+                if (File.Exists(source))
                 {
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "No .5th files found in directory", options.Source));
+                    sourceFiles.Add(source);
+                }
+                else if (Directory.Exists(source))
+                {
+                    // Directory - find all .5th files
+                    var files = Directory.GetFiles(source, "*.5th", SearchOption.AllDirectories)
+                        .OrderBy(f => f) // Deterministic order
+                        .ToArray();
+
+                    if (files.Length == 0)
+                    {
+                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "No .5th files found in directory", source));
+                        return (null, 0, null);
+                    }
+                    
+                    sourceFiles.AddRange(files);
+                }
+                else
+                {
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Source path not found: {source}"));
                     return (null, 0, null);
                 }
-                
-                sourceFiles.AddRange(files);
             }
-            else
+
+            if (sourceFiles.Count == 0)
             {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Source path not found: {options.Source}"));
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "No source files specified"));
                 return (null, 0, null);
             }
 
-            // Add additional sources if provided
-            if (options.AdditionalSources != null && options.AdditionalSources.Length > 0)
-            {
-                sourceFiles.AddRange(options.AdditionalSources);
-            }
-
-            // Parse the primary file for the AST
+            // Parse the first file for the AST (entry point determined by presence of main())
             var ast = FifthParserManager.ParseFile(sourceFiles[0]);
             
             // If multiple files, perform namespace resolution and merge modules
@@ -328,7 +336,7 @@ Examples:
         }
         catch (System.Exception ex)
         {
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Parse error: {ex.Message}", options.Source));
+            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Parse error: {ex.Message}", options.Sources.FirstOrDefault() ?? ""));
             return (null, 0, null);
         }
     }

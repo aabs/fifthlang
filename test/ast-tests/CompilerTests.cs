@@ -21,7 +21,7 @@ public class CompilerTests
     public async Task CompileAsync_WithInvalidOptions_ShouldReturnError()
     {
         var compiler = new Compiler();
-        var options = new CompilerOptions(CompilerCommand.Build, "", Array.Empty<string>(), ""); // Missing source and output
+        var options = new CompilerOptions(CompilerCommand.Build, Array.Empty<string>(), ""); // Missing sources and output
         
         var result = await compiler.CompileAsync(options);
         
@@ -29,21 +29,21 @@ public class CompilerTests
         result.ExitCode.Should().Be(1);
         result.Diagnostics.Should().HaveCount(1);
         result.Diagnostics[0].Level.Should().Be(DiagnosticLevel.Error);
-        result.Diagnostics[0].Message.Should().Contain("Source file or directory must be specified");
+        result.Diagnostics[0].Message.Should().Contain("At least one source file must be specified");
     }
 
     [Test]
     public async Task CompileAsync_WithNonExistentSource_ShouldReturnParseError()
     {
         var compiler = new Compiler();
-        var options = new CompilerOptions(CompilerCommand.Build, "nonexistent.5th", Array.Empty<string>(), "test.exe");
+        var options = new CompilerOptions(CompilerCommand.Build, new[] { "nonexistent.5th" }, "test.exe");
         
         var result = await compiler.CompileAsync(options);
         
         result.Success.Should().BeFalse();
         result.ExitCode.Should().Be(1);
         result.Diagnostics.Should().HaveCount(1);
-        result.Diagnostics[0].Message.Should().Contain("Source path does not exist");
+        result.Diagnostics[0].Message.Should().Contain("Source file does not exist");
     }
 
     [Test]
@@ -57,7 +57,7 @@ public class CompilerTests
             File.WriteAllText(fifthFile, "main():int{return 42;}");
             
             var compiler = new Compiler();
-            var options = new CompilerOptions(CompilerCommand.Lint, fifthFile, Array.Empty<string>(), "");
+            var options = new CompilerOptions(CompilerCommand.Lint, new[] { fifthFile }, "");
             
             var result = await compiler.CompileAsync(options);
             
@@ -108,7 +108,7 @@ public class CompilerIntegrationTests
             var compiler = new Compiler();
             var options = new CompilerOptions(
                 Command: CompilerCommand.Build,
-                Source: sourceFile,
+                Sources: new[] { sourceFile },
                 Output: outputFile,
                 Diagnostics: true);
             
@@ -153,7 +153,7 @@ public class CompilerIntegrationTests
             var compiler = new Compiler();
             var options = new CompilerOptions(
                 Command: CompilerCommand.Lint,
-                Source: sourceFile,
+                Sources: new[] { sourceFile },
                 Diagnostics: true);
             
             var result = await compiler.CompileAsync(options);
@@ -191,7 +191,7 @@ public class CompilerIntegrationTests
             var compiler = new Compiler();
             var options = new CompilerOptions(
                 Command: CompilerCommand.Build,
-                Source: tempDir,
+                Sources: new[] { tempDir },
                 Output: Path.Combine(tempDir, "output.exe"));
             
             var result = await compiler.CompileAsync(options);

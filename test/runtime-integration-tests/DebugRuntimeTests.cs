@@ -78,8 +78,7 @@ public class DebugRuntimeTests : RuntimeTestBase
             var compiler = new Compiler();
             var options = new CompilerOptions(
                 Command: CompilerCommand.Build,
-                Source: sourceFile,
-                AdditionalSources: Array.Empty<string>(),
+                Sources: new[] { sourceFile },
                 Output: outputFile,
                 Diagnostics: true);
 

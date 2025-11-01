@@ -81,8 +81,7 @@ public abstract class RuntimeTestBase : IDisposable
         var compiler = new Compiler();
         var options = new CompilerOptions(
             Command: CompilerCommand.Build,
-            Source: sourceFile,
-            AdditionalSources: Array.Empty<string>(),
+            Sources: new[] { sourceFile },
             Output: outputFile,
             Diagnostics: true);
 
@@ -119,8 +118,7 @@ public abstract class RuntimeTestBase : IDisposable
         var compiler = new Compiler();
         var options = new CompilerOptions(
             Command: CompilerCommand.Build,
-            Source: sourceFilePath,
-            AdditionalSources: Array.Empty<string>(),
+            Sources: new[] { sourceFilePath },
             Output: outputFile,
             Diagnostics: false);
 
