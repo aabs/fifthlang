@@ -75,6 +75,8 @@ statement:
 	| if_statement
 	| while_statement
 	| with_statement // #stmt_with // this is not useful as is
+	| try_statement
+	| throw_statement
 	| assignment_statement
 	| return_statement
 	| expression_statement
@@ -98,6 +100,22 @@ while_statement:
 	WHILE L_PAREN condition = expression R_PAREN looppart = statement;
 
 with_statement: WITH expression statement;
+
+try_statement:
+	TRY tryBlock = block catchClauses += catch_clause* finallyBlock = finally_clause?;
+
+catch_clause:
+	CATCH (
+		L_PAREN (
+			exceptionId = var_name COLON exceptionType = type_spec
+			| exceptionType = type_spec
+		) (WHEN L_PAREN filter = expression R_PAREN)? R_PAREN
+		| /* catch-all: no parentheses */
+	) catchBody = block;
+
+finally_clause: FINALLY finallyBody = block;
+
+throw_statement: THROW expression? SEMI;
 
 var_decl:
 	var_name COLON type_spec;
@@ -139,6 +157,7 @@ expression:
 		| PLUS_PLUS
 		| MINUS_MINUS
 	) expression										# exp_unary
+	| THROW expression									# exp_throw
 	| <assoc = right> lhs = expression POW rhs = expression	# exp_exp
 	| lhs = expression mul_op = (
 		STAR
