@@ -202,7 +202,7 @@ main(): int {
 - `Antlr4.Runtime.Standard` - ANTLR runtime for C#
 - `RazorLight` - Template engine for code generation
 - `System.CommandLine` - CLI parsing for AST generator
-- `xunit` - Test framework
+- `TUnit` - Test framework (preferred)
 - `FluentAssertions` - Test assertions
 - `dunet` - Discriminated unions for AST model
 - `Vogen` - Value object generation
