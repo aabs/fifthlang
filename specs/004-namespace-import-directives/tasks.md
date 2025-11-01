@@ -5,6 +5,7 @@
 
 ## Phase 3.1: Setup
 - [ ] T001 Seed namespace import smoke-program assets in `test/runtime-integration-tests/TestPrograms/NamespaceImports/{math.5th,consumer.5th}` matching the quickstart scenario and ensure the files copy to `bin/Debug` via `runtime-integration-tests.csproj` metadata.
+- [ ] T001a Create/update parser grammar samples under `src/parser/grammar/test_samples/` for file-scoped `namespace` and `import` syntax (positive cases) and legacy `use` (negative case). Place negative examples under `src/parser/grammar/test_samples/Invalid/` so the example validator skips them. These samples will be referenced by parser tests in T002.
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 - [ ] T002 [P] Create `test/syntax-parser-tests/NamespaceImportSyntaxTests.cs` covering namespace declaration/import acceptance and asserting legacy `use` syntax now fails.
@@ -47,6 +48,7 @@
 
 ## Dependencies
 - T001 → T002–T010 (samples required before tests).
+- T001a → T002 (parser grammar samples required before parser syntax tests).
 - T002–T010 → T011–T025 (tests must fail before implementation begins).
 - T011 → T012–T015 (Module metadata required before other namespace structures).
 - T012–T015 → T018–T020 (namespace structures required before resolver integration).
