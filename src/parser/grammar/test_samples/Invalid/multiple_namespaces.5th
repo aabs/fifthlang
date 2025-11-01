@@ -1,0 +1,7 @@
+// Negative case: multiple namespace declarations in a single file
+namespace First.Namespace;
+namespace Second.Namespace;
+
+main(): int {
+    return 0;
+}

@@ -1,0 +1,6 @@
+// Negative case: legacy 'use' syntax should fail
+use MyOldModule;
+
+main(): int {
+    return 0;
+}

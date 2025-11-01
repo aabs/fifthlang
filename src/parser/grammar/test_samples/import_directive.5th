@@ -1,0 +1,7 @@
+// Positive case: import directive
+import System.Collections;
+import MyLib.Core;
+
+main(): int {
+    return 0;
+}

@@ -1,0 +1,4 @@
+// Positive case: file-scoped namespace declaration
+namespace MyLib.Core;
+
+export greet(string name): string => "Hello, " + name;
