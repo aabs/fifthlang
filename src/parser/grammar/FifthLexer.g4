@@ -57,7 +57,6 @@ STORE       : 'store';
 STRUCT      : 'struct';
 SWITCH      : 'switch';
 TYPE        : 'type';
-USE         : 'use';
 VAR         : 'var';
 WHILE       : 'while';
 WITH        : 'with';
