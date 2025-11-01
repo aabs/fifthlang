@@ -82,6 +82,7 @@ public abstract class RuntimeTestBase : IDisposable
         var options = new CompilerOptions(
             Command: CompilerCommand.Build,
             Source: sourceFile,
+            AdditionalSources: Array.Empty<string>(),
             Output: outputFile,
             Diagnostics: true);
 
@@ -119,6 +120,7 @@ public abstract class RuntimeTestBase : IDisposable
         var options = new CompilerOptions(
             Command: CompilerCommand.Build,
             Source: sourceFilePath,
+            AdditionalSources: Array.Empty<string>(),
             Output: outputFile,
             Diagnostics: false);
 

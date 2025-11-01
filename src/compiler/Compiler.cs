@@ -222,15 +222,18 @@ Examples:
         return CompilationResult.Successful();
     }
 
-    private (AstThing? ast, int sourceCount) ParsePhase(CompilerOptions options, List<Diagnostic> diagnostics)
+    private (AstThing? ast, int sourceCount, Dictionary<string, NamespaceResolution.NamespaceScopeIndex>? namespaceScopes) ParsePhase(CompilerOptions options, List<Diagnostic> diagnostics)
     {
+        var stopwatch = Stopwatch.StartNew();
+        
         try
         {
+            var sourceFiles = new List<string>();
+            
+            // Collect all source files
             if (File.Exists(options.Source))
             {
-                // Single file
-                var ast = FifthParserManager.ParseFile(options.Source);
-                return (ast, 1);
+                sourceFiles.Add(options.Source);
             }
             else if (Directory.Exists(options.Source))
             {
@@ -242,23 +245,55 @@ Examples:
                 if (files.Length == 0)
                 {
                     diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "No .5th files found in directory", options.Source));
-                    return (null, 0);
+                    return (null, 0, null);
                 }
-
-                // For now, parse the first file (multiple file support can be added later)
-                var ast = FifthParserManager.ParseFile(files[0]);
-                return (ast, files.Length);
+                
+                sourceFiles.AddRange(files);
             }
             else
             {
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Source path not found: {options.Source}"));
-                return (null, 0);
+                return (null, 0, null);
             }
+
+            // Add additional sources if provided
+            if (options.AdditionalSources != null && options.AdditionalSources.Length > 0)
+            {
+                sourceFiles.AddRange(options.AdditionalSources);
+            }
+
+            // Parse the primary file for the AST
+            var ast = FifthParserManager.ParseFile(sourceFiles[0]);
+            
+            // If multiple files, perform namespace resolution
+            Dictionary<string, NamespaceResolution.NamespaceScopeIndex>? namespaceScopes = null;
+            if (sourceFiles.Count > 1)
+            {
+                var diagnosticEmitter = new NamespaceResolution.NamespaceDiagnosticEmitter();
+                var resolver = new NamespaceResolution.ModuleResolver(diagnosticEmitter);
+                
+                var modules = resolver.ResolveFromCliFiles(sourceFiles);
+                namespaceScopes = resolver.BuildNamespaceScopes(modules);
+                
+                // Add namespace diagnostics to compilation diagnostics
+                foreach (var nsDiagnostic in diagnosticEmitter.Diagnostics)
+                {
+                    diagnostics.Add(nsDiagnostic);
+                }
+                
+                if (options.Diagnostics)
+                {
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, 
+                        $"Namespace resolution: {namespaceScopes.Count} namespace(s), {modules.Count} module(s), {stopwatch.ElapsedMilliseconds}ms"));
+                }
+            }
+            
+            return (ast, sourceFiles.Count, namespaceScopes);
         }
         catch (System.Exception ex)
         {
             diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Parse error: {ex.Message}", options.Source));
-            return (null, 0);
+            return (null, 0, null);
         }
     }
 

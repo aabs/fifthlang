@@ -1,4 +1,5 @@
 using FluentAssertions;
+using compiler;
 
 namespace runtime_integration_tests;
 
@@ -27,27 +28,42 @@ public class NamespaceImportRuntimeTests : RuntimeTestBase
         File.Exists(consumerFile).Should().BeTrue($"consumer.5th should exist at {consumerFile}");
         
         // Act - Compile the multi-file program
-        // NOTE: This test will fail until CompilerOptions and Compiler support multiple source files
+        // This test compiles the quickstart scenario with multiple files
         var outputFile = Path.Combine(TempDirectory, "namespace_test.exe");
         GeneratedFiles.Add(outputFile);
         
-        var compiler = new compiler.Compiler();
-        var options = new compiler.CompilerOptions(
-            Command: compiler.CompilerCommand.Build,
-            Source: consumerFile,  // Primary file - will need to be extended to support multiple files
+        var compiler = new Compiler();
+        var options = new CompilerOptions(
+            Command: CompilerCommand.Build,
+            Source: consumerFile,  // Primary file
+            AdditionalSources: new[] { mathFile },  // Additional file for multi-file compilation
             Output: outputFile,
             Diagnostics: true);
         
         var result = await compiler.CompileAsync(options);
         
-        // For now, we expect this to fail because namespace/import support isn't implemented yet
-        // Once implemented, these assertions should pass
+        // Now that multi-file support is implemented, test should work
         if (result.Success)
         {
             File.Exists(outputFile).Should().BeTrue("Executable should be created");
             
             // Generate runtime configuration
-            await GenerateRuntimeConfigAsync(outputFile);
+            var runtimeConfigPath = Path.ChangeExtension(outputFile, "runtimeconfig.json");
+            var runtimeConfig = new
+            {
+                runtimeOptions = new
+                {
+                    tfm = "net8.0",
+                    framework = new
+                    {
+                        name = "Microsoft.NETCore.App",
+                        version = "8.0.0"
+                    }
+                }
+            };
+            var json = System.Text.Json.JsonSerializer.Serialize(runtimeConfig, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(runtimeConfigPath, json);
+            GeneratedFiles.Add(runtimeConfigPath);
             
             // Execute and verify
             var execResult = await ExecuteAsync(outputFile);

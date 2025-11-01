@@ -79,6 +79,7 @@ public class DebugRuntimeTests : RuntimeTestBase
             var options = new CompilerOptions(
                 Command: CompilerCommand.Build,
                 Source: sourceFile,
+                AdditionalSources: Array.Empty<string>(),
                 Output: outputFile,
                 Diagnostics: true);
 
