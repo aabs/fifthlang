@@ -54,6 +54,9 @@ public interface IAstRewriter
     RewriteResult VisitReturnStatement(ReturnStatement ctx);
     RewriteResult VisitVarDeclStatement(VarDeclStatement ctx);
     RewriteResult VisitWhileStatement(WhileStatement ctx);
+    RewriteResult VisitTryStatement(TryStatement ctx);
+    RewriteResult VisitCatchClause(CatchClause ctx);
+    RewriteResult VisitThrowStatement(ThrowStatement ctx);
     RewriteResult VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx);
     RewriteResult VisitAssertionStatement(AssertionStatement ctx);
     RewriteResult VisitAssertionObject(AssertionObject ctx);
@@ -91,6 +94,7 @@ public interface IAstRewriter
     RewriteResult VisitObjectInitializerExp(ObjectInitializerExp ctx);
     RewriteResult VisitPropertyInitializerExp(PropertyInitializerExp ctx);
     RewriteResult VisitUnaryExp(UnaryExp ctx);
+    RewriteResult VisitThrowExp(ThrowExp ctx);
     RewriteResult VisitVarRefExp(VarRefExp ctx);
     RewriteResult VisitListLiteral(ListLiteral ctx);
     RewriteResult VisitListComprehension(ListComprehension ctx);
@@ -145,6 +149,9 @@ public class DefaultAstRewriter : IAstRewriter
              ReturnStatement node => VisitReturnStatement(node),
              VarDeclStatement node => VisitVarDeclStatement(node),
              WhileStatement node => VisitWhileStatement(node),
+             TryStatement node => VisitTryStatement(node),
+             CatchClause node => VisitCatchClause(node),
+             ThrowStatement node => VisitThrowStatement(node),
              GraphAssertionBlockStatement node => VisitGraphAssertionBlockStatement(node),
              AssertionStatement node => VisitAssertionStatement(node),
              AssertionObject node => VisitAssertionObject(node),
@@ -182,6 +189,7 @@ public class DefaultAstRewriter : IAstRewriter
              ObjectInitializerExp node => VisitObjectInitializerExp(node),
              PropertyInitializerExp node => VisitPropertyInitializerExp(node),
              UnaryExp node => VisitUnaryExp(node),
+             ThrowExp node => VisitThrowExp(node),
              VarRefExp node => VisitVarRefExp(node),
              ListLiteral node => VisitListLiteral(node),
              ListComprehension node => VisitListComprehension(node),
@@ -617,6 +625,50 @@ public class DefaultAstRewriter : IAstRewriter
         };
         return new RewriteResult(rebuilt, prologue);
     }
+    public virtual RewriteResult VisitTryStatement(TryStatement ctx)
+    {
+        var prologue = new List<Statement>();
+        List<ast.CatchClause> tmpCatchClauses = [];
+        foreach (var item in ctx.CatchClauses)
+        {
+            var rr = Rewrite(item);
+            tmpCatchClauses.Add((ast.CatchClause)rr.Node);
+            prologue.AddRange(rr.Prologue);
+        }
+        var rrTryBlock = Rewrite((AstThing)ctx.TryBlock);
+        prologue.AddRange(rrTryBlock.Prologue);
+        var rrFinallyBlock = Rewrite((AstThing)ctx.FinallyBlock);
+        prologue.AddRange(rrFinallyBlock.Prologue);
+        var rebuilt = ctx with {
+         TryBlock = (ast.BlockStatement)rrTryBlock.Node
+        ,CatchClauses = tmpCatchClauses
+        ,FinallyBlock = (ast.BlockStatement)rrFinallyBlock.Node
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
+    public virtual RewriteResult VisitCatchClause(CatchClause ctx)
+    {
+        var prologue = new List<Statement>();
+        var rrFilter = Rewrite((AstThing)ctx.Filter);
+        prologue.AddRange(rrFilter.Prologue);
+        var rrBody = Rewrite((AstThing)ctx.Body);
+        prologue.AddRange(rrBody.Prologue);
+        var rebuilt = ctx with {
+         Filter = (ast.Expression)rrFilter.Node
+        ,Body = (ast.BlockStatement)rrBody.Node
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
+    public virtual RewriteResult VisitThrowStatement(ThrowStatement ctx)
+    {
+        var prologue = new List<Statement>();
+        var rrException = Rewrite((AstThing)ctx.Exception);
+        prologue.AddRange(rrException.Prologue);
+        var rebuilt = ctx with {
+         Exception = (ast.Expression)rrException.Node
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
     public virtual RewriteResult VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx)
     {
         var prologue = new List<Statement>();
@@ -940,6 +992,16 @@ public class DefaultAstRewriter : IAstRewriter
         prologue.AddRange(rrOperand.Prologue);
         var rebuilt = ctx with {
          Operand = (ast.Expression)rrOperand.Node
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
+    public virtual RewriteResult VisitThrowExp(ThrowExp ctx)
+    {
+        var prologue = new List<Statement>();
+        var rrException = Rewrite((AstThing)ctx.Exception);
+        prologue.AddRange(rrException.Prologue);
+        var rebuilt = ctx with {
+         Exception = (ast.Expression)rrException.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
