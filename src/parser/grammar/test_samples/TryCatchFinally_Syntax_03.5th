@@ -1,0 +1,14 @@
+// Catch with filter expression
+main(): int {
+    try {
+        doWork();
+    } catch (ex: System.Exception) when (ex.Message != null) {
+        std.print(ex.Message);
+    } finally {
+        std.print("Done");
+    }
+    return 0;
+}
+
+doWork(): void {
+}

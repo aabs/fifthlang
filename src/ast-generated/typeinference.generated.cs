@@ -39,6 +39,9 @@ public interface ITypeChecker
     public FifthType Infer(ScopeAstThing scope, ReturnStatement node);
     public FifthType Infer(ScopeAstThing scope, VarDeclStatement node);
     public FifthType Infer(ScopeAstThing scope, WhileStatement node);
+    public FifthType Infer(ScopeAstThing scope, TryStatement node);
+    public FifthType Infer(ScopeAstThing scope, CatchClause node);
+    public FifthType Infer(ScopeAstThing scope, ThrowStatement node);
     public FifthType Infer(ScopeAstThing scope, GraphAssertionBlockStatement node);
     public FifthType Infer(ScopeAstThing scope, AssertionStatement node);
     public FifthType Infer(ScopeAstThing scope, AssertionObject node);
@@ -76,6 +79,7 @@ public interface ITypeChecker
     public FifthType Infer(ScopeAstThing scope, ObjectInitializerExp node);
     public FifthType Infer(ScopeAstThing scope, PropertyInitializerExp node);
     public FifthType Infer(ScopeAstThing scope, UnaryExp node);
+    public FifthType Infer(ScopeAstThing scope, ThrowExp node);
     public FifthType Infer(ScopeAstThing scope, VarRefExp node);
     public FifthType Infer(ScopeAstThing scope, ListLiteral node);
     public FifthType Infer(ScopeAstThing scope, ListComprehension node);
@@ -128,6 +132,9 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             ReturnStatement node => Infer(scope, node),
             VarDeclStatement node => Infer(scope, node),
             WhileStatement node => Infer(scope, node),
+            TryStatement node => Infer(scope, node),
+            CatchClause node => Infer(scope, node),
+            ThrowStatement node => Infer(scope, node),
             GraphAssertionBlockStatement node => Infer(scope, node),
             AssertionStatement node => Infer(scope, node),
             AssertionObject node => Infer(scope, node),
@@ -165,6 +172,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             ObjectInitializerExp node => Infer(scope, node),
             PropertyInitializerExp node => Infer(scope, node),
             UnaryExp node => Infer(scope, node),
+            ThrowExp node => Infer(scope, node),
             VarRefExp node => Infer(scope, node),
             ListLiteral node => Infer(scope, node),
             ListComprehension node => Infer(scope, node),
@@ -211,6 +219,9 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, ReturnStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, VarDeclStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, WhileStatement node);
+    public abstract FifthType Infer(ScopeAstThing scope, TryStatement node);
+    public abstract FifthType Infer(ScopeAstThing scope, CatchClause node);
+    public abstract FifthType Infer(ScopeAstThing scope, ThrowStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, GraphAssertionBlockStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, AssertionStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, AssertionObject node);
@@ -248,6 +259,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, ObjectInitializerExp node);
     public abstract FifthType Infer(ScopeAstThing scope, PropertyInitializerExp node);
     public abstract FifthType Infer(ScopeAstThing scope, UnaryExp node);
+    public abstract FifthType Infer(ScopeAstThing scope, ThrowExp node);
     public abstract FifthType Infer(ScopeAstThing scope, VarRefExp node);
     public abstract FifthType Infer(ScopeAstThing scope, ListLiteral node);
     public abstract FifthType Infer(ScopeAstThing scope, ListComprehension node);

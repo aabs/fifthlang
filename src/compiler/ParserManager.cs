@@ -261,6 +261,14 @@ public static class FifthParserManager
                 // Early exit - return null to indicate transform failure
                 return null;
             }
+            
+            // Validate try/catch/finally constructs
+            ast = new compiler.LanguageTransformations.TryCatchFinallyValidationVisitor(diagnostics).Visit(ast);
+            if (diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
+            {
+                // Early exit - return null to indicate transform failure
+                return null;
+            }
         }
 
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);

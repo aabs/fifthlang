@@ -24,10 +24,10 @@ dotnet build fifthlang.sln                        # Takes ~60 seconds. NEVER CAN
 # Alternative: Use just (or Makefile)
 just build-all                                     # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
 
-# Run tests
-dotnet test test/ast-tests/ast_tests.csproj        # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
-# Or run all tests across the solution
-dotnet test fifthlang.sln
+# Run tests (default: full suite for regressions)
+dotnet test fifthlang.sln                           # Default regression gate. NEVER CANCEL. Set timeout to 5+ minutes.
+# Optional fast smoke (subset)
+dotnet test test/ast-tests/ast_tests.csproj        # Quick subset when iterating locally.
 
 # Run AST code generator separately
 just run-generator                                 # Takes ~5 seconds. (or: make run-generator)
@@ -61,9 +61,14 @@ After making changes, always run in this order:
    dotnet build fifthlang.sln  # NEVER CANCEL - wait up to 2 minutes
    ```
 
-2. **Test validation:**
+2. **Test validation (full suite for regressions):**
    ```bash
-   dotnet test test/ast-tests/ast_tests.csproj  # NEVER CANCEL - wait up to 1 minute
+   dotnet test fifthlang.sln  # Default regression gate – runs all tests
+   ```
+
+   Optional fast smoke while iterating locally:
+   ```bash
+   dotnet test test/ast-tests/ast_tests.csproj  # Quick subset; follow with full suite before commit/PR
    ```
 
 3. **AST smoke test:**
@@ -119,6 +124,9 @@ Checklist for agents (must run every time examples/docs are modified):
 
    # Then runtime-integration tests for the subset you plan to change
    dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj --filter "FullyQualifiedName~YourTestName" -v minimal
+
+   # Before pushing/merging, always run full suite for regression gate
+   dotnet test fifthlang.sln -v minimal
    ```
 
 Notes for agents

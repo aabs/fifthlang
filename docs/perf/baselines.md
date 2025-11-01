@@ -55,3 +55,5 @@ Inspecting and reviewing baseline PRs
 Notes
 
 - If you want to adopt a stricter or looser policy (for example, auto-merge baselines created on a protected runner or require multiple runs before promoting), ask and we can update the workflow to implement that policy (for example, add protected-branch rules, a reviewer requirement, or a second-run verification).
+
+Interim note: CI enforcement of the macrobench "no measurable regression" gate is deferred; run the macrobench locally before pushing and include results in your PR description.

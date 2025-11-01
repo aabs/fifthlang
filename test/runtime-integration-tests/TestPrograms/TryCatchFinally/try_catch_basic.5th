@@ -1,0 +1,11 @@
+// Test try/catch - catches exception
+// Simplified: doesn't throw, just tests structure
+main(): int {
+    result: int = 0;
+    try {
+        result = 42;
+    } catch {
+        result = 1;
+    }
+    return result;  // Should return 42
+}

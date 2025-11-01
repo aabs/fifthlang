@@ -1,0 +1,10 @@
+// Throw expression in null-coalescing operator
+main(): int {
+    var x: int = getValue();
+    return 0;
+}
+
+getValue(): int {
+    var result: int = 42;
+    return result;
+}

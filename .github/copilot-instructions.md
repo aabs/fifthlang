@@ -20,10 +20,10 @@ dotnet build fifthlang.sln                        # Takes ~60 seconds. NEVER CAN
 # Alternative: Use just (or Makefile)
 just build-all                                     # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
 
-# Run tests
-dotnet test test/ast-tests/ast_tests.csproj        # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
-# Or run all tests across the solution
-dotnet test fifthlang.sln
+# Run tests (default: full suite for regressions)
+dotnet test fifthlang.sln                           # Default for regression checks. NEVER CANCEL. Set timeout to 5+ minutes.
+# Optional fast smoke (subset)
+dotnet test test/ast-tests/ast_tests.csproj        # Quick subset when iterating locally.
 
 # Run AST code generator separately
 # Prefer just for quick tasks
@@ -65,9 +65,14 @@ After making any changes to the codebase:
       dotnet build fifthlang.sln  # NEVER CANCEL - wait up to 2 minutes
    ```
 
-2. **Test validation:**
+2. **Test validation (full suite for regressions):**
    ```bash
-   dotnet test test/ast-tests/ast_tests.csproj  # NEVER CANCEL - wait up to 1 minute
+   dotnet test fifthlang.sln  # Default regression gate – runs all tests
+   ```
+
+   Optional fast smoke while iterating locally:
+   ```bash
+   dotnet test test/ast-tests/ast_tests.csproj  # Quick subset; follow with full suite before commit/PR
    ```
 
 3. **Manual AST functionality test:**
@@ -210,7 +215,8 @@ main(): int {
 ### Build Timing Guidelines
 - **Restore**: ~70 seconds (set timeout to 120+ seconds)
 - **Build**: ~60 seconds (set timeout to 120+ seconds) 
-- **Test**: ~25 seconds (set timeout to 60+ seconds)
+- **Test (AST subset)**: ~25 seconds (set timeout to 60+ seconds)
+- **Test (full suite)**: varies by machine; set timeout to 5+ minutes in CI
 - **Code Generation**: ~5 seconds (set timeout to 30+ seconds)
 
 ## Troubleshooting
@@ -235,3 +241,9 @@ main(): int {
 6. `ast-tests` (depends on all above)
 
 Always build the full solution rather than individual projects to ensure proper dependency resolution.
+
+## Active Technologies
+- C# (compiler implementation), Fifth language surface; .NET SDK 8.0.x (global.json pins 8.0.118) + Antlr4.Runtime.Standard, RazorLight, System.CommandLine, TUnit, FluentAssertions, dunet, Vogen; Roslyn (for IL or backend equivalence tests) (005-implementation-of-try)
+
+## Recent Changes
+- 005-implementation-of-try: Added C# (compiler implementation), Fifth language surface; .NET SDK 8.0.x (global.json pins 8.0.118) + Antlr4.Runtime.Standard, RazorLight, System.CommandLine, TUnit, FluentAssertions, dunet, Vogen; Roslyn (for IL or backend equivalence tests)

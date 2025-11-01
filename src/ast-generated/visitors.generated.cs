@@ -72,6 +72,12 @@ public interface IAstVisitor
     public void LeaveVarDeclStatement(VarDeclStatement ctx);
     public void EnterWhileStatement(WhileStatement ctx);
     public void LeaveWhileStatement(WhileStatement ctx);
+    public void EnterTryStatement(TryStatement ctx);
+    public void LeaveTryStatement(TryStatement ctx);
+    public void EnterCatchClause(CatchClause ctx);
+    public void LeaveCatchClause(CatchClause ctx);
+    public void EnterThrowStatement(ThrowStatement ctx);
+    public void LeaveThrowStatement(ThrowStatement ctx);
     public void EnterGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx);
     public void LeaveGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx);
     public void EnterAssertionStatement(AssertionStatement ctx);
@@ -146,6 +152,8 @@ public interface IAstVisitor
     public void LeavePropertyInitializerExp(PropertyInitializerExp ctx);
     public void EnterUnaryExp(UnaryExp ctx);
     public void LeaveUnaryExp(UnaryExp ctx);
+    public void EnterThrowExp(ThrowExp ctx);
+    public void LeaveThrowExp(ThrowExp ctx);
     public void EnterVarRefExp(VarRefExp ctx);
     public void LeaveVarRefExp(VarRefExp ctx);
     public void EnterListLiteral(ListLiteral ctx);
@@ -232,6 +240,12 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveVarDeclStatement(VarDeclStatement ctx){}
     public virtual void EnterWhileStatement(WhileStatement ctx){}
     public virtual void LeaveWhileStatement(WhileStatement ctx){}
+    public virtual void EnterTryStatement(TryStatement ctx){}
+    public virtual void LeaveTryStatement(TryStatement ctx){}
+    public virtual void EnterCatchClause(CatchClause ctx){}
+    public virtual void LeaveCatchClause(CatchClause ctx){}
+    public virtual void EnterThrowStatement(ThrowStatement ctx){}
+    public virtual void LeaveThrowStatement(ThrowStatement ctx){}
     public virtual void EnterGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx){}
     public virtual void LeaveGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx){}
     public virtual void EnterAssertionStatement(AssertionStatement ctx){}
@@ -306,6 +320,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeavePropertyInitializerExp(PropertyInitializerExp ctx){}
     public virtual void EnterUnaryExp(UnaryExp ctx){}
     public virtual void LeaveUnaryExp(UnaryExp ctx){}
+    public virtual void EnterThrowExp(ThrowExp ctx){}
+    public virtual void LeaveThrowExp(ThrowExp ctx){}
     public virtual void EnterVarRefExp(VarRefExp ctx){}
     public virtual void LeaveVarRefExp(VarRefExp ctx){}
     public virtual void EnterListLiteral(ListLiteral ctx){}
@@ -360,6 +376,9 @@ public interface IAstRecursiveDescentVisitor
     public ReturnStatement VisitReturnStatement(ReturnStatement ctx);
     public VarDeclStatement VisitVarDeclStatement(VarDeclStatement ctx);
     public WhileStatement VisitWhileStatement(WhileStatement ctx);
+    public TryStatement VisitTryStatement(TryStatement ctx);
+    public CatchClause VisitCatchClause(CatchClause ctx);
+    public ThrowStatement VisitThrowStatement(ThrowStatement ctx);
     public GraphAssertionBlockStatement VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx);
     public AssertionStatement VisitAssertionStatement(AssertionStatement ctx);
     public AssertionObject VisitAssertionObject(AssertionObject ctx);
@@ -397,6 +416,7 @@ public interface IAstRecursiveDescentVisitor
     public ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx);
     public PropertyInitializerExp VisitPropertyInitializerExp(PropertyInitializerExp ctx);
     public UnaryExp VisitUnaryExp(UnaryExp ctx);
+    public ThrowExp VisitThrowExp(ThrowExp ctx);
     public VarRefExp VisitVarRefExp(VarRefExp ctx);
     public ListLiteral VisitListLiteral(ListLiteral ctx);
     public ListComprehension VisitListComprehension(ListComprehension ctx);
@@ -446,6 +466,9 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              ReturnStatement node => VisitReturnStatement(node),
              VarDeclStatement node => VisitVarDeclStatement(node),
              WhileStatement node => VisitWhileStatement(node),
+             TryStatement node => VisitTryStatement(node),
+             CatchClause node => VisitCatchClause(node),
+             ThrowStatement node => VisitThrowStatement(node),
              GraphAssertionBlockStatement node => VisitGraphAssertionBlockStatement(node),
              AssertionStatement node => VisitAssertionStatement(node),
              AssertionObject node => VisitAssertionObject(node),
@@ -483,6 +506,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              ObjectInitializerExp node => VisitObjectInitializerExp(node),
              PropertyInitializerExp node => VisitPropertyInitializerExp(node),
              UnaryExp node => VisitUnaryExp(node),
+             ThrowExp node => VisitThrowExp(node),
              VarRefExp node => VisitVarRefExp(node),
              ListLiteral node => VisitListLiteral(node),
              ListComprehension node => VisitListComprehension(node),
@@ -731,6 +755,29 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         ,Body = (ast.BlockStatement)Visit((AstThing)ctx.Body)
         };
     }
+    public virtual TryStatement VisitTryStatement(TryStatement ctx)
+    {
+        List<ast.CatchClause> tmpCatchClauses = [];
+        tmpCatchClauses.AddRange(ctx.CatchClauses.Select(x => (ast.CatchClause)Visit(x)));
+     return ctx with {
+         TryBlock = (ast.BlockStatement)Visit((AstThing)ctx.TryBlock)
+        ,CatchClauses = tmpCatchClauses
+        ,FinallyBlock = (ast.BlockStatement)Visit((AstThing)ctx.FinallyBlock)
+        };
+    }
+    public virtual CatchClause VisitCatchClause(CatchClause ctx)
+    {
+     return ctx with {
+         Filter = (ast.Expression)Visit((AstThing)ctx.Filter)
+        ,Body = (ast.BlockStatement)Visit((AstThing)ctx.Body)
+        };
+    }
+    public virtual ThrowStatement VisitThrowStatement(ThrowStatement ctx)
+    {
+     return ctx with {
+         Exception = (ast.Expression)Visit((AstThing)ctx.Exception)
+        };
+    }
     public virtual GraphAssertionBlockStatement VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx)
     {
      return ctx with {
@@ -937,6 +984,12 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     {
      return ctx with {
          Operand = (ast.Expression)Visit((AstThing)ctx.Operand)
+        };
+    }
+    public virtual ThrowExp VisitThrowExp(ThrowExp ctx)
+    {
+     return ctx with {
+         Exception = (ast.Expression)Visit((AstThing)ctx.Exception)
         };
     }
     public virtual VarRefExp VisitVarRefExp(VarRefExp ctx)

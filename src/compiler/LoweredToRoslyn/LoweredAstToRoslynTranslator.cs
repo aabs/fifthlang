@@ -286,6 +286,8 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             IfElseStatement ifStmt => TranslateIfElseStatement(ifStmt),
             WhileStatement whileStmt => TranslateWhileStatement(whileStmt),
             AssignmentStatement assignStmt => TranslateAssignmentStatement(assignStmt),
+            TryStatement tryStmt => TranslateTryStatement(tryStmt),
+            ThrowStatement throwStmt => TranslateThrowStatement(throwStmt),
             _ => null // Unsupported statement types return null for now
         };
     }
@@ -422,6 +424,118 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 valueExpr));
     }
 
+    private StatementSyntax TranslateTryStatement(TryStatement tryStmt)
+    {
+        // Build the try block
+        var tryBlock = BuildBlockStatement(tryStmt.TryBlock);
+
+        // Build catch clauses
+        var catchClauses = new List<CatchClauseSyntax>();
+        foreach (var catchClause in tryStmt.CatchClauses)
+        {
+            var catchClauseSyntax = TranslateCatchClause(catchClause);
+            if (catchClauseSyntax != null)
+            {
+                catchClauses.Add(catchClauseSyntax);
+            }
+        }
+
+        // Build finally block if present
+        FinallyClauseSyntax? finallyClause = null;
+        if (tryStmt.FinallyBlock != null)
+        {
+            var finallyBlock = BuildBlockStatement(tryStmt.FinallyBlock);
+            finallyClause = FinallyClause(finallyBlock);
+        }
+
+        // Create the try statement with all components
+        return Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TryStatement(
+            tryBlock,
+            List(catchClauses),
+            finallyClause);
+    }
+
+    private CatchClauseSyntax? TranslateCatchClause(CatchClause catchClause)
+    {
+        var catchBody = BuildBlockStatement(catchClause.Body);
+
+        // Handle catch-all (no type specified)
+        if (catchClause.ExceptionType == null && catchClause.ExceptionIdentifier == null)
+        {
+            return CatchClause()
+                .WithBlock(catchBody);
+        }
+
+        // Determine the exception type
+        TypeSyntax? exceptionType = null;
+        if (catchClause.ExceptionType != null)
+        {
+            var typeName = MapTypeName(catchClause.ExceptionType.Name.ToString());
+            exceptionType = ParseTypeName(typeName);
+        }
+        else
+        {
+            // Default to System.Exception if not specified but identifier is
+            exceptionType = ParseTypeName("System.Exception");
+        }
+
+        // Build catch declaration
+        CatchDeclarationSyntax? catchDecl = null;
+        if (catchClause.ExceptionIdentifier != null)
+        {
+            var identifier = SanitizeIdentifier(catchClause.ExceptionIdentifier);
+            catchDecl = CatchDeclaration(exceptionType)
+                .WithIdentifier(Identifier(identifier));
+        }
+        else if (exceptionType != null)
+        {
+            // Type specified but no identifier
+            catchDecl = CatchDeclaration(exceptionType);
+        }
+
+        // Build filter if present
+        CatchFilterClauseSyntax? filterClause = null;
+        if (catchClause.Filter != null)
+        {
+            var filterExpr = TranslateExpression(catchClause.Filter);
+            filterExpr = EnsureBooleanExpression(filterExpr, catchClause.Filter);
+            filterClause = CatchFilterClause(filterExpr);
+        }
+
+        var catchSyntax = CatchClause()
+            .WithBlock(catchBody);
+
+        if (catchDecl != null)
+        {
+            catchSyntax = catchSyntax.WithDeclaration(catchDecl);
+        }
+
+        if (filterClause != null)
+        {
+            catchSyntax = catchSyntax.WithFilter(filterClause);
+        }
+
+        return catchSyntax;
+    }
+
+    private StatementSyntax TranslateThrowStatement(ThrowStatement throwStmt)
+    {
+        if (throwStmt.Exception == null)
+        {
+            // Rethrow (bare throw;)
+            return ThrowStatement();
+        }
+
+        var exceptionExpr = TranslateExpression(throwStmt.Exception);
+        return ThrowStatement(exceptionExpr);
+    }
+
+    private ExpressionSyntax TranslateThrowExpression(ThrowExp throwExp)
+    {
+        var exceptionExpr = TranslateExpression(throwExp.Exception);
+        return ThrowExpression(exceptionExpr);
+    }
+
     private ExpressionSyntax TranslateExpression(Expression expr)
     {
         return expr switch
@@ -449,6 +563,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             UnaryExp unary => TranslateUnaryExpression(unary),
             TripleLiteralExp triple => TranslateTripleLiteralExpression(triple),
             GraphAssertionBlockExp gab => TranslateGraphAssertionBlockExpression(gab),
+            ThrowExp throwExp => TranslateThrowExpression(throwExp),
             _ => DefaultExpression(IdentifierName("object")) // Fallback for unsupported expressions
         };
     }

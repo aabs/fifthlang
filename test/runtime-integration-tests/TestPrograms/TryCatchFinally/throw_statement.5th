@@ -1,0 +1,11 @@
+// Test catch clause structure
+// Simplified: no throw, tests structural IL
+main(): int {
+    result: int = 0;
+    try {
+        result = 99;
+    } catch {
+        result = 1;
+    }
+    return result;  // Should return 99
+}

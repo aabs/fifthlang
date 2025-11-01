@@ -5,3 +5,58 @@ This folder contains one-file-per-bullet samples generated from the syntax test 
 The test `SyntaxParserTests` parses all valid samples and asserts invalid samples fail to parse.
 
 Also see `docs/knowledge-graphs.md` for canonical store syntax and graph assertion block examples.
+
+## Exception Handling
+
+Fifth supports C#-style exception handling with `try`/`catch`/`finally` blocks:
+
+```fifth
+// Basic try/finally
+main(): int {
+    x: int = 10;
+    try {
+        x = x + 5;
+    } finally {
+        std.print("cleanup");
+    }
+    return x;
+}
+
+// Try/catch with catch-all
+main(): int {
+    result: int = 0;
+    try {
+        result = 42;
+    } catch {
+        result = 1;
+    }
+    return result;
+}
+
+// Try/catch/finally combined
+main(): int {
+    result: int = 0;
+    try {
+        result = 10;
+    } catch {
+        result = 1;
+    } finally {
+        result = result + 5;
+    }
+    return result;
+}
+```
+
+### Throw Expressions
+
+Throw can be used in expression contexts:
+
+```fifth
+// Throw expression in null-coalescing (future syntax)
+var x = getValue() ?? throw new Exception();
+
+// Throw expression in conditional
+var y = condition ? result : throw new Exception();
+```
+
+Note: Full exception type support (e.g., `System.Exception`) requires parser enhancements for qualified type names.

@@ -101,6 +101,7 @@ public enum SymbolKind
     BinaryExp,
     BlockStatement,
     CastExp,
+    CatchClause,
     ClassDef,
     EmptyStatement,
     Expression,
@@ -132,7 +133,10 @@ public enum SymbolKind
     RetractionStatement,
     ReturnStatement,
     StructDef,
+    ThrowExp,
+    ThrowStatement,
     Triple,
+    TryStatement,
     TypeDef,
     TypeRef,
     UnaryExp,
@@ -623,6 +627,38 @@ public record WhileStatement : Statement
 }
 
 /// <summary>
+/// Try statement with optional catch clauses and optional finally block.
+/// Represents C#-style exception handling in Fifth.
+/// </summary>
+public record TryStatement : Statement
+{
+    public required BlockStatement TryBlock { get; set; }
+    public required List<CatchClause> CatchClauses { get; set; } = [];
+    public BlockStatement? FinallyBlock { get; set; }
+}
+
+/// <summary>
+/// A single catch clause within a try statement.
+/// Supports typed catches, exception identifiers, and optional filter expressions.
+/// </summary>
+public record CatchClause : AstThing
+{
+    public FifthType? ExceptionType { get; set; }
+    public string? ExceptionIdentifier { get; set; }
+    public Expression? Filter { get; set; }
+    public required BlockStatement Body { get; set; }
+}
+
+/// <summary>
+/// Throw statement for throwing exceptions.
+/// Supports both explicit throw (with exception expression) and rethrow (without expression).
+/// </summary>
+public record ThrowStatement : Statement
+{
+    public Expression? Exception { get; set; }
+}
+
+/// <summary>
 /// A statement form of a Graph Assertion Block. Semicolon-terminated and
 /// intended to trigger persistence to the default store during lowering.
 /// </summary>
@@ -850,6 +886,19 @@ public record UnaryExp : Expression
 {
     public required Operator Operator { get; set; }
     public required Expression Operand { get; set; }
+}
+
+/// <summary>
+/// Throw expression for use in expression contexts (e.g., null-coalescing, conditional operator).
+/// Unlike ThrowStatement, this can appear where expressions are expected.
+/// </summary>
+/// <example>
+/// <code>var x = value ?? throw new ArgumentNullException();</code>
+/// <code>var y = condition ? result : throw new InvalidOperationException();</code>
+/// </example>
+public record ThrowExp : Expression
+{
+    public required Expression Exception { get; set; }
 }
 
 /// <summary>
