@@ -19,22 +19,23 @@ public static class FifthParserManager
         Builtins = 2,
         ClassCtors = 3,
         SymbolTableInitial = 4,
-        PropertyToField = 5,
-        DestructurePatternFlatten = 6,
-        OverloadGroup = 7,
-        GuardValidation = 8,
-        OverloadTransform = 9,
-        DestructuringLowering = 10,
-        UnaryOperatorLowering = 11,
-        AugmentedAssignmentLowering = 12,
-        TreeRelink = 13,
-        GraphAssertionLowering = 14,
-        TripleDiagnostics = 15,
-        TripleExpansion = 16,
-        GraphTripleOperatorLowering = 17,
-        SymbolTableFinal = 18,
-        VarRefResolver = 19,
-        TypeAnnotation = 20,
+        NamespaceImportResolver = 5,
+        PropertyToField = 6,
+        DestructurePatternFlatten = 7,
+        OverloadGroup = 8,
+        GuardValidation = 9,
+        OverloadTransform = 10,
+        DestructuringLowering = 11,
+        UnaryOperatorLowering = 12,
+        AugmentedAssignmentLowering = 13,
+        TreeRelink = 14,
+        GraphAssertionLowering = 15,
+        TripleDiagnostics = 16,
+        TripleExpansion = 17,
+        GraphTripleOperatorLowering = 18,
+        SymbolTableFinal = 19,
+        VarRefResolver = 20,
+        TypeAnnotation = 21,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
@@ -71,6 +72,9 @@ public static class FifthParserManager
 
         if (upTo >= AnalysisPhase.SymbolTableInitial)
             ast = new SymbolTableBuilderVisitor().Visit(ast);
+
+        if (upTo >= AnalysisPhase.NamespaceImportResolver)
+            ast = new NamespaceImportResolverVisitor().Visit(ast);
 
         try
         {
