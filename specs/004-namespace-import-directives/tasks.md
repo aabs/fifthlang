@@ -18,6 +18,7 @@
 - [ ] T008 [P] Add `test/runtime-integration-tests/Validation/NamespaceEntryPointDiagnosticsTests.cs` ensuring builds fail when zero or multiple `main` functions exist after namespace aggregation, with diagnostics naming offending modules.
 - [ ] T009 [P] Add `test/runtime-integration-tests/NamespaceImportShadowingTests.cs` proving a module-local symbol (e.g., `export add(int a, int b): int { return a - b; }`) shadows an imported one for that file only.
 - [ ] T010 [P] Add `test/runtime-integration-tests/NamespaceImportGlobalNamespaceTests.cs` covering a module without a `namespace` declaration importing a named namespace and confirming its declarations remain in the global scope while imports are file-local.
+- [ ] T010a [P] Add `test/runtime-integration-tests/NamespaceImportIdempotencyTests.cs` verifying repeated `import <ns>` lines in a single module are idempotent (symbols appear once; no extra diagnostics). Include a focused program set under `test/runtime-integration-tests/TestPrograms/NamespaceImports/Idempotency/`.
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 - [ ] T011 [P] Introduce `ModuleMetadata` record in `src/compiler/NamespaceResolution/ModuleMetadata.cs` capturing module path, declared namespace (or global), imports, and declarations.
@@ -51,7 +52,7 @@
 - T001 → T002–T010 (samples required before tests).
 - T001a → T002 (parser grammar samples required before parser syntax tests).
 - T001a → T002a (invalid multiple-namespace sample required before negative parser test).
-- T002–T010 → T011–T025 (tests must fail before implementation begins).
+- T002–T010a → T011–T025 (tests must fail before implementation begins).
 - T011 → T012–T015 (Module metadata required before other namespace structures).
 - T012–T015 → T018–T020 (namespace structures required before resolver integration).
 - T016 → T017 (grammar updates before AST builder changes).
