@@ -615,6 +615,33 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             .WithVersion("0.0.0.0")
             ;
         var mb = new ModuleDefBuilder();
+        
+        // Extract namespace declaration (at most one per module) - do this BEFORE building
+        string? namespaceName = null;
+        if (context.namespace_declaration() != null)
+        {
+            namespaceName = ExtractQualifiedName(context.namespace_declaration().qualified_name());
+        }
+        
+        // Extract import directives - do this BEFORE building
+        var imports = new List<string>();
+        foreach (var importCtx in context.import_directive())
+        {
+            var importName = ExtractQualifiedName(importCtx.qualified_name());
+            imports.Add(importName);
+        }
+        
+        // Set namespace and imports on builder
+        mb.WithImports(imports);
+        if (namespaceName != null)
+        {
+            mb.WithNamespaceDecl(NamespaceName.From(namespaceName));
+        }
+        else
+        {
+            mb.WithNamespaceDecl(NamespaceName.From("")); // Default to global namespace (empty string)
+        }
+        
         if (context._classes.Count == 0)
         {
             mb.WithClasses([]);
@@ -645,25 +672,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         if (module.Annotations == null)
         {
             module = module with { Annotations = new Dictionary<string, object>() };
-        }
-
-        // Extract namespace declaration (at most one per module)
-        if (context.namespace_declaration() != null)
-        {
-            var namespaceName = ExtractQualifiedName(context.namespace_declaration().qualified_name());
-            module.Annotations["DeclaredNamespace"] = namespaceName;
-        }
-
-        // Extract import directives
-        var imports = new List<string>();
-        foreach (var importCtx in context.import_directive())
-        {
-            var importName = ExtractQualifiedName(importCtx.qualified_name());
-            imports.Add(importName);
-        }
-        if (imports.Count > 0)
-        {
-            module.Annotations["Imports"] = imports;
         }
 
         // Collect colon-form store declarations; colon form is canonical.

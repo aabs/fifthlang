@@ -8,7 +8,7 @@ namespace compiler.LanguageTransformations;
 /// This visitor runs after SymbolTableBuilderVisitor to validate namespace imports and prepare for symbol resolution.
 /// 
 /// Current Implementation Status:
-/// - Validates that namespace and import metadata exists on modules
+/// - Validates that namespace and import metadata exists on modules (from first-class ModuleDef properties)
 /// - Tracks namespace resolution statistics for diagnostic purposes
 /// - Serves as infrastructure for future full symbol resolution
 /// 
@@ -33,23 +33,18 @@ public class NamespaceImportResolverVisitor : DefaultRecursiveDescentVisitor
     {
         _modulesProcessed++;
 
-        // Extract namespace metadata from module annotations
-        // This metadata was added by AstBuilderVisitor during parsing
-        if (ctx.Annotations != null)
+        // Extract namespace from ModuleDef property (first-class syntax element)
+        var namespaceName = ctx.NamespaceDecl.Value;
+        if (!string.IsNullOrEmpty(namespaceName))
         {
-            if (ctx.Annotations.TryGetValue("DeclaredNamespace", out var ns))
-            {
-                _currentModuleNamespace = ns as string;
-            }
+            _currentModuleNamespace = namespaceName;
+        }
 
-            if (ctx.Annotations.TryGetValue("Imports", out var imports))
-            {
-                if (imports is List<string> importList)
-                {
-                    _currentImports = importList;
-                    _importsValidated += importList.Count;
-                }
-            }
+        // Extract imports from ModuleDef property (first-class syntax element)
+        if (ctx.Imports.Count > 0)
+        {
+            _currentImports = new List<string>(ctx.Imports);
+            _importsValidated += ctx.Imports.Count;
         }
 
         // Visit module contents

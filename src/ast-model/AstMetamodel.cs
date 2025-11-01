@@ -312,6 +312,11 @@ public record ModuleDef : ScopedDefinition
 {
     public required string OriginalModuleName { get; init; }
     public required NamespaceName NamespaceDecl { get; init; }
+    /// <summary>
+    /// List of namespace names imported by this module via import directives.
+    /// First-class property for imported namespaces (not stored in annotations).
+    /// </summary>
+    public required List<string> Imports { get; init; } = [];
     public required List<ClassDef> Classes { get; init; } = [];
     public required List<ScopedDefinition> Functions { get; init; } = [];
 }

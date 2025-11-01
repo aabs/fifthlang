@@ -32,6 +32,7 @@ public class OverloadCountWarningTests
         {
             OriginalModuleName = "M",
             NamespaceDecl = NamespaceName.From("N"),
+            Imports = [],
             Classes = [],
             Functions = [ofd],
             Visibility = Visibility.Public
@@ -77,6 +78,7 @@ public class OverloadCountWarningTests
         {
             OriginalModuleName = "M",
             NamespaceDecl = NamespaceName.From("N"),
+            Imports = [],
             Classes = [],
             Functions = [ofd],
             Visibility = Visibility.Public

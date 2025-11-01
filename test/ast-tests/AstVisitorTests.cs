@@ -93,6 +93,7 @@ public class AstVisitorTests
             Parent = null,
             Visibility = Visibility.Public,
             NamespaceDecl = NamespaceName.From("MyNamespace"),
+            Imports = [],
             Functions = [createFunctionDef("foo", "int")],
         };
     }

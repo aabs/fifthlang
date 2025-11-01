@@ -14,6 +14,7 @@ public class GraphAssertionBlock_LoweringStatementTests : VisitorTestsBase
             Annotations = [],
             OriginalModuleName = name,
             NamespaceDecl = NamespaceName.From("test.ns"),
+            Imports = [],
             Classes = [],
             Functions = [],
             Location = null,

@@ -31,22 +31,15 @@ public static class ModuleMetadataExtractor
 
         var module = ast.Modules[0];  // AssemblyDef contains one ModuleDef per source file
         
-        // Extract declared namespace from annotations
-        string? declaredNamespace = null;
-        if (module.Annotations != null && module.Annotations.TryGetValue("DeclaredNamespace", out var nsValue))
+        // Extract declared namespace from ModuleDef property
+        string? declaredNamespace = module.NamespaceDecl.Value;
+        if (string.IsNullOrEmpty(declaredNamespace))
         {
-            declaredNamespace = nsValue as string;
+            declaredNamespace = null; // Treat empty as global namespace
         }
 
-        // Extract imports from annotations
-        var imports = new List<string>();
-        if (module.Annotations != null && module.Annotations.TryGetValue("Imports", out var importsValue))
-        {
-            if (importsValue is List<string> importList)
-            {
-                imports.AddRange(importList);
-            }
-        }
+        // Extract imports from ModuleDef property (first-class syntax element)
+        var imports = new List<string>(module.Imports);
 
         // Extract declarations (functions and classes)
         var declarations = new List<IAstThing>();

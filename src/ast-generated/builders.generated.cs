@@ -97,6 +97,7 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
 {
     private System.String _OriginalModuleName;
     private ast.NamespaceName _NamespaceDecl;
+    private List<System.String> _Imports = [];
     private List<ast.ClassDef> _Classes = [];
     private List<ast.ScopedDefinition> _Functions = [];
     private ast.Visibility _Visibility;
@@ -109,6 +110,7 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
         return new ast.ModuleDef(){
              OriginalModuleName = this._OriginalModuleName // from ModuleDef
            , NamespaceDecl = this._NamespaceDecl // from ModuleDef
+           , Imports = this._Imports // from ModuleDef
            , Classes = this._Classes // from ModuleDef
            , Functions = this._Functions // from ModuleDef
            , Visibility = this._Visibility // from ScopedDefinition
@@ -127,6 +129,16 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
         return this;
     }
 
+    public ModuleDefBuilder WithImports(List<System.String> value){
+        _Imports = value;
+        return this;
+    }
+
+    public ModuleDefBuilder AddingItemToImports(System.String value){
+        _Imports  ??= [];
+        _Imports.Add(value);
+        return this;
+    }
     public ModuleDefBuilder WithClasses(List<ast.ClassDef> value){
         _Classes = value;
         return this;
