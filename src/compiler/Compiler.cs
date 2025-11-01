@@ -568,7 +568,7 @@ Examples:
         // Create unique filename to avoid cross-process collisions
         var pid = Environment.ProcessId;
         var ticks = DateTime.UtcNow.Ticks;
-        var guid = Guid.NewGuid().ToString("N").Substring(0, 8);
+        var guid = Guid.NewGuid().ToString("N")[..8]; // Use range operator for modern C#
         var fileName = $"generated_{sourceIndex}_{pid}_{ticks}_{guid}.cs";
         var finalPath = Path.Combine(directory, fileName);
         
@@ -580,13 +580,14 @@ Examples:
                 Directory.CreateDirectory(directory);
                 
                 // Write to temporary file first for atomic operation
-                var tempFileName = $".tmp_{Guid.NewGuid():N}";
+                var tempGuid = Guid.NewGuid().ToString("N")[..8];
+                var tempFileName = $".tmp_{tempGuid}";
                 var tempPath = Path.Combine(directory, tempFileName);
                 
                 await File.WriteAllTextAsync(tempPath, sourceContent);
                 
-                // Atomic move to final location
-                File.Move(tempPath, finalPath, overwrite: true);
+                // Atomic move to final location - don't overwrite since filename should be unique
+                File.Move(tempPath, finalPath, overwrite: false);
                 
                 // Success - log informational message
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated C# source written to: {finalPath}"));
