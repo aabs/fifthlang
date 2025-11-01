@@ -41,6 +41,7 @@ Implement file-scoped namespaces and module-local `import` directives for Fifth 
 - Uphold Section IV Test-First: add parser, compiler, and runtime tests before implementation; observe failing state.
 - Respect Section III generator rule: modify `src/ast-model/AstMetamodel.cs` (or IL equivalent) and regenerate rather than editing `src/ast-generated/`.
 - Maintain CLI diagnostic discipline per Sections II & X: structured stderr with module + namespace identifiers.
+- Namespace diagnostics use the WNS code prefix (e.g., WNS0001) and MUST include module + namespace identifiers per the spec's Diagnostic Codes and schema.
 - Enforce build discipline: no cancelled `dotnet restore/build/test`, run `scripts/validate-examples.fish` when touching samples.
 - Coordinate MSBuild + CLI enumeration without diverging code paths to satisfy Library-First principle.
 
