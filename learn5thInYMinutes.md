@@ -419,14 +419,20 @@ main(): int {
 }
 
 //////////////////////////////////////
-// 8. Module System
+// 8. Namespaces and Imports
 //////////////////////////////////////
 
-// Import modules
-use Math, IO, Net;
+// File-scoped namespace (at most one per file)
+namespace LearnFifth.InYMinutes;
 
-// Multiple imports
-use System, Collections;
+// Import directives bring symbols from other namespaces into scope
+// Write one import per line using a qualified name if needed
+import Math;
+import IO;
+import Net;
+// Multiple imports are written as multiple lines (no comma-separated form)
+import System;
+import Collections;
 
 main(): int {
     return 0;

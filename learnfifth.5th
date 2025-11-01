@@ -11,8 +11,13 @@
 // Module System
 //////////////////////////////////////
 
-// Import modules
-use Math, IO, Net;
+// File-scoped namespace declaration and imports
+namespace LearnFifth.InYMinutes;
+
+// Import namespaces (one per line)
+import Math;
+import IO;
+import Net;
 
 //////////////////////////////////////
 // Knowledge Graphs & Semantic Web
