@@ -78,6 +78,15 @@ A project maintainer can organize multiple Fifth source files into namespaces, i
 - Importing a namespace brings the full symbol table of that namespace into the current module’s scope (subject to shadowing in FR-010).
 - If `export` appears in examples or tests, treat it as optional/no-op under current semantics; a future feature may introduce explicit export controls.
 
+## Diagnostic Codes (namespace imports)
+
+Prefix: WNS (Namespace warnings/errors)
+
+- WNS0001 (Warning): Undeclared namespace import
+	- Condition: Emitted when a module imports a namespace that is not declared by any module in the resolved module set.
+	- Required fields: code=WNS0001, severity=Warning, file=<module path>, namespace=<imported name>, message="Import targets undeclared namespace: '<namespace>'"
+	- Notes: Compilation continues; the undeclared namespace is treated as empty (see FR-009).
+
 ## Review & Acceptance Checklist
 *GATE: Automated checks run during main() execution*
 
