@@ -1,0 +1,13 @@
+// Test try/catch with finally
+// Simplified: doesn't throw, just tests structure
+main(): int {
+    result: int = 0;
+    try {
+        result = 10;
+    } catch {
+        result = 1;
+    } finally {
+        result = result + 5;
+    }
+    return result;  // Should return 15
+}

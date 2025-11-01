@@ -1,0 +1,10 @@
+// Test try/finally - finally always executes
+main(): int {
+    x: int = 10;
+    try {
+        x = x + 5;
+    } finally {
+        x = x + 10;
+    }
+    return x;  // Should return 25 (10+5+10)
+}
