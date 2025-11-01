@@ -70,16 +70,6 @@ jobs:
           dotnet run --project src/tools/validate-examples/validate-examples.csproj --configuration Release 2>&1 | Tee-Object -FilePath $log
           if ($LASTEXITCODE -ne 0) { Write-Error "Parser-check failed; see $log"; exit $LASTEXITCODE }
 
-      - name: Run AST tests
-        run: |
-          dotnet test test/ast-tests/ast_tests.csproj \
-            --configuration Release \
-            --no-build \
-            --logger "trx;LogFileName=ast-tests.trx" \
-            --results-directory "TestResults/ast-tests" \
-            --collect:"XPlat Code Coverage" \
-            --settings fifth.runsettings
-
       - name: Run all tests (solution)
         run: |
           dotnet test fifthlang.sln \
