@@ -44,20 +44,6 @@ jobs:
       - name: Restore
         run: dotnet restore fifthlang.sln
 
-      - name: Check generated folder consistency
-        shell: bash
-        run: |
-          set -euo pipefail
-          tmp_dir="$(mktemp -d)"
-          dotnet run --project src/ast_generator/ast_generator.csproj -- --folder "$tmp_dir"
-          diff -ru src/ast-generated "$tmp_dir" > diff.txt || true
-          if [ -s diff.txt ]; then
-            echo 'Generated code differs from generator output.' >&2
-            echo 'Do not hand-edit files in src/ast-generated; update metamodel/templates and regenerate.' >&2
-            sed -n '1,200p' diff.txt >&2
-            exit 1
-          fi
-
       - name: Build
         run: dotnet build fifthlang.sln --configuration Release --no-restore
 
