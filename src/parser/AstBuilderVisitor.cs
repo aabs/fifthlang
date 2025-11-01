@@ -77,6 +77,21 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     }
 
     /// <summary>
+    /// Extract a qualified name from the parse tree (e.g., "System.Collections.Generic")
+    /// </summary>
+    private string ExtractQualifiedName(FifthParser.Qualified_nameContext context)
+    {
+        if (context == null) return string.Empty;
+        
+        var parts = new List<string>();
+        foreach (var identifier in context.IDENTIFIER())
+        {
+            parts.Add(identifier.GetText());
+        }
+        return string.Join(".", parts);
+    }
+
+    /// <summary>
     /// Creates a deep copy of an expression by recursively visiting all nodes.
     /// This is necessary when the same expression needs to appear in multiple places
     /// in the AST (e.g., in augmented assignments like += where lvalue appears both
@@ -630,6 +645,25 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         if (module.Annotations == null)
         {
             module = module with { Annotations = new Dictionary<string, object>() };
+        }
+
+        // Extract namespace declaration (at most one per module)
+        if (context.namespace_declaration() != null)
+        {
+            var namespaceName = ExtractQualifiedName(context.namespace_declaration().qualified_name());
+            module.Annotations["DeclaredNamespace"] = namespaceName;
+        }
+
+        // Extract import directives
+        var imports = new List<string>();
+        foreach (var importCtx in context.import_directive())
+        {
+            var importName = ExtractQualifiedName(importCtx.qualified_name());
+            imports.Add(importName);
+        }
+        if (imports.Count > 0)
+        {
+            module.Annotations["Imports"] = imports;
         }
 
         // Collect colon-form store declarations; colon form is canonical.

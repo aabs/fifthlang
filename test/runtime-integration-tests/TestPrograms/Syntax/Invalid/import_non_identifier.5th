@@ -1,2 +1,2 @@
-use 123;
+import 123;
 main(): int { return 0; }
