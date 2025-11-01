@@ -1,0 +1,8 @@
+// Simple try/finally without catch
+main(): int {
+    try {
+        return 42;
+    } finally {
+        std.print("cleanup");
+    }
+}

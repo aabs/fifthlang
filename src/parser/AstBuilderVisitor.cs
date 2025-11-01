@@ -1519,4 +1519,126 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         DebugLog($"DEBUG: About to return result of type: {result.GetType().Name}");
         return result;
     }
+
+    public override IAstThing VisitTry_statement([NotNull] FifthParser.Try_statementContext context)
+    {
+        var b = new TryStatementBuilder();
+        b.WithAnnotations([]);
+
+        // Visit the try block
+        var tryBlockAst = Visit(context.tryBlock);
+        var tryBlock = tryBlockAst as BlockStatement ?? new BlockStatement
+        {
+            Annotations = [],
+            Statements = [(Statement)tryBlockAst],
+            Location = GetLocationDetails(context.tryBlock),
+            Type = Void
+        };
+        b.WithTryBlock(tryBlock);
+
+        // Visit catch clauses
+        var catchClauses = new List<CatchClause>();
+        foreach (var catchContext in context._catchClauses)
+        {
+            var catchClause = (CatchClause)Visit(catchContext);
+            catchClauses.Add(catchClause);
+        }
+        b.WithCatchClauses(catchClauses);
+
+        // Build and add finally block if present
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        if (context.finallyBlock != null)
+        {
+            var finallyBlockAst = (BlockStatement)Visit(context.finallyBlock);
+            result = result with { FinallyBlock = finallyBlockAst };
+        }
+        
+        return result;
+    }
+
+    public override IAstThing VisitCatch_clause([NotNull] FifthParser.Catch_clauseContext context)
+    {
+        var b = new CatchClauseBuilder();
+        b.WithAnnotations([]);
+
+        // Visit the catch body
+        var catchBodyAst = Visit(context.catchBody);
+        var catchBody = catchBodyAst as BlockStatement ?? new BlockStatement
+        {
+            Annotations = [],
+            Statements = [(Statement)catchBodyAst],
+            Location = GetLocationDetails(context.catchBody),
+            Type = Void
+        };
+        b.WithBody(catchBody);
+
+        // Build and set optional properties
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+
+        // Check if exception type is specified
+        if (context.exceptionType != null)
+        {
+            var (typeName, collectionType) = ParseTypeSpec(context.exceptionType);
+            var exceptionType = CreateTypeFromSpec(typeName, collectionType);
+            result = result with { ExceptionType = exceptionType };
+        }
+
+        // Check if exception identifier is specified
+        if (context.exceptionId != null)
+        {
+            result = result with { ExceptionIdentifier = context.exceptionId.GetText() };
+        }
+
+        // Check if filter is specified
+        if (context.filter != null)
+        {
+            var filterExpr = (Expression)Visit(context.filter);
+            result = result with { Filter = filterExpr };
+        }
+
+        return result;
+    }
+
+    public override IAstThing VisitFinally_clause([NotNull] FifthParser.Finally_clauseContext context)
+    {
+        var finallyBodyAst = Visit(context.finallyBody);
+        var finallyBlock = finallyBodyAst as BlockStatement ?? new BlockStatement
+        {
+            Annotations = [],
+            Statements = [(Statement)finallyBodyAst],
+            Location = GetLocationDetails(context.finallyBody),
+            Type = Void
+        };
+        return finallyBlock;
+    }
+
+    public override IAstThing VisitThrow_statement([NotNull] FifthParser.Throw_statementContext context)
+    {
+        var b = new ThrowStatementBuilder();
+        b.WithAnnotations([]);
+
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+
+        // Check if an exception expression is provided
+        if (context.expression() != null)
+        {
+            var exceptionExpr = (Expression)Visit(context.expression());
+            result = result with { Exception = exceptionExpr };
+        }
+
+        return result;
+    }
+
+    public override IAstThing VisitExp_throw([NotNull] FifthParser.Exp_throwContext context)
+    {
+        var b = new ThrowExpBuilder();
+        b.WithAnnotations([]);
+
+        var exceptionExpr = (Expression)Visit(context.expression());
+        b.WithException(exceptionExpr);
+
+        // Throw expressions have an unknown/void type for now; proper type inference needed later
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
 }
