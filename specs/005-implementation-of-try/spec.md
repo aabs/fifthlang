@@ -49,8 +49,17 @@ The IL generation will be generated to be as close as possible to that generated
 - Q: Keyword handling: reserve `try`, `catch`, `finally`, and `when` as hard keywords, or make them contextual? → A: A — Reserve as hard keywords (breaking change)
 - Q: Async/await interaction: must the transformed async state-machine IL match Roslyn byte-for-byte or only preserve observable behavior? → A: A — Match Roslyn IL byte-for-byte
 - Q: Exception identifier scoping in catch filters: which scoping should we follow? → A: A — Match C# (identifier in filter and catch body)
+ - Q: AST modeling approach for this feature: prefer first-class nodes/typed properties or use ad-hoc annotations? → A: Prefer first-class nodes and typed properties; annotations only for marginal, non-semantic metadata
 - Q: Should exception bindings use C#-style `Type id` syntax or Fifth-style `id: Type`? → A: Use Fifth `id: Type` syntax for exception bindings; allow `catch (Type)` as an unnamed typed catch.
 - Q: How should the Fifth exception model map to the target runtime (CLR)? → A: A — Map directly to CLR types (use System.Exception family)
+
+### Session 2025-11-02
+
+- Q: Iterator interaction with try/catch/finally in v1: allow within iterator/async-iterator methods, restrict to try/finally only, or defer? → A: Defer iterators entirely
+ - Q: Performance budget for non-exceptional path: strict percentage target or macro-level no-regression? → A: D — No strict budget; "no measurable regression" on macrobenchmarks
+ - Q: Pinning the IL test baseline: tie golden IL comparisons to the .NET SDK in global.json, hard-freeze a specific Roslyn/SDK version, or float to latest? → A: A — Pin to SDK in global.json
+ - Q: Unreachable catch diagnostic severity due to ordering/type shadowing? → A: A — Error (compile-time)
+ - Q: Throw expressions scope in v1: include C#-style throw expressions (e.g., `x ?? throw new E()`), exclude them, or restrict to certain contexts? → A: A — Include throw expressions in v1 (match C# contexts)
 
 ---
 
@@ -82,6 +91,7 @@ As a Fifth language programmer I want to write exception-handling blocks using C
 - Exception filters that throw during evaluation. The implementation will match C# behaviour: if a filter throws, the exception propagates and is handled according to C# semantics (filter exceptions do not cause the filter to be ignored; they may be observed as separate failures). [Note: exact behavior matched to latest stable C# version.]
 - Catch type that is not an exception type (compiler error: "catch type must be assignable to System.Exception").
 - Re-throwing and preservation of ExceptionDispatchInfo for call-sites.
+- Iterator and async-iterator contexts are not supported in v1: any `try`/`catch`/`finally` inside iterator methods should trigger the deferral diagnostic.
 
 ---
 
@@ -111,6 +121,7 @@ As a Fifth language programmer I want to write exception-handling blocks using C
   - If `ExceptionType` is present it must be a reference type compatible with the runtime exception base type (e.g., `System.Exception`). If not compatible: compile-time error.
   - Filter expressions must be boolean-convertible; filter evaluation semantics must match the latest stable C# semantics at implementation time (filter evaluated before the catch body). The exception identifier declared in a catch clause is in scope both within the filter expression and the catch body, matching C# scoping rules.
   - ExceptionType mapping: Fifth exception types must map to CLR exception types. The semantic analyzer must ensure that any declared `ExceptionType` is convertible to `System.Exception` (or a recognized CLR exception type) and perform necessary type resolution checks. If Fifth supports user-defined exception types, they must emit CLR types compatible with System.Exception.
+   - Unreachable catch detection: a catch clause that is unreachable due to an earlier, broader, or identical type match (or ordering) MUST produce a compile-time error.
 
 - **FR-004**: Code generation / IL emission MUST produce exception handler metadata and instruction sequences that are structurally equivalent to Roslyn's output for semantically equivalent source code. Structural equivalence includes:
    - Handler regions layout (try/catch/finally boundaries)
@@ -128,15 +139,27 @@ As a Fifth language programmer I want to write exception-handling blocks using C
 
 - **FR-006**: Diagnostics and error messages MUST be clear and actionable:
   - Using a non-exception type in a catch clause must produce a specific diagnostic, e.g., "catch type must derive from System.Exception".
-  - Unused catch variables or unreachable catch blocks should produce helpful warnings consistent with existing diagnostics styles.
+   - Unreachable catch blocks (due to ordering/type shadowing) MUST be reported as compile-time errors.
+   - Unused catch variables SHOULD produce a warning consistent with existing diagnostics styles.
 
 - **FR-007**: Tests MUST include parsing tests, AST construction tests, semantic validation tests, IL-emission structural tests, and end-to-end runtime tests (integration tests). Each requirement above must have at least one automated test covering the normal and edge-case behaviour.
 
 - **FR-008**: Backwards compatibility: Resolved — the team will reserve `try`, `catch`, `finally`, and `when` as hard keywords (breaking change). Implementation work must include documentation updates and a migration note in the release notes identifying potential source breakages and suggested remediation steps.
 
+- **FR-009**: Iterators scope (v1 deferral): Iterator and async-iterator methods are out of scope for this feature. Using `try`/`catch`/`finally` within iterator or async-iterator methods is disallowed in v1; the compiler MUST emit a diagnostic (e.g., "try/catch/finally not supported in iterators (deferred)"). Future support to be specified in a separate feature.
+
+- **FR-010**: Throw expressions (v1) — The language MUST support C#-style throw expressions in all contexts permitted by the latest stable C# version (e.g., null‑coalescing, conditional operator arms, expression‑bodied members). Requirements:
+   - Grammar: introduce a `throwExpression` production that parses `throw` followed by an expression; statement‑form `throw;` remains statement‑only and is not a throw expression.
+   - AST: add `ThrowExp` with field `Expression Exception` (required). Rethrow (`throw;`) remains represented by the existing `ThrowStatement` with no expression.
+   - Semantics: the operand of a throw expression MUST be (or be convertible to) `System.Exception`; the throw expression has bottom/never type and participates in flow analysis consistent with C#.
+   - IL: emit code to evaluate the operand followed by `throw`; structural IL tests should treat throw expressions equivalently to statement `throw` in generated opcodes.
+
+- **FR-011**: AST modeling policy (this feature) — Represent all exception‑handling semantics as first‑class AST nodes and typed properties defined in `AstMetamodel`. Do NOT introduce open‑ended annotation bags or string‑keyed metadata on nodes. The only allowed annotations are existing non‑semantic infrastructure (e.g., source locations/trivia). Any additional metadata must be declared in the metamodel and generated via the AST generator.
+
 ### Key Non-functional Requirements
-- **NFR-001**: The normal (non-exceptional) execution path should incur minimal overhead relative to current codegen. Exception handling support must not degrade performance for code that does not throw exceptions.
+- **NFR-001**: Performance budget — No measurable regression on macrobenchmarks for the non-exceptional path. Measure using the repository's macrobenchmark suite; changes pass if there is no statistically significant slowdown versus baseline (e.g., Mann–Whitney U test p ≥ 0.05). Investigate any significant regressions; waivers require explicit justification.
 - **NFR-002**: The IL emitter MUST produce handler metadata compatible with the runtime (CLR-style handlers if targeting .NET). The emitter should use the canonical instructions (`leave`, `endfinally`, `throw`, `rethrow` or their equivalents) that the target VM expects. For async state-machine rewrites involving try/catch/finally, the IL emitter MUST match Roslyn's IL byte-for-byte.
+ - **NFR-003**: IL test baseline pinning — Execute IL structural and async byte-for-byte equality tests using the .NET SDK version specified in `global.json` (using the SDK’s bundled Roslyn). When `global.json` changes, re-baseline golden IL outputs as needed.
 
 ### Key Entities *(this feature involves AST/IR entities)*
 - **TryStatement**: Represents the top-level try node in AST.
@@ -160,6 +183,10 @@ As a Fifth language programmer I want to write exception-handling blocks using C
 - [ ] Success criteria are measurable (parser/AST/IL/runtime tests exist)
 - [ ] Scope is clearly bounded (parser + AST + IL + tests + docs)
 - [ ] Dependencies and assumptions identified (runtime target, C# version, keyword handling: reserved as hard keywords, exception model mapping: CLR System.Exception)
+- [ ] Dependencies and assumptions identified (runtime target, C# version, keyword handling: reserved as hard keywords, exception model mapping: CLR System.Exception, iterators deferred in v1 — no try/catch/finally in iterators)
+ - [ ] Dependencies and assumptions identified (IL golden tests pinned to SDK in `global.json`; re-baseline on SDK change)
+ - [ ] Performance gate defined and enforceable (macrobench “no measurable regression” policy; failure threshold via statistical significance test)
+ - [ ] AST modeling policy enforced (no ad‑hoc annotations; first‑class nodes/typed fields only; metamodel‑declared)
 
 ---
 
@@ -182,35 +209,43 @@ The tasks below map the minimal work to implement the feature end-to-end. Each t
    - Add a `tryStatement` grammar production to `src/parser/grammar/FifthParser.g4` that mirrors C# try/catch/finally forms but uses Fifth-style exception binding in catch parameters (`catchClause: 'catch' '(' Identifier ':' Type ( 'when' '(' Expression ')' )? ')' | 'catch' '(' Type ')' | 'catch' '{' Block '}'`).
    - Add parser-level tests: `src/parser/grammar/test_samples/try-catch-01.5th`, etc.
    - Add parser-level tests that include `catch (ex: System.Exception)`, `catch (System.Exception)` and `catch { ... }` samples to validate both bound and unnamed typed catches.
+   - Add a `throwExpression` rule (C#-style) and enable it in contexts allowed by C#: null‑coalescing, conditional operator, expression‑bodied members; add samples exercising these contexts.
 
 2. AST Model
    - Update `src/ast-model/AstMetamodel.cs` to add `TryStatement`, `CatchClause`, and `FinallyBlock` entries.
    - Run generator: `just run-generator` and validate generated builders in `src/ast-generated/`.
+   - Add `ThrowExp` node with `Expression Exception`.
 
 3. AST Builder
    - Update `src/parser/AstBuilderVisitor.cs` to construct `TryStatement` nodes including catch clauses and optional filters.
    - Add unit tests under `test/ast-tests/` validating the AST shape for a set of sample inputs.
+   - Implement construction of `ThrowExp` for throw expressions; ensure `throw;` remains a `ThrowStatement`.
 
 4. Semantic Analysis
    - Add semantic checks to ensure catch types are compatible with the runtime exception base type and that filter expressions are boolean-convertible.
    - Add diagnostics for invalid catch declarations.
+   - Validate throw expression operand type derives from `System.Exception` (or is convertible); enforce flow analysis rules for bottom/never type positions.
 
 5. IL / PE Emitter
    - Implement code emission in `src/code_generator/PEEmitter.cs` or the existing emitter pipeline to create exception handler regions with appropriate opcodes (`leave`, `endfinally`, `throw`) and metadata (catch/filter/finally). Use Roslyn output as structural reference when authoring tests.
    - Implement the async state-machine emission to reproduce Roslyn's transformation exactly for methods that include try/catch/finally across await points. This includes reproducing local slot layout, synthesized fields, MoveNext method structure, and exception handling boundaries.
    - Add a test harness that compiles the same source with Roslyn and Fifth's emitter and performs a byte-for-byte IL comparison for async cases.
+   - Ensure throw expressions emit operand evaluation followed by `throw` opcode; include IL structural tests covering throw expressions in coalescing/conditional contexts.
 
 6. Runtime & Integration Tests
    - Add runtime tests under `test/runtime-integration-tests/` that exercise try/catch/finally behaviour (including nested handlers, filters, rethrow behaviour, exceptions in finally, and async interactions).
    - If Fifth has its own runtime beyond CLR, add tests validating equivalent observable behaviour.
+   - Add runtime tests where throw expressions are evaluated (e.g., `x ?? throw new E()`), asserting thrown exception types and messages.
 
 7. Docs & Examples
    - Update `docs/syntax-samples-readme.md` and `learn5thInYMinutes.md` with concise try/catch/finally examples.
    - Add sample snippets under `test/` and `src/parser/grammar/test_samples/`.
+   - Document throw expressions with examples (null‑coalescing and conditional operator arms).
 
 8. CI & Validation
    - Add parser-checker-friendly samples to the validator's include list. Run `scripts/validate-examples.fish` to ensure new examples parse.
    - Ensure new tests are covered by `dotnet test test/syntax-parser-tests/`, `dotnet test test/ast-tests/`, and `dotnet test test/runtime-integration-tests/` as appropriate.
+   - Run IL golden comparisons using the SDK pinned in `global.json`; update baselines when the pinned SDK changes.
 
 ---
 
@@ -219,23 +254,34 @@ The tasks below map the minimal work to implement the feature end-to-end. Each t
   - `TryCatchFinally_Syntax_01.5th`: simple try/finally parses
   - `TryCatchFinally_Syntax_02.5th`: multiple catch clauses parse (`catch (ex: System.Exception)`, `catch (System.Exception)`, `catch { }`)
   - `TryCatchFinally_Syntax_03.5th`: catch with filter (`catch (ex: System.Exception) when (ex.Message != null)`) parses
+   - `ThrowExpression_Syntax_01.5th`: `a ?? throw new System.Exception("x")` parses
+   - `ThrowExpression_Syntax_02.5th`: conditional operator arm `cond ? x : throw new E()` parses
 
 - AST tests (ast-tests):
   - `TryStatement_AstShape_01`: verifies TryBlock, CatchClauses, FinallyBlock are present and typed correctly
+   - `ThrowExpression_AstShape_01`: `ThrowExp` node created with `Exception` child populated
+   - `NoAdHocAnnotations_Contract`: nodes for `TryStatement`, `CatchClause`, `FinallyBlock`, and `ThrowExp` expose required typed fields only; no custom annotation bags are used
 
 - Semantic tests:
   - `CatchNonExceptionType_Error`: using `catch (x: int)` must produce a compile error
   - `FilterMustBeBoolean_Error`: `catch (e: Exception) when (123)` must be a type error
   - `CatchBinding_Syntax`: `catch (e: System.Exception)` populates `ExceptionIdentifier` and `ExceptionType` in the AST as expected.
+   - `UnreachableCatch_Error`: a broader earlier catch makes a later typed catch unreachable → compile-time error
+   - `ThrowExpression_OperandType_Error`: operand not deriving from `System.Exception` triggers diagnostic
 
 - IL structural tests:
   - `TryFinally_ILLayout`: Ensure handler regions and `endfinally`/`leave` patterns are present.
   - `TryCatch_Filter_IL`: Ensure `filter` clauses are emitted when source uses `when` and handled structurally like Roslyn.
+   - Baseline: perform all IL comparisons using the .NET SDK version from `global.json`.
+   - `ThrowExpression_IL`: Ensure operand evaluation then `throw` opcode emitted in coalescing/conditional contexts.
+ - Performance (macrobench) tests:
+    - `Macro_NoRegression_NonExceptional`: Run the repository macrobenchmark suite; fail if there is a statistically significant slowdown vs baseline (e.g., Mann–Whitney U p < 0.05). Document any waivers.
 
 - Runtime integration tests (runtime-integration-tests):
   - `FinallyAlwaysExecutes`: verifies finally always runs for return/throw paths
   - `RethrowPreservesStackTrace`: `throw;` preserves stack trace while `throw ex;` does not (compare stack traces or use ExceptionDispatchInfo semantics to assert preservation)
   - `ExceptionMapping_Emission`: Fifth exception types are emitted as CLR types derived from System.Exception and validated in IL-emission tests.
+   - `ThrowExpression_Runtime`: `a ?? throw new E()` throws `E` when `a` is null; conditional arm throw behaves as expected.
 
 ---
 
