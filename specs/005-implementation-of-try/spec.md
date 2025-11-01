@@ -41,6 +41,9 @@ The IL generation will be generated to be as close as possible to that generated
 ### Section Requirements
 - **Mandatory sections**: Completed below for this feature.
 
+### Baseline C# Version (to pin at merge)
+- C# semantics baseline: record the exact C# language version at merge time (e.g., the version shipped with the SDK pinned in `global.json`, currently 8.0.118). All behavioral comparisons in this spec refer to that pinned version for this feature.
+
 ## Clarifications
 
 ### Session 2025-10-12
@@ -227,8 +230,6 @@ The tasks below map the minimal work to implement the feature end-to-end. Each t
 
 5. IL / PE Emitter
    - Implement code emission in `src/code_generator/PEEmitter.cs` or the existing emitter pipeline to create exception handler regions with appropriate opcodes (`leave`, `endfinally`, `throw`) and metadata (catch/filter/finally). Use Roslyn output as structural reference when authoring tests.
-   - Implement the async state-machine emission to reproduce Roslyn's transformation exactly for methods that include try/catch/finally across await points. This includes reproducing local slot layout, synthesized fields, MoveNext method structure, and exception handling boundaries.
-   - Add a test harness that compiles the same source with Roslyn and Fifth's emitter and performs a byte-for-byte IL comparison for async cases.
    - Ensure throw expressions emit operand evaluation followed by `throw` opcode; include IL structural tests covering throw expressions in coalescing/conditional contexts.
 
 6. Runtime & Integration Tests
@@ -245,6 +246,12 @@ The tasks below map the minimal work to implement the feature end-to-end. Each t
    - Add parser-checker-friendly samples to the validator's include list. Run `scripts/validate-examples.fish` to ensure new examples parse.
    - Ensure new tests are covered by `dotnet test test/syntax-parser-tests/`, `dotnet test test/ast-tests/`, and `dotnet test test/runtime-integration-tests/` as appropriate.
    - Run IL golden comparisons using the SDK pinned in `global.json`; update baselines when the pinned SDK changes.
+
+### Deferred (async feature backlog)
+
+- Async state-machine emission and byte-for-byte IL equality tests for methods with try/catch/finally across await are deferred until async support exists in Fifth. When async lands, add:
+   - Emitter work to reproduce Roslyn’s transformation (local slot layout, synthesized fields, MoveNext structure, handler boundaries) across await points.
+   - A test harness that compiles equivalent C# and Fifth sources and performs textual IL equality checks for async cases.
 
 ---
 
@@ -281,6 +288,7 @@ The tasks below map the minimal work to implement the feature end-to-end. Each t
   - `RethrowPreservesStackTrace`: `throw;` preserves stack trace while `throw ex;` does not (compare stack traces or use ExceptionDispatchInfo semantics to assert preservation)
   - `ExceptionMapping_Emission`: Fifth exception types are emitted as CLR types derived from System.Exception and validated in IL-emission tests.
    - `ThrowExpression_Runtime`: `a ?? throw new E()` throws `E` when `a` is null; conditional arm throw behaves as expected.
+   - `FilterThrows_PropagatesAsInCSharp`: when a filter expression throws, the observed behavior matches C# (documented expectation for propagation/selection semantics).
 
 ---
 
@@ -298,6 +306,7 @@ The tasks below map the minimal work to implement the feature end-to-end. Each t
 - Semantic analyzer rejects invalid catch-type uses and invalid filter expressions with documented diagnostics.
 - IL-emitter structural tests compare the emitted handler metadata, handler kinds and critical opcodes to Roslyn's structural output and pass (allowing non-semantic differences such as local slot indices).
 - End-to-end runtime tests (`runtime-integration-tests`) validate observable behaviour: catch selection order, filter semantics, finally execution, and rethrow stack-trace semantics.
+- Spec header includes the pinned C# version for this feature (baseline recorded at merge time).
 - IL-emitter async IL equality tests (deferred): Will be added when async support is implemented in Fifth. All thrown Fifth exceptions must be represented as CLR types derived from System.Exception per the mapping decision.
 
 ---

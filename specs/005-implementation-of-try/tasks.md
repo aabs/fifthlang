@@ -7,14 +7,14 @@ Plan: specs/005-implementation-of-try/plan.md
 
 ## Phase 1 — Setup
 
-- [ ] T001 Ensure SDK pin for IL tests honored in CI (use SDK from `global.json`) in `.github/workflows/*` or CI scripts
+- [ ] T001 Ensure SDK pin for IL tests is enforced in CI workflows (use SDK from `global.json`). For example, `.github/workflows/ci.yml` uses `actions/setup-dotnet` honoring `global.json`. Document the exact workflow file and step that enforces this.
 - [ ] T002 Add parser sample placeholders under `src/parser/grammar/test_samples/` (directory exists)
 - [ ] T003 Add performance macrobench gate placeholder test under `test/perf/` (skeleton; will be wired later)
 - [ ] T004 Verify ANTLR jar presence at `src/parser/tools/antlr-4.8-complete.jar`
 
 ## Phase 2 — Foundational (blocking prerequisites)
 
-- [ ] T005 Update `src/ast-model/AstMetamodel.cs` to add nodes: `TryStatement`, `CatchClause`, `ThrowExp` (and `FinallyBlock` if distinct)
+- [ ] T005 Update `src/ast-model/AstMetamodel.cs` to add nodes: `TryStatement`, `CatchClause`, `ThrowExp`, and `FinallyBlock`
 - [ ] T006 Run generator to populate `src/ast-generated/*` (no manual edits)
 - [ ] T007 [P] Reserve keywords (`try`, `catch`, `finally`, `when`) in `src/parser/grammar/FifthLexer.g4`
 - [ ] T008 Define `throwExpression` production in `src/parser/grammar/FifthParser.g4` (no integration yet)
@@ -63,17 +63,7 @@ Independent test criteria: Structural IL tests pass comparing handler layout and
 - [ ] T032 [US3] Add IL structural tests under `test/runtime-integration-tests/` for `TryCatch_Filter_IL`
 - [ ] T033 [US3] Add IL structural tests under `test/runtime-integration-tests/` for `ThrowExpression_IL`
 
-## Phase 6 — [US4] Async state-machine IL equality (byte-for-byte) (P2) — DEFERRED (blocked until async support exists)
-
-Note: Fifth does not yet support async. The following tasks are deferred/blocked and should be moved to the async feature backlog. They are not part of the definition of done for this feature.
-
-Goal (deferred): When async is implemented, for methods with try/catch/finally across await, match Roslyn IL byte-for-byte.
-Independent test criteria (deferred): Harness compiles equivalent C# and Fifth; textual IL equality holds for samples.
-
-- [ ] T034 [US4] [DEFERRED] Implement/extend equality harness to compile C# sample and Fifth sample and compare IL textually (location: `test/runtime-integration-tests/` harness)
-- [ ] T035 [P] [US4] [DEFERRED] Add async sample with try/finally across await (C# + Fifth) under `test/runtime-integration-tests/`
-- [ ] T036 [P] [US4] [DEFERRED] Add async sample with multiple catches and filters across await under `test/runtime-integration-tests/`
-- [ ] T037 [US4] [DEFERRED] Ensure local slot layout and handler regions mirror Roslyn in emitter; adjust as needed
+ 
 
 ## Phase 7 — [US5] Runtime semantics & integration (P2)
 
@@ -98,7 +88,7 @@ Independent test criteria: Integration tests pass verifying behavior; stack trac
 
 ## Dependencies (story completion order)
 
-- US1 (Parsing & AST) → US2 (Semantics) → US3 (IL Structural) → US4 (Async IL Equality)
+- US1 (Parsing & AST) → US2 (Semantics) → US3 (IL Structural)
 - US5 (Runtime Semantics) depends on US3
 - Docs/Polish can begin after US1 (parallel), but finalize after US3
 
@@ -108,10 +98,10 @@ Note: US4 (Async IL Equality) is DEFERRED/blocked until async support exists and
 
 - Parsing samples (T015–T019) can run in parallel after grammar rules are added
 - IL structural tests (T031–T033) can be authored in parallel once T028–T030 are complete
-- Async samples (T035–T036) can be prepared in parallel; harness update (T034) must land first
+ 
 
 ## Implementation strategy (MVP first)
 
 - MVP scope: Complete US1 (Parsing & AST) and US2 (Semantics) with tests. This unlocks early validation and internal consumption.
 - Next: US3 (IL structural) to enable end-to-end compile/run. Then US5 for runtime semantics validation.
-- Finally: US4 (async IL equality) and Polish.
+- Finally: Polish.
