@@ -8,7 +8,8 @@
 - [ ] T001a Create/update parser grammar samples under `src/parser/grammar/test_samples/` for file-scoped `namespace` and `import` syntax (positive cases) and legacy `use` (negative case). Place negative examples under `src/parser/grammar/test_samples/Invalid/` so the example validator skips them. These samples will be referenced by parser tests in T002.
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
-- [ ] T002 [P] Create `test/syntax-parser-tests/NamespaceImportSyntaxTests.cs` (xUnit) covering namespace declaration/import acceptance and asserting legacy `use` syntax now fails.
+- [ ] T002 [P] Create `test/syntax-parser-tests/NamespaceImportSyntaxTests.cs` covering namespace declaration/import acceptance and asserting legacy `use` syntax now fails.
+- [ ] T002a Add a negative parser test case that includes multiple file-scoped `namespace` declarations within a single module and asserts an error diagnostic (file + message indicating at most one namespace per module). Reference a dedicated sample under `src/parser/grammar/test_samples/Invalid/`.
 - [ ] T003 [P] Add `test/runtime-integration-tests/Validation/NamespaceDuplicateSymbolTests.cs` that compiles two modules in the same namespace declaring `export add(int a, int b): int { return a + b; }` and expects a duplicate-symbol diagnostic naming both files.
 - [ ] T004 [P] Add `test/runtime-integration-tests/NamespaceImportRuntimeTests.cs` that compiles the NamespaceImports program set and asserts `main(): int { return add(2, 3); }` evaluates to `5` with no diagnostics.
 - [ ] T005 [P] Add `test/runtime-integration-tests/Validation/NamespaceImportDiagnosticsTests.cs` verifying warning `WNS0001` is emitted (module path + namespace) when an import targets an undeclared namespace.
@@ -49,6 +50,7 @@
 ## Dependencies
 - T001 → T002–T010 (samples required before tests).
 - T001a → T002 (parser grammar samples required before parser syntax tests).
+- T001a → T002a (invalid multiple-namespace sample required before negative parser test).
 - T002–T010 → T011–T025 (tests must fail before implementation begins).
 - T011 → T012–T015 (Module metadata required before other namespace structures).
 - T012–T015 → T018–T020 (namespace structures required before resolver integration).
