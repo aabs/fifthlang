@@ -265,7 +265,7 @@ Examples:
             // Parse the primary file for the AST
             var ast = FifthParserManager.ParseFile(sourceFiles[0]);
             
-            // If multiple files, perform namespace resolution
+            // If multiple files, perform namespace resolution and merge modules
             Dictionary<string, NamespaceResolution.NamespaceScopeIndex>? namespaceScopes = null;
             if (sourceFiles.Count > 1)
             {
@@ -274,6 +274,42 @@ Examples:
                 
                 var modules = resolver.ResolveFromCliFiles(sourceFiles);
                 namespaceScopes = resolver.BuildNamespaceScopes(modules);
+                
+                // Merge all module functions into the primary AST
+                // This ensures all functions are available for code generation
+                if (ast is AssemblyDef assemblyDef && assemblyDef.Modules.Count > 0)
+                {
+                    var primaryModule = assemblyDef.Modules[0];
+                    if (primaryModule != null)
+                    {
+                        // Collect all functions from all namespace scopes
+                        var allFunctions = new List<ScopedDefinition>(primaryModule.Functions);
+                        
+                        foreach (var scope in namespaceScopes.Values)
+                        {
+                            foreach (var module in scope.ContributingModules)
+                            {
+                                // Skip the primary module to avoid duplicates
+                                if (module.Path != sourceFiles[0])
+                                {
+                                    foreach (var decl in module.Declarations)
+                                    {
+                                        if (decl is ScopedDefinition scopedDef)
+                                        {
+                                            allFunctions.Add(scopedDef);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Update the primary module with all functions
+                        var updatedModule = primaryModule with { Functions = allFunctions };
+                        var updatedModules = new List<ModuleDef> { updatedModule };
+                        updatedModules.AddRange(assemblyDef.Modules.Skip(1));
+                        ast = assemblyDef with { Modules = updatedModules };
+                    }
+                }
                 
                 // Add namespace diagnostics to compilation diagnostics
                 foreach (var nsDiagnostic in diagnosticEmitter.Diagnostics)
