@@ -21,7 +21,7 @@ public class CompilerTests
     public async Task CompileAsync_WithInvalidOptions_ShouldReturnError()
     {
         var compiler = new Compiler();
-        var options = new CompilerOptions(CompilerCommand.Build, "", ""); // Missing source and output
+        var options = new CompilerOptions(CompilerCommand.Build, "", Array.Empty<string>(), ""); // Missing source and output
         
         var result = await compiler.CompileAsync(options);
         
@@ -36,7 +36,7 @@ public class CompilerTests
     public async Task CompileAsync_WithNonExistentSource_ShouldReturnParseError()
     {
         var compiler = new Compiler();
-        var options = new CompilerOptions(CompilerCommand.Build, "nonexistent.5th", "test.exe");
+        var options = new CompilerOptions(CompilerCommand.Build, "nonexistent.5th", Array.Empty<string>(), "test.exe");
         
         var result = await compiler.CompileAsync(options);
         
@@ -57,7 +57,7 @@ public class CompilerTests
             File.WriteAllText(fifthFile, "main():int{return 42;}");
             
             var compiler = new Compiler();
-            var options = new CompilerOptions(CompilerCommand.Lint, fifthFile, "");
+            var options = new CompilerOptions(CompilerCommand.Lint, fifthFile, Array.Empty<string>(), "");
             
             var result = await compiler.CompileAsync(options);
             

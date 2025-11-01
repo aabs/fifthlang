@@ -21,7 +21,7 @@ public class CompilerOptionsTests
     [Test]
     public void Validate_WhenSourceEmpty_ShouldReturnError()
     {
-        var options = new CompilerOptions(CompilerCommand.Build, "", "test.exe");
+        var options = new CompilerOptions(CompilerCommand.Build, "", Array.Empty<string>(), "test.exe");
         
         var error = options.Validate();
         
@@ -32,7 +32,7 @@ public class CompilerOptionsTests
     [Test]
     public void Validate_WhenOutputEmptyForBuild_ShouldReturnError()
     {
-        var options = new CompilerOptions(CompilerCommand.Build, "test.5th", "");
+        var options = new CompilerOptions(CompilerCommand.Build, "test.5th", Array.Empty<string>(), "");
         
         var error = options.Validate();
         
@@ -43,7 +43,7 @@ public class CompilerOptionsTests
     [Test]
     public void Validate_WhenOutputEmptyForRun_ShouldReturnError()
     {
-        var options = new CompilerOptions(CompilerCommand.Run, "test.5th", "");
+        var options = new CompilerOptions(CompilerCommand.Run, "test.5th", Array.Empty<string>(), "");
         
         var error = options.Validate();
         
@@ -58,7 +58,7 @@ public class CompilerOptionsTests
         var tempFile = Path.GetTempFileName();
         try
         {
-            var options = new CompilerOptions(CompilerCommand.Lint, tempFile, "");
+            var options = new CompilerOptions(CompilerCommand.Lint, tempFile, Array.Empty<string>(), "");
             
             var error = options.Validate();
             
@@ -74,7 +74,7 @@ public class CompilerOptionsTests
     [Test]
     public void Validate_WhenHelpCommand_ShouldIgnoreOtherValidation()
     {
-        var options = new CompilerOptions(CompilerCommand.Help, "", "");
+        var options = new CompilerOptions(CompilerCommand.Help, "", Array.Empty<string>(), "");
         
         var error = options.Validate();
         
@@ -84,7 +84,7 @@ public class CompilerOptionsTests
     [Test]
     public void Validate_WhenSourceDoesNotExist_ShouldReturnError()
     {
-        var options = new CompilerOptions(CompilerCommand.Build, "nonexistent.5th", "test.exe");
+        var options = new CompilerOptions(CompilerCommand.Build, "nonexistent.5th", Array.Empty<string>(), "test.exe");
         
         var error = options.Validate();
         
