@@ -78,6 +78,20 @@ A project maintainer can organize multiple Fifth source files into namespaces, i
 - Importing a namespace brings the full symbol table of that namespace into the current module’s scope (subject to shadowing in FR-010).
 - If `export` appears in examples or tests, treat it as optional/no-op under current semantics; a future feature may introduce explicit export controls.
 
+## Diagnostic schema (namespace imports)
+
+All namespace-related diagnostics MUST include the following fields:
+
+| Field     | Description                                               |
+|-----------|-----------------------------------------------------------|
+| code      | Stable diagnostic code (prefix WNS, e.g., WNS0001)        |
+| severity  | Error or Warning                                          |
+| file      | Source module path where the diagnostic originated         |
+| namespace | Namespace relevant to the diagnostic (if applicable)       |
+| line      | Line number (1-based) for the primary location             |
+| column    | Column number (1-based) for the primary location           |
+| message   | Human-readable explanation                                 |
+
 ## Diagnostic Codes (namespace imports)
 
 Prefix: WNS (Namespace warnings/errors)
