@@ -1,10 +1,10 @@
-// Throw expression in null-coalescing operator
+// Throw expression sample with valid Fifth declarations
 main(): int {
-    var x: int = getValue();
+    x: int = getValue();
     return 0;
 }
 
 getValue(): int {
-    var result: int = 42;
+    result: int = 42;
     return result;
 }
