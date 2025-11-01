@@ -81,9 +81,8 @@ As a Fifth language programmer I want to write exception-handling blocks using C
 4. Finally semantics
    - Given a try block with a finally clause, the finally clause executes in all control-flow exit paths from the try and any matching catch (normal return, throw, break/continue where applicable). If finally itself throws, its exception propagates according to normal C# rules.
 
-5. Async interaction (example scenario)
-   - Given an async method containing a try/catch/finally block, exceptions raised across await boundaries are observed and handled with the same C# semantics after the async transformation.
-   - The transformed async state-machine IL MUST match Roslyn's IL byte-for-byte for methods containing try/catch/finally across await boundaries. The IL-emitter must reproduce Roslyn's state-machine structure, opcodes, handler regions, and local layout for these cases; tests must compare textual IL output against Roslyn's output for representative samples.
+5. Async interaction (deferred)
+   - Deferred until async support exists in Fifth. Validation (behavioral and any IL-equality constraints) will be specified and tested under the async feature.
 
 ### Edge Cases
 - Nested try/catch/finally blocks and ordering of finally execution when multiple nested returns/throws occur.
@@ -129,7 +128,7 @@ As a Fifth language programmer I want to write exception-handling blocks using C
    - Correct use of `leave`, `endfinally`, `throw` and `rethrow` opcodes
    - Correct ordering and scoping of local variables used to store the caught exception
 
-  Exact textual IL match is not required for non-async constructs; tests will validate structural equivalence using normalized comparisons (handler regions, handler kinds, opcodes in critical places, and the presence/position of `leave`/`endfinally` opcodes). Exception: for async state-machine rewrites for methods that contain try/catch/finally across await points, the emitter MUST produce IL that matches Roslyn's IL byte-for-byte. The emitter must include a test-harness that compiles equivalent C# samples with Roslyn and compares the produced IL textually for these async cases.
+Exact textual IL match is not required for non-async constructs; tests will validate structural equivalence using normalized comparisons (handler regions, handler kinds, opcodes in critical places, and the presence/position of `leave`/`endfinally` opcodes). Async state-machine rewrites are deferred until async support exists; IL-equality constraints and validation will be specified under the async feature.
 
 - **FR-005**: Runtime semantics MUST match C# behaviour for:
   - Catch selection order and filter evaluation
@@ -158,7 +157,7 @@ As a Fifth language programmer I want to write exception-handling blocks using C
 
 ### Key Non-functional Requirements
 - **NFR-001**: Performance budget — No measurable regression on macrobenchmarks for the non-exceptional path. Measure using the repository's macrobenchmark suite; changes pass if there is no statistically significant slowdown versus baseline (e.g., Mann–Whitney U test p ≥ 0.05). Investigate any significant regressions; waivers require explicit justification.
-- **NFR-002**: The IL emitter MUST produce handler metadata compatible with the runtime (CLR-style handlers if targeting .NET). The emitter should use the canonical instructions (`leave`, `endfinally`, `throw`, `rethrow` or their equivalents) that the target VM expects. For async state-machine rewrites involving try/catch/finally, the IL emitter MUST match Roslyn's IL byte-for-byte.
+- **NFR-002**: The IL emitter MUST produce handler metadata compatible with the runtime (CLR-style handlers if targeting .NET). The emitter should use the canonical instructions (`leave`, `endfinally`, `throw`, `rethrow` or their equivalents) that the target VM expects. Async state-machine rewrites involving try/catch/finally are deferred until async support exists; any IL-equality constraints will be enforced under the async feature spec.
  - **NFR-003**: IL test baseline pinning — Execute IL structural and async byte-for-byte equality tests using the .NET SDK version specified in `global.json` (using the SDK’s bundled Roslyn). When `global.json` changes, re-baseline golden IL outputs as needed.
 
 ### Key Entities *(this feature involves AST/IR entities)*
@@ -299,7 +298,7 @@ The tasks below map the minimal work to implement the feature end-to-end. Each t
 - Semantic analyzer rejects invalid catch-type uses and invalid filter expressions with documented diagnostics.
 - IL-emitter structural tests compare the emitted handler metadata, handler kinds and critical opcodes to Roslyn's structural output and pass (allowing non-semantic differences such as local slot indices).
 - End-to-end runtime tests (`runtime-integration-tests`) validate observable behaviour: catch selection order, filter semantics, finally execution, and rethrow stack-trace semantics.
-- IL-emitter async IL equality tests: For representative async methods containing try/catch/finally across await points, the emitted IL MUST match Roslyn's IL byte-for-byte (textual comparison) and corresponding tests must pass. All thrown Fifth exceptions must be represented as CLR types derived from System.Exception per the mapping decision.
+- IL-emitter async IL equality tests (deferred): Will be added when async support is implemented in Fifth. All thrown Fifth exceptions must be represented as CLR types derived from System.Exception per the mapping decision.
 
 ---
 
