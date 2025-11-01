@@ -1,6 +1,21 @@
 ﻿using ast_model.Symbols;
 namespace compiler.LanguageTransformations;
 
+/// <summary>
+/// Builds symbol tables for all scoped entities in the AST.
+/// This visitor declares symbols in their appropriate scopes for later resolution.
+/// 
+/// Namespace Awareness (T020):
+/// This visitor currently operates on a single module's symbol table. 
+/// For multi-module namespace support, future enhancements would:
+/// - Accept NamespaceScopeIndex from namespace resolution phase
+/// - Flag duplicate symbols across modules in the same namespace  
+/// - Preserve module-local shadow indicators for import precedence
+/// - Emit namespace-qualified symbol names for cross-module references
+/// 
+/// The NamespaceImportResolverVisitor (which runs immediately after this)
+/// validates namespace imports and prepares for symbol resolution across namespaces.
+/// </summary>
 public class SymbolTableBuilderVisitor : DefaultRecursiveDescentVisitor
 {
 

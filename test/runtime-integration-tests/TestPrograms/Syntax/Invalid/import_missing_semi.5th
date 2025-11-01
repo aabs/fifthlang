@@ -1,2 +1,2 @@
-use Math
+import Math
 main(): int { return 0; }

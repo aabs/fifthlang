@@ -47,6 +47,35 @@ Implement file-scoped namespaces and module-local `import` directives for Fifth 
 
 **Status**: Initial Constitution Check – PASS | Post-Design Constitution Check – PASS
 
+## Key Design Decisions
+
+### AST Representation: First-Class Properties vs. Annotations
+
+**Decision**: Namespace declarations and import directives are represented as **first-class properties** on `ModuleDef`, not as annotations.
+
+```csharp
+// ✅ IMPLEMENTED: First-class properties
+public record ModuleDef : ScopedDefinition
+{
+    public required NamespaceName NamespaceDecl { get; init; }
+    public required List<string> Imports { get; init; } = [];
+    // ...
+}
+```
+
+**Rationale**:
+- **Type Safety**: Compiler-enforced contracts prevent runtime errors
+- **Discoverability**: IntelliSense reveals available properties
+- **Performance**: Direct property access vs. dictionary lookups
+- **Maintainability**: Clear distinction between syntactic elements and metadata
+- **Refactoring**: IDEs can track all property usages
+
+**When to Use Annotations**: Compiler-internal metadata not present in source syntax (e.g., inferred types, temporary bookkeeping, graph store declarations).
+
+**When to Use Properties**: Elements directly present in source code (namespace, import, class, function, etc.).
+
+This pattern should be followed for all future top-level syntax additions.
+
 ## Project Structure
 ```
 specs/004-namespace-import-directives/

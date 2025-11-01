@@ -83,7 +83,7 @@ public class Compiler
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting transform phase"));
             }
 
-            var transformedAst = TransformPhase(parseResult.ast, diagnostics);
+            var transformedAst = TransformPhase(parseResult.ast, diagnostics, parseResult.namespaceScopes);
             if (transformedAst == null)
             {
                 return CompilationResult.Failed(3, diagnostics);
@@ -176,7 +176,7 @@ public class Compiler
             }
 
             // Transform phase (semantic analysis)
-            var transformedAst = TransformPhase(parseResult.ast, diagnostics);
+            var transformedAst = TransformPhase(parseResult.ast, diagnostics, parseResult.namespaceScopes);
             if (transformedAst == null)
             {
                 return CompilationResult.Failed(3, diagnostics);
@@ -197,76 +197,155 @@ public class Compiler
         var helpText = @"
 Fifth Language Compiler (fifthc)
 
-Usage: fifthc [command] [options]
+Usage: fifthc [options] <source-files>...
 
-Commands:
+Commands (via --command option):
   build (default)  Parse, transform, and compile to executable
   run              Same as build, then execute the produced binary
   lint             Parse and apply transformations only, report issues
   help             Show this help message
 
 Options:
-  --source <path>      Source file or directory path (required for build/run/lint)
+  --command <cmd>      Command to execute (build, run, lint, help)
   --output <path>      Output executable path (required for build/run)
   --args <args>        Arguments to pass to program when running
   --keep-temp          Keep temporary files
   --diagnostics        Enable diagnostic output
 
+Arguments:
+  <source-files>...    One or more source files. All files are equal;
+                       the one with main() becomes the entry point.
+
 Examples:
-  fifthc --source hello.5th --output hello.exe
-  fifthc --command run --source hello.5th --output hello.exe --args ""arg1 arg2""
-  fifthc --command lint --source src/
+  fifthc hello.5th --output hello.exe
+  fifthc app.5th utils.5th math.5th --output app.exe
+  fifthc --command run --output hello.exe hello.5th --args ""arg1 arg2""
+  fifthc --command lint app.5th utils.5th
 ";
 
         Console.WriteLine(helpText);
         return CompilationResult.Successful();
     }
 
-    private (AstThing? ast, int sourceCount) ParsePhase(CompilerOptions options, List<Diagnostic> diagnostics)
+    private (AstThing? ast, int sourceCount, Dictionary<string, NamespaceResolution.NamespaceScopeIndex>? namespaceScopes) ParsePhase(CompilerOptions options, List<Diagnostic> diagnostics)
     {
+        var stopwatch = Stopwatch.StartNew();
+        
         try
         {
-            if (File.Exists(options.Source))
+            var sourceFiles = new List<string>();
+            
+            // Collect all source files from the Sources array
+            foreach (var source in options.Sources)
             {
-                // Single file
-                var ast = FifthParserManager.ParseFile(options.Source);
-                return (ast, 1);
-            }
-            else if (Directory.Exists(options.Source))
-            {
-                // Directory - find all .5th files
-                var files = Directory.GetFiles(options.Source, "*.5th", SearchOption.AllDirectories)
-                    .OrderBy(f => f) // Deterministic order
-                    .ToArray();
-
-                if (files.Length == 0)
+                if (File.Exists(source))
                 {
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "No .5th files found in directory", options.Source));
-                    return (null, 0);
+                    sourceFiles.Add(source);
                 }
+                else if (Directory.Exists(source))
+                {
+                    // Directory - find all .5th files
+                    var files = Directory.GetFiles(source, "*.5th", SearchOption.AllDirectories)
+                        .OrderBy(f => f) // Deterministic order
+                        .ToArray();
 
-                // For now, parse the first file (multiple file support can be added later)
-                var ast = FifthParserManager.ParseFile(files[0]);
-                return (ast, files.Length);
+                    if (files.Length == 0)
+                    {
+                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "No .5th files found in directory", source));
+                        return (null, 0, null);
+                    }
+                    
+                    sourceFiles.AddRange(files);
+                }
+                else
+                {
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Source path not found: {source}"));
+                    return (null, 0, null);
+                }
             }
-            else
+
+            if (sourceFiles.Count == 0)
             {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Source path not found: {options.Source}"));
-                return (null, 0);
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "No source files specified"));
+                return (null, 0, null);
             }
+
+            // Parse the first file for the AST (entry point determined by presence of main())
+            var ast = FifthParserManager.ParseFile(sourceFiles[0]);
+            
+            // If multiple files, perform namespace resolution and merge modules
+            Dictionary<string, NamespaceResolution.NamespaceScopeIndex>? namespaceScopes = null;
+            if (sourceFiles.Count > 1)
+            {
+                var diagnosticEmitter = new NamespaceResolution.NamespaceDiagnosticEmitter();
+                var resolver = new NamespaceResolution.ModuleResolver(diagnosticEmitter);
+                
+                var modules = resolver.ResolveFromCliFiles(sourceFiles);
+                namespaceScopes = resolver.BuildNamespaceScopes(modules);
+                
+                // Merge all module functions into the primary AST
+                // This ensures all functions are available for code generation
+                if (ast is AssemblyDef assemblyDef && assemblyDef.Modules.Count > 0)
+                {
+                    var primaryModule = assemblyDef.Modules[0];
+                    if (primaryModule != null)
+                    {
+                        // Collect all functions from all namespace scopes
+                        var allFunctions = new List<ScopedDefinition>(primaryModule.Functions);
+                        
+                        foreach (var scope in namespaceScopes.Values)
+                        {
+                            foreach (var module in scope.ContributingModules)
+                            {
+                                // Skip the primary module to avoid duplicates
+                                if (module.Path != sourceFiles[0])
+                                {
+                                    foreach (var decl in module.Declarations)
+                                    {
+                                        if (decl is ScopedDefinition scopedDef)
+                                        {
+                                            allFunctions.Add(scopedDef);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Update the primary module with all functions
+                        var updatedModule = primaryModule with { Functions = allFunctions };
+                        var updatedModules = new List<ModuleDef> { updatedModule };
+                        updatedModules.AddRange(assemblyDef.Modules.Skip(1));
+                        ast = assemblyDef with { Modules = updatedModules };
+                    }
+                }
+                
+                // Add namespace diagnostics to compilation diagnostics
+                foreach (var nsDiagnostic in diagnosticEmitter.Diagnostics)
+                {
+                    diagnostics.Add(nsDiagnostic);
+                }
+                
+                if (options.Diagnostics)
+                {
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, 
+                        $"Namespace resolution: {namespaceScopes.Count} namespace(s), {modules.Count} module(s), {stopwatch.ElapsedMilliseconds}ms"));
+                }
+            }
+            
+            return (ast, sourceFiles.Count, namespaceScopes);
         }
         catch (System.Exception ex)
         {
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Parse error: {ex.Message}", options.Source));
-            return (null, 0);
+            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Parse error: {ex.Message}", options.Sources.FirstOrDefault() ?? ""));
+            return (null, 0, null);
         }
     }
 
-    private AstThing? TransformPhase(AstThing ast, List<Diagnostic> diagnostics)
+    private AstThing? TransformPhase(AstThing ast, List<Diagnostic> diagnostics, Dictionary<string, NamespaceResolution.NamespaceScopeIndex>? namespaceScopes)
     {
         try
         {
-            var transformed = FifthParserManager.ApplyLanguageAnalysisPhases(ast, diagnostics);
+            var transformed = FifthParserManager.ApplyLanguageAnalysisPhases(ast, diagnostics, namespaceScopes);
 
             // If any error-level diagnostics were produced during language analysis (e.g., guard validation), fail transform
             if (diagnostics.Any(d => d.Level == DiagnosticLevel.Error))

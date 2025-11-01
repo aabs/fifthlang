@@ -1,0 +1,9 @@
+// app.5th - Main application that uses Utilities
+namespace App;
+import Utilities;
+
+main(): int {
+    x: int = double(5);
+    y: int = triple(3);
+    return x + y;  // 10 + 9 = 19
+}

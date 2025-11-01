@@ -1,2 +1,2 @@
-use my_lib;
+import MyLib;
 main(): int { return 0; }

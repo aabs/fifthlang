@@ -77,6 +77,21 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     }
 
     /// <summary>
+    /// Extract a qualified name from the parse tree (e.g., "System.Collections.Generic")
+    /// </summary>
+    private string ExtractQualifiedName(FifthParser.Qualified_nameContext context)
+    {
+        if (context == null) return string.Empty;
+        
+        var parts = new List<string>();
+        foreach (var identifier in context.IDENTIFIER())
+        {
+            parts.Add(identifier.GetText());
+        }
+        return string.Join(".", parts);
+    }
+
+    /// <summary>
     /// Creates a deep copy of an expression by recursively visiting all nodes.
     /// This is necessary when the same expression needs to appear in multiple places
     /// in the AST (e.g., in augmented assignments like += where lvalue appears both
@@ -600,6 +615,33 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             .WithVersion("0.0.0.0")
             ;
         var mb = new ModuleDefBuilder();
+        
+        // Extract namespace declaration (at most one per module) - do this BEFORE building
+        string? namespaceName = null;
+        if (context.namespace_declaration() != null)
+        {
+            namespaceName = ExtractQualifiedName(context.namespace_declaration().qualified_name());
+        }
+        
+        // Extract import directives - do this BEFORE building
+        var imports = new List<string>();
+        foreach (var importCtx in context.import_directive())
+        {
+            var importName = ExtractQualifiedName(importCtx.qualified_name());
+            imports.Add(importName);
+        }
+        
+        // Set namespace and imports on builder
+        mb.WithImports(imports);
+        if (namespaceName != null)
+        {
+            mb.WithNamespaceDecl(NamespaceName.From(namespaceName));
+        }
+        else
+        {
+            mb.WithNamespaceDecl(NamespaceName.From("")); // Default to global namespace (empty string)
+        }
+        
         if (context._classes.Count == 0)
         {
             mb.WithClasses([]);

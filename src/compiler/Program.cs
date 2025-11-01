@@ -11,10 +11,13 @@ var commandOption = new Option<string>(
 };
 commandOption.SetDefaultValue("build");
 
-// Define source option
-var sourceOption = new Option<string>(
-    name: "--source",
-    description: "Source file or directory path");
+// Define source files argument (positional, one or more required)
+var sourcesArgument = new Argument<string[]>(
+    name: "sources",
+    description: "Source file path(s). All files are equal; the one with main() is the entry point.")
+{
+    Arity = ArgumentArity.OneOrMore
+};
 
 // Define output option  
 var outputOption = new Option<string>(
@@ -49,20 +52,20 @@ var diagnosticsOption = new Option<bool>(
 var rootCommand = new RootCommand("Fifth Language Compiler (fifthc)")
 {
     commandOption,
-    sourceOption,
+    sourcesArgument,
     outputOption,
     argsOption,
     keepTempOption,
     diagnosticsOption
 };
 
-rootCommand.SetHandler(async (command, source, output, args, keepTemp, diagnostics) =>
+rootCommand.SetHandler(async (command, sources, output, args, keepTemp, diagnostics) =>
 {
     var compilerCommand = ParseCommand(command);
 
     var options = new CompilerOptions(
         Command: compilerCommand,
-        Source: source ?? "",
+        Sources: sources ?? Array.Empty<string>(),
         Output: output ?? "",
         Args: args ?? Array.Empty<string>(),
         KeepTemp: keepTemp,
@@ -97,7 +100,7 @@ rootCommand.SetHandler(async (command, source, output, args, keepTemp, diagnosti
     }
 
     Environment.Exit(result.ExitCode);
-}, commandOption, sourceOption, outputOption, argsOption, keepTempOption, diagnosticsOption);
+}, commandOption, sourcesArgument, outputOption, argsOption, keepTempOption, diagnosticsOption);
 
 return await rootCommand.InvokeAsync(args);
 

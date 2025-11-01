@@ -38,17 +38,29 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitFifth([NotNull] FifthParser.FifthContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.module_import"/>.
+	/// Visit a parse tree produced by <see cref="FifthParser.program"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitModule_import([NotNull] FifthParser.Module_importContext context);
+	Result VisitProgram([NotNull] FifthParser.ProgramContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.module_name"/>.
+	/// Visit a parse tree produced by <see cref="FifthParser.namespace_declaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitModule_name([NotNull] FifthParser.Module_nameContext context);
+	Result VisitNamespace_declaration([NotNull] FifthParser.Namespace_declarationContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.import_directive"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitImport_directive([NotNull] FifthParser.Import_directiveContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.qualified_name"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitQualified_name([NotNull] FifthParser.Qualified_nameContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.packagename"/>.
 	/// </summary>

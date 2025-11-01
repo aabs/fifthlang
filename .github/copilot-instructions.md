@@ -105,6 +105,55 @@ dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-
 # - typeinference.generated.cs     (Type inference support)
 ```
 
+### AST Design Principles
+
+**First-Class Properties for Top-Level Syntax Elements**
+
+Top-level syntactic elements (like namespace declarations, import statements, class members, etc.) should be represented as **first-class properties** on their containing AST nodes, not stored in annotations.
+
+✅ **DO**: Add properties to AST record types
+```csharp
+// CORRECT: First-class properties
+public record ModuleDef : ScopedDefinition
+{
+    public required NamespaceName NamespaceDecl { get; init; }
+    public required List<string> Imports { get; init; } = [];
+    public required List<ClassDef> Classes { get; init; } = [];
+}
+```
+
+❌ **DON'T**: Use annotations for first-class syntax
+```csharp
+// INCORRECT: Don't use annotations for syntax elements
+module.Annotations["DeclaredNamespace"] = namespaceName;  // BAD
+module.Annotations["Imports"] = imports;                   // BAD
+```
+
+**When to Use Annotations:**
+- Temporary metadata during compilation phases
+- Information not part of the original syntax (e.g., inferred types, computed values)
+- Compiler-internal bookkeeping (e.g., graph store declarations)
+
+**When to Use Properties:**
+- Elements directly present in source code syntax
+- Core language constructs (namespace, import, class, function, etc.)
+- Data that should be accessible via strongly-typed API
+
+**Benefits of First-Class Properties:**
+1. **Type Safety**: Compiler checks prevent mistakes
+2. **Discoverability**: IntelliSense shows available properties
+3. **Maintainability**: Clear which data is syntactic vs. metadata
+4. **Performance**: Direct property access vs. dictionary lookups
+5. **Refactoring**: IDEs can track property usage
+
+**After Adding Properties:**
+Always regenerate AST infrastructure:
+```bash
+dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
+```
+
+This ensures builders, visitors, and rewriters are updated to handle new properties.
+
 ### Choosing the Right Visitor/Rewriter Pattern
 
 When implementing AST transformations, choose the appropriate pattern based on your needs:

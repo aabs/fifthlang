@@ -1,2 +1,4 @@
-use Math, IO, Net;
+import Math;
+import IO;
+import Net;
 main(): int { return 0; }

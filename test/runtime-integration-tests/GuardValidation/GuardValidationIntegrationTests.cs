@@ -38,7 +38,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
         GeneratedFiles.Add(sourcePath);
 
         var compiler = new Compiler();
-        var options = new CompilerOptions(CompilerCommand.Build, sourcePath, Path.Combine(TempDirectory, Path.GetFileNameWithoutExtension(sourcePath) + ".exe"), Diagnostics: true);
+        var options = new CompilerOptions(CompilerCommand.Build, new[] { sourcePath }, Path.Combine(TempDirectory, Path.GetFileNameWithoutExtension(sourcePath) + ".exe"), Diagnostics: true);
         var result = await compiler.CompileAsync(options);
         return result;
     }
@@ -83,7 +83,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
         var compiler = new Compiler();
         var options = new CompilerOptions(
             Command: CompilerCommand.Build,
-            Source: filePath,
+            Sources: new[] { filePath },
             Output: outputFile,
             Diagnostics: true);
 
