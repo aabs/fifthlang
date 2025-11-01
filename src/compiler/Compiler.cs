@@ -83,7 +83,7 @@ public class Compiler
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting transform phase"));
             }
 
-            var transformedAst = TransformPhase(parseResult.ast, diagnostics);
+            var transformedAst = TransformPhase(parseResult.ast, diagnostics, parseResult.namespaceScopes);
             if (transformedAst == null)
             {
                 return CompilationResult.Failed(3, diagnostics);
@@ -176,7 +176,7 @@ public class Compiler
             }
 
             // Transform phase (semantic analysis)
-            var transformedAst = TransformPhase(parseResult.ast, diagnostics);
+            var transformedAst = TransformPhase(parseResult.ast, diagnostics, parseResult.namespaceScopes);
             if (transformedAst == null)
             {
                 return CompilationResult.Failed(3, diagnostics);
@@ -297,11 +297,11 @@ Examples:
         }
     }
 
-    private AstThing? TransformPhase(AstThing ast, List<Diagnostic> diagnostics)
+    private AstThing? TransformPhase(AstThing ast, List<Diagnostic> diagnostics, Dictionary<string, NamespaceResolution.NamespaceScopeIndex>? namespaceScopes)
     {
         try
         {
-            var transformed = FifthParserManager.ApplyLanguageAnalysisPhases(ast, diagnostics);
+            var transformed = FifthParserManager.ApplyLanguageAnalysisPhases(ast, diagnostics, namespaceScopes);
 
             // If any error-level diagnostics were produced during language analysis (e.g., guard validation), fail transform
             if (diagnostics.Any(d => d.Level == DiagnosticLevel.Error))

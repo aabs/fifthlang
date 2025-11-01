@@ -43,7 +43,7 @@ public static class FifthParserManager
         All = TypeAnnotation
     }
 
-    public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, AnalysisPhase upTo = AnalysisPhase.All)
+    public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, Dictionary<string, compiler.NamespaceResolution.NamespaceScopeIndex>? namespaceScopes = null, AnalysisPhase upTo = AnalysisPhase.All)
     {
         // Apply language analysis phases (no debug console output)
 
@@ -74,7 +74,7 @@ public static class FifthParserManager
             ast = new SymbolTableBuilderVisitor().Visit(ast);
 
         if (upTo >= AnalysisPhase.NamespaceImportResolver)
-            ast = new NamespaceImportResolverVisitor().Visit(ast);
+            ast = new NamespaceImportResolverVisitor(namespaceScopes).Visit(ast);
 
         try
         {
