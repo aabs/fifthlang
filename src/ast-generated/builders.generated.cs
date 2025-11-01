@@ -1467,6 +1467,80 @@ public class WhileStatementBuilder : IBuilder<ast.WhileStatement>
     }
 
 }
+public class TryStatementBuilder : IBuilder<ast.TryStatement>
+{
+    private ast.BlockStatement _TryBlock;
+    private List<ast.CatchClause> _CatchClauses = [];
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.TryStatement Build()
+    {
+        return new ast.TryStatement(){
+             TryBlock = this._TryBlock // from TryStatement
+           , CatchClauses = this._CatchClauses // from TryStatement
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public TryStatementBuilder WithTryBlock(ast.BlockStatement value){
+        _TryBlock = value;
+        return this;
+    }
+
+    public TryStatementBuilder WithCatchClauses(List<ast.CatchClause> value){
+        _CatchClauses = value;
+        return this;
+    }
+
+    public TryStatementBuilder AddingItemToCatchClauses(ast.CatchClause value){
+        _CatchClauses  ??= [];
+        _CatchClauses.Add(value);
+        return this;
+    }
+    public TryStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class CatchClauseBuilder : IBuilder<ast.CatchClause>
+{
+    private ast.BlockStatement _Body;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.CatchClause Build()
+    {
+        return new ast.CatchClause(){
+             Body = this._Body // from CatchClause
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public CatchClauseBuilder WithBody(ast.BlockStatement value){
+        _Body = value;
+        return this;
+    }
+
+    public CatchClauseBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class ThrowStatementBuilder : IBuilder<ast.ThrowStatement>
+{
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.ThrowStatement Build()
+    {
+        return new ast.ThrowStatement(){
+             Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public ThrowStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class GraphAssertionBlockStatementBuilder : IBuilder<ast.GraphAssertionBlockStatement>
 {
     private ast.GraphAssertionBlockExp _Content;
@@ -2166,6 +2240,29 @@ public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
     }
 
     public UnaryExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class ThrowExpBuilder : IBuilder<ast.ThrowExp>
+{
+    private ast.Expression _Exception;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.ThrowExp Build()
+    {
+        return new ast.ThrowExp(){
+             Exception = this._Exception // from ThrowExp
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public ThrowExpBuilder WithException(ast.Expression value){
+        _Exception = value;
+        return this;
+    }
+
+    public ThrowExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }

@@ -309,6 +309,37 @@ main(): int {
     return 0;
 }
 
+// Try/catch/finally for exception handling
+main(): int {
+    result: int;
+    result = 0;
+    
+    // Try with finally - finally always executes
+    try {
+        result = 10;
+    } finally {
+        std.print("cleanup");
+    }
+    
+    // Try/catch - handles exceptions
+    try {
+        result = 42;
+    } catch {
+        result = 1;  // Catch-all handler
+    }
+    
+    // Try/catch/finally combined
+    try {
+        result = 10;
+    } catch {
+        result = 1;
+    } finally {
+        result = result + 5;  // Always executes
+    }
+    
+    return result;
+}
+
 //////////////////////////////////////
 // 6. Lists and Comprehensions
 //////////////////////////////////////
