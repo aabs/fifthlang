@@ -70,7 +70,9 @@ jobs:
           dotnet run --project src/tools/validate-examples/validate-examples.csproj --configuration Release 2>&1 | Tee-Object -FilePath $log
           if ($LASTEXITCODE -ne 0) { Write-Error "Parser-check failed; see $log"; exit $LASTEXITCODE }
 
-      - name: Run all tests (solution)
+      - name: Run all tests (solution) (Unix)
+        if: matrix.os != 'windows-latest'
+        shell: bash
         run: |
           dotnet test fifthlang.sln \
             --configuration Release \
@@ -79,6 +81,12 @@ jobs:
             --results-directory "TestResults/solution" \
             --collect:"XPlat Code Coverage" \
             --settings fifth.runsettings
+
+      - name: Run all tests (solution) (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          dotnet test fifthlang.sln --configuration Release --no-build --logger "trx;LogFileName=solution.trx" --results-directory "TestResults/solution" --collect:"XPlat Code Coverage" --settings fifth.runsettings
 
       - name: List TRX and coverage
         if: always()
