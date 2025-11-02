@@ -1,8 +1,8 @@
 // Throw statement (rethrow and explicit throw)
 main(): int {
     try {
-        throw new System.Exception();
-    } catch (ex: System.Exception) {
+        throw new Exception();
+    } catch (ex: Exception) {
         throw;  // rethrow
     }
     return 0;

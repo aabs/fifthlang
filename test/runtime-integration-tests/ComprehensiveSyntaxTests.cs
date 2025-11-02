@@ -725,9 +725,14 @@ public class ComprehensiveSyntaxTests : RuntimeTestBase
         var executablePath = await CompileFileAsync(sourceFile);
         var result = await ExecuteAsync(executablePath);
 
+        var actual = result.ExitCode;
+        if (actual >= 256)
+        {
+            actual = actual % 256;
+        }
         // The program returns 31415, but OS process exit codes are limited to 8 bits (0-255).
         // The observed ExitCode will be the low 8 bits: 31415 & 0xFF == 183.
-        result.ExitCode.Should().Be(31415 & 0xFF, "main() should return 31415; process exit codes are truncated to 0-255");
+        actual.Should().Be(183, "main() should return 31415; process exit codes (on unices) are truncated to 0-255");
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 

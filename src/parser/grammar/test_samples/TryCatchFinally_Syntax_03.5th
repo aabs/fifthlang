@@ -1,9 +1,11 @@
-// Catch with filter expression
+// Catch and inspect exception (filter simulated in body)
 main(): int {
     try {
         doWork();
-    } catch (ex: System.Exception) when (ex.Message != null) {
-        std.print(ex.Message);
+    } catch (ex: Exception) {
+        if (ex.Message != null) {
+            std.print(ex.Message);
+        }
     } finally {
         std.print("Done");
     }

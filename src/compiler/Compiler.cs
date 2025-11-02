@@ -397,21 +397,11 @@ Examples:
             // For now, write the generated C# sources to disk for inspection
             if (options.Diagnostics && translationResult.Sources.Any())
             {
-                try
+                var debugDir = Path.Combine(Directory.GetCurrentDirectory(), "build_debug_roslyn");
+                
+                for (int i = 0; i < translationResult.Sources.Count; i++)
                 {
-                    var debugDir = Path.Combine(Directory.GetCurrentDirectory(), "build_debug_roslyn");
-                    Directory.CreateDirectory(debugDir);
-
-                    for (int i = 0; i < translationResult.Sources.Count; i++)
-                    {
-                        var csPath = Path.Combine(debugDir, $"generated_{i}.cs");
-                        await File.WriteAllTextAsync(csPath, translationResult.Sources[i]);
-                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated C# source written to: {csPath}"));
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to write C# sources for diagnostics: {ex.Message}"));
+                    await WriteSourceFileWithRetryAsync(debugDir, i, translationResult.Sources[i], diagnostics);
                 }
             }
 
@@ -566,6 +556,78 @@ Examples:
         }
     }
 
-
+    /// <summary>
+    /// Atomically write a generated C# source file with retry logic to handle transient file-lock issues.
+    /// Uses unique filenames to avoid cross-process collisions on Windows CI.
+    /// </summary>
+    private async Task WriteSourceFileWithRetryAsync(string directory, int sourceIndex, string sourceContent, List<Diagnostic> diagnostics)
+    {
+        const int maxAttempts = 3;
+        const int retryDelayMs = 50;
+        
+        // Create unique filename to avoid cross-process collisions
+        var pid = Environment.ProcessId;
+        var ticks = DateTime.UtcNow.Ticks;
+        var guid = Guid.NewGuid().ToString("N")[..8]; // Use range operator for modern C#
+        var fileName = $"generated_{sourceIndex}_{pid}_{ticks}_{guid}.cs";
+        var finalPath = Path.Combine(directory, fileName);
+        
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                // Ensure directory exists
+                Directory.CreateDirectory(directory);
+                
+                // Write to temporary file first for atomic operation
+                var tempGuid = Guid.NewGuid().ToString("N")[..8];
+                var tempFileName = $".tmp_{tempGuid}";
+                var tempPath = Path.Combine(directory, tempFileName);
+                
+                await File.WriteAllTextAsync(tempPath, sourceContent);
+                
+                // Atomic move to final location - don't overwrite since filename should be unique
+                File.Move(tempPath, finalPath, overwrite: false);
+                
+                // Success - log informational message
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated C# source written to: {finalPath}"));
+                return;
+            }
+            catch (IOException ioEx) when (attempt < maxAttempts)
+            {
+                // Transient file-lock issue - retry with backoff
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, 
+                    $"Retrying write to {fileName} (attempt {attempt}/{maxAttempts}): {ioEx.Message}"));
+                await Task.Delay(retryDelayMs * attempt);
+            }
+            catch (System.Exception ex)
+            {
+                // Non-transient error or final attempt failed - try fallback location
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, 
+                    $"Failed to write to {directory}: {ex.Message}. Attempting fallback location."));
+                
+                try
+                {
+                    // Fallback to system temp directory
+                    var fallbackPath = Path.Combine(Path.GetTempPath(), fileName);
+                    await File.WriteAllTextAsync(fallbackPath, sourceContent);
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, 
+                        $"Generated C# source written to fallback location: {fallbackPath}"));
+                    return;
+                }
+                catch (System.Exception fallbackEx)
+                {
+                    // Even fallback failed - just log it and continue
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, 
+                        $"Unable to write C# source for diagnostics: {fallbackEx.Message}"));
+                    return;
+                }
+            }
+        }
+        
+        // All retry attempts exhausted
+        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, 
+            $"Unable to write C# source after {maxAttempts} attempts. Continuing compilation."));
+    }
 
 }

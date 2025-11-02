@@ -1,10 +1,10 @@
-// Multiple catch clauses with different forms
+// Multiple catch clauses with different forms (using simple type names)
 main(): int {
     try {
         riskyOperation();
-    } catch (ex: System.Exception) {
+    } catch (ex: Exception) {
         std.print("Caught with id and type");
-    } catch (System.IOException) {
+    } catch (IOException) {
         std.print("Caught with type only");
     } catch {
         std.print("Catch-all");

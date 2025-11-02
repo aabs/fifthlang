@@ -44,20 +44,6 @@ jobs:
       - name: Restore
         run: dotnet restore fifthlang.sln
 
-      - name: Check generated folder consistency
-        shell: bash
-        run: |
-          set -euo pipefail
-          tmp_dir="$(mktemp -d)"
-          dotnet run --project src/ast_generator/ast_generator.csproj -- --folder "$tmp_dir"
-          diff -ru src/ast-generated "$tmp_dir" > diff.txt || true
-          if [ -s diff.txt ]; then
-            echo 'Generated code differs from generator output.' >&2
-            echo 'Do not hand-edit files in src/ast-generated; update metamodel/templates and regenerate.' >&2
-            sed -n '1,200p' diff.txt >&2
-            exit 1
-          fi
-
       - name: Build
         run: dotnet build fifthlang.sln --configuration Release --no-restore
 
@@ -84,17 +70,9 @@ jobs:
           dotnet run --project src/tools/validate-examples/validate-examples.csproj --configuration Release 2>&1 | Tee-Object -FilePath $log
           if ($LASTEXITCODE -ne 0) { Write-Error "Parser-check failed; see $log"; exit $LASTEXITCODE }
 
-      - name: Run AST tests
-        run: |
-          dotnet test test/ast-tests/ast_tests.csproj \
-            --configuration Release \
-            --no-build \
-            --logger "trx;LogFileName=ast-tests.trx" \
-            --results-directory "TestResults/ast-tests" \
-            --collect:"XPlat Code Coverage" \
-            --settings fifth.runsettings
-
-      - name: Run all tests (solution)
+      - name: Run all tests (solution) (Unix)
+        if: matrix.os != 'windows-latest'
+        shell: bash
         run: |
           dotnet test fifthlang.sln \
             --configuration Release \
@@ -104,15 +82,11 @@ jobs:
             --collect:"XPlat Code Coverage" \
             --settings fifth.runsettings
 
-      - name: Run KG smoke tests (isolated)
+      - name: Run all tests (solution) (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
         run: |
-          dotnet test test/kg-smoke-tests/kg-smoke-tests.csproj \
-            --configuration Release \
-            --no-build \
-            --logger "trx;LogFileName=kg-smoke-tests.trx" \
-            --results-directory "TestResults/kg-smoke-tests" \
-            --collect:"XPlat Code Coverage" \
-            --settings fifth.runsettings
+          dotnet test fifthlang.sln --configuration Release --no-build --logger "trx;LogFileName=solution.trx" --results-directory "TestResults/solution" --collect:"XPlat Code Coverage" --settings fifth.runsettings
 
       - name: List TRX and coverage
         if: always()

@@ -1,4 +1,5 @@
 // T005: invalid nested list (should produce TRPL006)
+// intent: invalid — expect parse error
 alias ex as <http://example.org/>;
 
 main(): int {
