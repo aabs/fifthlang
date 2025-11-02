@@ -379,3 +379,6 @@ tmp_*/
 fifthlang.iml
 build_debug_il/
 build_debug_roslyn/
+TestResults/
+gen/
+issues/
