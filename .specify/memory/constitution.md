@@ -45,7 +45,7 @@ Each executable surface must provide a CLI entry that communicates via text I/O:
 The AST generator is authoritative for builders, visitors, IL builders, and type inference support. Never hand-edit files under `src/ast-generated/`. To change generated outputs:
 1. Update `src/ast-model/AstMetamodel.cs` for main AST types or `src/ast-model/ILMetamodel.cs` for IL AST types
 2. Optionally update templates under `src/ast_generator/Templates/` for code generation changes
-3. Regenerate via `just run-generator` (preferred) or `make run-generator` or `dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated`
+3. Regenerate via `just run-generator` (preferred) or `dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated`
 4. Build the full solution to validate
 
 ### IV. Test-First (Non-Negotiable)
@@ -264,8 +264,8 @@ java -version     # Should show Java 17+
 dotnet restore fifthlang.sln                      # Takes ~70 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
 dotnet build fifthlang.sln                        # Takes ~60 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
 
-# Alternative: Use Makefile
-make build-all (run via `just build-all` or `make build-all`) # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
+# Optional: Use Just
+just build-all # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
 
 # Run tests
 dotnet test test/ast-tests/ast_tests.csproj        # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
@@ -273,7 +273,7 @@ dotnet test test/ast-tests/ast_tests.csproj        # Takes ~25 seconds. NEVER CA
 dotnet test fifthlang.sln
 
 # Run AST code generator separately
-just run-generator (or: make run-generator)                                # Takes ~5 seconds.
+just run-generator                                                         # Takes ~5 seconds.
 # OR
 dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
 ```
@@ -406,7 +406,7 @@ This should complete without errors.
 ### Common Issues
 1. **"java command not found"** - Install Java 17+ 
 2. **ANTLR grammar errors** - Check grammar syntax in `src/parser/grammar/FifthLexer.g4` and `src/parser/grammar/FifthParser.g4`
-3. **Missing generated files** - Run `just run-generator` (or: `make run-generator`) to regenerate AST code
+3. **Missing generated files** - Run `just run-generator` to regenerate AST code
 4. **Build timeouts** - Use longer timeout values, builds can legitimately take 1-2 minutes
 
 ### Key Files to Watch

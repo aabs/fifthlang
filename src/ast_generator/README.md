@@ -326,9 +326,8 @@ To regenerate all AST infrastructure:
 # From repository root
 dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
 
-# Or use just/make
+# Or use just
 just run-generator
-make run-generator
 ```
 
 The generator reads from:
