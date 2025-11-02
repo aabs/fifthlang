@@ -1,6 +1,5 @@
 # fifthlang
-
-![CI](https://github.com/aabs/fifthlang/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/aabs/fifthlang/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/aabs/fifthlang/actions/workflows/ci.yml)
 
 CI runs on Linux, macOS, and Windows for pushes/PRs to `master`, plus a nightly schedule. TRX test results are uploaded as workflow artifacts.
 
