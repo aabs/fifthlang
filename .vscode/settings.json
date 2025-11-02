@@ -17,7 +17,7 @@
     // Point the explorer at the test project locations
     "dotnet-test-explorer.testProjectPath": "test/**/*.csproj",
     // Pass stable args so discovery reads TRX instead of console text and writes coverage via runsettings
-    "dotnet-test-explorer.testArguments": "--no-build --nologo --logger trx --collect 'XPlat Code Coverage' --settings fifth.runsettings --results-directory TestResults",
+    "dotnet-test-explorer.testArguments": "--no-build --nologo --logger trx --collect 'XPlat Code Coverage' --settings test/fifth.runsettings --results-directory TestResults",
     // Optional quality-of-life settings
     "dotnet-test-explorer.buildBeforeTest": true,
     "dotnet-test-explorer.autoWatch": false,

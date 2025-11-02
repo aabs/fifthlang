@@ -80,13 +80,13 @@ jobs:
             --logger "trx;LogFileName=solution.trx" \
             --results-directory "TestResults/solution" \
             --collect:"XPlat Code Coverage" \
-            --settings fifth.runsettings
+            --settings test/fifth.runsettings
 
       - name: Run all tests (solution) (Windows)
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          dotnet test fifthlang.sln --configuration Release --no-build --logger "trx;LogFileName=solution.trx" --results-directory "TestResults/solution" --collect:"XPlat Code Coverage" --settings fifth.runsettings
+          dotnet test fifthlang.sln --configuration Release --no-build --logger "trx;LogFileName=solution.trx" --results-directory "TestResults/solution" --collect:"XPlat Code Coverage" --settings test/fifth.runsettings
 
       - name: List TRX and coverage
         if: always()

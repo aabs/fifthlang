@@ -35,8 +35,9 @@ ci:
 	just test
 
 # Run tests with Cobertura coverage output using runsettings
+
 coverage:
-	dotnet test fifthlang.sln --configuration Release --collect "XPlat Code Coverage" --logger "trx;LogFileName=results.trx" --results-directory "TestResults" --settings fifth.runsettings
+	dotnet test fifthlang.sln --configuration Release --collect "XPlat Code Coverage" --logger "trx;LogFileName=results.trx" --results-directory "TestResults" --settings test/fifth.runsettings
 	printf "TRX files:\n"
 	find TestResults -type f -name '*.trx' 2>/dev/null | sed -n '1,20p' || true
 	printf "Cobertura files:\n"

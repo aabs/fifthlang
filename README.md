@@ -59,7 +59,7 @@ foo(a : int, n : string): void
 # From repo root
  dotnet build fifthlang.sln
  # Or with just (runs restore + build fast)
- just build-all (or: make build-all)
+ just build-all
 ```
 
 ## MSBuild Project Support (.5thproj)
@@ -102,7 +102,7 @@ For more details, see [src/Fifth.Sdk/README.md](src/Fifth.Sdk/README.md).
 ## Coverage
 - Local run with Cobertura output (aligned with CI):
 ```fish
-dotnet test fifthlang.sln --no-build --collect "XPlat Code Coverage" --logger "trx;LogFileName=results.trx" --settings fifth.runsettings
+dotnet test fifthlang.sln --no-build --collect "XPlat Code Coverage" --logger "trx;LogFileName=results.trx" --settings test/fifth.runsettings
 # Locate outputs
 find test -type f -name '*.trx' | sed -n '1,20p'
 find . -type f -name 'coverage.cobertura.xml' | sed -n '1,20p'
