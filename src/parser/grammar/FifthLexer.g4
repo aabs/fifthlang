@@ -255,64 +255,6 @@ EOS: ([\r\n]+ | ';' | '/*' .*? '*/' | EOF) -> mode(DEFAULT_MODE);
 // Did not find an EOS, so go back to normal lexing
 //OTHER: -> mode(DEFAULT_MODE), channel(HIDDEN);
 
-// Fragments needed for IRIMode (SPARQL-style prefixed names)
-// These are separate from the RFC 3987 IRI definitions
-fragment PN_CHARS_BASE:
-    'A' .. 'Z'
-    | 'a' .. 'z'
-    | '\u00C0' .. '\u00D6'
-    | '\u00D8' .. '\u00F6'
-    | '\u00F8' .. '\u02FF'
-    | '\u0370' .. '\u037D'
-    | '\u037F' .. '\u1FFF'
-    | '\u200C' .. '\u200D'
-    | '\u2070' .. '\u218F'
-    | '\u2C00' .. '\u2FEF'
-    | '\u3001' .. '\uD7FF'
-    | '\uF900' .. '\uFDCF'
-    | '\uFDF0' .. '\uFFFD'
-;
-
-fragment PN_CHARS_U: PN_CHARS_BASE | '_';
-
-fragment PN_CHARS: PN_CHARS_U | '-' | [0-9] | '\u00B7' | [\u0300-\u036F] | [\u203F-\u2040];
-
-mode IRIMode;
-
-PrefixedName : PNAME_LN | PNAME_NS;
-PNAME_LN     : PNAME_NS PN_LOCAL;
-PN_LOCAL: (PN_CHARS_U | ':' | [0-9] | PLX) ((PN_CHARS | '.' | ':' | PLX)* (PN_CHARS | ':' | PLX))?
-;
-PLX      : PERCENT | PN_LOCAL_ESC;
-PERCENT  : '%' HEX_DIGIT HEX_DIGIT;
-PNAME_NS : PN_PREFIX? ':';
-
-PN_PREFIX: PN_CHARS_BASE ((PN_CHARS | '.')* PN_CHARS)?;
-PN_LOCAL_ESC:
-    '\\' (
-        '_'
-        | '~'
-        | '.'
-        | '-'
-        | '!'
-        | '$'
-        | '&'
-        | '\''
-        | '('
-        | ')'
-        | '*'
-        | '+'
-        | ','
-        | ';'
-        | '='
-        | '/'
-        | '?'
-        | '#'
-        | '@'
-        | '%'
-    )
-;
-
 // Replace or update the existing single-line comment rule so that '//' is only
 // considered a comment when it truly begins a comment (not when part of an IRI).
 // If your grammar already names the rule differently, apply the same predicate

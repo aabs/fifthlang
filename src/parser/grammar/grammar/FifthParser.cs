@@ -56,8 +56,7 @@ public partial class FifthParser : FifthParserBase {
 		HEX_BYTE_VALUE=110, LITTLE_U_VALUE=111, BIG_U_VALUE=112, RAW_STRING_LIT=113, 
 		INTERPRETED_STRING_LIT=114, INTERPOLATED_STRING_LIT=115, WS=116, COMMENT=117, 
 		TERMINATOR=118, LINE_COMMENT=119, WS_NLSEMI=120, COMMENT_NLSEMI=121, LINE_COMMENT_NLSEMI=122, 
-		EOS=123, PrefixedName=124, PNAME_LN=125, PN_LOCAL=126, PLX=127, PERCENT=128, 
-		PNAME_NS=129, PN_PREFIX=130, PN_LOCAL_ESC=131, SL_COMMENT=132;
+		EOS=123, SL_COMMENT=124;
 	public const int
 		RULE_fifth = 0, RULE_module_import = 1, RULE_module_name = 2, RULE_packagename = 3, 
 		RULE_alias = 4, RULE_function_declaration = 5, RULE_function_body = 6, 
@@ -129,9 +128,7 @@ public partial class FifthParser : FifthParserBase {
 		"HEX_FLOAT_LIT", "IMAGINARY_LIT", "RUNE_LIT", "BYTE_VALUE", "OCTAL_BYTE_VALUE", 
 		"HEX_BYTE_VALUE", "LITTLE_U_VALUE", "BIG_U_VALUE", "RAW_STRING_LIT", "INTERPRETED_STRING_LIT", 
 		"INTERPOLATED_STRING_LIT", "WS", "COMMENT", "TERMINATOR", "LINE_COMMENT", 
-		"WS_NLSEMI", "COMMENT_NLSEMI", "LINE_COMMENT_NLSEMI", "EOS", "PrefixedName", 
-		"PNAME_LN", "PN_LOCAL", "PLX", "PERCENT", "PNAME_NS", "PN_PREFIX", "PN_LOCAL_ESC", 
-		"SL_COMMENT"
+		"WS_NLSEMI", "COMMENT_NLSEMI", "LINE_COMMENT_NLSEMI", "EOS", "SL_COMMENT"
 	};
 	public static readonly IVocabulary DefaultVocabulary = new Vocabulary(_LiteralNames, _SymbolicNames);
 
@@ -5939,7 +5936,7 @@ public partial class FifthParser : FifthParserBase {
 	}
 
 	private static int[] _serializedATN = {
-		4,1,132,661,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
+		4,1,124,661,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
 		7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,2,14,7,14,
 		2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,7,20,2,21,7,21,
 		2,22,7,22,2,23,7,23,2,24,7,24,2,25,7,25,2,26,7,26,2,27,7,27,2,28,7,28,
