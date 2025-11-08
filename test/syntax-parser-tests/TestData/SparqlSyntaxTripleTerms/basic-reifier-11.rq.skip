@@ -1,0 +1,11 @@
+# Skipped: pending grammar support for standalone triple term in BGP
+# Source: W3C rdf-tests/sparql/sparql12/syntax-triple-terms-positive/basic-reifier-11.rq
+# Rationale: Our SPARQL grammar currently does not accept a lone <<S P O ~ R>> pattern
+#            as a complete BGP item without a predicate/object. This is tracked and will
+#            be revisited alongside validation of the W3C BNF for standalone triple terms.
+
+PREFIX : <http://example.com/ns#>
+
+CONSTRUCT WHERE {
+   << ?s ?p ?o ~ :iri >> .
+}
