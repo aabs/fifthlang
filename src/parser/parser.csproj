@@ -29,9 +29,25 @@
           ContinueOnError="false">
       <Output TaskParameter="ConsoleOutput" PropertyName="ParserOutput" />
     </Exec>
+    <Message Text="Generating TriG Lexer" />
+    <Exec Command="java -jar ../tools/antlr-4.13.2-complete.jar -Dlanguage=CSharp -o trig-grammar -Xexact-output-dir -lib . TrigLexer.g4" 
+          ConsoleToMsBuild="true" 
+          WorkingDirectory="$(MSBuildThisFileDirectory)grammar"
+          ContinueOnError="false">
+      <Output TaskParameter="ConsoleOutput" PropertyName="TrigLexerOutput" />
+    </Exec>
+    <Message Text="Generating TriG Parser" />
+    <Exec Command="java -jar ../tools/antlr-4.13.2-complete.jar -Dlanguage=CSharp -visitor -listener -o trig-grammar -Xexact-output-dir -lib trig-grammar TrigParser.g4" 
+          ConsoleToMsBuild="true" 
+          WorkingDirectory="$(MSBuildThisFileDirectory)grammar"
+          ContinueOnError="false">
+      <Output TaskParameter="ConsoleOutput" PropertyName="TrigParserOutput" />
+    </Exec>
     <Message Text="----------------------------------------" />
     <Message Text="Lexer Output: @(LexerOutput)" />
     <Message Text="Parser Output: @(ParserOutput)" />
+    <Message Text="TriG Lexer Output: @(TrigLexerOutput)" />
+    <Message Text="TriG Parser Output: @(TrigParserOutput)" />
     <Message Text="----------------------------------------" />
   </Target>
 
@@ -40,6 +56,8 @@
     <ItemGroup>
       <AntlrArtifacts Include="$(MSBuildThisFileDirectory)grammar/*.tokens" />
       <AntlrArtifacts Include="$(MSBuildThisFileDirectory)grammar/*.interp" />
+      <AntlrArtifacts Include="$(MSBuildThisFileDirectory)grammar/trig-grammar/*.tokens" />
+      <AntlrArtifacts Include="$(MSBuildThisFileDirectory)grammar/trig-grammar/*.interp" />
     </ItemGroup>
     <Delete Files="@(AntlrArtifacts)" TreatErrorsAsWarnings="false" />
   </Target>

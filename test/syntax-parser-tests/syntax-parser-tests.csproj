@@ -37,4 +37,11 @@
     <Compile Include="../ast-tests/TestInfrastructure/ParseHarness.cs" Link="TestInfrastructure/ParseHarness.cs" />
   </ItemGroup>
 
+  <!-- Copy TriG test data into output -->
+  <ItemGroup>
+    <None Include="TestData/TrigBasic/*.trig">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
