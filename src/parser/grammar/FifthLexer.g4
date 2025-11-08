@@ -1,5 +1,7 @@
 lexer grammar FifthLexer;
 
+import IriLexerFragments;
+
 /*
  * A Fifth lexer grammar for ANTLR 4 derived from the Go Grammar Specification
  * https://raw.githubusercontent.com/antlr/grammars-v4/refs/heads/master/golang/GoLexer.g4
@@ -134,52 +136,15 @@ AMPERSAND : '&';
 SUCH_THAT : '#';
 CONCAT    : '<>';
 
-// IRI Reference - must come after L_GRAPH, GEN, CONCAT for proper precedence
+// IRI Reference - imported from IriLexerFragments.g4
+// The IRIREF token is now defined using RFC 3987 compliant character classes
+
 // Triple feature keywords / operators
 TRIPLE       : 'triple';
 MINUS_ASSIGN : '-='; // added for graph -= triple support
 
-// Required fragments moved from IRIMode for IRIREF
-fragment PN_CHARS_BASE:
-    'A' .. 'Z'
-    | 'a' .. 'z'
-    | '\u00C0' .. '\u00D6'
-    | '\u00D8' .. '\u00F6'
-    | '\u00F8' .. '\u02FF'
-    | '\u0370' .. '\u037D'
-    | '\u037F' .. '\u1FFF'
-    | '\u200C' .. '\u200D'
-    | '\u2070' .. '\u218F'
-    | '\u2C00' .. '\u2FEF'
-    | '\u3001' .. '\uD7FF'
-    | '\uF900' .. '\uFDCF'
-    | '\uFDF0' .. '\uFFFD'
-;
-
-fragment PN_CHARS_U: PN_CHARS_BASE | '_';
-
-fragment PN_CHARS: PN_CHARS_U | '-' | [0-9] | '\u00B7' | [\u0300-\u036F] | [\u203F-\u2040];
-
-fragment UCHAR:
-    '\\u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
-    | '\\U' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
-;
-
-// Require at least one of ':' '/' or '#' inside to avoid matching generics like '<int>'
-IRIREF:
-    '<' (PN_CHARS | '.' | ':' | '/' | '\\' | '#' | '@' | '%' | '&' | UCHAR)* (':' | '/' | '#') (
-        PN_CHARS
-        | '.'
-        | ':'
-        | '/'
-        | '\\'
-        | '#'
-        | '@'
-        | '%'
-        | '&'
-        | UCHAR
-    )* '>'
-;
+// Note: PN_CHARS_BASE, PN_CHARS_U, PN_CHARS fragments moved to IRIMode
+// These are needed for prefixed names (SPARQL-style) but not for angle-bracketed IRIs
 
 SUF_SHORT   : [sS];
 SUF_DECIMAL : [cC];
@@ -287,6 +252,28 @@ LINE_COMMENT_NLSEMI : '//' ~[\r\n]*       -> channel(HIDDEN);
 EOS: ([\r\n]+ | ';' | '/*' .*? '*/' | EOF) -> mode(DEFAULT_MODE);
 // Did not find an EOS, so go back to normal lexing
 //OTHER: -> mode(DEFAULT_MODE), channel(HIDDEN);
+
+// Fragments needed for IRIMode (SPARQL-style prefixed names)
+// These are separate from the RFC 3987 IRI definitions
+fragment PN_CHARS_BASE:
+    'A' .. 'Z'
+    | 'a' .. 'z'
+    | '\u00C0' .. '\u00D6'
+    | '\u00D8' .. '\u00F6'
+    | '\u00F8' .. '\u02FF'
+    | '\u0370' .. '\u037D'
+    | '\u037F' .. '\u1FFF'
+    | '\u200C' .. '\u200D'
+    | '\u2070' .. '\u218F'
+    | '\u2C00' .. '\u2FEF'
+    | '\u3001' .. '\uD7FF'
+    | '\uF900' .. '\uFDCF'
+    | '\uFDF0' .. '\uFFFD'
+;
+
+fragment PN_CHARS_U: PN_CHARS_BASE | '_';
+
+fragment PN_CHARS: PN_CHARS_U | '-' | [0-9] | '\u00B7' | [\u0300-\u036F] | [\u203F-\u2040];
 
 mode IRIMode;
 
