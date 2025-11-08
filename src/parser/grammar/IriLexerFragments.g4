@@ -36,24 +36,13 @@
 
 lexer grammar IriLexerFragments;
 
-// IRIREF token - angle-bracketed IRI reference for Fifth language
+// Fragment for angle-bracketed IRI reference for Fifth language
 // This matches the pattern used in Fifth: <http://example.org/path>
-// Note: This is a simplified but RFC 3987 compliant version for angle-bracketed IRIs
+// Note: This is RFC 3987 compliant for angle-bracketed IRIs
 // IMPORTANT: Requires at least one of ':', '/', or '#' to avoid matching generics like '<int>'
-IRIREF:
-    '<' (
-        IRI_CHAR
-        | IRI_RESERVED
-        | IRI_UNRESERVED  
-        | IRI_PCT_ENCODED
-        | IRI_UCSCHAR
-    )* (':'| '/' | '#') (
-        IRI_CHAR
-        | IRI_RESERVED
-        | IRI_UNRESERVED  
-        | IRI_PCT_ENCODED
-        | IRI_UCSCHAR
-    )* '>'
+// This is a fragment to avoid token namespace pollution when other grammars (Turtle, SPARQL) are imported
+fragment IRIREF_FRAGMENT:
+    '<' IRI_CHAR* (':'| '/' | '#') IRI_CHAR* '>'
 ;
 
 // Character classes based on RFC 3987

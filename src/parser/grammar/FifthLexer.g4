@@ -136,8 +136,10 @@ AMPERSAND : '&';
 SUCH_THAT : '#';
 CONCAT    : '<>';
 
-// IRI Reference - imported from IriLexerFragments.g4
-// The IRIREF token is now defined using RFC 3987 compliant character classes
+// IRI Reference - uses RFC 3987 compliant fragments from IriLexerFragments.g4
+// The IRIREF token is defined here to control the token namespace
+// This avoids conflicts when other grammars (Turtle, SPARQL) are imported later
+IRIREF: IRIREF_FRAGMENT;
 
 // Triple feature keywords / operators
 TRIPLE       : 'triple';
