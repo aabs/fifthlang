@@ -43,11 +43,27 @@
           ContinueOnError="false">
       <Output TaskParameter="ConsoleOutput" PropertyName="TrigParserOutput" />
     </Exec>
+    <Message Text="Generating SPARQL Lexer" />
+    <Exec Command="java -jar ../tools/antlr-4.13.2-complete.jar -Dlanguage=CSharp -o sparql-grammar -Xexact-output-dir -lib . SparqlLexer.g4" 
+          ConsoleToMsBuild="true" 
+          WorkingDirectory="$(MSBuildThisFileDirectory)grammar"
+          ContinueOnError="false">
+      <Output TaskParameter="ConsoleOutput" PropertyName="SparqlLexerOutput" />
+    </Exec>
+    <Message Text="Generating SPARQL Parser" />
+    <Exec Command="java -jar ../tools/antlr-4.13.2-complete.jar -Dlanguage=CSharp -visitor -listener -o sparql-grammar -Xexact-output-dir -lib sparql-grammar SparqlParser.g4" 
+          ConsoleToMsBuild="true" 
+          WorkingDirectory="$(MSBuildThisFileDirectory)grammar"
+          ContinueOnError="false">
+      <Output TaskParameter="ConsoleOutput" PropertyName="SparqlParserOutput" />
+    </Exec>
     <Message Text="----------------------------------------" />
     <Message Text="Lexer Output: @(LexerOutput)" />
     <Message Text="Parser Output: @(ParserOutput)" />
     <Message Text="TriG Lexer Output: @(TrigLexerOutput)" />
     <Message Text="TriG Parser Output: @(TrigParserOutput)" />
+    <Message Text="SPARQL Lexer Output: @(SparqlLexerOutput)" />
+    <Message Text="SPARQL Parser Output: @(SparqlParserOutput)" />
     <Message Text="----------------------------------------" />
   </Target>
 
@@ -58,6 +74,8 @@
       <AntlrArtifacts Include="$(MSBuildThisFileDirectory)grammar/*.interp" />
       <AntlrArtifacts Include="$(MSBuildThisFileDirectory)grammar/trig-grammar/*.tokens" />
       <AntlrArtifacts Include="$(MSBuildThisFileDirectory)grammar/trig-grammar/*.interp" />
+      <AntlrArtifacts Include="$(MSBuildThisFileDirectory)grammar/sparql-grammar/*.tokens" />
+      <AntlrArtifacts Include="$(MSBuildThisFileDirectory)grammar/sparql-grammar/*.interp" />
     </ItemGroup>
     <Delete Files="@(AntlrArtifacts)" TreatErrorsAsWarnings="false" />
   </Target>

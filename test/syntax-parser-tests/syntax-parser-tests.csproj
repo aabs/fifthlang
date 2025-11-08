@@ -44,4 +44,11 @@
     </None>
   </ItemGroup>
 
+  <!-- Copy SPARQL test data into output -->
+  <ItemGroup>
+    <None Include="TestData/SparqlSyntaxTripleTerms/*.rq">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

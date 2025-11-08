@@ -1,0 +1,6 @@
+# Basic CONSTRUCT query
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+CONSTRUCT { ?person foaf:knows ?friend }
+WHERE {
+  ?person foaf:knows ?friend .
+}
