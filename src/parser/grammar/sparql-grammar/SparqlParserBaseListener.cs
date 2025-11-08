@@ -1080,6 +1080,54 @@ public partial class SparqlParserBaseListener : ISparqlParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitDataValueTerm([NotNull] SparqlParser.DataValueTermContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="SparqlParser.dataCollection"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterDataCollection([NotNull] SparqlParser.DataCollectionContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="SparqlParser.dataCollection"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitDataCollection([NotNull] SparqlParser.DataCollectionContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="SparqlParser.dataBlankNodePropertyList"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterDataBlankNodePropertyList([NotNull] SparqlParser.DataBlankNodePropertyListContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="SparqlParser.dataBlankNodePropertyList"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitDataBlankNodePropertyList([NotNull] SparqlParser.DataBlankNodePropertyListContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="SparqlParser.dataPropertyListNotEmpty"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterDataPropertyListNotEmpty([NotNull] SparqlParser.DataPropertyListNotEmptyContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="SparqlParser.dataPropertyListNotEmpty"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitDataPropertyListNotEmpty([NotNull] SparqlParser.DataPropertyListNotEmptyContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="SparqlParser.dataObjectList"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterDataObjectList([NotNull] SparqlParser.DataObjectListContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="SparqlParser.dataObjectList"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitDataObjectList([NotNull] SparqlParser.DataObjectListContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="SparqlParser.expression"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
@@ -1451,6 +1499,30 @@ public partial class SparqlParserBaseListener : ISparqlParserListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitTriplesTemplate([NotNull] SparqlParser.TriplesTemplateContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="SparqlParser.reifier"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterReifier([NotNull] SparqlParser.ReifierContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="SparqlParser.reifier"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitReifier([NotNull] SparqlParser.ReifierContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="SparqlParser.annotation"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterAnnotation([NotNull] SparqlParser.AnnotationContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="SparqlParser.annotation"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitAnnotation([NotNull] SparqlParser.AnnotationContext context) { }
 
 	/// <inheritdoc/>
 	/// <remarks>The default implementation does nothing.</remarks>

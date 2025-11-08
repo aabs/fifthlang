@@ -554,6 +554,30 @@ public interface ISparqlParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitDataValueTerm([NotNull] SparqlParser.DataValueTermContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="SparqlParser.dataCollection"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDataCollection([NotNull] SparqlParser.DataCollectionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="SparqlParser.dataBlankNodePropertyList"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDataBlankNodePropertyList([NotNull] SparqlParser.DataBlankNodePropertyListContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="SparqlParser.dataPropertyListNotEmpty"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDataPropertyListNotEmpty([NotNull] SparqlParser.DataPropertyListNotEmptyContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="SparqlParser.dataObjectList"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDataObjectList([NotNull] SparqlParser.DataObjectListContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="SparqlParser.expression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -739,4 +763,16 @@ public interface ISparqlParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitTriplesTemplate([NotNull] SparqlParser.TriplesTemplateContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="SparqlParser.reifier"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReifier([NotNull] SparqlParser.ReifierContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="SparqlParser.annotation"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAnnotation([NotNull] SparqlParser.AnnotationContext context);
 }

@@ -901,6 +901,46 @@ public interface ISparqlParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitDataValueTerm([NotNull] SparqlParser.DataValueTermContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="SparqlParser.dataCollection"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterDataCollection([NotNull] SparqlParser.DataCollectionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="SparqlParser.dataCollection"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitDataCollection([NotNull] SparqlParser.DataCollectionContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="SparqlParser.dataBlankNodePropertyList"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterDataBlankNodePropertyList([NotNull] SparqlParser.DataBlankNodePropertyListContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="SparqlParser.dataBlankNodePropertyList"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitDataBlankNodePropertyList([NotNull] SparqlParser.DataBlankNodePropertyListContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="SparqlParser.dataPropertyListNotEmpty"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterDataPropertyListNotEmpty([NotNull] SparqlParser.DataPropertyListNotEmptyContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="SparqlParser.dataPropertyListNotEmpty"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitDataPropertyListNotEmpty([NotNull] SparqlParser.DataPropertyListNotEmptyContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="SparqlParser.dataObjectList"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterDataObjectList([NotNull] SparqlParser.DataObjectListContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="SparqlParser.dataObjectList"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitDataObjectList([NotNull] SparqlParser.DataObjectListContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="SparqlParser.expression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1210,4 +1250,24 @@ public interface ISparqlParserListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitTriplesTemplate([NotNull] SparqlParser.TriplesTemplateContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="SparqlParser.reifier"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterReifier([NotNull] SparqlParser.ReifierContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="SparqlParser.reifier"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitReifier([NotNull] SparqlParser.ReifierContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="SparqlParser.annotation"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterAnnotation([NotNull] SparqlParser.AnnotationContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="SparqlParser.annotation"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitAnnotation([NotNull] SparqlParser.AnnotationContext context);
 }

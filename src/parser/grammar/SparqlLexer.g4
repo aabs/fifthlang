@@ -149,6 +149,7 @@ STAR        : '*';
 SLASH       : '/';
 CARET       : '^';
 HATHAT      : '^^';
+TILDE       : '~';
 
 // Punctuation
 LPAREN      : '(';
@@ -167,6 +168,10 @@ DOLLAR      : '$';
 // Triple terms (SPARQL 1.2 feature)
 LT2         : '<<';
 GT2         : '>>';
+
+// Annotation syntax (SPARQL 1.2 feature)
+LBRACE_PIPE : '{|';
+PIPE_RBRACE : '|}';
 
 // Numeric literals
 INTEGER_POSITIVE : PLUS INTEGER;

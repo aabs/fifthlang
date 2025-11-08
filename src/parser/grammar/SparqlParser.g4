@@ -193,7 +193,7 @@ triplesSameSubject : varOrTerm propertyListNotEmpty
 propertyList : propertyListNotEmpty?;
 
 // [52] PropertyListNotEmpty
-propertyListNotEmpty : verb objectList ( SEMI ( verb objectList )? )*;
+propertyListNotEmpty : verb objectList ( reifier | annotation )* ( SEMI ( verb objectList ( reifier | annotation )* )? )*;
 
 // [53] Verb
 verb : varOrIri | A;
@@ -205,15 +205,15 @@ objectList : object ( COMMA object )*;
 object : graphNode;
 
 // [56] TriplesSameSubjectPath
-triplesSameSubjectPath : varOrTerm propertyListPathNotEmpty 
+triplesSameSubjectPath : varOrTerm propertyListPath 
                        | triplesNodePath propertyListPath;
 
 // [57] PropertyListPath
 propertyListPath : propertyListPathNotEmpty?;
 
 // [58] PropertyListPathNotEmpty
-propertyListPathNotEmpty : ( verbPath | verbSimple ) objectListPath 
-                          ( SEMI ( ( verbPath | verbSimple ) objectListPath )? )*;
+propertyListPathNotEmpty : ( verbPath | verbSimple ) objectListPath ( reifier | annotation )*
+                          ( SEMI ( ( verbPath | verbSimple ) objectListPath ( reifier | annotation )* )? )*;
 
 // [59] VerbPath
 verbPath : path;
@@ -306,14 +306,29 @@ graphTerm : iri
           | tripleTerm;
 
 // [85] TripleTerm (SPARQL 1.2 feature)
-tripleTerm : LT2 dataValueTerm verb dataValueTerm GT2;
+tripleTerm : LT2 dataValueTerm dataValueTerm dataValueTerm GT2;
 
 // [86] DataValueTerm
 dataValueTerm : iri 
               | rdfLiteral 
               | numericLiteral 
               | booleanLiteral 
-              | tripleTerm;
+              | var
+              | tripleTerm
+              | dataCollection
+              | dataBlankNodePropertyList;
+
+// Data collection (for use in triple terms)
+dataCollection : LPAREN dataValueTerm* RPAREN;
+
+// Data blank node property list (for use in triple terms)
+dataBlankNodePropertyList : LBRACK dataPropertyListNotEmpty RBRACK;
+
+// Property list for data terms
+dataPropertyListNotEmpty : verb dataObjectList ( SEMI ( verb dataObjectList )? )*;
+
+// Object list for data terms
+dataObjectList : dataValueTerm ( COMMA dataValueTerm )*;
 
 // [87] Expression
 expression : conditionalOrExpression;
@@ -500,3 +515,11 @@ iriRef : IRIREF;
 
 // TriplesTemplate (used in ConstructQuery)
 triplesTemplate : triplesSameSubject ( DOT triplesTemplate? )?;
+
+// Reifier syntax (SPARQL 1.2)
+// Reifiers assign an identifier to a triple for referencing in annotations
+reifier : TILDE varOrIri;
+
+// Annotation syntax (SPARQL 1.2)
+// Annotations allow associating metadata with a triple pattern
+annotation : LBRACE_PIPE propertyListNotEmpty PIPE_RBRACE;
