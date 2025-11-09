@@ -22,7 +22,9 @@ namespace Validation.Guards.Traceability
             if (dir == null)
                 throw new InvalidOperationException("Cannot locate repository root (fifthlang.sln).");
 
-            var tracePath = Path.Combine(dir.FullName, "specs", "002-guard-clause-overload-completeness", "traceability.json");
+            var primary = Path.Combine(dir.FullName, "specs", "002-guard-clause-overload-completeness", "traceability.json");
+            var fallback = Path.Combine(dir.FullName, "specs", "completed-002-guard-clause-overload-completeness", "traceability.json");
+            var tracePath = File.Exists(primary) ? primary : fallback;
             await Assert.That(File.Exists(tracePath)).IsTrue();
 
             using var fs = File.OpenRead(tracePath);

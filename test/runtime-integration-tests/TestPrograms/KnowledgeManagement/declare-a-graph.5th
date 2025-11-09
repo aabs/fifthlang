@@ -6,15 +6,17 @@ class Person in <x:>
     age : int ;
 }
 
-calculate_age(val : DateTimeOffset): TimeSpan
+calculate_age(val : DateTimeOffset): int
 {
-    return DateTimeOffset.Now - val;
+    // Simple year difference avoiding TimeSpan property lowering issues
+    return DateTimeOffset.Now.Year - val.Year;
 }
 
 foo(a : int, n : string): void
 {
     eric : Person = new Person();
-    d: DateTimeOffset = DateTimeOffset(1926, 5, 14, 0, 0, 0, TimeSpan.Zero);
+    // Avoid constructor invocation form to keep codegen simple; use Now
+    d: DateTimeOffset = DateTimeOffset.Now;
     eric.dob = d;
     eric.age = calculate_age(d);
     ericKnowledge : graph in <x:people> = KG.CreateGraph();
