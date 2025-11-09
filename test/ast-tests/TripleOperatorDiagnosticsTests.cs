@@ -15,7 +15,7 @@ public class TripleOperatorDiagnosticsTests
     [Test]
     public void Triple_minus_graph_reports_TRPL012()
     {
-        const string code = "alias ex as <http://example.org/>;\nmain(): graph { return <ex:s, ex:p, ex:o> - <{ <ex:a, ex:b, ex:c>; }>; }";
+        const string code = "alias ex as <http://example.org/>;\nmain(): graph { g: graph = KG.CreateGraph(); return <ex:s, ex:p, ex:o> - g; }";
         var result = Parse(code);
         result.Diagnostics.Select(d => d.Code).Should().Contain("TRPL012");
     }

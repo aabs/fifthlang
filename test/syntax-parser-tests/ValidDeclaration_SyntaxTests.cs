@@ -23,7 +23,7 @@ public class ValidDeclaration_SyntaxTests
     [Test]
     public void GraphDeclaration_ShouldSucceed()
     {
-        var input = "g : graph = <{}>;";
+        var input = "g : graph = KG.CreateGraph();";
         ParserTestUtils.AssertNoErrors(input + "\n", p => p.statement(),
             "Colon-form graph declaration should parse");
     }

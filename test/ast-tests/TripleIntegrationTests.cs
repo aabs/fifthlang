@@ -1,5 +1,4 @@
 // Phase 3.8: Integration Tests for Triple Literals
-// T038: Integration test: triple literal in graph assertion block
 // T039: Integration test: nested list rejected with TRPL006
 // T040: Integration test: performance harness baseline capture
 using System.Linq;
@@ -18,52 +17,6 @@ namespace ast_tests;
 /// </summary>
 public class TripleIntegrationTests
 {
-    [Test]
-    public void T038_TripleInGraphAssertionBlock_ParsesCorrectly()
-    {
-        // FR-021: Triple literals can be used within graph assertion blocks
-        // Note: Graph assertion blocks need a store declaration
-        var code = @"
-alias ex as <http://example.org/>;
-store mystore = sparql_store(""http://localhost:3030/ds"");
-main(): int { 
-    with mystore <{ <ex:s, ex:p, ex:o>; }>;
-    return 0; 
-}";
-        var result = ParseHarness.ParseString(code, new ParseOptions(FifthParserManager.AnalysisPhase.All));
-
-        result.Root.Should().NotBeNull();
-        // Check that it parses without syntax errors
-        var syntaxErrors = result.Diagnostics.Where(d => d.Code == "SYNTAX" && d.Severity == test_infra.DiagnosticSeverity.Error).ToList();
-        syntaxErrors.Should().BeEmpty("triple in graph assertion block should parse");
-
-        // Verify the parse succeeded (triples in assertion blocks may not be found by FindTriples helper)
-    }
-
-    [Test]
-    public void T038_MultipleTriples_InGraphAssertionBlock()
-    {
-        // Test multiple triple assertions in a single block
-        var code = @"
-alias ex as <http://example.org/>;
-store mystore = sparql_store(""http://localhost:3030/ds"");
-main(): int { 
-    with mystore <{ 
-        <ex:s1, ex:p1, ex:o1>;
-        <ex:s2, ex:p2, ex:o2>;
-        <ex:s3, ex:p3, ex:o3>;
-    }>;
-    return 0; 
-}";
-        var result = ParseHarness.ParseString(code, new ParseOptions(FifthParserManager.AnalysisPhase.All));
-
-        result.Root.Should().NotBeNull();
-        var syntaxErrors = result.Diagnostics.Where(d => d.Code == "SYNTAX" && d.Severity == test_infra.DiagnosticSeverity.Error).ToList();
-        syntaxErrors.Should().BeEmpty("multiple triples in graph assertion block should parse");
-
-        // Verify parsing succeeded (actual triple extraction requires specialized visitor)
-    }
-
     [Test]
     public void T039_NestedList_InTripleConstruction_DetectedCorrectly()
     {

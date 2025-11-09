@@ -26,8 +26,8 @@ public class InvalidDeclaration_SyntaxTests
     [Test]
     public void TypeFirstGraphDeclaration_ShouldFail()
     {
-        var input = "graph g = <{}>;";
+        var input = "graph g = KG.CreateGraph();";
         ParserTestUtils.AssertHasErrors(input + "\n", p => p.statement(),
-            "Type-first graph declaration should not be accepted; expect 'g : graph = <{}>;' syntax");
+            "Type-first graph declaration should not be accepted; expect 'g : graph = KG.CreateGraph();' syntax");
     }
 }
