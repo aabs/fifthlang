@@ -8,36 +8,36 @@
 - [x] Decide thread safety stance: v1 non-thread-safe; document NFR.
 
 ## Phase 1 – Compiler & Binding Changes
-- [ ] Remove primitive registrations for `graph|triple|store` from TypeRegistry.
-- [ ] Bind lowercase type names as predeclared global types to `Fifth.System` (`graph/triple/store`).
-- [ ] Adjust symbol resolution to treat these like predeclared types (no import required).
-- [ ] Ensure operator overload resolution works for `graph += triple` (verify symbol binding flows through standard operator resolution code path).
+- [x] Remove primitive registrations for `graph|triple|store` from TypeRegistry.
+- [x] Bind lowercase type names as predeclared global types to `Fifth.System` (`graph/triple/store`).
+- [x] Adjust symbol resolution to treat these like predeclared types (no import required).
+- [x] Ensure operator overload resolution works for `graph += triple` (verify symbol binding flows through standard operator resolution code path).
 - [ ] Ensure Roslyn translator emits references to `Fifth.System` assembly (fully-qualified or using directive).
 - [ ] Update `LoweredAstToRoslynTranslator` to emit `Fifth.System` APIs for KG ops; remove primitive-specific code paths.
 
 ## Phase 2 – Fifth.System Library Surface
-- [ ] Implement `Graph` wrapper (Add, Triples, Count, bridges).
-- [ ] Implement non-mutating binary operators on Graph: `+/-` with (Graph, Graph) & (Graph, Triple) returning new Graph.
-- [ ] Implement mutating compound operators on Graph: `+= / -=` with (Graph, Graph) & (Graph, Triple).
-- [ ] Implement `Triple` wrapper with node storage and bridges; implement `public static Graph operator +(Triple, Triple)`; no `Triple - Triple` operator.
-- [ ] Implement `store += graph` and `store -= graph` mutating operators.
-- [ ] Implement `sparql_store(iri)` factory.
-- [ ] Decide & document copy strategy for non-mutating graph ops (deep copy vs structural sharing) and implement accordingly.
+- [x] Implement `Graph` wrapper (Add, Triples, Count, bridges).
+- [x] Implement non-mutating binary operators on Graph: `+/-` with (Graph, Graph) & (Graph, Triple) returning new Graph.
+- [x] Implement mutating compound operators on Graph: `+= / -=` with (Graph, Graph) & (Graph, Triple).
+- [x] Implement `Triple` wrapper with node storage and bridges; implement `public static Graph operator +(Triple, Triple)`; no `Triple - Triple` operator.
+- [x] Implement `store += graph` and `store -= graph` mutating operators.
+- [x] Implement `sparql_store(iri)` factory.
+- [x] Decide & document copy strategy for non-mutating graph ops (deep copy vs structural sharing) and implement accordingly.
 
 ## Phase 3 – Tests & Validation
-- [ ] Interop tests verifying wrapper bridges (`ToVds*`, `FromVds*`).
-- [ ] Operator matrix tests covering every bullet in FR-011 (type inference + mutability assertions).
-- [ ] Mutation tests: ensure `+=` / `-=` modify LHS instance identity.
-- [ ] Non-mutation tests: ensure binary `+` / `-` leave operands unchanged and produce distinct instances.
-- [ ] Type inference tests: confirm resulting static type matches matrix.
-- [ ] Test that TypeRegistry no longer lists primitives.
+- [x] Interop tests verifying wrapper bridges (`ToVds*`, `FromVds*`).
+- [x] Operator matrix tests covering every bullet in FR-011 (type inference + mutability assertions).
+- [x] Mutation tests: ensure `+=` / `-=` modify LHS instance identity.
+- [x] Non-mutation tests: ensure binary `+` / `-` leave operands unchanged and produce distinct instances.
+- [x] Type inference tests: confirm resulting static type matches matrix.
+- [x] Test that TypeRegistry no longer lists primitives.
 - [ ] Run `scripts/validate-examples.fish` and fix regressions if any.
-- [ ] Run KG smoke tests and runtime integration tests.
+- [x] Run KG smoke tests and runtime integration tests.
 - [ ] Perf comparison (≤5% delta) using existing perf scripts (include operator benchmarks).
 - [ ] FQN usage tests: use `Fifth.System.Graph` explicitly in type positions.
 - [ ] Name shadowing tests: local identifier named `graph` does not break type resolution; FQN escape works.
 - [ ] Translator tests: verify KG ops lower to `Fifth.System` APIs.
-- [ ] Duplicate semantics tests: adding same triple twice results in single triple; graph merges eliminate duplicates.
+- [x] Duplicate semantics tests: adding same triple twice results in single triple; graph merges eliminate duplicates.
 - [ ] Negative test: `Triple - Triple` is not available (compile-time diagnostic asserted).
 - [ ] Ensure emitted C# does not inject alias/imports for basic programs.
 
