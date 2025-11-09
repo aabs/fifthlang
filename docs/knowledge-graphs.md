@@ -1,6 +1,6 @@
 # Knowledge Graphs in Fifth
 
-This doc summarizes the canonical store declaration syntax and graph assertion blocks, and how they lower to the built-in `Fifth.System.KG` helpers.
+This doc summarizes the canonical store declaration syntax and graph operations, and how they use the built-in `Fifth.System.KG` helpers.
 
 ## Canonical Store Declarations
 - Use the colon form exclusively:
@@ -9,26 +9,34 @@ This doc summarizes the canonical store declaration syntax and graph assertion b
 
 The `sparql_store` function is a built-in alias for connecting to a remote SPARQL endpoint. It returns a `VDS.RDF.Storage.IStorageProvider`.
 
-## Graph Assertion Blocks
-- Statement-form saves to the default store:
+## Graph Operations
+
+### Creating Graphs
+```fifth
+main(): int {
+    // Create an empty graph
+    g: graph = KG.CreateGraph();
+    
+    // Add triples to the graph
+    g += <http://ex/s, http://ex/p, "o">;
+    g += <http://ex/s2, http://ex/p2, 42>;
+    
+    return g.CountTriples();
+}
+```
+
+### Saving to Stores
 ```fifth
 store default = sparql_store(<http://example.org/store>);
 
 main(): int {
-    <{
-        <http://ex/s> <http://ex/p> "o";
-    }>;
+    g: graph = KG.CreateGraph();
+    g += <http://ex/s, http://ex/p, "o">;
+    
+    // Save graph to default store
+    default += g;
+    
     return 0;
-}
-```
-
-- Expression-form yields a graph value:
-```fifth
-main(): int {
-    g: graph = <{
-        <http://ex/s> <http://ex/p> 42;
-    }>;
-    return g.CountTriples();
 }
 ```
 
@@ -68,7 +76,8 @@ emptyLabels: [triple] = <ex:Alice, ex:nothing, []>; // Warning: TRPL004
 Triples compose with graphs using `+` and `-` operators:
 
 ```fifth
-base: graph = <{ <ex:Alice, rdf:type, ex:Person>; }>;
+base: graph = KG.CreateGraph();
+base += <ex:Alice, rdf:type, ex:Person>;
 
 // Add a triple to a graph (returns new graph)
 extended: graph = base + <ex:Alice, ex:age, 42>;
@@ -88,7 +97,8 @@ g4: graph = extended - <ex:Alice, ex:age, 42>;
 Triple literals support compound assignment operators for graphs:
 
 ```fifth
-base: graph = <{ <ex:Alice, rdf:type, ex:Person>; }>;
+base: graph = KG.CreateGraph();
+base += <ex:Alice, rdf:type, ex:Person>;
 
 // Add triple to existing graph (mutating syntax, desugars to reassignment)
 base += <ex:Alice, ex:age, 42>;
@@ -97,15 +107,14 @@ base += <ex:Alice, ex:age, 42>;
 base -= <ex:Alice, ex:age, 42>;
 ```
 
-### Triple Literals in Graph Assertion Blocks
+### Triple Literals with Graphs
 
-Triple literals can be used directly inside graph assertion blocks:
+Triple literals can be added to graphs using the += operator:
 
 ```fifth
-<{
-    <ex:Alice, rdf:type, ex:Person>;  // Triple literal asserted into the block's graph
-    <ex:Alice, ex:age, 42>;
-}>;
+g: graph = KG.CreateGraph();
+g += <ex:Alice, rdf:type, ex:Person>;  // Add triple to graph
+g += <ex:Alice, ex:age, 42>;
 ```
 
 ### Escaping in Serialization
@@ -116,7 +125,7 @@ When triple literals are serialized (e.g., in debugging or logging), special cha
 - Example: `<ex:s, ex:p, "value\, with comma">` 
 
 ## Literal Support in Object Position
-Graph blocks and triple literals accept object literals for:
+Triple literals accept object literals for:
 - Strings, booleans, chars
 - Signed/unsigned integers: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`
 - Floating point: `float`, `double`
@@ -124,14 +133,14 @@ Graph blocks and triple literals accept object literals for:
 
 Literals are lowered to typed RDF literals using the appropriate XSD datatype (e.g., `xsd:int`, `xsd:decimal`).
 
-## Lowering Strategy
-Graph assertion blocks lower to calls on `Fifth.System.KG`:
-- Build nodes via `CreateUri`/`CreateLiteral`
-- Create triples with `CreateTriple`
-- Assert with `Assert`
-- Save with `SaveGraph(store, graph[, uri])`
-
-The statement-form implicitly resolves the default store and calls `SaveGraph`. The expression-form simply returns the constructed `IGraph`.
+## Built-in Functions
+Graph operations use `Fifth.System.KG` functions:
+- `CreateGraph()`: Create an empty graph
+- `CreateUri(string)`: Create an IRI node
+- `CreateLiteral(value)`: Create a literal node
+- `CreateTriple(subject, predicate, object)`: Create a triple
+- `Assert(graph, triple)`: Add a triple to a graph
+- `SaveGraph(store, graph[, uri])`: Save graph to a store
 
 ## Raw API Quickstart (Equivalent)
 You can also use the raw API directly:

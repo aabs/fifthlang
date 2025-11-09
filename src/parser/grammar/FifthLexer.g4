@@ -80,8 +80,6 @@ L_PAREN        : '(';
 R_PAREN        : ')' /*-> mode(NLSEMI)*/;
 L_CURLY        : '{';
 R_CURLY        : '}' /*-> mode(NLSEMI)*/;
-L_GRAPH        : '<{';
-R_GRAPH        : '}>' /*-> mode(NLSEMI)*/;
 L_BRACKET      : '[';
 R_BRACKET      : ']' /*-> mode(NLSEMI)*/;
 ASSIGN         : '=';

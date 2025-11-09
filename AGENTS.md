@@ -223,12 +223,10 @@ Following this checklist prevents parser-time flakiness and keeps integration te
 
 ## Knowledge Graphs (Agent Notes)
 - Canonical store declarations only: `name : store = sparql_store(<iri>);` or `store default = sparql_store(<iri>);`
-- Graph assertion blocks `<{ ... }>`:
-   - Statement-form saves to default store.
-   - Expression-form yields an `IGraph`.
+- Graph operations: Use `KG.CreateGraph()` to create empty graphs, then add triples with `graph += triple` operator
 - Validate quickly:
    - `dotnet test test/kg-smoke-tests/kg-smoke-tests.csproj`
-   - `dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj -v minimal --filter FullyQualifiedName~GraphAssertionBlock_`
+   - `dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj -v minimal --filter FullyQualifiedName~KG_`
 - Reference: `docs/knowledge-graphs.md`
 
 CI notes:

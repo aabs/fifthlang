@@ -132,17 +132,6 @@ public class IRITests
     }
 
     [Test]
-    public void TokenStream_GraphOperator_ShouldTokenizeCorrectly()
-    {
-        // Arrange
-        var input = "<{";
-
-        // Act & Assert
-        ParserTestUtils.AssertContainsTokens(input, "L_GRAPH");
-        ParserTestUtils.AssertDoesNotContainTokens(input, "IRIREF");
-    }
-
-    [Test]
     public void TokenStream_EmptyAngleBrackets_ShouldNotFormIriref()
     {
         // Arrange - Empty angle brackets should tokenize as LESS + GREATER, not IRIREF

@@ -7,8 +7,6 @@ Coverage: CI collects cross-platform coverage via XPlat Code Coverage; HTML and 
 
 A compiler and language tooling for the Fifth programming language.
 
-👉 [Latest Announcement: Graph Assertion Blocks](https://github.com/aabs/fifthlang/discussions/74)
-
 ## Quickstart
 
 If you wish to work on 5th from Neovim, and you have Nix installed, you can create a development shell session like this:
@@ -41,11 +39,13 @@ calculate_age(val : datetime): TimeSpan
 foo(a : int, n : string): void
 {
     eric : Person = new Person();
-    ericKnowledge : graph in <x:people> = <{
-        d: datetime = datetime(1926, 5, 14);
-        eric.dob = d;
-        eric.age = calculate_age(d);
-    }>;
+    d: datetime = datetime(1926, 5, 14);
+    eric.dob = d;
+    eric.age = calculate_age(d);
+    ericKnowledge : graph in <x:people> = KG.CreateGraph();
+    // Add triples to the graph
+    ericKnowledge += <x:eric, x:dob, d>;
+    ericKnowledge += <x:eric, x:age, eric.age>;
     home += ericKnowledge;
 }
 ```
@@ -123,9 +123,7 @@ open CoverageReport/index.html 2>/dev/null; and echo "Opened report in browser"
 
 ## Knowledge Graphs (Overview)
 - Canonical store declaration: `name : store = sparql_store(<iri>);` or `store default = sparql_store(<iri>);`
-- Graph assertion blocks: `<{ ... }>`
-  - Expression-form yields an `IGraph` value.
-  - Statement-form requires a default store and saves the graph to it.
+- Graph operations: Use `KG.CreateGraph()` to create graphs, then add triples with `graph += triple` operator
 - Built-ins are provided via `Fifth.System.KG` (e.g., `CreateGraph`, `CreateUri`, `CreateLiteral`, `CreateTriple`, `Assert`, `SaveGraph`).
 - Supported object literals include strings, booleans, chars, all signed/unsigned integers, float, double, and precise `decimal`.
 

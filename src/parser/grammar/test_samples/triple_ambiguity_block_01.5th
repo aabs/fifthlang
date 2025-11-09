@@ -1,8 +1,0 @@
-// T008: ensure disambiguation: graph assertion vs triple literal
-alias ex as <http://example.org/>;
-
-main(): int {
-  <{ <ex:s, ex:p, ex:o>; }>; // graph assertion block containing a triple statement
-  t: triple = <ex:s, ex:p, ex:o>; // plain triple literal
-  return 0;
-}

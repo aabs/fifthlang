@@ -128,12 +128,6 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitBlock([NotNull] FifthParser.BlockContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.graphAssertionBlock"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitGraphAssertionBlock([NotNull] FifthParser.GraphAssertionBlockContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.declaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -145,12 +139,6 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitStatement([NotNull] FifthParser.StatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.graph_assertion_statement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitGraph_assertion_statement([NotNull] FifthParser.Graph_assertion_statementContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.assignment_statement"/>.
 	/// </summary>

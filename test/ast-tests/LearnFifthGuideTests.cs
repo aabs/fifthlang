@@ -90,7 +90,7 @@ public class LearnFifthGuideTests
         allFunctions.Should().Contain("example_integer_literals", "Should contain integer literals example");
         allFunctions.Should().Contain("example_list_comprehension", "Should contain list comprehension example");
         allFunctions.Should().Contain("example_triple_literals", "Should contain triple literals example");
-        allFunctions.Should().Contain("example_transparent_assertion", "Should contain transparent assertion example");
+        allFunctions.Should().Contain("example_graph_with_objects", "Should contain graph with objects example");
         allFunctions.Should().Contain("isAdult", "Should contain isAdult helper function");
 
         // Check for classes

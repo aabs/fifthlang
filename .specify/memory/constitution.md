@@ -327,22 +327,19 @@ main() => myprint(5 + 6);
 myprint(int x) => std.print(x);
 ```
 
-### Knowledge Graphs (Canonical Syntax & Lowering)
+### Knowledge Graphs (Canonical Syntax)
 - Canonical store declaration forms:
-  - `name : store = sparql_store(<http://example.org/store>);`
-  - `store default = sparql_store(<http://example.org/store>);` (sets default)
-- Graph assertion blocks `<{ ... }>`:
-  - Statement-form (ends with `;`): constructs a graph and saves it to the default store.
-  - Expression-form: returns an `IGraph` value without saving.
+   - `name: store = sparql_store(<http://example.org/store>);`
+   - `store default = sparql_store(<http://example.org/store>);` (sets default)
 - Literal support in object position includes: strings, booleans, chars, all signed/unsigned integers, float, double, and precise `decimal`.
-- Lowering strategy: prefer AST transformations that lower graph blocks to `Fifth.System.KG` helper calls (`CreateGraph`, `CreateUri`, `CreateLiteral`, `CreateTriple`, `Assert`, `SaveGraph`). Avoid bespoke codegen where existing helpers suffice.
-- Tests: runtime coverage under `test/runtime-integration-tests` and smoke tests under `test/kg-smoke-tests` validate end-to-end behavior.
+- Graph operations are performed via supported APIs and expressions; there is no special surface syntax for inline graph assertion blocks.
+- Tests: runtime coverage under `test/runtime-integration-tests` and smoke tests under `test/kg-smoke-tests` validate end-to-end behavior of RDF features (e.g., triple literals, store interactions).
 
 ## Engineering Constraints & Standards
 
 ### Toolchain & Environment
 - C# 14 Language Version required.
-- .NET 10.0 SDK required; Java 17+ required for ANTLR operations
+- .NET 8.0 SDK required (global.json pins 8.0.118); Java 17+ required for ANTLR operations
 - For build timing, set timeouts per documented guidance; do not prematurely interrupt tasks
 
 ### Code Generation

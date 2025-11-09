@@ -74,15 +74,15 @@ public class TripleGraphAdditionLoweringRewriter : DefaultAstRewriter
     }
 
     /// <summary>
-    /// Check if expression is graph-like (Graph literal, GraphAssertionBlockExp, or typed as graph)
+    /// Check if expression is graph-like (Graph literal or typed as graph)
     /// </summary>
     private static bool IsGraph(Expression? expr)
     {
         if (expr is null)
             return false;
 
-        // Graph literals and assertion blocks are always graph-like
-        if (expr is Graph || expr is GraphAssertionBlockExp)
+        // Graph literals are always graph-like
+        if (expr is Graph)
             return true;
 
         // Check if variable reference is typed as a graph (could be "graph" or "IGraph")

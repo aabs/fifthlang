@@ -12,7 +12,7 @@ public class TripleMutatingOperatorsTests : RuntimeTestBase
         var src = """
             alias s as <http://example.org/>;
             main(): int {
-                g: graph = <{}>;
+                g: graph = KG.CreateGraph();
                 // Test += operator: adds triple to graph
                 g += <s:subject, s:predicate, s:object>;
                 
