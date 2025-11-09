@@ -658,15 +658,6 @@ public record ThrowStatement : Statement
     public Expression? Exception { get; set; }
 }
 
-/// <summary>
-/// A statement form of a Graph Assertion Block. Semicolon-terminated and
-/// intended to trigger persistence to the default store during lowering.
-/// </summary>
-public record GraphAssertionBlockStatement : Statement
-{
-    public required GraphAssertionBlockExp Content { get; set; }
-}
-
 public abstract record KnowledgeManagementStatement : Statement
 {
 }
@@ -727,15 +718,6 @@ public record WithScopeStatement : Statement
 
 public abstract record Expression : AstThing
 {
-}
-
-/// <summary>
-/// Expression form of a Graph Assertion Block, yielding a graph value that
-/// represents the asserted triples. Persistence is explicit via operations.
-/// </summary>
-public record GraphAssertionBlockExp : Expression
-{
-    public required BlockStatement Content { get; set; }
 }
 
 public record BinaryExp : Expression

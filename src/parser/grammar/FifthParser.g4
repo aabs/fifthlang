@@ -65,13 +65,10 @@ type_name: IDENTIFIER;
 // ========[STATEMENTS]=========
 block: L_CURLY statement* R_CURLY;
 
-graphAssertionBlock: L_GRAPH statement* R_GRAPH;
-
 declaration: decl = var_decl (ASSIGN init = expression)? SEMI;
 
 statement:
 	block
-	| graph_assertion_statement
 	| if_statement
 	| while_statement
 	| with_statement // #stmt_with // this is not useful as is
@@ -83,8 +80,6 @@ statement:
 	| declaration
 	| colon_store_decl
 	| colon_graph_decl;
-
-graph_assertion_statement: graphAssertionBlock SEMI;
 
 assignment_statement:
 	lvalue = expression (op = ASSIGN | op = PLUS_ASSIGN | op = MINUS_ASSIGN) rvalue = expression SEMI;
@@ -190,7 +185,6 @@ operand:
 	| list
 	| var_name
 	| L_PAREN expression R_PAREN
-	| graphAssertionBlock
 	| object_instantiation_expression;
 
 // Treat triples as primary (non-left-recursive) expressions Semantic predicate: ensure lookahead
@@ -272,7 +266,7 @@ graphDeclaration:
 	GRAPH name = IDENTIFIER (IN aliasScope = alias_scope_ref)? ASSIGN L_CURLY assignment_statement*
 		R_CURLY;
 
-// Colon form graph variable: g : graph in <scope?> = <{ ... }> or any graph expression;
+// Colon form graph variable: g : graph in <scope?> = graphExpression;
 colon_graph_decl:
 	name = IDENTIFIER COLON GRAPH (
 		IN aliasScope = alias_scope_ref

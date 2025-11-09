@@ -195,16 +195,6 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	/// <return>The visitor result.</return>
 	public virtual Result VisitBlock([NotNull] FifthParser.BlockContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.graphAssertionBlock"/>.
-	/// <para>
-	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
-	/// on <paramref name="context"/>.
-	/// </para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	public virtual Result VisitGraphAssertionBlock([NotNull] FifthParser.GraphAssertionBlockContext context) { return VisitChildren(context); }
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.declaration"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
@@ -224,16 +214,6 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	public virtual Result VisitStatement([NotNull] FifthParser.StatementContext context) { return VisitChildren(context); }
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.graph_assertion_statement"/>.
-	/// <para>
-	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
-	/// on <paramref name="context"/>.
-	/// </para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	public virtual Result VisitGraph_assertion_statement([NotNull] FifthParser.Graph_assertion_statementContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.assignment_statement"/>.
 	/// <para>

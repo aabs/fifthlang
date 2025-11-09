@@ -23,11 +23,6 @@ public sealed class TripleDiagnosticsVisitor : NullSafeRecursiveDescentVisitor
             return false;
         }
 
-        if (expr is GraphAssertionBlockExp)
-        {
-            return true;
-        }
-
         if (expr is MemberAccessExp member && member.Annotations != null && member.Annotations.ContainsKey("GraphExpr"))
         {
             return true;

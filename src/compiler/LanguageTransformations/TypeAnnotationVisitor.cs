@@ -59,31 +59,6 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     }
 
     /// <summary>
-    /// Visits a GraphAssertionBlockExp and sets its type. We keep the language-level name 'graph',
-    /// but downstream codegen will map it to IGraph. For now, annotate with Name 'graph'.
-    /// </summary>
-    public override GraphAssertionBlockExp VisitGraphAssertionBlockExp(GraphAssertionBlockExp ctx)
-    {
-        var result = base.VisitGraphAssertionBlockExp(ctx);
-
-        var graphType = new FifthType.TType() { Name = TypeName.From("graph") };
-        OnTypeInferred(result, graphType);
-        return result with { Type = graphType };
-    }
-
-    /// <summary>
-    /// Visits a GraphAssertionBlockStatement and annotates it as 'void'.
-    /// </summary>
-    public override GraphAssertionBlockStatement VisitGraphAssertionBlockStatement(GraphAssertionBlockStatement ctx)
-    {
-        var result = base.VisitGraphAssertionBlockStatement(ctx);
-
-        var voidType = new FifthType.TVoidType() { Name = TypeName.From("void") };
-        OnTypeInferred(result, voidType);
-        return result with { Type = voidType };
-    }
-
-    /// <summary>
     /// Initializes the language-friendly type mappings using TypeRegistry.Primitives.
     /// </summary>
     private void InitializeLanguageFriendlyTypes()
