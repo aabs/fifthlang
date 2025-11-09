@@ -45,11 +45,12 @@ public class TypeRegistry
 
     /// <summary>
     /// Fifth language-specific primitive types (not backed by .NET types)
+    /// Note: graph, triple, and store are now system types in Fifth.System namespace,
+    /// not primitives. They are globally available predeclared types bound at compile time.
     /// </summary>
     public static string[] FifthPrimitives =
     [
-        "triple",  // RDF triple literal (FR-003)
-        "graph"    // RDF graph (collection of triples)
+        // graph, triple, and store removed - now system types in Fifth.System
     ];
 
     public FifthType Register(FifthType type)
