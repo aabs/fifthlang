@@ -164,46 +164,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         return result;
     }
 
-    public override IAstThing VisitGraphAssertionBlock(FifthParser.GraphAssertionBlockContext context)
-    {
-        // Build a BlockStatement from inner statements
-        var inner = new List<Statement>();
-        foreach (var s in context.statement())
-        {
-            inner.Add((Statement)Visit(s));
-        }
-
-        var block = new BlockStatement
-        {
-            Annotations = [],
-            Statements = inner,
-            Location = GetLocationDetails(context),
-            Type = Void
-        };
-
-        var exp = new GraphAssertionBlockExp
-        {
-            Annotations = [],
-            Content = block,
-            Location = GetLocationDetails(context),
-            Type = null
-        };
-        return exp;
-    }
-
-    public override IAstThing VisitGraph_assertion_statement(FifthParser.Graph_assertion_statementContext context)
-    {
-        var exp = (GraphAssertionBlockExp)VisitGraphAssertionBlock(context.graphAssertionBlock());
-        var stmt = new GraphAssertionBlockStatement
-        {
-            Annotations = [],
-            Content = exp,
-            Location = GetLocationDetails(context),
-            Type = Void
-        };
-        return stmt;
-    }
-
     public override IAstThing VisitClass_definition(FifthParser.Class_definitionContext context)
     {
         var b = new ClassDefBuilder();
@@ -1275,7 +1235,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var name = context.name?.Text ?? string.Empty;
 
         // Visit the expression on the right-hand side of the assignment
-        // This can be a graphAssertionBlock, a binary operation on graphs/triples, or any other expression
+        // This can be a binary operation on graphs/triples, or any other expression
         var initExpr = context.expression() != null
             ? Visit(context.expression()) as Expression
             : null;

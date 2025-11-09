@@ -562,31 +562,9 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             ObjectInitializerExp objInit => TranslateObjectInitializerExpression(objInit),
             UnaryExp unary => TranslateUnaryExpression(unary),
             TripleLiteralExp triple => TranslateTripleLiteralExpression(triple),
-            GraphAssertionBlockExp gab => TranslateGraphAssertionBlockExpression(gab),
             ThrowExp throwExp => TranslateThrowExpression(throwExp),
             _ => DefaultExpression(IdentifierName("object")) // Fallback for unsupported expressions
         };
-    }
-
-    private ExpressionSyntax TranslateGraphAssertionBlockExpression(GraphAssertionBlockExp gab)
-    {
-        // Preferred: the GraphAssertionLoweringVisitor annotates expression-form GABs
-        // with a lowered expression under Annotations["GraphExpr"]. Use that if present.
-        if (gab.Annotations != null &&
-            gab.Annotations.TryGetValue("GraphExpr", out var loweredExprObj) &&
-            loweredExprObj is Expression loweredExpr)
-        {
-            return TranslateExpression(loweredExpr);
-        }
-
-        // Fallback: emit an empty graph creation so "<{}>" compiles to a valid IGraph
-        // Generate: Fifth.System.KG.CreateGraph()
-        return InvocationExpression(
-                MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    CreateQualifiedName("Fifth.System.KG"),
-                    IdentifierName("CreateGraph")))
-            .WithArgumentList(ArgumentList());
     }
 
     /// <summary>

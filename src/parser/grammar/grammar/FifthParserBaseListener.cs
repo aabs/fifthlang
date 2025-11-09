@@ -228,18 +228,6 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitBlock([NotNull] FifthParser.BlockContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.graphAssertionBlock"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterGraphAssertionBlock([NotNull] FifthParser.GraphAssertionBlockContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.graphAssertionBlock"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitGraphAssertionBlock([NotNull] FifthParser.GraphAssertionBlockContext context) { }
-	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.declaration"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
@@ -263,18 +251,6 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitStatement([NotNull] FifthParser.StatementContext context) { }
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.graph_assertion_statement"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterGraph_assertion_statement([NotNull] FifthParser.Graph_assertion_statementContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.graph_assertion_statement"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitGraph_assertion_statement([NotNull] FifthParser.Graph_assertion_statementContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.assignment_statement"/>.
 	/// <para>The default implementation does nothing.</para>

@@ -485,29 +485,26 @@ main(): int {
     return 0;
 }
 
-// Graph declaration with inline triples
-// Use <{ ... }> for graph assertion blocks
+// Graph declaration
 main(): int {
     // Graph variable with colon syntax
-    g : graph in <ex:> = <{
-        <ex:subject1, ex:predicate1, ex:object1>;
-        <ex:subject2, ex:predicate2, 42>;
-    }>;
+    g : graph in <ex:> = KG.CreateGraph();
+    // Add triples to the graph
+    g += <ex:subject1, ex:predicate1, ex:object1>;
+    g += <ex:subject2, ex:predicate2, 42>;
     
     return 0;
 }
 
-// Graph assertion statement
+// Working with graphs
 main(): int {
-    // Statement form: saves to default store
-    <{
-        <ex:s, ex:p, ex:o>;
-    }>;
+    g : graph = KG.CreateGraph();
+    g += <ex:s, ex:p, ex:o>;
     
     return 0;
 }
 
-// Transparent assertion: assignments inside graph blocks create triples
+// Working with graphs and objects
 class Person {
     Name: string;
     Age: int;
@@ -518,16 +515,12 @@ main(): int {
     alice: Person;
     alice = new Person();
     
-    // Graph block with transparent assertions
-    // Assignments to object properties automatically create RDF triples
-    peopleGraph : graph in <ex:> = <{
-        // These assignments transparently assert triples:
-        alice.Name = "Alice";      // Creates: <alice, ex:Name, "Alice">
-        alice.Age = 30;            // Creates: <alice, ex:Age, 30>
-        
-        // You can also use explicit triple literals
-        <ex:alice, ex:knows, ex:bob>;
-    }>;
+    // Create graph and add triples
+    peopleGraph : graph in <ex:> = KG.CreateGraph();
+    // Add explicit triple literals
+    peopleGraph += <ex:alice, ex:name, "Alice">;
+    peopleGraph += <ex:alice, ex:age, 30>;
+    peopleGraph += <ex:alice, ex:knows, ex:bob>;
     
     return 0;
 }
@@ -537,9 +530,8 @@ alias ex as <http://example.org/>;
 myStore : store = sparql_store(<http://localhost:8080/graphdb>);
 
 main(): int {
-    myGraph : graph in <ex:> = <{
-        <ex:entity, ex:property, "value">;
-    }>;
+    myGraph : graph in <ex:> = KG.CreateGraph();
+    myGraph += <ex:entity, ex:property, "value">;
     
     // Add graph to store
     myStore += myGraph;
@@ -672,19 +664,12 @@ main(): int {
     adult: bool;
     adult = isAdult(john.Age);
     
-    // Create knowledge graph with transparent assertions
-    // Assignments inside the graph block automatically create triples
-    johnGraph : graph in <ex:> = <{
-        // Transparent assertions - property assignments become triples
-        john.FirstName = "John";
-        john.LastName = "Doe";
-        john.Age = 30;
-        
-        // Explicit triple literals also work
-        <ex:john, foaf:firstName, "John">;
-        <ex:john, foaf:lastName, "Doe">;
-        <ex:john, foaf:age, 30>;
-    }>;
+    // Create knowledge graph and add triples
+    johnGraph : graph in <ex:> = KG.CreateGraph();
+    // Add triples for John's properties
+    johnGraph += <ex:john, foaf:firstName, "John">;
+    johnGraph += <ex:john, foaf:lastName, "Doe">;
+    johnGraph += <ex:john, foaf:age, 30>;
     
     // Save to the store
     peopleDB += johnGraph;

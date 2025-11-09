@@ -42,14 +42,12 @@ public interface ITypeChecker
     public FifthType Infer(ScopeAstThing scope, TryStatement node);
     public FifthType Infer(ScopeAstThing scope, CatchClause node);
     public FifthType Infer(ScopeAstThing scope, ThrowStatement node);
-    public FifthType Infer(ScopeAstThing scope, GraphAssertionBlockStatement node);
     public FifthType Infer(ScopeAstThing scope, AssertionStatement node);
     public FifthType Infer(ScopeAstThing scope, AssertionObject node);
     public FifthType Infer(ScopeAstThing scope, AssertionPredicate node);
     public FifthType Infer(ScopeAstThing scope, AssertionSubject node);
     public FifthType Infer(ScopeAstThing scope, RetractionStatement node);
     public FifthType Infer(ScopeAstThing scope, WithScopeStatement node);
-    public FifthType Infer(ScopeAstThing scope, GraphAssertionBlockExp node);
     public FifthType Infer(ScopeAstThing scope, BinaryExp node);
     public FifthType Infer(ScopeAstThing scope, CastExp node);
     public FifthType Infer(ScopeAstThing scope, LambdaExp node);
@@ -135,14 +133,12 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             TryStatement node => Infer(scope, node),
             CatchClause node => Infer(scope, node),
             ThrowStatement node => Infer(scope, node),
-            GraphAssertionBlockStatement node => Infer(scope, node),
             AssertionStatement node => Infer(scope, node),
             AssertionObject node => Infer(scope, node),
             AssertionPredicate node => Infer(scope, node),
             AssertionSubject node => Infer(scope, node),
             RetractionStatement node => Infer(scope, node),
             WithScopeStatement node => Infer(scope, node),
-            GraphAssertionBlockExp node => Infer(scope, node),
             BinaryExp node => Infer(scope, node),
             CastExp node => Infer(scope, node),
             LambdaExp node => Infer(scope, node),
@@ -222,14 +218,12 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, TryStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, CatchClause node);
     public abstract FifthType Infer(ScopeAstThing scope, ThrowStatement node);
-    public abstract FifthType Infer(ScopeAstThing scope, GraphAssertionBlockStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, AssertionStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, AssertionObject node);
     public abstract FifthType Infer(ScopeAstThing scope, AssertionPredicate node);
     public abstract FifthType Infer(ScopeAstThing scope, AssertionSubject node);
     public abstract FifthType Infer(ScopeAstThing scope, RetractionStatement node);
     public abstract FifthType Infer(ScopeAstThing scope, WithScopeStatement node);
-    public abstract FifthType Infer(ScopeAstThing scope, GraphAssertionBlockExp node);
     public abstract FifthType Infer(ScopeAstThing scope, BinaryExp node);
     public abstract FifthType Infer(ScopeAstThing scope, CastExp node);
     public abstract FifthType Infer(ScopeAstThing scope, LambdaExp node);

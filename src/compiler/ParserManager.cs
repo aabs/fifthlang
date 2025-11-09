@@ -28,13 +28,12 @@ public static class FifthParserManager
         UnaryOperatorLowering = 11,
         AugmentedAssignmentLowering = 12,
         TreeRelink = 13,
-        GraphAssertionLowering = 14,
-        TripleDiagnostics = 15,
-        TripleExpansion = 16,
-        GraphTripleOperatorLowering = 17,
-        SymbolTableFinal = 18,
-        VarRefResolver = 19,
-        TypeAnnotation = 20,
+        TripleDiagnostics = 14,
+        TripleExpansion = 15,
+        GraphTripleOperatorLowering = 16,
+        SymbolTableFinal = 17,
+        VarRefResolver = 18,
+        TypeAnnotation = 19,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
@@ -161,9 +160,6 @@ public static class FifthParserManager
 
         if (upTo >= AnalysisPhase.TreeRelink)
             ast = new TreeLinkageVisitor().Visit(ast);
-
-        if (upTo >= AnalysisPhase.GraphAssertionLowering)
-            ast = new GraphAssertionLoweringVisitor().Visit(ast);
 
         if (upTo >= AnalysisPhase.TripleDiagnostics)
         {

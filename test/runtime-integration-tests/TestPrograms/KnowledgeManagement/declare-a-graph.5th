@@ -14,9 +14,8 @@ calculate_age(val : DateTimeOffset): TimeSpan
 foo(a : int, n : string): void
 {
     eric : Person = new Person();
-    ericKnowledge : graph in <x:people> = <{
-        d: datetime = DateTimeOffset(1926, 5, 14, 0, 0, 0, TimeSpan.Zero);
-        eric.dob = d;
-        eric.age = calculate_age(d);
-    }>;
+    d: DateTimeOffset = DateTimeOffset(1926, 5, 14, 0, 0, 0, TimeSpan.Zero);
+    eric.dob = d;
+    eric.age = calculate_age(d);
+    ericKnowledge : graph in <x:people> = KG.CreateGraph();
 }

@@ -11,7 +11,7 @@ public class AugmentedAssignment_ParserAstTests
     [Test]
     public void PlusAssign_ShouldLowerInto_MergeCall()
     {
-        var src = "main():int { g: graph = <{}>; home: graph = <{}>; home += g; return 0; }";
+        var src = "main():int { g: graph = KG.CreateGraph(); home: graph = KG.CreateGraph(); home += g; return 0; }";
         var parseResult = ParseHarness.ParseString(src, new ParseOptions(FifthParserManager.AnalysisPhase.TypeAnnotation));
         parseResult.Diagnostics.Should().BeEmpty();
 

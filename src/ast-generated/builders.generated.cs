@@ -1541,29 +1541,6 @@ public class ThrowStatementBuilder : IBuilder<ast.ThrowStatement>
     }
 
 }
-public class GraphAssertionBlockStatementBuilder : IBuilder<ast.GraphAssertionBlockStatement>
-{
-    private ast.GraphAssertionBlockExp _Content;
-    private Dictionary<System.String, System.Object> _Annotations;
-    
-    public ast.GraphAssertionBlockStatement Build()
-    {
-        return new ast.GraphAssertionBlockStatement(){
-             Content = this._Content // from GraphAssertionBlockStatement
-           , Annotations = this._Annotations // from AnnotatedThing
-        };
-    }
-    public GraphAssertionBlockStatementBuilder WithContent(ast.GraphAssertionBlockExp value){
-        _Content = value;
-        return this;
-    }
-
-    public GraphAssertionBlockStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
-        _Annotations = value;
-        return this;
-    }
-
-}
 public class AssertionStatementBuilder : IBuilder<ast.AssertionStatement>
 {
     private ast.TripleLiteralExp _Assertion;
@@ -1683,29 +1660,6 @@ public class WithScopeStatementBuilder : IBuilder<ast.WithScopeStatement>
         };
     }
     public WithScopeStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
-        _Annotations = value;
-        return this;
-    }
-
-}
-public class GraphAssertionBlockExpBuilder : IBuilder<ast.GraphAssertionBlockExp>
-{
-    private ast.BlockStatement _Content;
-    private Dictionary<System.String, System.Object> _Annotations;
-    
-    public ast.GraphAssertionBlockExp Build()
-    {
-        return new ast.GraphAssertionBlockExp(){
-             Content = this._Content // from GraphAssertionBlockExp
-           , Annotations = this._Annotations // from AnnotatedThing
-        };
-    }
-    public GraphAssertionBlockExpBuilder WithContent(ast.BlockStatement value){
-        _Content = value;
-        return this;
-    }
-
-    public GraphAssertionBlockExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
