@@ -22,6 +22,9 @@ import IriLexerFragments;
         char c = (char)prev;
         return c == '\n' || c == '\r' || char.IsWhiteSpace(c);
     }
+    
+    // Track nesting depth of angle brackets in TriG literals
+    private int trigAngleBracketDepth = 0;
 }
 
 // Keywords
@@ -263,18 +266,18 @@ EOS: ([\r\n]+ | ';' | '/*' .*? '*/' | EOF) -> mode(DEFAULT_MODE);
 SL_COMMENT: {IsStartOfComment()}? '//' ~[\r\n]* -> skip;
 // ===[ TRIG LITERAL MODE ]===
 // Handles content between @< and > for TriG literals
-// The lexer will capture everything as raw text
+// Uses bracket depth counting to handle nested angle brackets correctly
 mode TRIG_LITERAL_MODE;
 
 // Any character sequence that doesn't start with < or >
 TRIG_TEXT: ~[<>]+;
 
-// Opening angle bracket - could be start of IRI or nested structure  
-TRIG_OPEN_ANGLE: '<';
+// Opening angle bracket - increment nesting depth
+TRIG_OPEN_ANGLE: '<' {trigAngleBracketDepth++;};
 
-// Closing angle bracket followed by semicolon - end of TriG literal
-// This pattern ensures we don't exit on IRIs like <http://example.org/>
-TRIG_CLOSE_ANGLE: '>' {InputStream.LA(1) == ';'}? -> popMode;
+// Closing angle bracket - check nesting depth
+// If depth is 0, this closes the TriG literal; otherwise it's content
+TRIG_CLOSE_ANGLE: '>' {trigAngleBracketDepth == 0}? {trigAngleBracketDepth = 0;} -> popMode;
 
-// Other closing angle brackets are just content
-TRIG_CLOSE_ANGLE_CONTENT: '>';
+// Other closing angle brackets are nested content - decrement depth
+TRIG_CLOSE_ANGLE_CONTENT: '>' {trigAngleBracketDepth--;};
