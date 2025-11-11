@@ -87,6 +87,8 @@ public interface IAstRewriter
     RewriteResult VisitDurationLiteralExp(DurationLiteralExp ctx);
     RewriteResult VisitUriLiteralExp(UriLiteralExp ctx);
     RewriteResult VisitAtomLiteralExp(AtomLiteralExp ctx);
+    RewriteResult VisitTriGLiteralExpression(TriGLiteralExpression ctx);
+    RewriteResult VisitInterpolatedExpression(InterpolatedExpression ctx);
     RewriteResult VisitMemberAccessExp(MemberAccessExp ctx);
     RewriteResult VisitIndexerExpression(IndexerExpression ctx);
     RewriteResult VisitObjectInitializerExp(ObjectInitializerExp ctx);
@@ -180,6 +182,8 @@ public class DefaultAstRewriter : IAstRewriter
              DurationLiteralExp node => VisitDurationLiteralExp(node),
              UriLiteralExp node => VisitUriLiteralExp(node),
              AtomLiteralExp node => VisitAtomLiteralExp(node),
+             TriGLiteralExpression node => VisitTriGLiteralExpression(node),
+             InterpolatedExpression node => VisitInterpolatedExpression(node),
              MemberAccessExp node => VisitMemberAccessExp(node),
              IndexerExpression node => VisitIndexerExpression(node),
              ObjectInitializerExp node => VisitObjectInitializerExp(node),
@@ -904,6 +908,31 @@ public class DefaultAstRewriter : IAstRewriter
     {
         var prologue = new List<Statement>();
         var rebuilt = ctx with {
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
+    public virtual RewriteResult VisitTriGLiteralExpression(TriGLiteralExpression ctx)
+    {
+        var prologue = new List<Statement>();
+        List<ast.InterpolatedExpression> tmpInterpolations = [];
+        foreach (var item in ctx.Interpolations)
+        {
+            var rr = Rewrite(item);
+            tmpInterpolations.Add((ast.InterpolatedExpression)rr.Node);
+            prologue.AddRange(rr.Prologue);
+        }
+        var rebuilt = ctx with {
+         Interpolations = tmpInterpolations
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
+    public virtual RewriteResult VisitInterpolatedExpression(InterpolatedExpression ctx)
+    {
+        var prologue = new List<Statement>();
+        var rrExpression = Rewrite((AstThing)ctx.Expression);
+        prologue.AddRange(rrExpression.Prologue);
+        var rebuilt = ctx with {
+         Expression = (ast.Expression)rrExpression.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }

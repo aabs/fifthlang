@@ -238,7 +238,20 @@ prefixedIri: IDENTIFIER COLON IDENTIFIER;
 // Allow both prefixed IRIs and expressions (variables, function calls, etc.) in triple components
 tripleIriRef: prefixedIri | expression;
 
-literal: primitiveLiteral;
+literal: primitiveLiteral | trigLiteral;
+
+// TriG Literal Expression - @< ... >
+// For MVP (User Story 1), we'll parse the content as raw text
+// The lexer will provide TRIG_START, then we collect all tokens until we find a matching >
+// This is a simplified approach - the actual content handling will be done in the AST builder
+trigLiteral: 
+    TRIG_START trigLiteralContent* GREATER;
+
+// Inside a TriG literal, almost everything is content
+// We need to be careful with nested angle brackets
+trigLiteralContent:
+    ~(GREATER);  // Match any token except >
+    // Note: This is simplified for MVP. Full implementation would track bracket depth
 
 string_:
 	INTERPRETED_STRING_LIT		# str_plain

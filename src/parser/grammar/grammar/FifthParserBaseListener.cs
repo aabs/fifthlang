@@ -940,6 +940,30 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitLiteral([NotNull] FifthParser.LiteralContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.trigLiteral"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterTrigLiteral([NotNull] FifthParser.TrigLiteralContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.trigLiteral"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitTrigLiteral([NotNull] FifthParser.TrigLiteralContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.trigLiteralContent"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterTrigLiteralContent([NotNull] FifthParser.TrigLiteralContentContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.trigLiteralContent"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitTrigLiteralContent([NotNull] FifthParser.TrigLiteralContentContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by the <c>str_plain</c>
 	/// labeled alternative in <see cref="FifthParser.string_"/>.
 	/// <para>The default implementation does nothing.</para>

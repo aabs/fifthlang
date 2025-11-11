@@ -113,6 +113,9 @@ LESS_OR_EQUALS    : '<=';
 GREATER           : '>';
 GREATER_OR_EQUALS : '>=';
 
+// TriG literal start - the content will be handled as a separate token
+TRIG_START : '@<';
+
 // Arithmetic operators
 
 OR     : '|';

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
@@ -793,6 +794,37 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     public override IAstThing VisitLit_string(FifthParser.Lit_stringContext context)
     {
         return CreateLiteral<StringLiteralExp, string>(context, x => x);
+    }
+
+    /// <summary>
+    /// Handles TriG literal expressions (@&lt; ... &gt;)
+    /// User Story 1: Basic TriG literals without interpolation
+    /// </summary>
+    public override IAstThing VisitTrigLiteral(FifthParser.TrigLiteralContext context)
+    {
+        // Extract the content between @< and >
+        // For MVP, we collect all tokens between the start and end markers
+        var contentTokens = context.trigLiteralContent();
+        var contentBuilder = new StringBuilder();
+        
+        foreach (var contentCtx in contentTokens)
+        {
+            // Get the text of each token
+            contentBuilder.Append(contentCtx.GetText());
+        }
+        
+        var trigContent = contentBuilder.ToString();
+        
+        // Create the TriGLiteralExpression AST node
+        return new TriGLiteralExpression
+        {
+            Content = trigContent,
+            Interpolations = new List<InterpolatedExpression>(), // Empty for MVP
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.TType { Name = TypeName.From("Store") },
+            Annotations = []
+        };
     }
 
     public override IAstThing VisitNum_decimal(FifthParser.Num_decimalContext context)
