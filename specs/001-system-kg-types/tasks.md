@@ -46,7 +46,8 @@
 - [ ] Update any spec references from subclasses to wrappers.
 - [ ] Add rationale summary to constitution if required.
 - [ ] Remove any obsolete TODO markers linked to primitive implementation.
-- [ ] Document thread-safety stance (v1 non-thread-safe) and duplicate policy (set semantics, idempotent adds) in user docs.
+- [ ] Document thread-safety stance (v1 non-thread-safe) and duplicate policy (set semantics, idempotent adds) in user docs. (Spec updated; user docs pending)
+- [x] Update contracts to reflect triple operator semantics and duplicate/thread-safety notes.
 
 ## Stretch / Future Considerations (Not in scope for initial delivery)
 - [ ] Concurrency wrappers or thread-safe graph variant.
