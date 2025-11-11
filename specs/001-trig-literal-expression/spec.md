@@ -99,4 +99,4 @@ As a developer, I can include nested `<...>` IRIs and TriG blocks within the lit
 - SC-001: Developers can declare a `Store` from a TriG literal without helper code and run a program to observe expected triples/quads present.
 - SC-002: At least five distinct base types (`string`, `int`, `float/decimal`, `bool`, `datetime`) interpolate correctly with valid TriG serialization in acceptance tests.
 - SC-003: Parser/diagnostics identify and locate errors within the literal with line/column precision in 100% of negative tests for this feature.
-- SC-004: Large literals up to 100KB are accepted and compiled within normal project build times, with no perceivable degradation in typical editor interactions.
+- SC-004: Accepts TriG literals up to 100KB; full solution build time delta for a project including such a literal is ≤ 5% versus the baseline project without the literal.

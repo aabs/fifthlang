@@ -15,7 +15,7 @@ Introduce a new surface syntax literal, the TriG Literal Expression, delimited b
 **Testing**: TUnit + FluentAssertions across parser, AST, and runtime integration test projects  
 **Target Platform**: Cross-platform .NET 8 (macOS/Linux/Windows)
 **Project Type**: Multi-project .NET solution with generator and compiler pipeline  
-**Performance Goals**: Accept literals up to ~100KB without noticeable editor lag; normal solution build times unchanged  
+**Performance Goals**: Accept TriG literals up to ~100KB; full solution build time delta ≤ 5% versus baseline without the literal  
 **Constraints**: No hand edits to generated code; grammar integrity; deterministic diagnostics; adhere to lowering patterns  
 **Scale/Scope**: Single feature spanning AST, grammar, transformations, and tests; no new top-level projects
 
