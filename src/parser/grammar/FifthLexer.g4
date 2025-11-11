@@ -114,7 +114,7 @@ GREATER           : '>';
 GREATER_OR_EQUALS : '>=';
 
 // TriG literal start - the content will be handled as a separate token
-TRIG_START : '@<';
+TRIG_START : '@<' -> pushMode(TRIG_LITERAL_MODE);
 
 // Arithmetic operators
 
@@ -261,3 +261,20 @@ EOS: ([\r\n]+ | ';' | '/*' .*? '*/' | EOF) -> mode(DEFAULT_MODE);
 // If your grammar already names the rule differently, apply the same predicate
 // there (e.g. LINE_COMMENT -> {IsStartOfComment()}? '//' ...).
 SL_COMMENT: {IsStartOfComment()}? '//' ~[\r\n]* -> skip;
+// ===[ TRIG LITERAL MODE ]===
+// Handles content between @< and > for TriG literals
+// The lexer will capture everything as raw text
+mode TRIG_LITERAL_MODE;
+
+// Any character sequence that doesn't start with < or >
+TRIG_TEXT: ~[<>]+;
+
+// Opening angle bracket - could be start of IRI or nested structure  
+TRIG_OPEN_ANGLE: '<';
+
+// Closing angle bracket followed by semicolon - end of TriG literal
+// This pattern ensures we don't exit on IRIs like <http://example.org/>
+TRIG_CLOSE_ANGLE: '>' {InputStream.LA(1) == ';'}? -> popMode;
+
+// Other closing angle brackets are just content
+TRIG_CLOSE_ANGLE_CONTENT: '>';

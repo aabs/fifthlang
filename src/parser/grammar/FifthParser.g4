@@ -132,7 +132,7 @@ list_comprehension:
 type_spec:
 	L_BRACKET type_spec R_BRACKET  # list_type_spec
 	| type_spec L_BRACKET (size = operand)? R_BRACKET  # array_type_spec
-	| IDENTIFIER '<' type_spec '>'  # generic_type_spec
+	| IDENTIFIER LESS type_spec GREATER  # generic_type_spec
 	| IDENTIFIER  # base_type_spec;
 
 // ========[EXPRESSIONS]=========
@@ -216,20 +216,20 @@ primitiveLiteral:
 	| REAL_LITERAL	# lit_float;
 // ===[ TRIPLE LITERALS ]=== Valid triple literal (subject, predicate, object)
 tripleLiteral:
-	'<' tripleSubject = tripleIriRef COMMA triplePredicate = tripleIriRef COMMA tripleObject =
-		tripleObjectTerm '>' # triple_literal;
+	LESS tripleSubject = tripleIriRef COMMA triplePredicate = tripleIriRef COMMA tripleObject =
+		tripleObjectTerm GREATER # triple_literal;
 
 // Malformed variants captured for structured diagnostics (TRPL001)
 malformedTripleLiteral:
 	// Order: shorter/specific malformed patterns first, greedy tooMany last Missing object: only
 	// two components
-	'<' tripleIriRef COMMA tripleIriRef '>' # triple_malformed_missingObject
+	LESS tripleIriRef COMMA tripleIriRef GREATER # triple_malformed_missingObject
 	// Trailing comma: has 3rd object component, then an extra comma before '>'
-	| '<' tripleIriRef COMMA tripleIriRef COMMA tripleObjectTerm COMMA '>' #
+	| LESS tripleIriRef COMMA tripleIriRef COMMA tripleObjectTerm COMMA GREATER #
 		triple_malformed_trailingComma
-	| '<' tripleIriRef COMMA tripleIriRef COMMA tripleIriRef COMMA tripleIriRef (
+	| LESS tripleIriRef COMMA tripleIriRef COMMA tripleIriRef COMMA tripleIriRef (
 		COMMA tripleIriRef
-	)* '>' # triple_malformed_tooMany;
+	)* GREATER # triple_malformed_tooMany;
 
 tripleObjectTerm: tripleIriRef | primitiveLiteral | list;
 
@@ -241,17 +241,15 @@ tripleIriRef: prefixedIri | expression;
 literal: primitiveLiteral | trigLiteral;
 
 // TriG Literal Expression - @< ... >
-// For MVP (User Story 1), we'll parse the content as raw text
-// The lexer will provide TRIG_START, then we collect all tokens until we find a matching >
-// This is a simplified approach - the actual content handling will be done in the AST builder
+// Uses lexer mode TRIG_LITERAL_MODE to capture raw content
 trigLiteral: 
-    TRIG_START trigLiteralContent* GREATER;
+    TRIG_START trigLiteralContent* TRIG_CLOSE_ANGLE;
 
-// Inside a TriG literal, almost everything is content
-// We need to be careful with nested angle brackets
+// Content tokens from TRIG_LITERAL_MODE
 trigLiteralContent:
-    ~(GREATER);  // Match any token except >
-    // Note: This is simplified for MVP. Full implementation would track bracket depth
+    TRIG_TEXT
+    | TRIG_OPEN_ANGLE
+    | TRIG_CLOSE_ANGLE_CONTENT;  // Nested closing angle brackets
 
 string_:
 	INTERPRETED_STRING_LIT		# str_plain
