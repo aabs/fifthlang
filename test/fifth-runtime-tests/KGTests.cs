@@ -39,10 +39,10 @@ public class KGTests
         var s = g.CreateUriNode(ex);
         var p = g.CreateUriNode(new Uri("http://example.org/p"));
         var o = g.CreateLiteralNode("v");
-        g.Assert(new Triple(s, p, o));
+        g.Assert(new VDS.RDF.Triple(s, p, o));
 
         store.SaveGraph(g);
-        var g2 = new Graph();
+        var g2 = new VDS.RDF.Graph();
         store.LoadGraph(g2, g.BaseUri);
         await Assert.That(g2.Triples.Count).IsGreaterThan(0);
     }
@@ -57,11 +57,11 @@ public class KGTests
         var s = g.CreateUriNode(new Uri("http://ex/s"));
         var p = g.CreateUriNode(new Uri("http://ex/p"));
         var o = g.CreateLiteralNode("v");
-        g.Assert(new Triple(s, p, o));
+        g.Assert(new VDS.RDF.Triple(s, p, o));
 
         store.SaveGraph(g);
 
-        var loaded = new Graph();
+        var loaded = new VDS.RDF.Graph();
         // Some storage providers treat SaveGraph without explicit graph parameter as default graph
         store.LoadGraph(loaded, (string)null!);
         await Assert.That(loaded.Triples.Count).IsGreaterThan(0);

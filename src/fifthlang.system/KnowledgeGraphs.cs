@@ -28,11 +28,25 @@ public static class KG
 
     /// <summary>
     /// Alias for connecting to a remote SPARQL store; mirrors the Fifth keyword usage.
+    /// Returns a Store wrapper around the SPARQL endpoint.
+    /// </summary>
+    /// <param name="endpointUri">the SPARQL endpoint URI.</param>
+    /// <returns>a Store wrapper connected to the given endpoint.</returns>
+    [BuiltinFunction]
+    public static Store sparql_store(string endpointUri)
+    {
+        return Store.CreateSparqlStore(endpointUri);
+    }
+
+    /// <summary>
+    /// Legacy version returning IStorageProvider for backward compatibility.
+    /// Prefer using the Store wrapper version above.
     /// </summary>
     /// <param name="endpointUri">the SPARQL endpoint URI.</param>
     /// <returns>an updateable storage provider connected to the given endpoint.</returns>
     [BuiltinFunction]
-    public static IStorageProvider sparql_store(string endpointUri)
+    [Obsolete("Use Store sparql_store(string) instead")]
+    public static IStorageProvider sparql_store_legacy(string endpointUri)
     {
         return ConnectToRemoteStore(endpointUri);
     }
@@ -44,7 +58,7 @@ public static class KG
     [BuiltinFunction]
     public static IGraph CreateGraph()
     {
-        return new Graph();
+        return new VDS.RDF.Graph();
     }
 
     /// <summary>
@@ -388,7 +402,7 @@ public static class KG
     [BuiltinFunction]
     public static Triple CreateTriple(INode subj, INode pred, INode obj)
     {
-        return new Triple(subj, pred, obj);
+        return Triple.Create(subj, pred, obj);
     }
 
     /// <summary>
@@ -400,16 +414,18 @@ public static class KG
     [BuiltinFunction]
     public static IGraph Assert(this IGraph g, Triple t)
     {
-        // Avoid calling this extension recursively: prefer concrete Graph instance method,
-        // otherwise fall back to an enumerable-based Assert on the interface.
-        if (g is Graph concrete)
+        // Convert the Fifth.System.Triple to VDS.RDF.Triple
+        var vdsTriple = t.ToVdsTriple();
+        
+        // Avoid calling this extension recursively: prefer concrete Graph instance method
+        if (g is VDS.RDF.Graph concrete)
         {
-            concrete.Assert(t);
+            concrete.Assert(vdsTriple);
         }
         else
         {
             // Use IEnumerable/params-based overload on IGraph to avoid extension recursion
-            g.Assert(new[] { t });
+            g.Assert(new[] { vdsTriple });
         }
         try
         {
@@ -431,15 +447,17 @@ public static class KG
     [BuiltinFunction]
     public static IGraph Retract(this IGraph g, Triple t)
     {
-        // Avoid calling this extension recursively: prefer concrete Graph instance method,
-        // otherwise fall back to an enumerable-based Retract on the interface.
-        if (g is Graph concrete)
+        // Convert the Fifth.System.Triple to VDS.RDF.Triple
+        var vdsTriple = t.ToVdsTriple();
+        
+        // Avoid calling this extension recursively: prefer concrete Graph instance method
+        if (g is VDS.RDF.Graph concrete)
         {
-            concrete.Retract(t);
+            concrete.Retract(vdsTriple);
         }
         else
         {
-            g.Retract(new[] { t });
+            g.Retract(new[] { vdsTriple });
         }
         return g;
     }
@@ -455,7 +473,7 @@ public static class KG
         // Avoid calling this extension recursively: explicitly copy triples
         foreach (var t in source.Triples)
         {
-            if (target is Graph concrete)
+            if (target is VDS.RDF.Graph concrete)
             {
                 concrete.Assert(t);
             }
@@ -475,7 +493,7 @@ public static class KG
     [BuiltinFunction]
     public static IGraph CopyGraph(IGraph source)
     {
-        var result = new Graph();
+        var result = new VDS.RDF.Graph();
         // Copy triples explicitly to avoid relying on extension methods
         foreach (var t in source.Triples)
         {
@@ -490,7 +508,7 @@ public static class KG
     [BuiltinFunction]
     public static IGraph Difference(IGraph a, IGraph b)
     {
-        var result = new Graph();
+        var result = new VDS.RDF.Graph();
         // Start with a copy of 'a'
         foreach (var t in a.Triples)
         {
@@ -539,7 +557,7 @@ public static class KG
     public static IStorageProvider SaveGraph(this IStorageProvider store, IGraph g, string graphUri)
     {
         var uri = new Uri(graphUri);
-        var x = new Graph(uri, g.Triples);
+        var x = new VDS.RDF.Graph(uri, g.Triples);
         store.SaveGraph(x);
         return store;
     }

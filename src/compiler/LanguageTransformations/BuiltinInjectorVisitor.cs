@@ -13,12 +13,53 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
         WrapType(typeof(Fifth.System.Math));
         // Register knowledge graph helpers so lowering/codegen can reference them later
         WrapType(typeof(Fifth.System.KG));
+        
+        // Register KG wrapper types as globally available predeclared types
+        // Per FR-002: graph, triple, and store are globally available (no imports required)
+        RegisterKGTypes();
 
         // ctx.Functions.Add(new BuiltinFunctionDefinition("print", "void", ("format", "string"),
         // ("value", "string"))); ctx.Functions.Add(new BuiltinFunctionDefinition("print", "void",
         // ("value", "string"))); ctx.Functions.Add(new BuiltinFunctionDefinition("write", "void",
         // ("value", "string")));
         return base.VisitAssemblyDef(ctx);
+    }
+    
+    /// <summary>
+    /// Registers the Fifth.System KG wrapper types as globally available predeclared types.
+    /// These types (graph, triple, store) can be used without importing Fifth.System.
+    /// </summary>
+    private void RegisterKGTypes()
+    {
+        // Register Graph type - both "Graph" (C# name) and "graph" (Fifth name)
+        var graphType = typeof(Fifth.System.Graph);
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(graphType) 
+            { Name = TypeName.From(graphType.FullName) });
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(graphType) 
+            { Name = TypeName.From(graphType.Name) });
+        // Lowercase binding for Fifth source code
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(graphType) 
+            { Name = TypeName.From("graph") });
+            
+        // Register Triple type - both "Triple" (C# name) and "triple" (Fifth name)
+        var tripleType = typeof(Fifth.System.Triple);
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(tripleType) 
+            { Name = TypeName.From(tripleType.FullName) });
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(tripleType) 
+            { Name = TypeName.From(tripleType.Name) });
+        // Lowercase binding for Fifth source code
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(tripleType) 
+            { Name = TypeName.From("triple") });
+            
+        // Register Store type - both "Store" (C# name) and "store" (Fifth name)
+        var storeType = typeof(Fifth.System.Store);
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(storeType) 
+            { Name = TypeName.From(storeType.FullName) });
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(storeType) 
+            { Name = TypeName.From(storeType.Name) });
+        // Lowercase binding for Fifth source code
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(storeType) 
+            { Name = TypeName.From("store") });
     }
 
     public FieldDef WrapField(FieldReflector fi)
