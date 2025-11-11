@@ -1,0 +1,15 @@
+// TriG literal with nested IRIs in angle brackets
+// Tests that nested <...> don't prematurely terminate the literal
+
+main(): int {
+    s: Store = @<
+        @prefix ex: <http://example.org/> .
+        
+        <http://example.org/graph1> {
+            <http://example.org/subject1> <http://example.org/predicate1> <http://example.org/object1> .
+            <http://example.org/subject2> <http://example.org/predicate2> "literal value" .
+        }
+    >;
+    
+    return 0;
+}
