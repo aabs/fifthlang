@@ -1,0 +1,14 @@
+// Test brace escaping for literal {{ and }}
+// Use {{{ to render {{ and }}} to render }}
+
+main(): int {
+    s: Store = @<
+        @prefix ex: <http://example.org/> .
+        
+        ex:graph1 {
+            ex:Item ex:description "Use {{{ and }}} for braces" .
+        }
+    >;
+    
+    return 0;
+}

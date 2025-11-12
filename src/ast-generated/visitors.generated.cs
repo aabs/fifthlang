@@ -138,6 +138,10 @@ public interface IAstVisitor
     public void LeaveUriLiteralExp(UriLiteralExp ctx);
     public void EnterAtomLiteralExp(AtomLiteralExp ctx);
     public void LeaveAtomLiteralExp(AtomLiteralExp ctx);
+    public void EnterTriGLiteralExpression(TriGLiteralExpression ctx);
+    public void LeaveTriGLiteralExpression(TriGLiteralExpression ctx);
+    public void EnterInterpolatedExpression(InterpolatedExpression ctx);
+    public void LeaveInterpolatedExpression(InterpolatedExpression ctx);
     public void EnterMemberAccessExp(MemberAccessExp ctx);
     public void LeaveMemberAccessExp(MemberAccessExp ctx);
     public void EnterIndexerExpression(IndexerExpression ctx);
@@ -302,6 +306,10 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveUriLiteralExp(UriLiteralExp ctx){}
     public virtual void EnterAtomLiteralExp(AtomLiteralExp ctx){}
     public virtual void LeaveAtomLiteralExp(AtomLiteralExp ctx){}
+    public virtual void EnterTriGLiteralExpression(TriGLiteralExpression ctx){}
+    public virtual void LeaveTriGLiteralExpression(TriGLiteralExpression ctx){}
+    public virtual void EnterInterpolatedExpression(InterpolatedExpression ctx){}
+    public virtual void LeaveInterpolatedExpression(InterpolatedExpression ctx){}
     public virtual void EnterMemberAccessExp(MemberAccessExp ctx){}
     public virtual void LeaveMemberAccessExp(MemberAccessExp ctx){}
     public virtual void EnterIndexerExpression(IndexerExpression ctx){}
@@ -401,6 +409,8 @@ public interface IAstRecursiveDescentVisitor
     public DurationLiteralExp VisitDurationLiteralExp(DurationLiteralExp ctx);
     public UriLiteralExp VisitUriLiteralExp(UriLiteralExp ctx);
     public AtomLiteralExp VisitAtomLiteralExp(AtomLiteralExp ctx);
+    public TriGLiteralExpression VisitTriGLiteralExpression(TriGLiteralExpression ctx);
+    public InterpolatedExpression VisitInterpolatedExpression(InterpolatedExpression ctx);
     public MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx);
     public IndexerExpression VisitIndexerExpression(IndexerExpression ctx);
     public ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx);
@@ -489,6 +499,8 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              DurationLiteralExp node => VisitDurationLiteralExp(node),
              UriLiteralExp node => VisitUriLiteralExp(node),
              AtomLiteralExp node => VisitAtomLiteralExp(node),
+             TriGLiteralExpression node => VisitTriGLiteralExpression(node),
+             InterpolatedExpression node => VisitInterpolatedExpression(node),
              MemberAccessExp node => VisitMemberAccessExp(node),
              IndexerExpression node => VisitIndexerExpression(node),
              ObjectInitializerExp node => VisitObjectInitializerExp(node),
@@ -925,6 +937,20 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     public virtual AtomLiteralExp VisitAtomLiteralExp(AtomLiteralExp ctx)
     {
      return ctx with {
+        };
+    }
+    public virtual TriGLiteralExpression VisitTriGLiteralExpression(TriGLiteralExpression ctx)
+    {
+        List<ast.InterpolatedExpression> tmpInterpolations = [];
+        tmpInterpolations.AddRange(ctx.Interpolations.Select(x => (ast.InterpolatedExpression)Visit(x)));
+     return ctx with {
+         Interpolations = tmpInterpolations
+        };
+    }
+    public virtual InterpolatedExpression VisitInterpolatedExpression(InterpolatedExpression ctx)
+    {
+     return ctx with {
+         Expression = (ast.Expression)Visit((AstThing)ctx.Expression)
         };
     }
     public virtual MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx)

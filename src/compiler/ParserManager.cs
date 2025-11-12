@@ -26,14 +26,15 @@ public static class FifthParserManager
         OverloadTransform = 9,
         DestructuringLowering = 10,
         UnaryOperatorLowering = 11,
-        AugmentedAssignmentLowering = 12,
-        TreeRelink = 13,
-        TripleDiagnostics = 14,
-        TripleExpansion = 15,
-        GraphTripleOperatorLowering = 16,
-        SymbolTableFinal = 17,
-        VarRefResolver = 18,
-        TypeAnnotation = 19,
+        TriGLiteralLowering = 12,
+        AugmentedAssignmentLowering = 13,
+        TreeRelink = 14,
+        TripleDiagnostics = 15,
+        TripleExpansion = 16,
+        GraphTripleOperatorLowering = 17,
+        SymbolTableFinal = 18,
+        VarRefResolver = 19,
+        TypeAnnotation = 20,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
@@ -154,6 +155,14 @@ public static class FifthParserManager
         if (upTo >= AnalysisPhase.UnaryOperatorLowering)
         {
             var rewriter = new UnaryOperatorLoweringRewriter();
+            var result = rewriter.Rewrite(ast);
+            ast = result.Node;
+        }
+
+        // Lower TriG literal expressions to Store.LoadFromTriG() calls
+        if (upTo >= AnalysisPhase.TriGLiteralLowering)
+        {
+            var rewriter = new TriGLiteralLoweringRewriter();
             var result = rewriter.Rewrite(ast);
             ast = result.Node;
         }

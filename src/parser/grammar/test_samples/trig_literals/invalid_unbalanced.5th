@@ -1,0 +1,14 @@
+// Malformed TriG - missing closing delimiter
+// Should produce a diagnostic about unbalanced @< ... >
+
+main(): int {
+    s: Store = @<
+        @prefix ex: <http://example.org/> .
+        
+        ex:graph1 {
+            ex:Andrew ex:name "Andrew" .
+        }
+    ;  // Missing closing >
+    
+    return 0;
+}

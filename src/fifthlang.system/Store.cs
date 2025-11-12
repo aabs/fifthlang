@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using VDS.RDF;
 using VDS.RDF.Storage;
 
@@ -118,6 +119,32 @@ public sealed class Store
     /// Creates a wrapper from a dotNetRDF storage provider for interop.
     /// </summary>
     public static Store FromVds(IStorageProvider storage) => new(storage);
+
+    /// <summary>
+    /// Loads a Store from TriG format string.
+    /// Creates a new in-memory store and parses the TriG content into it.
+    /// </summary>
+    /// <param name="trigContent">TriG format RDF dataset string</param>
+    /// <returns>A new Store containing the parsed dataset</returns>
+    public static Store LoadFromTriG(string trigContent)
+    {
+        if (trigContent == null)
+            throw new ArgumentNullException(nameof(trigContent));
+
+        // Create an in-memory triple store (dataset)
+        var tripleStore = new VDS.RDF.TripleStore();
+        
+        // Parse the TriG content
+        var parser = new VDS.RDF.Parsing.TriGParser();
+        using (var reader = new StringReader(trigContent))
+        {
+            parser.Load(tripleStore, reader);
+        }
+
+        // Wrap in an in-memory manager that uses this triple store
+        var storage = new InMemoryManager(tripleStore);
+        return new Store(storage);
+    }
 
     // ============================================================================
     // Mutating compound assignment operators (modify store, return store)

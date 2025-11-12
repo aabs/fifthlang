@@ -484,6 +484,24 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitLiteral([NotNull] FifthParser.LiteralContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.trigLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitTrigLiteral([NotNull] FifthParser.TrigLiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.trigLiteralContent"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitTrigLiteralContent([NotNull] FifthParser.TrigLiteralContentContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.trigInterpolation"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitTrigInterpolation([NotNull] FifthParser.TrigInterpolationContext context);
+	/// <summary>
 	/// Visit a parse tree produced by the <c>str_plain</c>
 	/// labeled alternative in <see cref="FifthParser.string_"/>.
 	/// </summary>

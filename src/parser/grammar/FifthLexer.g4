@@ -22,6 +22,9 @@ import IriLexerFragments;
         char c = (char)prev;
         return c == '\n' || c == '\r' || char.IsWhiteSpace(c);
     }
+    
+    // Track nesting depth of angle brackets in TriG literals
+    private int trigAngleBracketDepth = 0;
 }
 
 // Keywords
@@ -79,6 +82,8 @@ IDENTIFIER: LETTER (LETTER | UNICODE_DIGIT)* /*-> mode(NLSEMI)*/;
 L_PAREN        : '(';
 R_PAREN        : ')' /*-> mode(NLSEMI)*/;
 L_CURLY        : '{';
+// Special token for ending TriG interpolations - must come before R_CURLY
+TRIG_INTERP_END: '}}' -> popMode;
 R_CURLY        : '}' /*-> mode(NLSEMI)*/;
 L_BRACKET      : '[';
 R_BRACKET      : ']' /*-> mode(NLSEMI)*/;
@@ -112,6 +117,9 @@ LESS              : '<';
 LESS_OR_EQUALS    : '<=';
 GREATER           : '>';
 GREATER_OR_EQUALS : '>=';
+
+// TriG literal start - the content will be handled as a separate token
+TRIG_START : '@<' -> pushMode(TRIG_LITERAL_MODE);
 
 // Arithmetic operators
 
@@ -258,3 +266,33 @@ EOS: ([\r\n]+ | ';' | '/*' .*? '*/' | EOF) -> mode(DEFAULT_MODE);
 // If your grammar already names the rule differently, apply the same predicate
 // there (e.g. LINE_COMMENT -> {IsStartOfComment()}? '//' ...).
 SL_COMMENT: {IsStartOfComment()}? '//' ~[\r\n]* -> skip;
+// ===[ TRIG LITERAL MODE ]===
+// Handles content between @< and > for TriG literals
+// Uses bracket depth counting to handle nested angle brackets correctly
+// Supports {{ expression }} interpolations and {{{ }}} brace escaping
+mode TRIG_LITERAL_MODE;
+
+// Interpolation start - double open curly braces {{ 
+// This transitions to DEFAULT_MODE to parse the expression
+TRIG_INTERP_START: '{{' -> pushMode(DEFAULT_MODE);
+
+// Brace escaping - triple braces for literal braces in output
+TRIG_ESCAPED_OPEN: '{{{';
+TRIG_ESCAPED_CLOSE: '}}}';
+
+// Any character sequence that doesn't start with < > { }
+TRIG_TEXT: ~[<>{}]+;
+
+// Single braces (not part of interpolation or escaping)
+TRIG_SINGLE_OPEN_BRACE: '{';
+TRIG_SINGLE_CLOSE_BRACE: '}';
+
+// Opening angle bracket - increment nesting depth
+TRIG_OPEN_ANGLE: '<' {trigAngleBracketDepth++;};
+
+// Closing angle bracket - check nesting depth
+// If depth is 0, this closes the TriG literal; otherwise it's content
+TRIG_CLOSE_ANGLE: '>' {trigAngleBracketDepth == 0}? {trigAngleBracketDepth = 0;} -> popMode;
+
+// Other closing angle brackets are nested content - decrement depth
+TRIG_CLOSE_ANGLE_CONTENT: '>' {trigAngleBracketDepth--;};
