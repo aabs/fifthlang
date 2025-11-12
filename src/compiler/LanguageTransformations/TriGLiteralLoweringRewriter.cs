@@ -175,7 +175,7 @@ public class TriGLiteralLoweringRewriter : DefaultAstRewriter
             // String → quoted with escaping
             if (type == typeof(string))
             {
-                // Build: "\"" + expr.Replace("\"", "\\\"") + "\""
+                // Build: "\"" + expr + "\""
                 // For simplicity, we'll just wrap in quotes (escaping handled at runtime)
                 var openQuote = new StringLiteralExp { Value = "\"", Type = StringType, Annotations = [] };
                 var closeQuote = new StringLiteralExp { Value = "\"", Type = StringType, Annotations = [] };
@@ -207,22 +207,57 @@ public class TriGLiteralLoweringRewriter : DefaultAstRewriter
                 type == typeof(ushort) || type == typeof(sbyte) ||
                 type == typeof(float) || type == typeof(double) || type == typeof(decimal))
             {
-                // Convert to string: expr.ToString()
-                // For now, we'll create a simple ToString call
-                // This will be handled by the code generator
-                return rewrittenExpr;  // Will be converted to string by concatenation
+                // Ensure numeric literal participates in string concatenation as a string to avoid
+                // type inference promoting the whole expression to a numeric type.
+                var toStringCall = new FuncCallExp
+                {
+                    InvocationArguments = new List<Expression> { rewrittenExpr },
+                    Type = StringType,
+                    Location = location,
+                    Annotations = new Dictionary<string, object>
+                    {
+                        ["ExternalType"] = typeof(System.Convert),
+                        ["ExternalMethodName"] = "ToString",
+                        ["TriGInterpolation"] = true
+                    }
+                };
+                return toStringCall;
             }
             
             // Boolean → "true" or "false" (lowercase for RDF)
             if (type == typeof(bool))
             {
-                // Will be converted to string by concatenation, outputs "True" or "False"
-                // We might want to lowercase it, but for now this is acceptable
-                return rewrittenExpr;
+                // Lowercase conversion: Convert.ToString(expr).ToLowerInvariant()
+                var toStringCall = new FuncCallExp
+                {
+                    InvocationArguments = new List<Expression> { rewrittenExpr },
+                    Type = StringType,
+                    Location = location,
+                    Annotations = new Dictionary<string, object>
+                    {
+                        ["ExternalType"] = typeof(System.Convert),
+                        ["ExternalMethodName"] = "ToString",
+                        ["TriGInterpolation"] = true,
+                        ["TriGBoolLower"] = true
+                    }
+                };
+                return toStringCall;
             }
         }
         
-        // Default: convert to string
-        return rewrittenExpr;
+        // Default: convert to string via Convert.ToString to force string type participation
+        var defaultToString = new FuncCallExp
+        {
+            InvocationArguments = new List<Expression> { rewrittenExpr },
+            Type = StringType,
+            Location = location,
+            Annotations = new Dictionary<string, object>
+            {
+                ["ExternalType"] = typeof(System.Convert),
+                ["ExternalMethodName"] = "ToString",
+                ["TriGInterpolation"] = true
+            }
+        };
+        return defaultToString;
     }
 }
