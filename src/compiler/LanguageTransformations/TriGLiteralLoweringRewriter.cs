@@ -29,7 +29,9 @@ namespace compiler.LanguageTransformations;
 /// </summary>
 public class TriGLiteralLoweringRewriter : DefaultAstRewriter
 {
-    private static readonly FifthType StoreType = new FifthType.TType { Name = TypeName.From("Store") };
+    // Use actual CLR-backed Fifth types so downstream phases (validation, Roslyn translator)
+    // can reason about them correctly.
+    private static readonly FifthType StoreType = new FifthType.TDotnetType(typeof(Fifth.System.Store)) { Name = TypeName.From("Store") };
     private static readonly FifthType StringType = new FifthType.TDotnetType(typeof(string)) { Name = TypeName.From("string") };
     private static readonly Regex InterpolationPlaceholder = new Regex(@"\{\{__INTERP_(\d+)__\}\}", RegexOptions.Compiled);
     private int _tempVarCounter = 0;
@@ -69,8 +71,11 @@ public class TriGLiteralLoweringRewriter : DefaultAstRewriter
             Location = ctx.Location,
             Annotations = new Dictionary<string, object>
             {
-                ["TriGLiteralLowering"] = true,
-                ["StaticMethodCall"] = "Fifth.System.Store.LoadFromTriG"
+                // Mark this as an external static method call so translators can emit
+                // a qualified invocation and validators can resolve the target method.
+                ["ExternalType"] = typeof(Fifth.System.Store),
+                ["ExternalMethodName"] = "LoadFromTriG",
+                ["TriGLiteralLowering"] = true
             }
         };
 
