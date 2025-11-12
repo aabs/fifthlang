@@ -1,0 +1,22 @@
+// Basic interpolation with different types
+// User Story 2: Interpolate expressions into TriG
+
+main(): int {
+    name: string = "Andrew";
+    age: int = 42;
+    height: float = 1.85;
+    active: bool = true;
+    
+    s: Store = @<
+        @prefix ex: <http://example.org/> .
+        
+        ex:graph1 {
+            ex:Person1 ex:name {{ name }};
+                       ex:age {{ age }};
+                       ex:height {{ height }};
+                       ex:active {{ active }} .
+        }
+    >;
+    
+    return 0;
+}

@@ -1,0 +1,15 @@
+// Test whitespace preservation - newlines and indentation should be preserved
+
+main(): int {
+    s: Store = @<
+@prefix ex: <http://example.org/> .
+
+        ex:graph1 {
+            ex:Item1 ex:value "one" .
+            
+            ex:Item2 ex:value "two" .
+        }
+    >;
+    
+    return 0;
+}

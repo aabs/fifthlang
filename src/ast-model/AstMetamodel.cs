@@ -139,6 +139,7 @@ public enum SymbolKind
     TryStatement,
     TypeDef,
     TypeRef,
+    TriGLiteralExpression,
     UnaryExp,
     VarDeclStatement,
     VarRef,
@@ -788,6 +789,53 @@ public record UriLiteralExp : LiteralExpression<Uri>;
 /// An atom in the sense of a Prolog atom.
 /// </summary>
 public record AtomLiteralExp : LiteralExpression<string>;
+
+/// <summary>
+/// Represents a TriG literal expression delimited by @&lt; ... &gt;.
+/// The literal contains TriG/RDF dataset content with optional expression interpolations.
+/// Evaluates to a Store value at runtime.
+/// </summary>
+/// <remarks>
+/// User Story 1: Basic TriG literal without interpolation
+/// User Story 2: Expression interpolation using {{ expression }} syntax
+/// Interpolations are evaluated at runtime in the surrounding lexical scope.
+/// </remarks>
+public record TriGLiteralExpression : Expression
+{
+    /// <summary>
+    /// The raw TriG content as a string, including any interpolation placeholders.
+    /// Whitespace and newlines are preserved as-is.
+    /// </summary>
+    public required string Content { get; set; }
+    
+    /// <summary>
+    /// List of interpolated expressions found in the literal.
+    /// Each entry maps a placeholder position to the expression to be evaluated.
+    /// </summary>
+    public List<InterpolatedExpression> Interpolations { get; set; } = new();
+}
+
+/// <summary>
+/// Represents an expression interpolated into a TriG literal.
+/// </summary>
+public record InterpolatedExpression : AstThing
+{
+    /// <summary>
+    /// The expression to be evaluated and serialized into the TriG content.
+    /// </summary>
+    public required Expression Expression { get; set; }
+    
+    /// <summary>
+    /// Position in the Content string where this interpolation starts.
+    /// Used for diagnostic reporting.
+    /// </summary>
+    public int Position { get; set; }
+    
+    /// <summary>
+    /// Length of the interpolation placeholder in the original source.
+    /// </summary>
+    public int Length { get; set; }
+}
 
 /// <summary>
 /// Accessing a member of an object

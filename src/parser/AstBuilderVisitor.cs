@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
@@ -793,6 +794,91 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     public override IAstThing VisitLit_string(FifthParser.Lit_stringContext context)
     {
         return CreateLiteral<StringLiteralExp, string>(context, x => x);
+    }
+
+    /// <summary>
+    /// Handles TriG literal expressions (@&lt; ... &gt;)
+    /// User Story 1: Basic TriG literals without interpolation
+    /// User Story 2: With {{ expression }} interpolations and brace escaping
+    /// </summary>
+    public override IAstThing VisitTrigLiteral(FifthParser.TrigLiteralContext context)
+    {
+        // Build the content string with placeholders for interpolations
+        // Also collect the interpolated expressions
+        var contentBuilder = new StringBuilder();
+        var interpolations = new List<InterpolatedExpression>();
+        int contentPosition = 0;
+        
+        var contentTokens = context.trigLiteralContent();
+        
+        foreach (var contentCtx in contentTokens)
+        {
+            // Check if this is an interpolation
+            var interpCtx = contentCtx.trigInterpolation();
+            if (interpCtx != null)
+            {
+                // This is an interpolation: {{ expression }}
+                var expr = Visit(interpCtx.expression()) as Expression;
+                if (expr != null)
+                {
+                    // Add a placeholder in the content string
+                    // We'll use a special marker that the lowering pass will replace
+                    var placeholder = $"{{{{__INTERP_{interpolations.Count}__}}}}";
+                    contentBuilder.Append(placeholder);
+                    
+                    // Record the interpolation
+                    interpolations.Add(new InterpolatedExpression
+                    {
+                        Expression = expr,
+                        Position = contentPosition,
+                        Length = placeholder.Length,
+                        Location = GetLocationDetails(interpCtx),
+                        Parent = null,
+                        Annotations = []
+                    });
+                    
+                    contentPosition += placeholder.Length;
+                }
+                continue;
+            }
+            
+            // Check for escaped braces
+            var escapedOpen = contentCtx.TRIG_ESCAPED_OPEN();
+            if (escapedOpen != null)
+            {
+                // {{{ -> {{ in output
+                contentBuilder.Append("{{");
+                contentPosition += 2;
+                continue;
+            }
+            
+            var escapedClose = contentCtx.TRIG_ESCAPED_CLOSE();
+            if (escapedClose != null)
+            {
+                // }}} -> }} in output
+                contentBuilder.Append("}}");
+                contentPosition += 2;
+                continue;
+            }
+            
+            // Regular content - append as-is
+            var text = contentCtx.GetText();
+            contentBuilder.Append(text);
+            contentPosition += text.Length;
+        }
+        
+        var trigContent = contentBuilder.ToString();
+        
+        // Create the TriGLiteralExpression AST node
+        return new TriGLiteralExpression
+        {
+            Content = trigContent,
+            Interpolations = interpolations,
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.TType { Name = TypeName.From("Store") },
+            Annotations = []
+        };
     }
 
     public override IAstThing VisitNum_decimal(FifthParser.Num_decimalContext context)
