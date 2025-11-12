@@ -3873,7 +3873,7 @@ public partial class FifthParser : FifthParserBase {
 			{
 			State = 475;
 			if (!( InputStream.LA(1) == LESS && InputStream.LA(2) == IDENTIFIER && (InputStream.LA(3) == COMMA || InputStream.LA(3) == COLON)
-					)) throw new FailedPredicateException(this, " InputStream.LA(1) == LESS && InputStream.LA(2) == IDENTIFIER && (InputStream.LA(3) == COMMA || InputStream.LA(3) == COLON)\r\n\t\t");
+					)) throw new FailedPredicateException(this, " InputStream.LA(1) == LESS && InputStream.LA(2) == IDENTIFIER && (InputStream.LA(3) == COMMA || InputStream.LA(3) == COLON)\n\t\t");
 			State = 478;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,39,Context) ) {
