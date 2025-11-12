@@ -249,7 +249,18 @@ trigLiteral:
 trigLiteralContent:
     TRIG_TEXT
     | TRIG_OPEN_ANGLE
-    | TRIG_CLOSE_ANGLE_CONTENT;  // Nested closing angle brackets
+    | TRIG_CLOSE_ANGLE_CONTENT  // Nested closing angle brackets
+    | TRIG_ESCAPED_OPEN         // {{{ for literal {{
+    | TRIG_ESCAPED_CLOSE        // }}} for literal }}
+    | TRIG_SINGLE_OPEN_BRACE    // Single { (not part of interpolation)
+    | TRIG_SINGLE_CLOSE_BRACE   // Single } (not part of interpolation)
+    | trigInterpolation;        // {{ expression }}
+
+// Interpolation: {{ expression }}
+// After TRIG_INTERP_START, we're in DEFAULT_MODE and can parse any expression
+// Then we expect }} to close it (TRIG_INTERP_END which pops back to TRIG_LITERAL_MODE)
+trigInterpolation:
+    TRIG_INTERP_START expression TRIG_INTERP_END;
 
 string_:
 	INTERPRETED_STRING_LIT		# str_plain

@@ -82,6 +82,8 @@ IDENTIFIER: LETTER (LETTER | UNICODE_DIGIT)* /*-> mode(NLSEMI)*/;
 L_PAREN        : '(';
 R_PAREN        : ')' /*-> mode(NLSEMI)*/;
 L_CURLY        : '{';
+// Special token for ending TriG interpolations - must come before R_CURLY
+TRIG_INTERP_END: '}}' -> popMode;
 R_CURLY        : '}' /*-> mode(NLSEMI)*/;
 L_BRACKET      : '[';
 R_BRACKET      : ']' /*-> mode(NLSEMI)*/;
@@ -267,10 +269,23 @@ SL_COMMENT: {IsStartOfComment()}? '//' ~[\r\n]* -> skip;
 // ===[ TRIG LITERAL MODE ]===
 // Handles content between @< and > for TriG literals
 // Uses bracket depth counting to handle nested angle brackets correctly
+// Supports {{ expression }} interpolations and {{{ }}} brace escaping
 mode TRIG_LITERAL_MODE;
 
-// Any character sequence that doesn't start with < or >
-TRIG_TEXT: ~[<>]+;
+// Interpolation start - double open curly braces {{ 
+// This transitions to DEFAULT_MODE to parse the expression
+TRIG_INTERP_START: '{{' -> pushMode(DEFAULT_MODE);
+
+// Brace escaping - triple braces for literal braces in output
+TRIG_ESCAPED_OPEN: '{{{';
+TRIG_ESCAPED_CLOSE: '}}}';
+
+// Any character sequence that doesn't start with < > { }
+TRIG_TEXT: ~[<>{}]+;
+
+// Single braces (not part of interpolation or escaping)
+TRIG_SINGLE_OPEN_BRACE: '{';
+TRIG_SINGLE_CLOSE_BRACE: '}';
 
 // Opening angle bracket - increment nesting depth
 TRIG_OPEN_ANGLE: '<' {trigAngleBracketDepth++;};

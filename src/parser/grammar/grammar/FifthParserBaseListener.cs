@@ -964,6 +964,18 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitTrigLiteralContent([NotNull] FifthParser.TrigLiteralContentContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.trigInterpolation"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterTrigInterpolation([NotNull] FifthParser.TrigInterpolationContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.trigInterpolation"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitTrigInterpolation([NotNull] FifthParser.TrigInterpolationContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by the <c>str_plain</c>
 	/// labeled alternative in <see cref="FifthParser.string_"/>.
 	/// <para>The default implementation does nothing.</para>
