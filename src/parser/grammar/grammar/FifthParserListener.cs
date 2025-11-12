@@ -793,6 +793,36 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitLiteral([NotNull] FifthParser.LiteralContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.trigLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterTrigLiteral([NotNull] FifthParser.TrigLiteralContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.trigLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitTrigLiteral([NotNull] FifthParser.TrigLiteralContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.trigLiteralContent"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterTrigLiteralContent([NotNull] FifthParser.TrigLiteralContentContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.trigLiteralContent"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitTrigLiteralContent([NotNull] FifthParser.TrigLiteralContentContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.trigInterpolation"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterTrigInterpolation([NotNull] FifthParser.TrigInterpolationContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.trigInterpolation"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitTrigInterpolation([NotNull] FifthParser.TrigInterpolationContext context);
+	/// <summary>
 	/// Enter a parse tree produced by the <c>str_plain</c>
 	/// labeled alternative in <see cref="FifthParser.string_"/>.
 	/// </summary>

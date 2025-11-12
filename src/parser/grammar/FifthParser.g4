@@ -132,7 +132,7 @@ list_comprehension:
 type_spec:
 	L_BRACKET type_spec R_BRACKET  # list_type_spec
 	| type_spec L_BRACKET (size = operand)? R_BRACKET  # array_type_spec
-	| IDENTIFIER '<' type_spec '>'  # generic_type_spec
+	| IDENTIFIER LESS type_spec GREATER  # generic_type_spec
 	| IDENTIFIER  # base_type_spec;
 
 // ========[EXPRESSIONS]=========
@@ -216,20 +216,20 @@ primitiveLiteral:
 	| REAL_LITERAL	# lit_float;
 // ===[ TRIPLE LITERALS ]=== Valid triple literal (subject, predicate, object)
 tripleLiteral:
-	'<' tripleSubject = tripleIriRef COMMA triplePredicate = tripleIriRef COMMA tripleObject =
-		tripleObjectTerm '>' # triple_literal;
+	LESS tripleSubject = tripleIriRef COMMA triplePredicate = tripleIriRef COMMA tripleObject =
+		tripleObjectTerm GREATER # triple_literal;
 
 // Malformed variants captured for structured diagnostics (TRPL001)
 malformedTripleLiteral:
 	// Order: shorter/specific malformed patterns first, greedy tooMany last Missing object: only
 	// two components
-	'<' tripleIriRef COMMA tripleIriRef '>' # triple_malformed_missingObject
+	LESS tripleIriRef COMMA tripleIriRef GREATER # triple_malformed_missingObject
 	// Trailing comma: has 3rd object component, then an extra comma before '>'
-	| '<' tripleIriRef COMMA tripleIriRef COMMA tripleObjectTerm COMMA '>' #
+	| LESS tripleIriRef COMMA tripleIriRef COMMA tripleObjectTerm COMMA GREATER #
 		triple_malformed_trailingComma
-	| '<' tripleIriRef COMMA tripleIriRef COMMA tripleIriRef COMMA tripleIriRef (
+	| LESS tripleIriRef COMMA tripleIriRef COMMA tripleIriRef COMMA tripleIriRef (
 		COMMA tripleIriRef
-	)* '>' # triple_malformed_tooMany;
+	)* GREATER # triple_malformed_tooMany;
 
 tripleObjectTerm: tripleIriRef | primitiveLiteral | list;
 
@@ -238,7 +238,29 @@ prefixedIri: IDENTIFIER COLON IDENTIFIER;
 // Allow both prefixed IRIs and expressions (variables, function calls, etc.) in triple components
 tripleIriRef: prefixedIri | expression;
 
-literal: primitiveLiteral;
+literal: primitiveLiteral | trigLiteral;
+
+// TriG Literal Expression - @< ... >
+// Uses lexer mode TRIG_LITERAL_MODE to capture raw content
+trigLiteral: 
+    TRIG_START trigLiteralContent* TRIG_CLOSE_ANGLE;
+
+// Content tokens from TRIG_LITERAL_MODE
+trigLiteralContent:
+    TRIG_TEXT
+    | TRIG_OPEN_ANGLE
+    | TRIG_CLOSE_ANGLE_CONTENT  // Nested closing angle brackets
+    | TRIG_ESCAPED_OPEN         // {{{ for literal {{
+    | TRIG_ESCAPED_CLOSE        // }}} for literal }}
+    | TRIG_SINGLE_OPEN_BRACE    // Single { (not part of interpolation)
+    | TRIG_SINGLE_CLOSE_BRACE   // Single } (not part of interpolation)
+    | trigInterpolation;        // {{ expression }}
+
+// Interpolation: {{ expression }}
+// After TRIG_INTERP_START, we're in DEFAULT_MODE and can parse any expression
+// Then we expect }} to close it (TRIG_INTERP_END which pops back to TRIG_LITERAL_MODE)
+trigInterpolation:
+    TRIG_INTERP_START expression TRIG_INTERP_END;
 
 string_:
 	INTERPRETED_STRING_LIT		# str_plain

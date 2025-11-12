@@ -1,0 +1,17 @@
+// Basic TriG literal without interpolation
+// User Story 1: Initialize Store from TriG literal
+
+main(): int {
+    s: Store = @<
+        @prefix ex: <http://example.org/> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        
+        ex:graph1 {
+            ex:Andrew rdf:type ex:Person;
+                      ex:name "Andrew";
+                      ex:age 42 .
+        }
+    >;
+    
+    return 0;
+}

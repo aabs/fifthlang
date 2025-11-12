@@ -2077,6 +2077,52 @@ public class AtomLiteralExpBuilder : IBuilder<ast.AtomLiteralExp>
     }
 
 }
+public class TriGLiteralExpressionBuilder : IBuilder<ast.TriGLiteralExpression>
+{
+    private System.String _Content;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.TriGLiteralExpression Build()
+    {
+        return new ast.TriGLiteralExpression(){
+             Content = this._Content // from TriGLiteralExpression
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public TriGLiteralExpressionBuilder WithContent(System.String value){
+        _Content = value;
+        return this;
+    }
+
+    public TriGLiteralExpressionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class InterpolatedExpressionBuilder : IBuilder<ast.InterpolatedExpression>
+{
+    private ast.Expression _Expression;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.InterpolatedExpression Build()
+    {
+        return new ast.InterpolatedExpression(){
+             Expression = this._Expression // from InterpolatedExpression
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public InterpolatedExpressionBuilder WithExpression(ast.Expression value){
+        _Expression = value;
+        return this;
+    }
+
+    public InterpolatedExpressionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
 {
     private ast.Expression _LHS;

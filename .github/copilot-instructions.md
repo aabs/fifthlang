@@ -247,6 +247,8 @@ Always build the full solution rather than individual projects to ensure proper 
 - C# 14 (per constitution) + ANTLR 4.8 runtime; internal AST generator; TUnit + FluentAssertions (001-gab-removal)
 - C# 14, .NET SDK 8.0.118 (per global.json) + dotNetRDF (`VDS.RDF.*`), Fifth.System library (001-system-kg-types)
 - N/A (in-memory objects and SPARQL stores via library) (001-system-kg-types)
+- C# 14 on .NET 8.0 SDK (global.json pins 8.0.118) + Antlr4 runtime; existing compiler/AST generator; dotNetRDF types for runtime store parsing (via Fifth.System integration) (001-trig-literal-expression)
+- In-memory RDF dataset (`Store`) (001-trig-literal-expression)
 
 ## Recent Changes
 - 005-implementation-of-try: Added C# (compiler implementation), Fifth language surface; .NET SDK 8.0.x (global.json pins 8.0.118) + Antlr4.Runtime.Standard, RazorLight, System.CommandLine, TUnit, FluentAssertions, dunet, Vogen; Roslyn (for IL or backend equivalence tests)
