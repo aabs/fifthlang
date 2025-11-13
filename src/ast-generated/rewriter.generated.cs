@@ -945,7 +945,23 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitSparqlLiteralExpression(SparqlLiteralExpression ctx)
     {
         var prologue = new List<Statement>();
+        List<ast.VariableBinding> tmpBindings = [];
+        foreach (var item in ctx.Bindings)
+        {
+            var rr = Rewrite(item);
+            tmpBindings.Add((ast.VariableBinding)rr.Node);
+            prologue.AddRange(rr.Prologue);
+        }
+        List<ast.Interpolation> tmpInterpolations = [];
+        foreach (var item in ctx.Interpolations)
+        {
+            var rr = Rewrite(item);
+            tmpInterpolations.Add((ast.Interpolation)rr.Node);
+            prologue.AddRange(rr.Prologue);
+        }
         var rebuilt = ctx with {
+         Bindings = tmpBindings
+        ,Interpolations = tmpInterpolations
         };
         return new RewriteResult(rebuilt, prologue);
     }

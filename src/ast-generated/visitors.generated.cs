@@ -973,7 +973,13 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     }
     public virtual SparqlLiteralExpression VisitSparqlLiteralExpression(SparqlLiteralExpression ctx)
     {
+        List<ast.VariableBinding> tmpBindings = [];
+        tmpBindings.AddRange(ctx.Bindings.Select(x => (ast.VariableBinding)Visit(x)));
+        List<ast.Interpolation> tmpInterpolations = [];
+        tmpInterpolations.AddRange(ctx.Interpolations.Select(x => (ast.Interpolation)Visit(x)));
      return ctx with {
+         Bindings = tmpBindings
+        ,Interpolations = tmpInterpolations
         };
     }
     public virtual VariableBinding VisitVariableBinding(VariableBinding ctx)

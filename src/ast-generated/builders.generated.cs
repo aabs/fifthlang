@@ -2175,6 +2175,7 @@ public class VariableBindingBuilder : IBuilder<ast.VariableBinding>
     private System.String _Name;
     private System.Int32 _PositionInLiteral;
     private System.Int32 _Length;
+    private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.VariableBinding Build()
     {
@@ -2182,6 +2183,7 @@ public class VariableBindingBuilder : IBuilder<ast.VariableBinding>
              Name = this._Name // from VariableBinding
            , PositionInLiteral = this._PositionInLiteral // from VariableBinding
            , Length = this._Length // from VariableBinding
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public VariableBindingBuilder WithName(System.String value){
@@ -2199,12 +2201,18 @@ public class VariableBindingBuilder : IBuilder<ast.VariableBinding>
         return this;
     }
 
+    public VariableBindingBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
 }
 public class InterpolationBuilder : IBuilder<ast.Interpolation>
 {
     private System.Int32 _Position;
     private System.Int32 _Length;
     private ast.Expression _Expression;
+    private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.Interpolation Build()
     {
@@ -2212,6 +2220,7 @@ public class InterpolationBuilder : IBuilder<ast.Interpolation>
              Position = this._Position // from Interpolation
            , Length = this._Length // from Interpolation
            , Expression = this._Expression // from Interpolation
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public InterpolationBuilder WithPosition(System.Int32 value){
@@ -2226,6 +2235,11 @@ public class InterpolationBuilder : IBuilder<ast.Interpolation>
 
     public InterpolationBuilder WithExpression(ast.Expression value){
         _Expression = value;
+        return this;
+    }
+
+    public InterpolationBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
         return this;
     }
 

@@ -238,7 +238,7 @@ prefixedIri: IDENTIFIER COLON IDENTIFIER;
 // Allow both prefixed IRIs and expressions (variables, function calls, etc.) in triple components
 tripleIriRef: prefixedIri | expression;
 
-literal: primitiveLiteral | trigLiteral;
+literal: primitiveLiteral | trigLiteral | sparqlLiteral;
 
 // TriG Literal Expression - @< ... >
 // Uses lexer mode TRIG_LITERAL_MODE to capture raw content
@@ -261,6 +261,24 @@ trigLiteralContent:
 // Then we expect }} to close it (TRIG_INTERP_END which pops back to TRIG_LITERAL_MODE)
 trigInterpolation:
     TRIG_INTERP_START expression TRIG_INTERP_END;
+
+// SPARQL Literal Expression - ?< ... >
+// Uses lexer mode SPARQL_LITERAL_MODE to capture raw SPARQL query content
+sparqlLiteral: 
+    SPARQL_START sparqlLiteralContent* SPARQL_CLOSE_ANGLE;
+
+// Content tokens from SPARQL_LITERAL_MODE
+sparqlLiteralContent:
+    SPARQL_TEXT
+    | SPARQL_SINGLE_OPEN_BRACE    // Single { (not part of interpolation)
+    | SPARQL_SINGLE_CLOSE_BRACE   // Single } (not part of interpolation)
+    | sparqlInterpolation;        // {{ expression }}
+
+// Interpolation: {{ expression }}
+// After SPARQL_INTERP_START, we're in DEFAULT_MODE and can parse any expression
+// Then we expect }} to close it (TRIG_INTERP_END which pops back to SPARQL_LITERAL_MODE)
+sparqlInterpolation:
+    SPARQL_INTERP_START expression TRIG_INTERP_END;
 
 string_:
 	INTERPRETED_STRING_LIT		# str_plain

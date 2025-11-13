@@ -823,6 +823,36 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitTrigInterpolation([NotNull] FifthParser.TrigInterpolationContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.sparqlLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterSparqlLiteral([NotNull] FifthParser.SparqlLiteralContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.sparqlLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitSparqlLiteral([NotNull] FifthParser.SparqlLiteralContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.sparqlLiteralContent"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterSparqlLiteralContent([NotNull] FifthParser.SparqlLiteralContentContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.sparqlLiteralContent"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitSparqlLiteralContent([NotNull] FifthParser.SparqlLiteralContentContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.sparqlInterpolation"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterSparqlInterpolation([NotNull] FifthParser.SparqlInterpolationContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.sparqlInterpolation"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitSparqlInterpolation([NotNull] FifthParser.SparqlInterpolationContext context);
+	/// <summary>
 	/// Enter a parse tree produced by the <c>str_plain</c>
 	/// labeled alternative in <see cref="FifthParser.string_"/>.
 	/// </summary>

@@ -875,7 +875,7 @@ public record SparqlLiteralExpression : Expression
 /// Represents a Fifth variable reference within SPARQL literal.
 /// Example: 'age' in ?&lt;SELECT * WHERE { ?s ex:age age }>;
 /// </summary>
-public record VariableBinding
+public record VariableBinding : AstThing
 {
     /// <summary>
     /// Variable name as it appears in SPARQL text.
@@ -911,7 +911,7 @@ public record VariableBinding
 /// Represents an interpolation placeholder {{expr}} within SPARQL literal.
 /// Example: {{prefix}} in ?&lt;SELECT * WHERE { &lt;{{prefix}}resource&gt; ?p ?o }>;
 /// </summary>
-public record Interpolation
+public record Interpolation : AstThing
 {
     /// <summary>
     /// Character position in SparqlText where interpolation starts.
