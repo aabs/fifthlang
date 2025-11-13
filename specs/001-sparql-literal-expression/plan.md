@@ -7,7 +7,7 @@
 
 ## Summary
 
-Implement a new AST type `SparqlLiteralExpression` for inline SPARQL queries using `?< ... >` syntax. The literal maps to a new system type `Fifth.System.Query` (user-facing as `Query`), supports safe variable binding via parameter insertion (dotNetRDF `SparqlParameterizedString`), and optionally supports `{{expr}}` interpolation for computed values. The implementation follows Fifth's multi-pass compilation model: grammar extension → AST building → type checking → lowering/transformation passes → IL/Roslyn emission.
+Implement a new AST type `SparqlLiteralExpression` for inline SPARQL queries using `?< ... >` syntax. The literal maps to a new system type `Fifth.System.Query` (user-facing as `Query`), supports safe variable binding via parameter insertion (dotNetRDF `SparqlParameterizedString`), and supports `{{expr}}` interpolation for computed values. The implementation follows Fifth's multi-pass compilation model: grammar extension → AST building → type checking → lowering/transformation passes → IL/Roslyn emission.
 
 ## Technical Context
 

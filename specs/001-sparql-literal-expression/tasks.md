@@ -95,12 +95,17 @@
 - [ ] T035 [US1] Update TypeAnnotationVisitor.cs in src/compiler/LanguageTransformations/ to map SparqlLiteralExpression → Query type
 - [ ] T036 [US1] Add test AnnotatesSparqlLiteralExpressionAsQueryType in test/ast-tests/SparqlLiteralAstTests.cs
 
+### Diagnostic Codes Definition
+
+- [ ] T036a [P] [US1] Define SPARQL diagnostic codes in src/compiler/LanguageTransformations/SparqlDiagnostics.cs: SPARQL001 (malformed SPARQL syntax), SPARQL002 (unknown variable), SPARQL003 (incompatible type), SPARQL004 (nested interpolation), SPARQL005 (non-constant interpolation), SPARQL006 (oversized literal)
+- [ ] T036b [P] [US1] Document diagnostic format: "SPARQL00X: message text" with line/column offset within literal body
+
 ### SPARQL Validation
 
 - [ ] T037 [US1] Create SparqlValidationVisitor.cs in src/compiler/LanguageTransformations/ to parse SPARQL text via dotNetRDF
-- [ ] T038 [US1] Implement error diagnostic emission for invalid SPARQL syntax with line/column offset within literal
+- [ ] T038 [US1] Implement error diagnostic emission using SPARQL001 code for invalid SPARQL syntax with line/column offset within literal
 - [ ] T039 [US1] Add SparqlValidationVisitor to transformation pipeline in src/compiler/ParserManager.cs after TypeAnnotationVisitor
-- [ ] T040 [US1] Add test EmitsDiagnosticForInvalidSparql in test/ast-tests/SparqlLiteralAstTests.cs
+- [ ] T040 [US1] Add test EmitsDiagnosticForInvalidSparql in test/ast-tests/SparqlLiteralAstTests.cs verifying SPARQL001 code
 - [ ] T041 [US1] Add test ReportsCorrectLocationForSparqlError in test/ast-tests/SparqlLiteralAstTests.cs
 
 ### Integration Tests
@@ -127,7 +132,7 @@
 - [ ] T048 [US2] Implement VisitSparqlLiteralExpression in SparqlVariableBindingVisitor.cs to scan SPARQL text for identifiers
 - [ ] T049 [US2] Implement identifier-to-symbol resolution against symbol table in SparqlVariableBindingVisitor.cs
 - [ ] T050 [US2] Populate Bindings list with resolved VariableBinding instances in SparqlVariableBindingVisitor.cs
-- [ ] T051 [US2] Emit diagnostic FTH-SPARQL-002 for unknown variables in SparqlVariableBindingVisitor.cs
+- [ ] T051 [US2] Emit diagnostic SPARQL002 for unknown variables in SparqlVariableBindingVisitor.cs with format "SPARQL002: Unknown variable 'name' in SPARQL literal"
 - [ ] T052 [US2] Add SparqlVariableBindingVisitor to transformation pipeline in src/compiler/ParserManager.cs after SymbolTableBuilderVisitor
 
 ### Test Samples
@@ -148,14 +153,14 @@
 - [ ] T060 [US2] Create SparqlLoweringRewriter.cs in src/compiler/LanguageTransformations/ extending DefaultAstRewriter
 - [ ] T061 [US2] Implement VisitSparqlLiteralExpression in SparqlLoweringRewriter.cs to emit query construction code
 - [ ] T062 [US2] Generate SparqlParameterizedString construction in SparqlLoweringRewriter.cs
-- [ ] T063 [US2] Generate SetLiteral calls for each binding in SparqlLoweringRewriter.cs with type mapping
+- [ ] T063 [US2] Generate SetLiteral calls for each binding in SparqlLoweringRewriter.cs with type mapping (int→xsd:integer, string→xsd:string, float→xsd:float, double→xsd:double, bool→xsd:boolean, decimal→xsd:decimal)
 - [ ] T064 [US2] Generate Query constructor call with parameters dictionary in SparqlLoweringRewriter.cs
 - [ ] T065 [US2] Add SparqlLoweringRewriter to transformation pipeline in src/compiler/ParserManager.cs after SparqlValidationVisitor
 
 ### Type Compatibility Validation
 
 - [ ] T066 [US2] Implement type compatibility check in TypeAnnotationVisitor.cs for bound variables (int, string, float, etc.)
-- [ ] T067 [US2] Emit diagnostic FTH-SPARQL-003 for incompatible types (Graph, Triple) in TypeAnnotationVisitor.cs
+- [ ] T067 [US2] Emit diagnostic SPARQL003 for incompatible types (Graph, Triple) in TypeAnnotationVisitor.cs with format "SPARQL003: Type 'typename' cannot be bound to SPARQL parameter"
 - [ ] T068 [US2] Add test EmitsDiagnosticForIncompatibleType in test/ast-tests/SparqlLiteralAstTests.cs
 
 ### Integration Tests
@@ -165,6 +170,7 @@
 - [ ] T071 [P] [US2] Add test CompilesLiteralWithMultipleBindings in test/runtime-integration-tests/SparqlLiteralIntegrationTests.cs
 - [ ] T072 [P] [US2] Add test BoundParametersHaveCorrectTypes in test/runtime-integration-tests/SparqlLiteralIntegrationTests.cs
 - [ ] T073 [P] [US2] Add test BoundParametersHaveCorrectValues in test/runtime-integration-tests/SparqlLiteralIntegrationTests.cs
+- [ ] T073a [P] [US2] Create comprehensive binding test matrix covering int/string/float/double/bool/decimal types × direct-scope/nested-scope/shadowed scenarios (18 test cases total) to validate SC-003 (95%+ binding coverage)
 
 ### Security Tests
 
@@ -176,13 +182,13 @@
 
 ---
 
-## Phase 5: User Story 3 - Optional interpolation placeholders (Priority: P2)
+## Phase 5: User Story 3 - Interpolation placeholders (Priority: P1) 🎯 MVP
 
 **Goal**: Enable `{{expr}}` syntax for computed value injection
 
 **Independent Test**: Create a .5th file with `age: int = 42; q: Query = ?<SELECT * WHERE { ?s ex:age {{age}} }>;` and verify the resulting query is valid and safe.
 
-**Note**: This phase is optional for MVP and can be deferred. If implementing, follow P2 priority.
+**Note**: This phase is now mandatory for MVP as interpolation provides essential computed value support.
 
 ### Lexer Extension
 
@@ -194,7 +200,7 @@
 
 - [ ] T080 [US3] Update VisitSparqlLiteral in src/parser/AstBuilderVisitor.cs to extract interpolation expressions
 - [ ] T081 [US3] Populate Interpolations list in SparqlLiteralExpression during parsing
-- [ ] T082 [US3] Add validation for nested interpolation (emit diagnostic FTH-SPARQL-006)
+- [ ] T082 [US3] Add validation for nested interpolation (emit diagnostic SPARQL004 with format "SPARQL004: Nested interpolation not allowed")
 
 ### Test Samples
 
@@ -217,7 +223,7 @@
 ### Type Checking Extension
 
 - [ ] T092 [US3] Extend TypeAnnotationVisitor.cs to infer types for interpolation expressions
-- [ ] T093 [US3] Emit diagnostic FTH-SPARQL-005 for non-constant interpolation expressions
+- [ ] T093 [US3] Emit diagnostic SPARQL005 for non-constant interpolation expressions with format "SPARQL005: Interpolation expression must be compile-time constant"
 - [ ] T094 [US3] Add test InterpolationTypesInferredCorrectly in test/ast-tests/SparqlLiteralAstTests.cs
 
 ### Integration Tests
@@ -226,7 +232,7 @@
 - [ ] T096 [P] [US3] Add test InterpolatedIriIsValidSyntax in test/runtime-integration-tests/SparqlLiteralIntegrationTests.cs
 - [ ] T097 [P] [US3] Add test InterpolatedLiteralIsSafelySerialized in test/runtime-integration-tests/SparqlLiteralIntegrationTests.cs
 
-**Checkpoint**: All user stories should now be independently functional - literals with interpolation compile safely.
+**Checkpoint**: All user stories (US1, US2, US3) should now be independently functional - literals with interpolation compile safely. MVP is complete.
 
 ---
 
@@ -242,14 +248,14 @@
 
 ### Edge Cases
 
-- [ ] T101 [P] Add test EmitsDiagnosticForOversizedLiteral (>1MB) in test/ast-tests/SparqlLiteralAstTests.cs
+- [ ] T101 [P] Add test EmitsDiagnosticForOversizedLiteral (>1MB) in test/ast-tests/SparqlLiteralAstTests.cs verifying SPARQL006 code with format "SPARQL006: SPARQL literal exceeds 1MB size limit; consider external file"
 - [ ] T102 [P] Add test HandlesEmptyLiteralCorrectly in test/runtime-integration-tests/SparqlLiteralIntegrationTests.cs
 - [ ] T103 [P] Add test HandlesMultilineQueriesWithWhitespace in test/runtime-integration-tests/SparqlLiteralIntegrationTests.cs
 
 ### Performance Validation
 
-- [ ] T104 [P] Add performance test for large literal (<5KB, <50ms overhead) in test/runtime-integration-tests/
-- [ ] T105 [P] Add performance test for many bindings (>10 variables) in test/runtime-integration-tests/
+- [ ] T104 [P] Add performance test for large literal (<5KB, <50ms overhead) in test/runtime-integration-tests/ (baseline: GitHub Actions standard runner, 2-core, 7GB RAM)
+- [ ] T105 [P] Add performance test for many bindings (>10 variables) in test/runtime-integration-tests/ (baseline: GitHub Actions standard runner)
 
 ### Build Validation
 
@@ -403,16 +409,16 @@ After each story completes, developers can assist with integration testing and p
 
 ## Task Summary
 
-- **Total Tasks**: 112
+- **Total Tasks**: 115 (updated from 112)
 - **Setup Tasks**: 4
 - **Foundational Tasks**: 14 (BLOCKING)
-- **User Story 1 Tasks**: 28 (P1 - MVP critical)
-- **User Story 2 Tasks**: 30 (P1 - MVP critical)
-- **User Story 3 Tasks**: 21 (P2 - optional for MVP)
+- **User Story 1 Tasks**: 30 (P1 - MVP critical, includes diagnostic definition tasks)
+- **User Story 2 Tasks**: 31 (P1 - MVP critical, includes comprehensive binding matrix)
+- **User Story 3 Tasks**: 21 (P1 - MVP critical, interpolation is mandatory)
 - **Polish Tasks**: 15
 
-**MVP Scope (Recommended)**: Phases 1-4 only (US1 + US2) = 76 tasks
-**Full Feature Scope**: All phases = 112 tasks
+**MVP Scope**: All phases 1-5 (US1 + US2 + US3) = 100 tasks
+**Full Feature Scope**: All phases = 115 tasks
 
 **Parallel Opportunities Identified**: 45 tasks marked [P] can run in parallel within their phase
 

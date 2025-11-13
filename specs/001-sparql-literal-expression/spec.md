@@ -37,11 +37,11 @@ As a developer, I can reference in-scope Fifth variables directly (e.g., `age`) 
 
 ---
 
-### User Story 3 - Optional interpolation placeholders (Priority: P2)
+### User Story 3 - Interpolation placeholders (Priority: P1)
 
 As a developer, I can use `{{expr}}` inside a SPARQL literal for value interpolation of expressions, with correct typing and escaping, to compose queries when parameter binding is insufficient.
 
-**Why this priority**: Complements parameter binding for cases requiring computed values; optional for MVP.
+**Why this priority**: Essential for computed values and dynamic query construction; complements parameter binding for full expressiveness.
 
 **Independent Test**: Declare `age: int = 42; q: Query = ?<SELECT * WHERE { ?s ex:age {{age}} }>;` and verify the resulting query is valid and safe.
 
@@ -65,9 +65,9 @@ As a developer, I can use `{{expr}}` inside a SPARQL literal for value interpola
 
 - **FR-001**: The grammar MUST recognize `sparqlLiteral` via tokens `SPARQL_START` (`?<`) and `SPARQL_CLOSE_ANGLE` (`>`), and include it in `literal` alongside existing primitives and TriG.
 - **FR-002**: The parser MUST construct a new AST node type `SparqlLiteralExpression` representing the literal body and any discovered variable references and interpolation placeholders.
-- **FR-003**: The type system MUST map `SparqlLiteralExpression` to compile-time type `System.Fifth.Query` (user surface `Query`).
+- **FR-003**: The type system MUST map `SparqlLiteralExpression` to compile-time type `Fifth.System.Query` (user surface `Query`).
 - **FR-004**: Variable identifiers present in the SPARQL body that match in-scope Fifth variables MUST be bound as parameters on a prepared query object (no textual splicing) using a safe parameterization model.
-- **FR-005**: Interpolation placeholders `{{expr}}` inside the literal MUST be supported for value-only insertion (expressions evaluating to IRIs or literals), serialized safely as typed values; if unsupported in an initial release, the compiler MUST emit a clear diagnostic suggesting parameter binding.
+- **FR-005**: Interpolation placeholders `{{expr}}` inside the literal MUST be supported for value-only insertion (expressions evaluating to IRIs or literals), serialized safely as typed values.
 - **FR-006**: The compiler MUST validate SPARQL content (query or update) at compile-time by parsing via the embedded SPARQL grammar, allowing variable tokens/placeholders, and emit precise diagnostics for syntax errors.
 - **FR-007**: Unknown variables referenced in the SPARQL body (non-interpolated) MUST produce compile-time diagnostics identifying the missing binding name.
 - **FR-008**: The system MUST prevent injection by never concatenating raw user-controlled text into structural SPARQL; all values MUST be passed as typed parameters or safe-serialized interpolation values.
