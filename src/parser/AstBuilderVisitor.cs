@@ -881,6 +881,83 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         };
     }
 
+    /// <summary>
+    /// Handles SPARQL literal expressions (?&lt; ... &gt;)
+    /// Supports:
+    /// - User Story 1: Basic SPARQL literals without interpolation
+    /// - User Story 3: {{ expression }} interpolations for computed values
+    /// Variable binding (User Story 2) is handled by SparqlVariableBindingVisitor later
+    /// </summary>
+    public override IAstThing VisitSparqlLiteral(FifthParser.SparqlLiteralContext context)
+    {
+        // Build the SPARQL text with placeholders for interpolations
+        var textBuilder = new StringBuilder();
+        var interpolations = new List<Interpolation>();
+        int currentPosition = 0;
+        
+        var contentTokens = context.sparqlLiteralContent();
+        
+        foreach (var contentCtx in contentTokens)
+        {
+            // Check if this is an interpolation
+            var interpCtx = contentCtx.sparqlInterpolation();
+            if (interpCtx != null)
+            {
+                // This is an interpolation: {{ expression }}
+                var expr = Visit(interpCtx.expression()) as Expression;
+                if (expr != null)
+                {
+                    // Add a placeholder in the SPARQL text
+                    // We'll use a special marker that the lowering pass will replace
+                    var placeholder = $"{{{{__SPARQL_INTERP_{interpolations.Count}__}}}}";
+                    textBuilder.Append(placeholder);
+                    
+                    // Record the interpolation
+                    interpolations.Add(new Interpolation
+                    {
+                        Expression = expr,
+                        Position = currentPosition,
+                        Length = placeholder.Length,
+                        Location = GetLocationDetails(interpCtx),
+                        Parent = null,
+                        Annotations = []
+                    });
+                    
+                    currentPosition += placeholder.Length;
+                }
+                continue;
+            }
+            
+            // Regular content - append as-is
+            var text = contentCtx.GetText();
+            textBuilder.Append(text);
+            currentPosition += text.Length;
+        }
+        
+        var sparqlText = textBuilder.ToString();
+        
+        // Check size limit: 1MB
+        const int MaxSizeBytes = 1024 * 1024; // 1MB
+        if (System.Text.Encoding.UTF8.GetByteCount(sparqlText) > MaxSizeBytes)
+        {
+            // TODO: Emit diagnostic SPARQL006 - oversized literal
+            // For now, we'll create the node anyway but this should emit a diagnostic
+            System.Console.Error.WriteLine($"Warning: SPARQL literal exceeds 1MB size limit at {GetLocationDetails(context)}");
+        }
+        
+        // Create the SparqlLiteralExpression AST node
+        return new SparqlLiteralExpression
+        {
+            SparqlText = sparqlText,
+            Interpolations = interpolations,
+            Bindings = new List<VariableBinding>(), // Will be populated by SparqlVariableBindingVisitor
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.TType { Name = TypeName.From("Query") },
+            Annotations = []
+        };
+    }
+
     public override IAstThing VisitNum_decimal(FifthParser.Num_decimalContext context)
     {
         return context.suffix?.Type switch
