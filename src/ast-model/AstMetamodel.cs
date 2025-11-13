@@ -140,6 +140,9 @@ public enum SymbolKind
     TypeDef,
     TypeRef,
     TriGLiteralExpression,
+    SparqlLiteralExpression,
+    VariableBinding,
+    Interpolation,
     UnaryExp,
     VarDeclStatement,
     VarRef,
@@ -835,6 +838,105 @@ public record InterpolatedExpression : AstThing
     /// Length of the interpolation placeholder in the original source.
     /// </summary>
     public int Length { get; set; }
+}
+
+/// <summary>
+/// Represents a SPARQL query literal expression: ?&lt; ... &gt;
+/// Example: q: Query = ?&lt;SELECT * WHERE { ?s ?p ?o }>;
+/// </summary>
+/// <remarks>
+/// Supports three user stories:
+/// 1. Basic literal parsing - compile SPARQL queries as literal values
+/// 2. Variable binding - reference Fifth variables directly in SPARQL (safe parameterization)
+/// 3. Interpolation - use {{expr}} for computed value injection
+/// </remarks>
+public record SparqlLiteralExpression : Expression
+{
+    /// <summary>
+    /// Raw SPARQL text content (SELECT/CONSTRUCT/ASK/DESCRIBE/UPDATE).
+    /// Includes variable placeholders and interpolation markers.
+    /// </summary>
+    public required string SparqlText { get; init; }
+    
+    /// <summary>
+    /// Variable bindings discovered during resolution.
+    /// Populated by SparqlVariableBindingVisitor.
+    /// </summary>
+    public List<VariableBinding> Bindings { get; init; } = new();
+    
+    /// <summary>
+    /// Interpolation sites ({{expr}}) for computed value injection.
+    /// Populated during parsing if interpolation syntax is present.
+    /// </summary>
+    public List<Interpolation> Interpolations { get; init; } = new();
+}
+
+/// <summary>
+/// Represents a Fifth variable reference within SPARQL literal.
+/// Example: 'age' in ?&lt;SELECT * WHERE { ?s ex:age age }>;
+/// </summary>
+public record VariableBinding
+{
+    /// <summary>
+    /// Variable name as it appears in SPARQL text.
+    /// </summary>
+    public required string Name { get; init; }
+    
+    /// <summary>
+    /// Resolved Fifth variable reference.
+    /// Set by SparqlVariableBindingVisitor after symbol table lookup.
+    /// Null if resolution failed (diagnostic emitted).
+    /// </summary>
+    public Expression? ResolvedExpression { get; set; }
+    
+    /// <summary>
+    /// Inferred Fifth type.
+    /// Set by TypeAnnotationVisitor.
+    /// Used to determine RDF node type during lowering.
+    /// </summary>
+    public FifthType? Type { get; set; }
+    
+    /// <summary>
+    /// Position within SPARQL text for diagnostics (character offset).
+    /// </summary>
+    public int PositionInLiteral { get; init; }
+    
+    /// <summary>
+    /// Length of the variable name in SPARQL text.
+    /// </summary>
+    public int Length { get; init; }
+}
+
+/// <summary>
+/// Represents an interpolation placeholder {{expr}} within SPARQL literal.
+/// Example: {{prefix}} in ?&lt;SELECT * WHERE { &lt;{{prefix}}resource&gt; ?p ?o }>;
+/// </summary>
+public record Interpolation
+{
+    /// <summary>
+    /// Character position in SparqlText where interpolation starts.
+    /// Index of the first '{' in '{{'...'}'.
+    /// </summary>
+    public required int Position { get; init; }
+    
+    /// <summary>
+    /// Length of interpolation region (including {{ }}).
+    /// Used to replace placeholder during lowering.
+    /// </summary>
+    public required int Length { get; init; }
+    
+    /// <summary>
+    /// Fifth expression to evaluate and inject.
+    /// Must be constant or simple variable reference (enforced during type checking).
+    /// </summary>
+    public required Expression Expression { get; init; }
+    
+    /// <summary>
+    /// Result type after evaluation.
+    /// Set by TypeAnnotationVisitor.
+    /// Determines serialization strategy (IRI syntax vs literal).
+    /// </summary>
+    public FifthType? ResultType { get; set; }
 }
 
 /// <summary>
