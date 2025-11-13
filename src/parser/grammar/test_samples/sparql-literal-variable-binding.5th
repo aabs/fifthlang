@@ -1,0 +1,19 @@
+// Test: SPARQL literal with Fifth variable binding (User Story 2)
+// This demonstrates safe parameterization where Fifth variables 
+// are bound as typed parameters in the SPARQL query
+
+main(): int {
+    age: int = 42;
+    name: string = "Alice";
+    
+    // Variable 'age' and 'name' should be detected and bound
+    // They appear as bare identifiers in the SPARQL text (not ?var or $var)
+    q: Query = ?<
+        SELECT ?person WHERE {
+            ?person foaf:age age;
+                    foaf:name name.
+        }
+    >;
+    
+    return 0;
+}
