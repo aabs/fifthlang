@@ -1,0 +1,11 @@
+// Test: SPARQL literal with interpolation
+main(): int {
+    age: int = 42;
+    prefix: string = "http://example.org/";
+    q: Query = ?<
+        SELECT * WHERE {
+            <{{prefix}}resource> <http://example.org/age> {{age}}
+        }
+    >;
+    return 0;
+}

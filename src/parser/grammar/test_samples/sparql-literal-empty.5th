@@ -1,0 +1,5 @@
+// Test: Empty SPARQL literal
+main(): int {
+    q: Query = ?<>;
+    return 0;
+}

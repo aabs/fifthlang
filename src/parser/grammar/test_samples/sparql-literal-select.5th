@@ -1,0 +1,5 @@
+// Test: Basic SELECT query
+main(): int {
+    q: Query = ?<SELECT * WHERE { ?s ?p ?o }>;
+    return 0;
+}
