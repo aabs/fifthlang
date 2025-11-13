@@ -249,6 +249,8 @@ Always build the full solution rather than individual projects to ensure proper 
 - N/A (in-memory objects and SPARQL stores via library) (001-system-kg-types)
 - C# 14 on .NET 8.0 SDK (global.json pins 8.0.118) + Antlr4 runtime; existing compiler/AST generator; dotNetRDF types for runtime store parsing (via Fifth.System integration) (001-trig-literal-expression)
 - In-memory RDF dataset (`Store`) (001-trig-literal-expression)
+- C# 14, .NET 8.0 SDK (global.json pins 8.0.118) + ANTLR 4.8 runtime (`Antlr4.Runtime.Standard`), dotNetRDF (`VDS.RDF.*`), RazorLight (code generation), TUnit + FluentAssertions (testing) (001-sparql-literal-expression)
+- N/A (in-memory AST and query objects) (001-sparql-literal-expression)
 
 ## Recent Changes
 - 005-implementation-of-try: Added C# (compiler implementation), Fifth language surface; .NET SDK 8.0.x (global.json pins 8.0.118) + Antlr4.Runtime.Standard, RazorLight, System.CommandLine, TUnit, FluentAssertions, dunet, Vogen; Roslyn (for IL or backend equivalence tests)
