@@ -117,8 +117,8 @@ public class SparqlVariableBindingVisitor : DefaultRecursiveDescentVisitor
     {
         var diagnostic = new Diagnostic
         {
-            Code = "SPARQL002",
-            Message = $"Unknown variable '{varName}' in SPARQL literal",
+            Code = SparqlDiagnostics.UnknownVariable,
+            Message = SparqlDiagnostics.FormatUnknownVariable(varName),
             Severity = DiagnosticSeverity.Error,
             Filename = context.Location?.Filename ?? "",
             Line = context.Location?.Line ?? 0,

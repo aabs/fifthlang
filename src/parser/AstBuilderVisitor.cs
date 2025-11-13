@@ -938,11 +938,11 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         
         // Check size limit: 1MB
         const int MaxSizeBytes = 1024 * 1024; // 1MB
-        if (System.Text.Encoding.UTF8.GetByteCount(sparqlText) > MaxSizeBytes)
+        var sizeBytes = System.Text.Encoding.UTF8.GetByteCount(sparqlText);
+        if (sizeBytes > MaxSizeBytes)
         {
-            // TODO: Emit diagnostic SPARQL006 - oversized literal
-            // For now, we'll create the node anyway but this should emit a diagnostic
-            System.Console.Error.WriteLine($"Warning: SPARQL literal exceeds 1MB size limit at {GetLocationDetails(context)}");
+            // Emit diagnostic SPARQL006 - oversized literal
+            System.Console.Error.WriteLine($"Warning: SPARQL006: SPARQL literal exceeds 1MB size limit ({sizeBytes} bytes); consider using external file at {GetLocationDetails(context)}");
         }
         
         // Create the SparqlLiteralExpression AST node
