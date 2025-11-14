@@ -41,9 +41,10 @@ public static class SparqlDiagnostics
     public const string NestedInterpolation = "SPARQL004";
 
     /// <summary>
-    /// SPARQL005: Non-constant interpolation expression.
-    /// Emitted when an interpolation expression is not a compile-time constant or simple variable reference.
-    /// Example: "SPARQL005: Interpolation expression must be compile-time constant or variable reference"
+    /// SPARQL005: Non-constant interpolation expression (DEPRECATED - no longer enforced).
+    /// Previously emitted when an interpolation expression was not a compile-time constant.
+    /// Complex expressions are now allowed in interpolations; only nested literals are forbidden.
+    /// Reserved for future use if needed.
     /// </summary>
     public const string NonConstantInterpolation = "SPARQL005";
 

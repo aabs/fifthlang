@@ -6,8 +6,8 @@ namespace Fifth.LangProcessingPhases;
 /// <summary>
 /// Validates interpolation expressions in SPARQL literals.
 /// Ensures interpolations follow the rules defined in User Story 3:
-/// - No nested interpolations (SPARQL004)
-/// - Only constant or simple variable references allowed (SPARQL005)
+/// - No nested interpolations (SPARQL004) - no ?<...> or @<...> inside {{...}}
+/// - All other expressions are allowed (function calls, arithmetic, complex expressions, etc.)
 /// </summary>
 public class SparqlInterpolationValidator : DefaultRecursiveDescentVisitor
 {
@@ -46,7 +46,8 @@ public class SparqlInterpolationValidator : DefaultRecursiveDescentVisitor
             return;
         }
 
-        // Check for nested interpolations
+        // Check for nested interpolations (nested SPARQL or TriG literals)
+        // This is the only restriction - all other expressions are allowed
         isInsideInterpolation = true;
         var hasNestedInterpolation = ContainsNestedInterpolation(interpolation.Expression);
         isInsideInterpolation = false;
@@ -60,15 +61,9 @@ public class SparqlInterpolationValidator : DefaultRecursiveDescentVisitor
                 context);
         }
 
-        // Check if expression is constant or simple variable reference
-        if (!IsValidInterpolationExpression(interpolation.Expression))
-        {
-            EmitDiagnostic(
-                SparqlDiagnostics.NonConstantInterpolation,
-                SparqlDiagnostics.FormatNonConstantInterpolation(),
-                DiagnosticSeverity.Error,
-                context);
-        }
+        // Note: We no longer restrict to simple expressions. Complex expressions
+        // including function calls, arithmetic, etc. are all allowed.
+        // The only restriction is no nested SPARQL/TriG literals (checked above).
     }
 
     /// <summary>
@@ -83,57 +78,11 @@ public class SparqlInterpolationValidator : DefaultRecursiveDescentVisitor
             BinaryExp binary => ContainsNestedInterpolation(binary.LHS) || ContainsNestedInterpolation(binary.RHS),
             UnaryExp unary => ContainsNestedInterpolation(unary.Operand),
             FuncCallExp funcCall => funcCall.InvocationArguments.Any(arg => ContainsNestedInterpolation(arg)),
+            MemberAccessExp memberAccess => 
+                ContainsNestedInterpolation(memberAccess.LHS) || 
+                (memberAccess.RHS != null && ContainsNestedInterpolation(memberAccess.RHS)),
             _ => false
         };
-    }
-
-    /// <summary>
-    /// Checks if an expression is valid for interpolation.
-    /// Valid expressions are:
-    /// - Literals (string, int, float, etc.)
-    /// - Simple variable references
-    /// - Simple member access (e.g., obj.property)
-    /// </summary>
-    private bool IsValidInterpolationExpression(Expression expr)
-    {
-        return expr switch
-        {
-            // Literals are always valid
-            StringLiteralExp => true,
-            Int32LiteralExp => true,
-            Int64LiteralExp => true,
-            Float4LiteralExp => true,
-            Float8LiteralExp => true,
-            BooleanLiteralExp => true,
-
-            // Simple variable references are valid
-            VarRefExp => true,
-
-            // Simple member access is valid (e.g., obj.property)
-            MemberAccessExp memberAccess => IsSimpleMemberAccess(memberAccess),
-
-            // Binary expressions with constants/variables are valid for string concatenation
-            BinaryExp binary when binary.Operator == Operator.ArithmeticAdd =>
-                IsValidInterpolationExpression(binary.LHS) && IsValidInterpolationExpression(binary.RHS),
-
-            // Everything else is not allowed (function calls, complex expressions, etc.)
-            _ => false
-        };
-    }
-
-    /// <summary>
-    /// Checks if a member access expression is simple (no method calls, no complex arguments).
-    /// </summary>
-    private bool IsSimpleMemberAccess(MemberAccessExp memberAccess)
-    {
-        // MemberAccessExp in Fifth has LHS and RHS
-        // RHS can be a function call (with arguments) or a simple property access
-        // For simple member access, RHS should not be a function call with arguments
-        if (memberAccess.RHS is FuncCallExp)
-        {
-            return false;
-        }
-        return true;
     }
 
     /// <summary>

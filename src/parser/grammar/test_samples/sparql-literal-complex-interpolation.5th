@@ -1,0 +1,30 @@
+// Test: SPARQL literal with complex interpolation expressions
+// This demonstrates that complex expressions including function calls,
+// arithmetic, and other operations are allowed in interpolations.
+
+callSomeMethod(x: int): string => "result";
+thisYear(): int => 2024;
+
+main(): int {
+    someVar: int = 25;
+    yearOfBirth: int = 1990;
+    
+    // Complex interpolation with function call and arithmetic
+    r: Query = ?<
+        SELECT * WHERE {
+            ?person :name {{ callSomeMethod(25 + someVar) }};
+                    :age {{ thisYear() - yearOfBirth }}.
+        }
+    >;
+    
+    // More complex examples
+    factor: int = 10;
+    q2: Query = ?<
+        SELECT * WHERE {
+            ?x :value {{ factor * 2 + 5 }};
+               :computed {{ (someVar + 100) / 2 }}.
+        }
+    >;
+    
+    return 0;
+}
