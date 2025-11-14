@@ -789,6 +789,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             }
         }
 
+        // Check if the original expression is a unary logical NOT
+        if (originalExpr is UnaryExp unaryExpr && unaryExpr.Operator == Operator.LogicalNot)
+        {
+            // Logical NOT already returns bool, no conversion needed
+            return expr;
+        }
+
         // For boolean literals, no conversion needed
         if (originalExpr is BooleanLiteralExp)
         {
@@ -1152,6 +1159,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private ExpressionSyntax TranslateUnaryExpression(UnaryExp unary)
     {
         var operand = TranslateExpression(unary.Operand);
+
+        // Wrap binary expressions in parentheses to ensure correct precedence
+        // For example: !(1 < 2) should not become !1 < 2
+        if (unary.Operand is BinaryExp)
+        {
+            operand = ParenthesizedExpression(operand);
+        }
 
         var kind = unary.Operator switch
         {
