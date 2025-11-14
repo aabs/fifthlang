@@ -2,8 +2,13 @@
 // This demonstrates that complex expressions including function calls,
 // arithmetic, and other operations are allowed in interpolations.
 
-callSomeMethod(x: int): string => "result";
-thisYear(): int => 2024;
+callSomeMethod(x: int): string {
+    return "result";
+}
+
+thisYear(): int {
+    return 2024;
+}
 
 main(): int {
     someVar: int = 25;

@@ -2,7 +2,7 @@
 main(): int {
     q: Query = ?<
         CONSTRUCT {
-            ?s <http://example.org/prop> ?o
+            ?s ex:prop ?o
         }
         WHERE {
             ?s ?p ?o
