@@ -142,6 +142,12 @@ public interface IAstVisitor
     public void LeaveTriGLiteralExpression(TriGLiteralExpression ctx);
     public void EnterInterpolatedExpression(InterpolatedExpression ctx);
     public void LeaveInterpolatedExpression(InterpolatedExpression ctx);
+    public void EnterSparqlLiteralExpression(SparqlLiteralExpression ctx);
+    public void LeaveSparqlLiteralExpression(SparqlLiteralExpression ctx);
+    public void EnterVariableBinding(VariableBinding ctx);
+    public void LeaveVariableBinding(VariableBinding ctx);
+    public void EnterInterpolation(Interpolation ctx);
+    public void LeaveInterpolation(Interpolation ctx);
     public void EnterMemberAccessExp(MemberAccessExp ctx);
     public void LeaveMemberAccessExp(MemberAccessExp ctx);
     public void EnterIndexerExpression(IndexerExpression ctx);
@@ -310,6 +316,12 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveTriGLiteralExpression(TriGLiteralExpression ctx){}
     public virtual void EnterInterpolatedExpression(InterpolatedExpression ctx){}
     public virtual void LeaveInterpolatedExpression(InterpolatedExpression ctx){}
+    public virtual void EnterSparqlLiteralExpression(SparqlLiteralExpression ctx){}
+    public virtual void LeaveSparqlLiteralExpression(SparqlLiteralExpression ctx){}
+    public virtual void EnterVariableBinding(VariableBinding ctx){}
+    public virtual void LeaveVariableBinding(VariableBinding ctx){}
+    public virtual void EnterInterpolation(Interpolation ctx){}
+    public virtual void LeaveInterpolation(Interpolation ctx){}
     public virtual void EnterMemberAccessExp(MemberAccessExp ctx){}
     public virtual void LeaveMemberAccessExp(MemberAccessExp ctx){}
     public virtual void EnterIndexerExpression(IndexerExpression ctx){}
@@ -411,6 +423,9 @@ public interface IAstRecursiveDescentVisitor
     public AtomLiteralExp VisitAtomLiteralExp(AtomLiteralExp ctx);
     public TriGLiteralExpression VisitTriGLiteralExpression(TriGLiteralExpression ctx);
     public InterpolatedExpression VisitInterpolatedExpression(InterpolatedExpression ctx);
+    public SparqlLiteralExpression VisitSparqlLiteralExpression(SparqlLiteralExpression ctx);
+    public VariableBinding VisitVariableBinding(VariableBinding ctx);
+    public Interpolation VisitInterpolation(Interpolation ctx);
     public MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx);
     public IndexerExpression VisitIndexerExpression(IndexerExpression ctx);
     public ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx);
@@ -501,6 +516,9 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              AtomLiteralExp node => VisitAtomLiteralExp(node),
              TriGLiteralExpression node => VisitTriGLiteralExpression(node),
              InterpolatedExpression node => VisitInterpolatedExpression(node),
+             SparqlLiteralExpression node => VisitSparqlLiteralExpression(node),
+             VariableBinding node => VisitVariableBinding(node),
+             Interpolation node => VisitInterpolation(node),
              MemberAccessExp node => VisitMemberAccessExp(node),
              IndexerExpression node => VisitIndexerExpression(node),
              ObjectInitializerExp node => VisitObjectInitializerExp(node),
@@ -948,6 +966,29 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         };
     }
     public virtual InterpolatedExpression VisitInterpolatedExpression(InterpolatedExpression ctx)
+    {
+     return ctx with {
+         Expression = (ast.Expression)Visit((AstThing)ctx.Expression)
+        };
+    }
+    public virtual SparqlLiteralExpression VisitSparqlLiteralExpression(SparqlLiteralExpression ctx)
+    {
+        List<ast.VariableBinding> tmpBindings = [];
+        tmpBindings.AddRange(ctx.Bindings.Select(x => (ast.VariableBinding)Visit(x)));
+        List<ast.Interpolation> tmpInterpolations = [];
+        tmpInterpolations.AddRange(ctx.Interpolations.Select(x => (ast.Interpolation)Visit(x)));
+     return ctx with {
+         Bindings = tmpBindings
+        ,Interpolations = tmpInterpolations
+        };
+    }
+    public virtual VariableBinding VisitVariableBinding(VariableBinding ctx)
+    {
+     return ctx with {
+         ResolvedExpression = (ast.Expression)Visit((AstThing)ctx.ResolvedExpression)
+        };
+    }
+    public virtual Interpolation VisitInterpolation(Interpolation ctx)
     {
      return ctx with {
          Expression = (ast.Expression)Visit((AstThing)ctx.Expression)

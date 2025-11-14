@@ -217,6 +217,20 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     }
 
     /// <summary>
+    /// Visits a SparqlLiteralExpression and infers its type as Query.
+    /// </summary>
+    public override SparqlLiteralExpression VisitSparqlLiteralExpression(SparqlLiteralExpression ctx)
+    {
+        var result = base.VisitSparqlLiteralExpression(ctx);
+
+        // SPARQL literals are always of type Query (Fifth.System.Query)
+        var queryType = new FifthType.TType { Name = TypeName.From("Query") };
+
+        OnTypeInferred(result, queryType);
+        return result with { Type = queryType };
+    }
+
+    /// <summary>
     /// Visits a ListLiteral and infers its type based on element expressions or type annotation.
     /// </summary>
     public override ListLiteral VisitListLiteral(ListLiteral ctx)
