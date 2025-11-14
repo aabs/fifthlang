@@ -178,28 +178,43 @@ public class TriGLiteralLoweringRewriter : DefaultAstRewriter
 
         var exprType = rewrittenExpr.Type;
 
-        if (exprType is FifthType.TDotnetType dotnetType)
-        {
-            var type = dotnetType.TheType;
+        // Check if this is a string type - either directly as TDotnetType(typeof(string))
+        // or compare by name as fallback for type system variations
+        bool isStringType = false;
+        Type? dotnetType = null;
 
+        if (exprType is FifthType.TDotnetType dt)
+        {
+            dotnetType = dt.TheType;
+            isStringType = dotnetType == typeof(string);
+        }
+        else if (exprType != null && exprType.Name.Value == "string")
+        {
+            // Fallback: check by type name
+            isStringType = true;
+        }
+
+        if (isStringType)
+        {
             // String → quoted with proper RDF escaping
-            if (type == typeof(string))
+            var escapeCall = new FuncCallExp
             {
-                // Use Fifth.System.RdfHelpers.EscapeForRdf to properly quote and escape
-                var escapeCall = new FuncCallExp
+                InvocationArguments = new List<Expression> { rewrittenExpr },
+                Type = StringType,
+                Location = location,
+                Annotations = new Dictionary<string, object>
                 {
-                    InvocationArguments = new List<Expression> { rewrittenExpr },
-                    Type = StringType,
-                    Location = location,
-                    Annotations = new Dictionary<string, object>
-                    {
-                        ["ExternalType"] = typeof(Fifth.System.RdfHelpers),
-                        ["ExternalMethodName"] = "EscapeForRdf",
-                        ["TriGInterpolation"] = true
-                    }
-                };
-                return escapeCall;
-            }
+                    ["ExternalType"] = typeof(Fifth.System.RdfHelpers),
+                    ["ExternalMethodName"] = "EscapeForRdf",
+                    ["TriGInterpolation"] = true
+                }
+            };
+            return escapeCall;
+        }
+
+        if (exprType is FifthType.TDotnetType dotnetTypeWrapped)
+        {
+            var type = dotnetTypeWrapped.TheType;
 
             // Numbers (int, float, etc.) → bare numeric (convert to string)
             if (type == typeof(int) || type == typeof(long) || type == typeof(short) ||
@@ -245,19 +260,20 @@ public class TriGLiteralLoweringRewriter : DefaultAstRewriter
             }
         }
 
-        // Default: convert to string via Convert.ToString to force string type participation
-        var defaultToString = new FuncCallExp
+        // Default: For unknown types or types we can't inspect, use RdfHelpers.EscapeForRdf
+        // which will properly quote strings and handle other types appropriately
+        var defaultEscape = new FuncCallExp
         {
             InvocationArguments = new List<Expression> { rewrittenExpr },
             Type = StringType,
             Location = location,
             Annotations = new Dictionary<string, object>
             {
-                ["ExternalType"] = typeof(System.Convert),
-                ["ExternalMethodName"] = "ToString",
+                ["ExternalType"] = typeof(Fifth.System.RdfHelpers),
+                ["ExternalMethodName"] = "EscapeForRdf",
                 ["TriGInterpolation"] = true
             }
         };
-        return defaultToString;
+        return defaultEscape;
     }
 }
