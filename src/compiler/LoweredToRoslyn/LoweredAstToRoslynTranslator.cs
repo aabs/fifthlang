@@ -546,9 +546,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             Float4LiteralExp float32Lit => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(float32Lit.Value)),
             BooleanLiteralExp boolLit => LiteralExpression(
                 boolLit.Value ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression),
-            StringLiteralExp strLit => LiteralExpression(
-                SyntaxKind.StringLiteralExpression,
-                Literal(NormalizeStringLiteral(strLit.Value))),
+            StringLiteralExp strLit => strLit.Annotations.ContainsKey("TriGContent")
+                ? LiteralExpression(
+                    SyntaxKind.StringLiteralExpression,
+                    Literal(strLit.Value))  // Don't normalize TriG content - use verbatim
+                : LiteralExpression(
+                    SyntaxKind.StringLiteralExpression,
+                    Literal(NormalizeStringLiteral(strLit.Value))),
             UriLiteralExp uriLit => ObjectCreationExpression(IdentifierName("Uri"))
                 .WithArgumentList(ArgumentList(SingletonSeparatedList(
                     Argument(LiteralExpression(SyntaxKind.StringLiteralExpression,
