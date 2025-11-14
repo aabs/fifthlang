@@ -121,6 +121,9 @@ GREATER_OR_EQUALS : '>=';
 // TriG literal start - the content will be handled as a separate token
 TRIG_START : '@<' -> pushMode(TRIG_LITERAL_MODE);
 
+// SPARQL literal start - the content will be handled as a separate token
+SPARQL_START : '?<' -> pushMode(SPARQL_LITERAL_MODE);
+
 // Arithmetic operators
 
 OR     : '|';
@@ -296,3 +299,26 @@ TRIG_CLOSE_ANGLE: '>' {trigAngleBracketDepth == 0}? {trigAngleBracketDepth = 0;}
 
 // Other closing angle brackets are nested content - decrement depth
 TRIG_CLOSE_ANGLE_CONTENT: '>' {trigAngleBracketDepth--;};
+
+// ===[ SPARQL LITERAL MODE ]===
+// Handles content between ?< and > for SPARQL literals
+// Supports {{ expression }} interpolations for computed value injection
+mode SPARQL_LITERAL_MODE;
+
+// Interpolation start - double open curly braces {{ 
+// This transitions to DEFAULT_MODE to parse the expression
+SPARQL_INTERP_START: '{{' -> pushMode(DEFAULT_MODE);
+
+// Interpolation end is already defined in DEFAULT_MODE as TRIG_INTERP_END
+// which is defined as '}}' -> popMode; so it will work for SPARQL too
+
+// Any character sequence that doesn't start with > or {
+// SPARQL queries don't use angle brackets for nesting like TriG does
+SPARQL_TEXT: ~[>{}]+;
+
+// Single braces (not part of interpolation)
+SPARQL_SINGLE_OPEN_BRACE: '{';
+SPARQL_SINGLE_CLOSE_BRACE: '}';
+
+// Closing angle bracket - ends the SPARQL literal
+SPARQL_CLOSE_ANGLE: '>' -> popMode;

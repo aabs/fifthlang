@@ -2123,6 +2123,127 @@ public class InterpolatedExpressionBuilder : IBuilder<ast.InterpolatedExpression
     }
 
 }
+public class SparqlLiteralExpressionBuilder : IBuilder<ast.SparqlLiteralExpression>
+{
+    private System.String _SparqlText;
+    private List<ast.VariableBinding> _Bindings = [];
+    private List<ast.Interpolation> _Interpolations = [];
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.SparqlLiteralExpression Build()
+    {
+        return new ast.SparqlLiteralExpression(){
+             SparqlText = this._SparqlText // from SparqlLiteralExpression
+           , Bindings = this._Bindings // from SparqlLiteralExpression
+           , Interpolations = this._Interpolations // from SparqlLiteralExpression
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public SparqlLiteralExpressionBuilder WithSparqlText(System.String value){
+        _SparqlText = value;
+        return this;
+    }
+
+    public SparqlLiteralExpressionBuilder WithBindings(List<ast.VariableBinding> value){
+        _Bindings = value;
+        return this;
+    }
+
+    public SparqlLiteralExpressionBuilder AddingItemToBindings(ast.VariableBinding value){
+        _Bindings  ??= [];
+        _Bindings.Add(value);
+        return this;
+    }
+    public SparqlLiteralExpressionBuilder WithInterpolations(List<ast.Interpolation> value){
+        _Interpolations = value;
+        return this;
+    }
+
+    public SparqlLiteralExpressionBuilder AddingItemToInterpolations(ast.Interpolation value){
+        _Interpolations  ??= [];
+        _Interpolations.Add(value);
+        return this;
+    }
+    public SparqlLiteralExpressionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class VariableBindingBuilder : IBuilder<ast.VariableBinding>
+{
+    private System.String _Name;
+    private System.Int32 _PositionInLiteral;
+    private System.Int32 _Length;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.VariableBinding Build()
+    {
+        return new ast.VariableBinding(){
+             Name = this._Name // from VariableBinding
+           , PositionInLiteral = this._PositionInLiteral // from VariableBinding
+           , Length = this._Length // from VariableBinding
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public VariableBindingBuilder WithName(System.String value){
+        _Name = value;
+        return this;
+    }
+
+    public VariableBindingBuilder WithPositionInLiteral(System.Int32 value){
+        _PositionInLiteral = value;
+        return this;
+    }
+
+    public VariableBindingBuilder WithLength(System.Int32 value){
+        _Length = value;
+        return this;
+    }
+
+    public VariableBindingBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class InterpolationBuilder : IBuilder<ast.Interpolation>
+{
+    private System.Int32 _Position;
+    private System.Int32 _Length;
+    private ast.Expression _Expression;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.Interpolation Build()
+    {
+        return new ast.Interpolation(){
+             Position = this._Position // from Interpolation
+           , Length = this._Length // from Interpolation
+           , Expression = this._Expression // from Interpolation
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public InterpolationBuilder WithPosition(System.Int32 value){
+        _Position = value;
+        return this;
+    }
+
+    public InterpolationBuilder WithLength(System.Int32 value){
+        _Length = value;
+        return this;
+    }
+
+    public InterpolationBuilder WithExpression(ast.Expression value){
+        _Expression = value;
+        return this;
+    }
+
+    public InterpolationBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
 {
     private ast.Expression _LHS;

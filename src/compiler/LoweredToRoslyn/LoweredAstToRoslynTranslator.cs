@@ -546,9 +546,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             Float4LiteralExp float32Lit => LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(float32Lit.Value)),
             BooleanLiteralExp boolLit => LiteralExpression(
                 boolLit.Value ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression),
-            StringLiteralExp strLit => LiteralExpression(
-                SyntaxKind.StringLiteralExpression,
-                Literal(NormalizeStringLiteral(strLit.Value))),
+            StringLiteralExp strLit => strLit.Annotations != null && strLit.Annotations.ContainsKey("TriGContent")
+                ? LiteralExpression(
+                    SyntaxKind.StringLiteralExpression,
+                    Literal(strLit.Value))  // Don't normalize TriG content - use verbatim
+                : LiteralExpression(
+                    SyntaxKind.StringLiteralExpression,
+                    Literal(NormalizeStringLiteral(strLit.Value))),
             UriLiteralExp uriLit => ObjectCreationExpression(IdentifierName("Uri"))
                 .WithArgumentList(ArgumentList(SingletonSeparatedList(
                     Argument(LiteralExpression(SyntaxKind.StringLiteralExpression,
@@ -787,6 +791,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                     // converts their operands, so the result is bool
                     return expr;
             }
+        }
+
+        // Check if the original expression is a unary logical NOT
+        if (originalExpr is UnaryExp unaryExpr && unaryExpr.Operator == Operator.LogicalNot)
+        {
+            // Logical NOT already returns bool, no conversion needed
+            return expr;
         }
 
         // For boolean literals, no conversion needed
@@ -1152,6 +1163,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     private ExpressionSyntax TranslateUnaryExpression(UnaryExp unary)
     {
         var operand = TranslateExpression(unary.Operand);
+
+        // Wrap binary expressions in parentheses to ensure correct precedence
+        // For example: !(1 < 2) should not become !1 < 2
+        if (unary.Operand is BinaryExp)
+        {
+            operand = ParenthesizedExpression(operand);
+        }
 
         var kind = unary.Operator switch
         {

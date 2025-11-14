@@ -502,6 +502,24 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitTrigInterpolation([NotNull] FifthParser.TrigInterpolationContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.sparqlLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSparqlLiteral([NotNull] FifthParser.SparqlLiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.sparqlLiteralContent"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSparqlLiteralContent([NotNull] FifthParser.SparqlLiteralContentContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.sparqlInterpolation"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSparqlInterpolation([NotNull] FifthParser.SparqlInterpolationContext context);
+	/// <summary>
 	/// Visit a parse tree produced by the <c>str_plain</c>
 	/// labeled alternative in <see cref="FifthParser.string_"/>.
 	/// </summary>

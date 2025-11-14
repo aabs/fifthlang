@@ -74,6 +74,9 @@ public interface ITypeChecker
     public FifthType Infer(ScopeAstThing scope, AtomLiteralExp node);
     public FifthType Infer(ScopeAstThing scope, TriGLiteralExpression node);
     public FifthType Infer(ScopeAstThing scope, InterpolatedExpression node);
+    public FifthType Infer(ScopeAstThing scope, SparqlLiteralExpression node);
+    public FifthType Infer(ScopeAstThing scope, VariableBinding node);
+    public FifthType Infer(ScopeAstThing scope, Interpolation node);
     public FifthType Infer(ScopeAstThing scope, MemberAccessExp node);
     public FifthType Infer(ScopeAstThing scope, IndexerExpression node);
     public FifthType Infer(ScopeAstThing scope, ObjectInitializerExp node);
@@ -167,6 +170,9 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             AtomLiteralExp node => Infer(scope, node),
             TriGLiteralExpression node => Infer(scope, node),
             InterpolatedExpression node => Infer(scope, node),
+            SparqlLiteralExpression node => Infer(scope, node),
+            VariableBinding node => Infer(scope, node),
+            Interpolation node => Infer(scope, node),
             MemberAccessExp node => Infer(scope, node),
             IndexerExpression node => Infer(scope, node),
             ObjectInitializerExp node => Infer(scope, node),
@@ -254,6 +260,9 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, AtomLiteralExp node);
     public abstract FifthType Infer(ScopeAstThing scope, TriGLiteralExpression node);
     public abstract FifthType Infer(ScopeAstThing scope, InterpolatedExpression node);
+    public abstract FifthType Infer(ScopeAstThing scope, SparqlLiteralExpression node);
+    public abstract FifthType Infer(ScopeAstThing scope, VariableBinding node);
+    public abstract FifthType Infer(ScopeAstThing scope, Interpolation node);
     public abstract FifthType Infer(ScopeAstThing scope, MemberAccessExp node);
     public abstract FifthType Infer(ScopeAstThing scope, IndexerExpression node);
     public abstract FifthType Infer(ScopeAstThing scope, ObjectInitializerExp node);

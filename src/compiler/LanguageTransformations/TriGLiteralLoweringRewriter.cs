@@ -54,12 +54,16 @@ public class TriGLiteralLoweringRewriter : DefaultAstRewriter
         else
         {
             // No interpolations - simple string literal
+            // Mark as TriG content so Roslyn translator uses verbatim strings
             trigStringExpression = new StringLiteralExp
             {
                 Value = ctx.Content ?? string.Empty,
                 Type = StringType,
                 Location = ctx.Location,
-                Annotations = new Dictionary<string, object>()
+                Annotations = new Dictionary<string, object>
+                {
+                    ["TriGContent"] = true
+                }
             };
         }
 
@@ -90,12 +94,12 @@ public class TriGLiteralLoweringRewriter : DefaultAstRewriter
         // Split the content by placeholders and build a concatenation expression
         var parts = new List<Expression>();
         var currentPos = 0;
-        
+
         for (int i = 0; i < interpolations.Count; i++)
         {
             var placeholder = $"{{{{__INTERP_{i}__}}}}";
             var placeholderIndex = content.IndexOf(placeholder, currentPos);
-            
+
             if (placeholderIndex >= 0)
             {
                 // Add the string part before the placeholder
@@ -106,19 +110,22 @@ public class TriGLiteralLoweringRewriter : DefaultAstRewriter
                     {
                         Value = beforeText,
                         Type = StringType,
-                        Annotations = new Dictionary<string, object>()
+                        Annotations = new Dictionary<string, object>
+                        {
+                            ["TriGContent"] = true
+                        }
                     });
                 }
-                
+
                 // Add the serialized interpolation
                 var interp = interpolations[i];
                 var serializedExpr = SerializeExpressionToRDF(interp.Expression, prologue, location);
                 parts.Add(serializedExpr);
-                
+
                 currentPos = placeholderIndex + placeholder.Length;
             }
         }
-        
+
         // Add any remaining text after the last interpolation
         if (currentPos < content.Length)
         {
@@ -127,16 +134,19 @@ public class TriGLiteralLoweringRewriter : DefaultAstRewriter
             {
                 Value = remainingText,
                 Type = StringType,
-                Annotations = new Dictionary<string, object>()
+                Annotations = new Dictionary<string, object>
+                {
+                    ["TriGContent"] = true
+                }
             });
         }
-        
+
         // If only one part, return it directly
         if (parts.Count == 1)
         {
             return parts[0];
         }
-        
+
         // Build a chain of binary + operations for string concatenation
         Expression result = parts[0];
         for (int i = 1; i < parts.Count; i++)
@@ -153,7 +163,7 @@ public class TriGLiteralLoweringRewriter : DefaultAstRewriter
                 }
             };
         }
-        
+
         return result;
     }
 
@@ -165,42 +175,47 @@ public class TriGLiteralLoweringRewriter : DefaultAstRewriter
     {
         // Rewrite the expression first to handle any nested transformations
         var rewrittenExpr = (Expression)Rewrite(expr).Node;
-        
+
         var exprType = rewrittenExpr.Type;
-        
-        if (exprType is FifthType.TDotnetType dotnetType)
+
+        // Check if this is a string type - either directly as TDotnetType(typeof(string))
+        // or compare by name as fallback for type system variations
+        bool isStringType = false;
+        Type? dotnetType = null;
+
+        if (exprType is FifthType.TDotnetType dt)
         {
-            var type = dotnetType.TheType;
-            
-            // String → quoted with escaping
-            if (type == typeof(string))
+            dotnetType = dt.TheType;
+            isStringType = dotnetType == typeof(string);
+        }
+        else if (exprType != null && exprType.Name.Value == "string")
+        {
+            // Fallback: check by type name
+            isStringType = true;
+        }
+
+        if (isStringType)
+        {
+            // String → quoted with proper RDF escaping
+            var escapeCall = new FuncCallExp
             {
-                // Build: "\"" + expr + "\""
-                // For simplicity, we'll just wrap in quotes (escaping handled at runtime)
-                var openQuote = new StringLiteralExp { Value = "\"", Type = StringType, Annotations = [] };
-                var closeQuote = new StringLiteralExp { Value = "\"", Type = StringType, Annotations = [] };
-                
-                var concat1 = new BinaryExp
+                InvocationArguments = new List<Expression> { rewrittenExpr },
+                Type = StringType,
+                Location = location,
+                Annotations = new Dictionary<string, object>
                 {
-                    LHS = openQuote,
-                    RHS = rewrittenExpr,
-                    Operator = Operator.ArithmeticAdd,
-                    Type = StringType,
-                    Annotations = []
-                };
-                
-                var concat2 = new BinaryExp
-                {
-                    LHS = concat1,
-                    RHS = closeQuote,
-                    Operator = Operator.ArithmeticAdd,
-                    Type = StringType,
-                    Annotations = []
-                };
-                
-                return concat2;
-            }
-            
+                    ["ExternalType"] = typeof(Fifth.System.RdfHelpers),
+                    ["ExternalMethodName"] = "EscapeForRdf",
+                    ["TriGInterpolation"] = true
+                }
+            };
+            return escapeCall;
+        }
+
+        if (exprType is FifthType.TDotnetType dotnetTypeWrapped)
+        {
+            var type = dotnetTypeWrapped.TheType;
+
             // Numbers (int, float, etc.) → bare numeric (convert to string)
             if (type == typeof(int) || type == typeof(long) || type == typeof(short) ||
                 type == typeof(byte) || type == typeof(uint) || type == typeof(ulong) ||
@@ -223,7 +238,7 @@ public class TriGLiteralLoweringRewriter : DefaultAstRewriter
                 };
                 return toStringCall;
             }
-            
+
             // Boolean → "true" or "false" (lowercase for RDF)
             if (type == typeof(bool))
             {
@@ -244,20 +259,21 @@ public class TriGLiteralLoweringRewriter : DefaultAstRewriter
                 return toStringCall;
             }
         }
-        
-        // Default: convert to string via Convert.ToString to force string type participation
-        var defaultToString = new FuncCallExp
+
+        // Default: For unknown types or types we can't inspect, use RdfHelpers.EscapeForRdf
+        // which will properly quote strings and handle other types appropriately
+        var defaultEscape = new FuncCallExp
         {
             InvocationArguments = new List<Expression> { rewrittenExpr },
             Type = StringType,
             Location = location,
             Annotations = new Dictionary<string, object>
             {
-                ["ExternalType"] = typeof(System.Convert),
-                ["ExternalMethodName"] = "ToString",
+                ["ExternalType"] = typeof(Fifth.System.RdfHelpers),
+                ["ExternalMethodName"] = "EscapeForRdf",
                 ["TriGInterpolation"] = true
             }
         };
-        return defaultToString;
+        return defaultEscape;
     }
 }
