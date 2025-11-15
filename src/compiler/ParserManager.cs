@@ -35,11 +35,13 @@ public static class FifthParserManager
         SymbolTableFinal = 18,
         VarRefResolver = 19,
         TypeAnnotation = 20,
+        QueryApplicationTypeCheck = 21,
+        QueryApplicationLowering = 22,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
         // All must be >= TypeAnnotation to ensure that block executes and the lowering runs.
-        All = TypeAnnotation
+        All = QueryApplicationLowering  // Update to include query application
     }
 
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, AnalysisPhase upTo = AnalysisPhase.All)
@@ -274,6 +276,27 @@ public static class FifthParserManager
                 // Early exit - return null to indicate transform failure
                 return null;
             }
+        }
+
+        // Type check query application expressions (query <- store) AFTER type annotation
+        if (upTo >= AnalysisPhase.QueryApplicationTypeCheck)
+        {
+            var rewriter = new QueryApplicationTypeCheckRewriter(diagnostics);
+            var result = rewriter.Rewrite(ast);
+            ast = result.Node;
+            
+            if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
+            {
+                return null;
+            }
+        }
+
+        // Lower query application expressions to QueryApplicationExecutor.Execute() calls
+        if (upTo >= AnalysisPhase.QueryApplicationLowering)
+        {
+            var rewriter = new QueryApplicationLoweringRewriter();
+            var result = rewriter.Rewrite(ast);
+            ast = result.Node;
         }
 
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);
