@@ -7,9 +7,9 @@
 
 ## Summary
 
-Introduce SPARQL query application to stores using the `<-` operator, returning results in a discriminated union `Result` type that handles tabular (SELECT), graph (CONSTRUCT/DESCRIBE), and boolean (ASK) outcomes. This enables developers to query RDF knowledge graphs with minimal syntactic noise while maintaining type safety. The implementation requires grammar extension, new runtime types in Fifth.System, AST transformation passes for type checking and lowering, and comprehensive error handling with structured diagnostics.
+Introduce SPARQL query application to stores using the `<-` operator, returning results in a discriminated union `Result` type that handles tabular (SELECT), graph (CONSTRUCT/DESCRIBE), and boolean (ASK) outcomes. `Result` acts as a thin, typed facade over dotNetRDF’s unified results (SELECT/ASK via `SparqlResultSet` + `SparqlResultsType`, graphs adapted to `Store`). The implementation requires grammar extension, new runtime types in Fifth.System, AST transformation passes for type checking and lowering, and comprehensive error handling with structured diagnostics.
 
-Technical approach: Add `<-` token to lexer grammar, create Result discriminated union wrapping dotNetRDF's SparqlResultSet, implement query application as a compiler-recognized operation that lowers to Fifth.System API calls, provide streaming/iterator access for large SELECT results, add runtime validator for SPARQL injection detection, support optional cancellation tokens, and ensure concurrent read query isolation.
+Technical approach: Add `<-` token to lexer grammar, create Result discriminated union that relies on dotNetRDF (`SparqlResultSet` + `SparqlResultsType` for SELECT/ASK; dotNetRDF graph outputs for CONSTRUCT/DESCRIBE adapted to `Store`), implement query application as a compiler-recognized operation that lowers to Fifth.System API calls, provide streaming/iterator access for large SELECT results, add runtime validator for SPARQL injection detection, support optional cancellation tokens, and ensure concurrent read query isolation.
 
 ## Technical Context
 
@@ -92,7 +92,8 @@ Technical approach: Add `<-` token to lexer grammar, create Result discriminated
 **Status**: PASS  
 **Analysis**: 
 - Grammar changes isolated to `FifthLexer.g4` (add `<-` token) and `FifthParser.g4` (add query application expression rule)
-- AstBuilderVisitor updated to handle new syntax
+- SPARQL literal content `?<...>` is parsed by a separate delegated SPARQL parser at compile time; the core Fifth parser only delimits the literal bounds and delegates
+- AstBuilderVisitor updated to call the delegated SPARQL parser and map errors to compiler diagnostics with precise source spans
 - Test samples added to `src/parser/grammar/test_samples/*.5th`
 - All `.5th` examples will be validated via CI `validate-examples` step per constitution
 
@@ -148,7 +149,9 @@ src/
 │   │       ├── query_application_construct.5th
 │   │       ├── query_application_ask.5th
 │   │       └── query_application_errors.5th
-│   └── AstBuilderVisitor.cs      # [MODIFIED] Handle VisitQueryApplicationExpr
+│   ├── Sparql/                   # [NEW] Delegated SPARQL literal parsing
+│   │   └── SparqlLiteralParser.cs # [NEW] Delegated parser adapter for `?<...>` with error mapping
+│   └── AstBuilderVisitor.cs      # [MODIFIED] Handle VisitQueryApplicationExpr and invoke delegated SPARQL parser for literals
 ├── compiler/
 │   ├── ParserManager.cs          # [MODIFIED] Register new transformation passes
 │   └── LanguageTransformations/
@@ -158,12 +161,13 @@ src/
 └── fifthlang.system/
     ├── ResultType.cs             # [NEW] Discriminated union: TabularResult|GraphResult|BooleanResult
     ├── QueryError.cs             # [NEW] Structured diagnostics with Kind enumeration
-    ├── QueryApplicationExecutor.cs  # [NEW] Wraps dotNetRDF execution with streaming
+    ├── QueryApplicationExecutor.cs  # [NEW] Wraps dotNetRDF execution with streaming; maps `SparqlResultsType`/graph outputs to `Result`
     └── SparqlValidationRules.cs  # [NEW] FR-012 unsafe pattern detection
 
 test/
 ├── syntax-parser-tests/
-│   └── QueryApplicationGrammarTests.cs  # [NEW] Grammar correctness tests
+│   ├── QueryApplicationGrammarTests.cs  # [NEW] Grammar correctness tests
+│   └── SparqlLiteralParserTests.cs      # [NEW] Valid/invalid `?<...>` compile-time diagnostics
 ├── ast-tests/
 │   ├── QueryApplicationTypeCheckTests.cs # [NEW] Type validation tests
 │   ├── QueryApplicationLoweringTests.cs  # [NEW] AST transformation tests

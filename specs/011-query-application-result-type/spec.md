@@ -84,7 +84,7 @@ A developer wants to access result data with type safety, understanding at devel
 
 ### Functional Requirements
 
-- **FR-001**: System MUST introduce a new `Result` type in the Fifth.System namespace that wraps the dotNetRDF `SparqlResultSet` type
+- **FR-001**: System MUST introduce a new `Result` type in the Fifth.System namespace that exposes a discriminated union with three cases: `TabularResult` (SELECT), `GraphResult` (CONSTRUCT/DESCRIBE), and `BooleanResult` (ASK). The `Result` MUST rely on dotNetRDF’s result model for discrimination and data access (SELECT/ASK via `SparqlResultSet` + `SparqlResultsType`; CONSTRUCT/DESCRIBE via dotNetRDF graph outputs adapted to Fifth.System `Store`).
 - **FR-002**: System MUST support the `<-` operator for applying queries to stores with syntax `result: Result = query <- store`
 - **FR-003**: System MUST support applying queries to any store type that is assignable to or implements a SPARQL-queryable interface
 - **FR-004**: System MUST enable Result to act as a discriminated union that can contain either tabular data (SELECT results) or graph data (CONSTRUCT/DESCRIBE results)
@@ -101,10 +101,11 @@ A developer wants to access result data with type safety, understanding at devel
 - **FR-015**: Query application MUST support cooperative cancellation via a language-level cancellation token (if supplied) propagating to dotNetRDF execution; absence of token keeps current synchronous semantics.
 - **FR-016**: Concurrent query applications to the same Store MUST be isolated (no shared mutable state) and MUST serialize destructive operations (if later allowed) while permitting parallel read queries.
 - **FR-017**: System MUST define a `QueryError.Kind` enumeration with the following values for structured diagnostics: SyntaxError (malformed SPARQL), ValidationError (semantic/constraint violations), ExecutionError (runtime query processing failure), Timeout (exceeded execution limit), Cancellation (user-requested stop), SecurityWarning (unsafe query composition detected), ResourceLimit (memory/result size exceeded), ConcurrencyConflict (conflicting concurrent operation).
+- **FR-018**: SPARQL literal syntax `?<...>` MUST be parsed at compile time by a dedicated, delegated SPARQL parser that is separate from the core Fifth grammar. The Fifth parser MUST only delimit the literal boundaries and delegate the inner content to the SPARQL parser. Any SPARQL syntax errors MUST surface as compile-time diagnostics mapped to `QueryError.Kind = SyntaxError` with precise source spans. No ad-hoc manual tokenization inside the Fifth parser is permitted for SPARQL content.
 
 ### Key Entities
 
-- **Result**: Represents the outcome of applying a SPARQL query to a store. Acts as a discriminated union containing either: (1) tabular data (SELECT) with SPARQL variable + row access, (2) graph data (CONSTRUCT/DESCRIBE) as a Store, or (3) a boolean value (ASK) via a dedicated boolean case (e.g. `BooleanResult { Value: bool }`). Wraps dotNetRDF's `SparqlResultSet` internally; ASK results map directly to the boolean case (no synthetic single-row table).
+- **Result**: Represents the outcome of applying a SPARQL query to a store. Acts as a discriminated union containing either: (1) tabular data (SELECT) with SPARQL variable + row access, (2) graph data (CONSTRUCT/DESCRIBE) as a Store, or (3) a boolean value (ASK) via a dedicated boolean case (e.g. `BooleanResult { Value: bool }`). Internally leverages dotNetRDF’s unified results: SELECT/ASK use `SparqlResultSet` and its `ResultsType` for discrimination; CONSTRUCT/DESCRIBE consume dotNetRDF graph outputs adapted to Fifth.System `Store` without duplicating graph semantics.
 - **Query**: Represents a SPARQL query (already exists in the system, created using `?<...>` syntax). Can be applied to stores using the `<-` operator.
 - **Store**: Represents an RDF dataset (already exists in the system). Must be SPARQL-queryable to be used as the right-hand side of `<-` operator.
 
@@ -140,6 +141,7 @@ A developer wants to access result data with type safety, understanding at devel
 - dotNetRDF library (`VDS.RDF.*` packages) for SPARQL query execution
 - Fifth.System library providing Query and Store types
 - ANTLR grammar modifications to support the `<-` operator
+- Delegated SPARQL parser (reuse/adapt the existing SPARQL grammar under `src/parser/grammar/` or equivalent) invoked only for `?<...>` literals
 - Type system support for discriminated unions or variant types
 
 ## Technical Constraints
@@ -149,6 +151,7 @@ A developer wants to access result data with type safety, understanding at devel
 - Must integrate with existing error handling and diagnostic systems
 - Result type must be efficient for both small and large result sets
 - Implementation must not introduce breaking changes to existing query or store functionality
+- SPARQL literal parsing MUST be handled by a separate delegated parser; the core Fifth parser MUST NOT inline or partially reimplement SPARQL tokenization/parsing beyond locating the `?<...>` literal bounds
 
 ## Clarifications
 
@@ -175,6 +178,42 @@ Non-Goals:
 - Do not require iteration APIs for boolean extraction
 
 Open Follow-ups: None pending for ASK after this clarification.
+
+### SPARQL Literal Parsing (Delegated Parser)
+Decision: Parse the content of `?<...>` using a separate delegated SPARQL parser at compile time. The core Fifth grammar only delimits the literal and forwards its content for SPARQL parsing.
+
+Rationale:
+- Ensures authoritative SPARQL compliance and isolates grammar evolution from the Fifth grammar
+- Enables precise compile-time diagnostics with line/column spans for malformed SPARQL (fulfills US3.1 and FR-018)
+- Avoids fragile hand-rolled tokenization inside the Fifth parser
+
+Impacts:
+- Added **FR-018** and updated Dependencies/Constraints to mandate delegation
+- Parser integration must wire an error listener that maps SPARQL parser errors to compiler diagnostics with `QueryError.Kind = SyntaxError`
+- Syntax tests must include valid/invalid `?<...>` samples; invalid samples fail at compile time
+
+Non-Goals:
+- Do not inline SPARQL grammar rules into `FifthParser.g4` beyond literal delimitation
+- Do not defer SPARQL literal syntax errors to runtime; these are compile-time diagnostics
+
+Open Follow-ups:
+- Select/adapt the existing SPARQL grammar implementation already present under `src/parser/grammar/` and define the adapter surface (`SparqlLiteralParser`)
+
+### dotNetRDF Results Dependency (I2)
+Decision: Treat dotNetRDF as the authoritative source for SPARQL result discrimination and shape. `Result` depends on `SparqlResultSet`/`SparqlResultsType` for SELECT/ASK and adapts graph outputs (CONSTRUCT/DESCRIBE) to `Store`.
+
+Rationale:
+- Avoids re-implementing result semantics already provided by dotNetRDF
+- Ensures compatibility and correctness across all query forms
+- Simplifies our `Result` to a thin, typed facade over dotNetRDF
+
+Impacts:
+- Use `SparqlResultsType` for SELECT/ASK discrimination; no synthetic tables for ASK
+- For graph queries, convert dotNetRDF graph outputs into `Store` while preserving triples
+- Tests must assert correct mapping for all result forms
+
+Non-Goals:
+- Do not create a parallel in-memory representation duplicating dotNetRDF result structures
 
 ### Query Construction Security Posture
 Decision: Option D — permit raw string concatenation/interpolation for SPARQL query construction with a runtime safety validation layer (diagnostic + hard failure), rather than enforcing purely structured binding at compile time.
