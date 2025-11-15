@@ -1,12 +1,9 @@
-using VDS.RDF.Query;
-using Dunet;
-
 namespace Fifth.System;
 
 [Union]
-public partial record Result
+public abstract partial record Result
 {
-    partial record TabularResult(SparqlResultSet ResultSet);
-    partial record GraphResult(Store GraphStore);
-    partial record BooleanResult(bool Value);
+    public partial record TabularResult(SparqlResultSet ResultSet) : Result;
+    public partial record GraphResult(Store GraphStore) : Result;
+    public partial record BooleanResult(bool Value) : Result;
 }

@@ -25,32 +25,38 @@ public static class QueryApplicationExecutor
             // Get the underlying dotNetRDF objects
             var sparqlQuery = query.UnderlyingQuery;
             var storageProvider = store.ToVds();
-            
+
             // For in-memory stores, we need to get the TripleStore
             // For now, we'll use a simplified approach with a query processor
             IInMemoryQueryableStore queryableStore = storageProvider as IInMemoryQueryableStore
                 ?? throw new NotSupportedException("Store must support in-memory querying for this MVP");
-            
+
             var processor = new LeviathanQueryProcessor(queryableStore);
             var results = processor.ProcessQuery(sparqlQuery);
-            
+
             // Check for cancellation
             cancellationToken?.ThrowIfCancellationRequested();
-            
+
             // Determine result type based on query form
-            return results switch
+            if (results is SparqlResultSet rs)
             {
-                SparqlResultSet resultSet when resultSet.ResultsType == SparqlResultsType.Boolean =>
-                    new Result.BooleanResult(resultSet.Result),
-                    
-                SparqlResultSet resultSet when resultSet.ResultsType == SparqlResultsType.VariableBindings =>
-                    new Result.TabularResult(resultSet),
-                    
-                IGraph graph =>
-                    new Result.GraphResult(StoreFromGraph(graph)),
-                    
-                _ => throw new InvalidOperationException($"Unexpected query result type: {results?.GetType().Name ?? "null"}")
-            };
+                if (rs.ResultsType == SparqlResultsType.Boolean)
+                {
+                    return new Result.BooleanResult(rs.Result);
+                }
+                else // VariableBindings
+                {
+                    return new Result.TabularResult(rs);
+                }
+            }
+            else if (results is IGraph graph)
+            {
+                return new Result.GraphResult(StoreFromGraph(graph));
+            }
+            else
+            {
+                throw new InvalidOperationException($"Unexpected query result type: {results?.GetType().Name ?? "null"}");
+            }
         }
         catch (RdfParseException ex)
         {
@@ -81,7 +87,7 @@ public static class QueryApplicationExecutor
             throw new QueryExecutionException(QueryErrorFactory.FromGenericException(ex));
         }
     }
-    
+
     /// <summary>
     /// Helper to create a Store from an IGraph result (for CONSTRUCT/DESCRIBE queries).
     /// </summary>
@@ -110,17 +116,17 @@ public static class QueryErrorFactory
             Suggestion = "Check SPARQL syntax near the indicated position"
         };
     }
-    
+
     public static QueryError FromQueryException(RdfQueryException ex)
     {
-        var kind = ex.Message.Contains("variable", StringComparison.OrdinalIgnoreCase) 
-            ? ErrorKind.ValidationError 
+        var kind = ex.Message.Contains("variable", StringComparison.OrdinalIgnoreCase)
+            ? ErrorKind.ValidationError
             : ErrorKind.ExecutionError;
-            
+
         var suggestion = kind == ErrorKind.ValidationError
             ? "Ensure all variables in SELECT clause are bound in WHERE clause"
             : "Review query logic and verify function arguments match expected types";
-            
+
         return new QueryError
         {
             Kind = kind,
@@ -129,7 +135,7 @@ public static class QueryErrorFactory
             Suggestion = suggestion
         };
     }
-    
+
     public static QueryError FromTimeoutException(RdfQueryTimeoutException ex)
     {
         return new QueryError
@@ -140,7 +146,7 @@ public static class QueryErrorFactory
             Suggestion = "Simplify graph pattern, add more specific constraints, or increase timeout limit"
         };
     }
-    
+
     public static QueryError FromCancellation(OperationCanceledException ex)
     {
         return new QueryError
@@ -151,7 +157,7 @@ public static class QueryErrorFactory
             Suggestion = null
         };
     }
-    
+
     public static QueryError FromMemoryException(OutOfMemoryException ex)
     {
         return new QueryError
@@ -162,7 +168,7 @@ public static class QueryErrorFactory
             Suggestion = "Add LIMIT clause or enable result streaming"
         };
     }
-    
+
     public static QueryError FromGenericException(Exception ex)
     {
         return new QueryError
@@ -173,7 +179,7 @@ public static class QueryErrorFactory
             Suggestion = "Review query logic and data constraints"
         };
     }
-    
+
     public static QueryError SecurityWarning(string message, string suggestion)
     {
         return new QueryError
