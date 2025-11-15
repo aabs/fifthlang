@@ -33,7 +33,7 @@ public sealed class Store
     {
         if (string.IsNullOrWhiteSpace(endpointUri))
             throw new ArgumentException("Endpoint URI cannot be null or empty", nameof(endpointUri));
-        
+
         return new Store(new SparqlHttpProtocolConnector(new Uri(endpointUri)));
     }
 
@@ -44,7 +44,7 @@ public sealed class Store
     {
         if (endpointUri == null)
             throw new ArgumentNullException(nameof(endpointUri));
-        
+
         return new Store(new SparqlHttpProtocolConnector(endpointUri));
     }
 
@@ -81,7 +81,7 @@ public sealed class Store
     public Graph LoadGraph(Uri graphUri)
     {
         if (graphUri == null) throw new ArgumentNullException(nameof(graphUri));
-        
+
         var graph = new VDS.RDF.Graph();
         _inner.LoadGraph(graph, graphUri);
         return Graph.FromVds(graph);
@@ -103,7 +103,7 @@ public sealed class Store
     {
         if (string.IsNullOrWhiteSpace(sparql))
             throw new ArgumentException("SPARQL query cannot be null or empty", nameof(sparql));
-        
+
         // This is a simplified version. A full implementation would need to handle
         // query results properly, but for now we return the raw result.
         // The actual implementation would depend on how the Fifth compiler handles query results.
@@ -115,92 +115,6 @@ public sealed class Store
     /// </summary>
     public IStorageProvider ToVds() => _inner;
 
-    /// <summary>
-    /// Gets the triple count in the store (for GraphResult).
-    /// </summary>
-    public int TripleCount
-    {
-        get
-        {
-            if (_inner is InMemoryManager inMemory)
-            {
-                var tripleStore = inMemory as dynamic;
-                // Try to get triple store from InMemoryManager
-                if (tripleStore != null)
-                {
-                    try
-                    {
-                        var store = tripleStore._store as ITripleStore;
-                        return store?.Triples.Count() ?? 0;
-                    }
-                    catch
-                    {
-                        return 0;
-                    }
-                }
-            }
-            return 0;
-        }
-    }
-    
-    /// <summary>
-    /// Exports the store as TriG format (for GraphResult).
-    /// </summary>
-    public string ToTrig()
-    {
-        if (_inner is InMemoryManager inMemory)
-        {
-            try
-            {
-                var tripleStore = inMemory as dynamic;
-                var store = tripleStore?._store as ITripleStore;
-                if (store != null)
-                {
-                    var writer = new VDS.RDF.Writing.TriGWriter();
-                    using var stringWriter = new global::System.IO.StringWriter();
-                    writer.Save(store, stringWriter);
-                    return stringWriter.ToString();
-                }
-            }
-            catch
-            {
-                // Fallback to empty
-            }
-        }
-        return string.Empty;
-    }
-    
-    /// <summary>
-    /// Enumerates triples from the store (for GraphResult).
-    /// </summary>
-    public IEnumerable<Triple> Triples(string? graphName = null)
-    {
-        if (_inner is InMemoryManager inMemory)
-        {
-            try
-            {
-                var tripleStore = inMemory as dynamic;
-                var store = tripleStore?._store as ITripleStore;
-                if (store != null)
-                {
-                    foreach (var graph in store.Graphs)
-                    {
-                        if (graphName == null || graph.Name?.ToString() == graphName)
-                        {
-                            foreach (var vdsTriple in graph.Triples)
-                            {
-                                yield return Triple.FromVds(vdsTriple);
-                            }
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                // Ensure proper cleanup
-            }
-        }
-    }
 
     /// <summary>
     /// Creates a wrapper from a dotNetRDF storage provider for interop.
@@ -220,7 +134,7 @@ public sealed class Store
 
         // Create an in-memory triple store (dataset)
         var tripleStore = new VDS.RDF.TripleStore();
-        
+
         // Parse the TriG content
         var parser = new VDS.RDF.Parsing.TriGParser();
         using (var reader = new StringReader(trigContent))
@@ -254,7 +168,7 @@ public sealed class Store
     public Store RemoveGraphInPlace(Graph graph)
     {
         if (graph == null) throw new ArgumentNullException(nameof(graph));
-        
+
         var uri = graph.BaseUri;
         if (uri != null)
         {
