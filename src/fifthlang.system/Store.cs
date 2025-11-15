@@ -12,10 +12,12 @@ namespace Fifth.System;
 public sealed class Store
 {
     private readonly IStorageProvider _inner;
+    private readonly TripleStore? _tripleStore; // For in-memory stores, track the TripleStore for querying
 
-    private Store(IStorageProvider storage)
+    private Store(IStorageProvider storage, TripleStore? tripleStore = null)
     {
         _inner = storage ?? throw new ArgumentNullException(nameof(storage));
+        _tripleStore = tripleStore;
     }
 
     /// <summary>
@@ -23,7 +25,8 @@ public sealed class Store
     /// </summary>
     public static Store CreateInMemory()
     {
-        return new Store(new InMemoryManager());
+        var tripleStore = new TripleStore();
+        return new Store(new InMemoryManager(tripleStore), tripleStore);
     }
 
     /// <summary>
@@ -115,6 +118,11 @@ public sealed class Store
     /// </summary>
     public IStorageProvider ToVds() => _inner;
 
+    /// <summary>
+    /// Gets the underlying TripleStore for in-memory querying.
+    /// Returns null for non-in-memory stores (e.g., SPARQL endpoints).
+    /// </summary>
+    public TripleStore? GetTripleStore() => _tripleStore;
 
     /// <summary>
     /// Creates a wrapper from a dotNetRDF storage provider for interop.
@@ -144,7 +152,7 @@ public sealed class Store
 
         // Wrap in an in-memory manager that uses this triple store
         var storage = new InMemoryManager(tripleStore);
-        return new Store(storage);
+        return new Store(storage, tripleStore);
     }
 
     // ============================================================================

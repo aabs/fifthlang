@@ -24,14 +24,15 @@ public static class QueryApplicationExecutor
         {
             // Get the underlying dotNetRDF objects
             var sparqlQuery = query.UnderlyingQuery;
-            var storageProvider = store.ToVds();
+            
+            // Get the TripleStore for in-memory querying
+            var tripleStore = store.GetTripleStore();
+            if (tripleStore == null)
+            {
+                throw new NotSupportedException("Query execution is currently only supported for in-memory stores. SPARQL endpoint support coming soon.");
+            }
 
-            // For in-memory stores, we need to get the TripleStore
-            // For now, we'll use a simplified approach with a query processor
-            IInMemoryQueryableStore queryableStore = storageProvider as IInMemoryQueryableStore
-                ?? throw new NotSupportedException("Store must support in-memory querying for this MVP");
-
-            var processor = new LeviathanQueryProcessor(queryableStore);
+            var processor = new LeviathanQueryProcessor(tripleStore);
             var results = processor.ProcessQuery(sparqlQuery);
 
             // Check for cancellation
