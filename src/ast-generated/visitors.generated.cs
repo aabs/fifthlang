@@ -148,6 +148,8 @@ public interface IAstVisitor
     public void LeaveVariableBinding(VariableBinding ctx);
     public void EnterInterpolation(Interpolation ctx);
     public void LeaveInterpolation(Interpolation ctx);
+    public void EnterQueryApplicationExp(QueryApplicationExp ctx);
+    public void LeaveQueryApplicationExp(QueryApplicationExp ctx);
     public void EnterMemberAccessExp(MemberAccessExp ctx);
     public void LeaveMemberAccessExp(MemberAccessExp ctx);
     public void EnterIndexerExpression(IndexerExpression ctx);
@@ -322,6 +324,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveVariableBinding(VariableBinding ctx){}
     public virtual void EnterInterpolation(Interpolation ctx){}
     public virtual void LeaveInterpolation(Interpolation ctx){}
+    public virtual void EnterQueryApplicationExp(QueryApplicationExp ctx){}
+    public virtual void LeaveQueryApplicationExp(QueryApplicationExp ctx){}
     public virtual void EnterMemberAccessExp(MemberAccessExp ctx){}
     public virtual void LeaveMemberAccessExp(MemberAccessExp ctx){}
     public virtual void EnterIndexerExpression(IndexerExpression ctx){}
@@ -426,6 +430,7 @@ public interface IAstRecursiveDescentVisitor
     public SparqlLiteralExpression VisitSparqlLiteralExpression(SparqlLiteralExpression ctx);
     public VariableBinding VisitVariableBinding(VariableBinding ctx);
     public Interpolation VisitInterpolation(Interpolation ctx);
+    public QueryApplicationExp VisitQueryApplicationExp(QueryApplicationExp ctx);
     public MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx);
     public IndexerExpression VisitIndexerExpression(IndexerExpression ctx);
     public ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx);
@@ -519,6 +524,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              SparqlLiteralExpression node => VisitSparqlLiteralExpression(node),
              VariableBinding node => VisitVariableBinding(node),
              Interpolation node => VisitInterpolation(node),
+             QueryApplicationExp node => VisitQueryApplicationExp(node),
              MemberAccessExp node => VisitMemberAccessExp(node),
              IndexerExpression node => VisitIndexerExpression(node),
              ObjectInitializerExp node => VisitObjectInitializerExp(node),
@@ -992,6 +998,13 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     {
      return ctx with {
          Expression = (ast.Expression)Visit((AstThing)ctx.Expression)
+        };
+    }
+    public virtual QueryApplicationExp VisitQueryApplicationExp(QueryApplicationExp ctx)
+    {
+     return ctx with {
+         Query = (ast.Expression)Visit((AstThing)ctx.Query)
+        ,Store = (ast.Expression)Visit((AstThing)ctx.Store)
         };
     }
     public virtual MemberAccessExp VisitMemberAccessExp(MemberAccessExp ctx)

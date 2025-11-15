@@ -22,6 +22,12 @@
           "dotNetRdf.Writing.HtmlSchema": "3.4.0"
         }
       },
+      "Dunet": {
+        "type": "Direct",
+        "requested": "[1.11.2, )",
+        "resolved": "1.11.2",
+        "contentHash": "T6dfqSJ9+gSqnopeuBv6gtnpHlC0lru6XK3NtQQ9fTeDQQa1ynuI8AmDfEcpQu/rWFYJTbu8ZYR5ED8IScVK7A=="
+      },
       "AngleSharp": {
         "type": "Transitive",
         "resolved": "1.3.0",

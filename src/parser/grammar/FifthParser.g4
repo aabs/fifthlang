@@ -174,6 +174,7 @@ expression:
 	) rhs = expression										# exp_rel
 	| lhs = expression LOGICAL_AND rhs = expression			# exp_and
 	| lhs = expression LOGICAL_OR rhs = expression			# exp_or
+	| query = expression GEN store = expression				# exp_query_application
 	| operand											# exp_operand;
 
 function_call_expression:

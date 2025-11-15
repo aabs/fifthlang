@@ -421,6 +421,25 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         return result;
     }
 
+    public override IAstThing VisitExp_query_application(FifthParser.Exp_query_applicationContext context)
+    {
+        var queryExpr = (Expression)Visit(context.query);
+        var storeExpr = (Expression)Visit(context.store);
+        
+        var result = new QueryApplicationExp
+        {
+            Query = queryExpr,
+            Store = storeExpr,
+            InferredType = null, // Will be set by type checker
+            Location = GetLocationDetails(context),
+            Type = Void,
+            Annotations = [],
+            Parent = null
+        };
+        
+        return result;
+    }
+
     public override IAstThing VisitExp_rel(FifthParser.Exp_relContext context)
     {
         var b = new BinaryExpBuilder()

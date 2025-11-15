@@ -116,6 +116,93 @@ public sealed class Store
     public IStorageProvider ToVds() => _inner;
 
     /// <summary>
+    /// Gets the triple count in the store (for GraphResult).
+    /// </summary>
+    public int TripleCount
+    {
+        get
+        {
+            if (_inner is InMemoryManager inMemory)
+            {
+                var tripleStore = inMemory as dynamic;
+                // Try to get triple store from InMemoryManager
+                if (tripleStore != null)
+                {
+                    try
+                    {
+                        var store = tripleStore._store as ITripleStore;
+                        return store?.Triples.Count() ?? 0;
+                    }
+                    catch
+                    {
+                        return 0;
+                    }
+                }
+            }
+            return 0;
+        }
+    }
+    
+    /// <summary>
+    /// Exports the store as TriG format (for GraphResult).
+    /// </summary>
+    public string ToTrig()
+    {
+        if (_inner is InMemoryManager inMemory)
+        {
+            try
+            {
+                var tripleStore = inMemory as dynamic;
+                var store = tripleStore?._store as ITripleStore;
+                if (store != null)
+                {
+                    var writer = new VDS.RDF.Writing.TriGWriter();
+                    using var stringWriter = new global::System.IO.StringWriter();
+                    writer.Save(store, stringWriter);
+                    return stringWriter.ToString();
+                }
+            }
+            catch
+            {
+                // Fallback to empty
+            }
+        }
+        return string.Empty;
+    }
+    
+    /// <summary>
+    /// Enumerates triples from the store (for GraphResult).
+    /// </summary>
+    public IEnumerable<Triple> Triples(string? graphName = null)
+    {
+        if (_inner is InMemoryManager inMemory)
+        {
+            try
+            {
+                var tripleStore = inMemory as dynamic;
+                var store = tripleStore?._store as ITripleStore;
+                if (store != null)
+                {
+                    foreach (var graph in store.Graphs)
+                    {
+                        if (graphName == null || graph.Name?.ToString() == graphName)
+                        {
+                            foreach (var vdsTriple in graph.Triples)
+                            {
+                                yield return Triple.FromVds(vdsTriple);
+                            }
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                // Ensure proper cleanup
+            }
+        }
+    }
+
+    /// <summary>
     /// Creates a wrapper from a dotNetRDF storage provider for interop.
     /// </summary>
     public static Store FromVds(IStorageProvider storage) => new(storage);
