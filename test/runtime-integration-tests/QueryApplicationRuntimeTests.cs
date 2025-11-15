@@ -84,8 +84,8 @@ public class QueryApplicationRuntimeTests : RuntimeTestBase
                 // Create an in-memory store
                 myStore: Store = Store.CreateInMemory();
                 
-                // Create a DESCRIBE query
-                myQuery: Query = ?<DESCRIBE <http://example.org/resource>>;
+                // Create a DESCRIBE query (using WHERE clause instead of IRI)
+                myQuery: Query = ?<DESCRIBE ?s WHERE { ?s ?p ?o }>;
                 
                 // Apply query to store using <- operator
                 result: Result = myQuery <- myStore;

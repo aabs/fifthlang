@@ -81,6 +81,8 @@ public class QueryApplicationTypeCheckRewriter : DefaultAstRewriter
         return type switch
         {
             FifthType.TType t => t.Name.ToString() == "Query",
+            FifthType.TDotnetType dt => dt.Name.ToString() == "Query" || dt.TheType == typeof(Fifth.System.Query),
+            FifthType.UnknownType ut => ut.Name.ToString() == "Query",  // Handle UnknownType during type resolution
             _ => false
         };
     }
@@ -90,6 +92,8 @@ public class QueryApplicationTypeCheckRewriter : DefaultAstRewriter
         return type switch
         {
             FifthType.TType t => t.Name.ToString() == "Store",
+            FifthType.TDotnetType dt => dt.Name.ToString() == "Store" || dt.TheType == typeof(Fifth.System.Store),
+            FifthType.UnknownType ut => ut.Name.ToString() == "Store",  // Handle UnknownType during type resolution
             _ => false
         };
     }

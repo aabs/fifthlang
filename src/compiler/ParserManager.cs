@@ -26,17 +26,18 @@ public static class FifthParserManager
         OverloadTransform = 9,
         DestructuringLowering = 10,
         UnaryOperatorLowering = 11,
-        TriGLiteralLowering = 12,
-        AugmentedAssignmentLowering = 13,
-        TreeRelink = 14,
-        TripleDiagnostics = 15,
-        TripleExpansion = 16,
-        GraphTripleOperatorLowering = 17,
-        SymbolTableFinal = 18,
-        VarRefResolver = 19,
-        TypeAnnotation = 20,
-        QueryApplicationTypeCheck = 21,
-        QueryApplicationLowering = 22,
+        SparqlLiteralLowering = 12,
+        TriGLiteralLowering = 13,
+        AugmentedAssignmentLowering = 14,
+        TreeRelink = 15,
+        TripleDiagnostics = 16,
+        TripleExpansion = 17,
+        GraphTripleOperatorLowering = 18,
+        SymbolTableFinal = 19,
+        VarRefResolver = 20,
+        TypeAnnotation = 21,
+        QueryApplicationTypeCheck = 22,
+        QueryApplicationLowering = 23,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
@@ -157,6 +158,14 @@ public static class FifthParserManager
         if (upTo >= AnalysisPhase.UnaryOperatorLowering)
         {
             var rewriter = new UnaryOperatorLoweringRewriter();
+            var result = rewriter.Rewrite(ast);
+            ast = result.Node;
+        }
+
+        // Lower SPARQL literal expressions to Query.Parse() calls
+        if (upTo >= AnalysisPhase.SparqlLiteralLowering)
+        {
+            var rewriter = new SparqlLiteralLoweringRewriter();
             var result = rewriter.Rewrite(ast);
             ast = result.Node;
         }
