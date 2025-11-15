@@ -4,14 +4,13 @@ using TUnit.Core;
 namespace runtime_integration_tests;
 
 /// <summary>
-/// Runtime execution tests for Query Application feature.
-/// These tests verify that queries actually execute and results are accessible at runtime.
-/// IMPORTANT: These tests directly call Query.Parse() and QueryApplicationExecutor.Execute()
-/// to prove that query execution works, since the syntax for SPARQL literals and query application
-/// operator has parser limitations that prevent full end-to-end testing in Fifth syntax.
+/// Runtime execution tests for Query Application feature using Fifth syntax.
+/// These tests verify that queries actually execute and results are accessible at runtime
+/// using TriG literals (<{...}>), SPARQL literals (?<...>), and query application operator (<-).
 /// </summary>
 [Category("QueryApplication")]
 [Category("Execution")]
+[Category("EndToEnd")]
 public class QueryApplicationExecutionTests : RuntimeTestBase
 {
     /// <summary>
@@ -25,87 +24,98 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
     }
 
     [Test]
-    public async Task QueryApplication_SELECT_ExecutesAndReturnsResultSet()
+    public async Task QueryApplication_SELECT_WithTriGLiteral_ReturnsSuccess()
     {
         var src = """
             main(): int {
-                // Create and populate store
-                myStore: Store = Store.LoadFromTriG("<http://ex.org/s> <http://ex.org/p> \"test\" .");
+                // Create and populate store using TriG literal
+                myStore: Store = <{
+                    <http://ex.org/person1> <http://ex.org/name> "Alice" .
+                    <http://ex.org/person2> <http://ex.org/name> "Bob" .
+                }>;
                 
-                // Parse SELECT query and execute it
-                query: Query = Query.Parse("SELECT * WHERE { ?s ?p ?o }");
-                result: Result = QueryApplicationExecutor.Execute(query, myStore);
+                // Execute SELECT query using SPARQL literal and query application operator
+                query: Query = ?<SELECT ?n WHERE { ?s ex:name ?n }>;
+                result: Result = query <- myStore;
                 
-                // Proof of execution: method returns without throwing
+                // Success - query executed without throwing
                 return 0;
             }
             """;
         
-        var (exitCode, _) = await CompileAndRunAsync(src, "query_app_select_exec");
-        exitCode.Should().Be(0, "SELECT query should execute successfully");
+        var (exitCode, output) = await CompileAndRunAsync(src, "query_app_select_trig");
+        exitCode.Should().Be(0, $"SELECT query with TriG literal should execute successfully. Output: {output}");
     }
 
     [Test]
-    public async Task QueryApplication_ASK_ExecutesAndReturnsBooleanResult()
+    public async Task QueryApplication_ASK_WithTriGLiteral_ReturnsSuccess()
     {
         var src = """
             main(): int {
-                // Create and populate store
-                myStore: Store = Store.LoadFromTriG("<http://ex.org/s> <http://ex.org/p> \"test\" .");
+                // Create and populate store using TriG literal
+                myStore: Store = <{
+                    <http://ex.org/person1> <http://ex.org/name> "Alice" .
+                }>;
                 
-                // Parse ASK query and execute it
-                query: Query = Query.Parse("ASK WHERE { ?s ?p ?o }");
-                result: Result = QueryApplicationExecutor.Execute(query, myStore);
+                // Execute ASK query
+                query: Query = ?<ASK WHERE { ?s ex:name ?o }>;
+                result: Result = query <- myStore;
                 
-                // Proof of execution: method returns without throwing
+                // Success - query executed
                 return 0;
             }
             """;
         
-        var (exitCode, _) = await CompileAndRunAsync(src, "query_app_ask_exec");
-        exitCode.Should().Be(0, "ASK query should execute successfully");
+        var (exitCode, output) = await CompileAndRunAsync(src, "query_app_ask_trig");
+        exitCode.Should().Be(0, $"ASK query with TriG literal should execute successfully. Output: {output}");
     }
 
     [Test]
-    public async Task QueryApplication_CONSTRUCT_ExecutesAndReturnsGraphResult()
+    public async Task QueryApplication_CONSTRUCT_WithTriGLiteral_ReturnsSuccess()
     {
         var src = """
             main(): int {
-                // Create and populate store
-                myStore: Store = Store.LoadFromTriG("<http://ex.org/s> <http://ex.org/p> \"test\" .");
+                // Create and populate store using TriG literal
+                myStore: Store = <{
+                    <http://ex.org/s1> <http://ex.org/p> "v1" .
+                    <http://ex.org/s2> <http://ex.org/p> "v2" .
+                }>;
                 
-                // Parse CONSTRUCT query and execute it
-                query: Query = Query.Parse("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }");
-                result: Result = QueryApplicationExecutor.Execute(query, myStore);
+                // Execute CONSTRUCT query
+                query: Query = ?<CONSTRUCT { ?s ex:result ?o } WHERE { ?s ex:p ?o }>;
+                result: Result = query <- myStore;
                 
-                // Proof of execution: method returns without throwing
+                // Success - query executed
                 return 0;
             }
             """;
         
-        var (exitCode, _) = await CompileAndRunAsync(src, "query_app_construct_exec");
-        exitCode.Should().Be(0, "CONSTRUCT query should execute successfully");
+        var (exitCode, output) = await CompileAndRunAsync(src, "query_app_construct_trig");
+        exitCode.Should().Be(0, $"CONSTRUCT query with TriG literal should execute successfully. Output: {output}");
     }
 
     [Test]
-    public async Task QueryApplication_DESCRIBE_ExecutesAndReturnsGraphResult()
+    public async Task QueryApplication_DESCRIBE_WithTriGLiteral_ReturnsSuccess()
     {
         var src = """
             main(): int {
-                // Create and populate store
-                myStore: Store = Store.LoadFromTriG("<http://ex.org/s> <http://ex.org/p> \"test\" .");
+                // Create and populate store using TriG literal
+                myStore: Store = <{
+                    <http://ex.org/person1> <http://ex.org/name> "Alice" .
+                    <http://ex.org/person1> <http://ex.org/age> "30" .
+                }>;
                 
-                // Parse DESCRIBE query and execute it
-                query: Query = Query.Parse("DESCRIBE ?s WHERE { ?s ?p ?o }");
-                result: Result = QueryApplicationExecutor.Execute(query, myStore);
+                // Execute DESCRIBE query  
+                query: Query = ?<DESCRIBE ?s WHERE { ?s ex:name "Alice" }>;
+                result: Result = query <- myStore;
                 
-                // Proof of execution: method returns without throwing
+                // Success - query executed
                 return 0;
             }
             """;
         
-        var (exitCode, _) = await CompileAndRunAsync(src, "query_app_describe_exec");
-        exitCode.Should().Be(0, "DESCRIBE query should execute successfully");
+        var (exitCode, output) = await CompileAndRunAsync(src, "query_app_describe_trig");
+        exitCode.Should().Be(0, $"DESCRIBE query with TriG literal should execute successfully. Output: {output}");
     }
 
     [Test]
@@ -113,111 +123,124 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
     {
         var src = """
             main(): int {
-                // Create empty store
-                myStore: Store = Store.CreateInMemory();
+                // Create empty store using empty TriG literal
+                myStore: Store = <{ }>;
                 
-                // Parse and execute query on empty store
-                query: Query = Query.Parse("SELECT * WHERE { ?s ?p ?o }");
-                result: Result = QueryApplicationExecutor.Execute(query, myStore);
+                // Execute SELECT query on empty store
+                query: Query = ?<SELECT ?n WHERE { ?s ex:name ?n }>;
+                result: Result = query <- myStore;
                 
-                // Proof: empty store doesn't cause runtime errors
+                // Success - empty store doesn't cause errors
                 return 0;
             }
             """;
         
-        var (exitCode, _) = await CompileAndRunAsync(src, "query_app_empty_store");
-        exitCode.Should().Be(0, "query on empty store should execute without error");
+        var (exitCode, output) = await CompileAndRunAsync(src, "query_app_empty");
+        exitCode.Should().Be(0, $"query on empty store should execute without error. Output: {output}");
     }
 
     [Test]
-    public async Task QueryApplication_MultipleQueries_AllExecuteSequentially()
+    public async Task QueryApplication_MultipleSequentialQueries_AllExecute()
     {
         var src = """
             main(): int {
                 // Create and populate store
-                myStore: Store = Store.LoadFromTriG("<http://ex.org/s1> <http://ex.org/p> \"v1\" . <http://ex.org/s2> <http://ex.org/p> \"v2\" .");
+                myStore: Store = <{
+                    <http://ex.org/s1> <http://ex.org/p> "v1" .
+                    <http://ex.org/s2> <http://ex.org/p> "v2" .
+                }>;
                 
                 // Execute multiple queries sequentially
-                q1: Query = Query.Parse("SELECT * WHERE { ?s ?p ?o }");
-                r1: Result = QueryApplicationExecutor.Execute(q1, myStore);
+                q1: Query = ?<SELECT ?o WHERE { ?s ex:p ?o }>;
+                r1: Result = q1 <- myStore;
                 
-                q2: Query = Query.Parse("ASK WHERE { ?s ?p ?o }");
-                r2: Result = QueryApplicationExecutor.Execute(q2, myStore);
+                q2: Query = ?<ASK WHERE { ?s ex:p "v1" }>;
+                r2: Result = q2 <- myStore;
                 
-                q3: Query = Query.Parse("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }");
-                r3: Result = QueryApplicationExecutor.Execute(q3, myStore);
+                q3: Query = ?<CONSTRUCT { ?s ex:result ?o } WHERE { ?s ex:p ?o }>;
+                r3: Result = q3 <- myStore;
                 
-                // Proof: all three queries execute without error
+                // All queries executed successfully
                 return 0;
             }
             """;
         
-        var (exitCode, _) = await CompileAndRunAsync(src, "query_app_multiple");
-        exitCode.Should().Be(0, "multiple queries should all execute successfully");
+        var (exitCode, output) = await CompileAndRunAsync(src, "query_app_multiple");
+        exitCode.Should().Be(0, $"multiple sequential queries should execute. Output: {output}");
     }
 
     [Test]
-    public async Task QueryApplication_QueryParse_AcceptsValidSPARQL()
+    public async Task QueryApplication_ChainedOperations_WorkCorrectly()
     {
         var src = """
             main(): int {
-                // Verify that Query.Parse() accepts various SPARQL forms
-                q1: Query = Query.Parse("SELECT * WHERE { ?s ?p ?o }");
-                q2: Query = Query.Parse("ASK WHERE { ?s ?p ?o }");
-                q3: Query = Query.Parse("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }");
-                q4: Query = Query.Parse("DESCRIBE ?s WHERE { ?s ?p ?o }");
+                // Create store, execute query, all in sequence
+                myStore: Store = <{
+                    <http://ex.org/s> <http://ex.org/p> "test" .
+                }>;
                 
-                // Proof: all query forms parse without error
+                myQuery: Query = ?<SELECT ?o WHERE { ?s ex:p ?o }>;
+                myResult: Result = myQuery <- myStore;
+                
+                // Proof that all operations completed
                 return 0;
             }
             """;
         
-        var (exitCode, _) = await CompileAndRunAsync(src, "query_parse_various_forms");
-        exitCode.Should().Be(0, "Query.Parse should accept all SPARQL query forms");
+        var (exitCode, output) = await CompileAndRunAsync(src, "query_app_chained");
+        exitCode.Should().Be(0, $"chained operations should complete. Output: {output}");
     }
 
     [Test]
-    public async Task QueryApplication_ResultIsAccessible()
-    {
-        var src = """
-            main(): int {
-                // Create store and execute query
-                myStore: Store = Store.LoadFromTriG("<http://ex.org/s> <http://ex.org/p> \"test\" .");
-                query: Query = Query.Parse("SELECT * WHERE { ?s ?p ?o }");
-                result: Result = QueryApplicationExecutor.Execute(query, myStore);
-                
-                // Proof: Result object is accessible and can be assigned
-                result2: Result = result;
-                
-                return 0;
-            }
-            """;
-        
-        var (exitCode, _) = await CompileAndRunAsync(src, "query_result_accessible");
-        exitCode.Should().Be(0, "Result should be accessible after query execution");
-    }
-
-    [Test]
-    public async Task QueryApplication_StoreCanBeReusedForMultipleQueries()
+    public async Task QueryApplication_StoreReuse_WorksForMultipleQueries()
     {
         var src = """
             main(): int {
                 // Create store once
-                myStore: Store = Store.LoadFromTriG("<http://ex.org/s> <http://ex.org/p> \"test\" .");
+                myStore: Store = <{
+                    <http://ex.org/s> <http://ex.org/p> "test" .
+                }>;
                 
-                // Execute different queries against the same store
-                q1: Query = Query.Parse("SELECT * WHERE { ?s ?p ?o }");
-                r1: Result = QueryApplicationExecutor.Execute(q1, myStore);
+                // Execute different queries against same store
+                q1: Query = ?<SELECT ?o WHERE { ?s ex:p ?o }>;
+                r1: Result = q1 <- myStore;
                 
-                q2: Query = Query.Parse("ASK WHERE { ?s ?p ?o }");
-                r2: Result = QueryApplicationExecutor.Execute(q2, myStore);
+                q2: Query = ?<ASK WHERE { ?s ex:p "test" }>;
+                r2: Result = q2 <- myStore;
                 
-                // Proof: store can be reused
+                // Store reused successfully
                 return 0;
             }
             """;
         
-        var (exitCode, _) = await CompileAndRunAsync(src, "query_store_reuse");
-        exitCode.Should().Be(0, "store should be reusable for multiple queries");
+        var (exitCode, output) = await CompileAndRunAsync(src, "query_app_reuse");
+        exitCode.Should().Be(0, $"store should be reusable for multiple queries. Output: {output}");
+    }
+
+    [Test]
+    public async Task QueryApplication_WithLargerDataset_ExecutesSuccessfully()
+    {
+        var src = """
+            main(): int {
+                // Create store with multiple triples
+                myStore: Store = <{
+                    <http://ex.org/alice> <http://ex.org/name> "Alice" .
+                    <http://ex.org/alice> <http://ex.org/age> "30" .
+                    <http://ex.org/alice> <http://ex.org/city> "NYC" .
+                    <http://ex.org/bob> <http://ex.org/name> "Bob" .
+                    <http://ex.org/bob> <http://ex.org/age> "25" .
+                }>;
+                
+                // Query all data
+                query: Query = ?<SELECT ?n WHERE { ?s ex:name ?n }>;
+                result: Result = query <- myStore;
+                
+                // Large dataset handled successfully
+                return 0;
+            }
+            """;
+        
+        var (exitCode, output) = await CompileAndRunAsync(src, "query_app_large");
+        exitCode.Should().Be(0, $"larger dataset should be queryable. Output: {output}");
     }
 }
