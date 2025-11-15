@@ -23,7 +23,10 @@ namespace compiler.LanguageTransformations;
 public class QueryApplicationLoweringRewriter : DefaultAstRewriter
 {
     // Fifth type representation for Result
-    private static readonly FifthType ResultType = new FifthType.TType { Name = TypeName.From("Result") };
+    private static readonly FifthType ResultType = new FifthType.TDotnetType(typeof(Fifth.System.Result)) 
+    { 
+        Name = TypeName.From("Result") 
+    };
 
     /// <summary>
     /// Rewrites QueryApplicationExp nodes to QueryApplicationExecutor.Execute calls.
@@ -42,9 +45,8 @@ public class QueryApplicationLoweringRewriter : DefaultAstRewriter
         // Create a function call to Fifth.System.QueryApplicationExecutor.Execute
         var funcCallExp = new FuncCallExp
         {
-            // The function name will be resolved during code generation
-            // For now, we mark it with an annotation
-            FunctionDef = null, // Will be resolved later
+            // The function reference will be resolved during code generation
+            FunctionDef = null,
             InvocationArguments = new List<Expression> 
             { 
                 queryResult.Node as Expression ?? ctx.Query,
@@ -54,9 +56,11 @@ public class QueryApplicationLoweringRewriter : DefaultAstRewriter
             Location = ctx.Location,
             Annotations = new Dictionary<string, object>
             {
-                // Mark this as a query application lowering for downstream processing
-                ["QueryApplicationLowering"] = true,
-                ["RuntimeMethod"] = "Fifth.System.QueryApplicationExecutor.Execute"
+                // Mark this as an external static method call so translators can emit
+                // a qualified invocation and validators can resolve the target method.
+                ["ExternalType"] = typeof(Fifth.System.QueryApplicationExecutor),
+                ["ExternalMethodName"] = "Execute",
+                ["QueryApplicationLowering"] = true
             }
         };
 
