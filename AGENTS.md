@@ -71,7 +71,22 @@ After making changes, always run in this order:
    dotnet test test/ast-tests/ast_tests.csproj  # Quick subset; follow with full suite before commit/PR
    ```
 
-3. **AST smoke test:**
+3. **CRITICAL: Runtime Validation Required**
+   **Compilation alone is NOT sufficient**. Features must be proven to work end-to-end:
+   
+   - Tests must use actual Fifth language syntax (TriG literals, SPARQL literals, operators)
+   - Tests must execute successfully and return expected results
+   - Tests must validate data accessibility and correctness
+   - All major code paths and result types must be exercised
+   
+   A feature with only compilation tests OR failing runtime tests is **INCOMPLETE**.
+   Continue iterating until:
+   - ✅ All tests pass (not just compile)
+   - ✅ Runtime execution succeeds
+   - ✅ Results are accessible and correct
+   - ✅ Tests use authentic Fifth syntax
+
+4. **AST smoke test:**
    ```csharp
    using ast;
    using ast_generated;

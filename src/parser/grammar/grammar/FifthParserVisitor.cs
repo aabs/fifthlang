@@ -305,6 +305,13 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitExp_member_access([NotNull] FifthParser.Exp_member_accessContext context);
 	/// <summary>
+	/// Visit a parse tree produced by the <c>exp_query_application</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExp_query_application([NotNull] FifthParser.Exp_query_applicationContext context);
+	/// <summary>
 	/// Visit a parse tree produced by the <c>exp_or</c>
 	/// labeled alternative in <see cref="FifthParser.expression"/>.
 	/// </summary>

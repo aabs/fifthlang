@@ -92,6 +92,7 @@ public interface IAstRewriter
     RewriteResult VisitSparqlLiteralExpression(SparqlLiteralExpression ctx);
     RewriteResult VisitVariableBinding(VariableBinding ctx);
     RewriteResult VisitInterpolation(Interpolation ctx);
+    RewriteResult VisitQueryApplicationExp(QueryApplicationExp ctx);
     RewriteResult VisitMemberAccessExp(MemberAccessExp ctx);
     RewriteResult VisitIndexerExpression(IndexerExpression ctx);
     RewriteResult VisitObjectInitializerExp(ObjectInitializerExp ctx);
@@ -190,6 +191,7 @@ public class DefaultAstRewriter : IAstRewriter
              SparqlLiteralExpression node => VisitSparqlLiteralExpression(node),
              VariableBinding node => VisitVariableBinding(node),
              Interpolation node => VisitInterpolation(node),
+             QueryApplicationExp node => VisitQueryApplicationExp(node),
              MemberAccessExp node => VisitMemberAccessExp(node),
              IndexerExpression node => VisitIndexerExpression(node),
              ObjectInitializerExp node => VisitObjectInitializerExp(node),
@@ -982,6 +984,19 @@ public class DefaultAstRewriter : IAstRewriter
         prologue.AddRange(rrExpression.Prologue);
         var rebuilt = ctx with {
          Expression = (ast.Expression)rrExpression.Node
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
+    public virtual RewriteResult VisitQueryApplicationExp(QueryApplicationExp ctx)
+    {
+        var prologue = new List<Statement>();
+        var rrQuery = Rewrite((AstThing)ctx.Query);
+        prologue.AddRange(rrQuery.Prologue);
+        var rrStore = Rewrite((AstThing)ctx.Store);
+        prologue.AddRange(rrStore.Prologue);
+        var rebuilt = ctx with {
+         Query = (ast.Expression)rrQuery.Node
+        ,Store = (ast.Expression)rrStore.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }

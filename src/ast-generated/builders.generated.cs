@@ -2244,6 +2244,36 @@ public class InterpolationBuilder : IBuilder<ast.Interpolation>
     }
 
 }
+public class QueryApplicationExpBuilder : IBuilder<ast.QueryApplicationExp>
+{
+    private ast.Expression _Query;
+    private ast.Expression _Store;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.QueryApplicationExp Build()
+    {
+        return new ast.QueryApplicationExp(){
+             Query = this._Query // from QueryApplicationExp
+           , Store = this._Store // from QueryApplicationExp
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public QueryApplicationExpBuilder WithQuery(ast.Expression value){
+        _Query = value;
+        return this;
+    }
+
+    public QueryApplicationExpBuilder WithStore(ast.Expression value){
+        _Store = value;
+        return this;
+    }
+
+    public QueryApplicationExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
 {
     private ast.Expression _LHS;

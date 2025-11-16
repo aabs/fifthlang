@@ -75,6 +75,27 @@ public sealed class Query
     }
 
     /// <summary>
+    /// Parse a SPARQL query string into a Query object.
+    /// This is the primary entry point for SPARQL literal lowering.
+    /// </summary>
+    /// <param name="sparqlText">SPARQL query text</param>
+    /// <returns>Parsed and validated Query instance</returns>
+    /// <exception cref="RdfParseException">If SPARQL syntax is invalid</exception>
+    public static Query Parse(string sparqlText)
+    {
+        if (string.IsNullOrWhiteSpace(sparqlText))
+            throw new ArgumentException("SPARQL text cannot be null or empty", nameof(sparqlText));
+        
+        var parser = new SparqlQueryParser();
+        var underlyingQuery = parser.ParseFromString(sparqlText);
+        
+        // No parameters for basic literals (parameters would be handled by more complex lowering)
+        var parameters = new Dictionary<string, ParameterInfo>();
+        
+        return new Query(underlyingQuery, parameters, sparqlText);
+    }
+    
+    /// <summary>
     /// Future: Execute query against a store.
     /// Not implemented in initial release; reserved for query execution operators.
     /// </summary>

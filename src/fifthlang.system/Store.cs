@@ -12,10 +12,12 @@ namespace Fifth.System;
 public sealed class Store
 {
     private readonly IStorageProvider _inner;
+    private readonly TripleStore? _tripleStore; // For in-memory stores, track the TripleStore for querying
 
-    private Store(IStorageProvider storage)
+    private Store(IStorageProvider storage, TripleStore? tripleStore = null)
     {
         _inner = storage ?? throw new ArgumentNullException(nameof(storage));
+        _tripleStore = tripleStore;
     }
 
     /// <summary>
@@ -23,7 +25,8 @@ public sealed class Store
     /// </summary>
     public static Store CreateInMemory()
     {
-        return new Store(new InMemoryManager());
+        var tripleStore = new TripleStore();
+        return new Store(new InMemoryManager(tripleStore), tripleStore);
     }
 
     /// <summary>
@@ -33,7 +36,7 @@ public sealed class Store
     {
         if (string.IsNullOrWhiteSpace(endpointUri))
             throw new ArgumentException("Endpoint URI cannot be null or empty", nameof(endpointUri));
-        
+
         return new Store(new SparqlHttpProtocolConnector(new Uri(endpointUri)));
     }
 
@@ -44,7 +47,7 @@ public sealed class Store
     {
         if (endpointUri == null)
             throw new ArgumentNullException(nameof(endpointUri));
-        
+
         return new Store(new SparqlHttpProtocolConnector(endpointUri));
     }
 
@@ -81,7 +84,7 @@ public sealed class Store
     public Graph LoadGraph(Uri graphUri)
     {
         if (graphUri == null) throw new ArgumentNullException(nameof(graphUri));
-        
+
         var graph = new VDS.RDF.Graph();
         _inner.LoadGraph(graph, graphUri);
         return Graph.FromVds(graph);
@@ -103,7 +106,7 @@ public sealed class Store
     {
         if (string.IsNullOrWhiteSpace(sparql))
             throw new ArgumentException("SPARQL query cannot be null or empty", nameof(sparql));
-        
+
         // This is a simplified version. A full implementation would need to handle
         // query results properly, but for now we return the raw result.
         // The actual implementation would depend on how the Fifth compiler handles query results.
@@ -114,6 +117,12 @@ public sealed class Store
     /// Gets the underlying storage provider for interop.
     /// </summary>
     public IStorageProvider ToVds() => _inner;
+
+    /// <summary>
+    /// Gets the underlying TripleStore for in-memory querying.
+    /// Returns null for non-in-memory stores (e.g., SPARQL endpoints).
+    /// </summary>
+    public TripleStore? GetTripleStore() => _tripleStore;
 
     /// <summary>
     /// Creates a wrapper from a dotNetRDF storage provider for interop.
@@ -133,7 +142,7 @@ public sealed class Store
 
         // Create an in-memory triple store (dataset)
         var tripleStore = new VDS.RDF.TripleStore();
-        
+
         // Parse the TriG content
         var parser = new VDS.RDF.Parsing.TriGParser();
         using (var reader = new StringReader(trigContent))
@@ -143,7 +152,7 @@ public sealed class Store
 
         // Wrap in an in-memory manager that uses this triple store
         var storage = new InMemoryManager(tripleStore);
-        return new Store(storage);
+        return new Store(storage, tripleStore);
     }
 
     // ============================================================================
@@ -167,7 +176,7 @@ public sealed class Store
     public Store RemoveGraphInPlace(Graph graph)
     {
         if (graph == null) throw new ArgumentNullException(nameof(graph));
-        
+
         var uri = graph.BaseUri;
         if (uri != null)
         {

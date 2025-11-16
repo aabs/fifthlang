@@ -55,6 +55,21 @@ Practice TDD: write/approve tests, see them fail, then implement. Use TUnit + Fl
 - `test/runtime-integration-tests/` for end-to-end verification
 Never mask failing tests with broad try/catch. Let failures surface so CI and SpecKit correctly reflect state.
 
+**CRITICAL: Compilation is NOT Sufficient**
+A language feature is NOT complete until it is proven to work end-to-end with comprehensive passing tests that:
+1. Use actual Fifth language syntax (not just C# interop calls)
+2. Execute successfully at runtime (not just compile)
+3. Validate that results are accessible and correct
+4. Exercise all major code paths and result types
+
+For features involving TriG literals (`<{...}>`), SPARQL literals (`?<...>`), or other language constructs:
+- Tests MUST use these constructs directly in Fifth code
+- Tests MUST run to completion and return expected exit codes
+- Tests MUST prove data flows through the entire pipeline
+- Manual C# validation is acceptable as supplementary evidence but does NOT replace Fifth language tests
+
+Any feature with only compilation tests or failing runtime tests is considered INCOMPLETE. Continue iterating until all tests pass.
+
 ### V. Reproducible Builds & Toolchain Discipline
 Tooling is pinned and enforced for reproducibility:
 - .NET SDK 8.0.x per `global.json` (currently 8.0.118)
