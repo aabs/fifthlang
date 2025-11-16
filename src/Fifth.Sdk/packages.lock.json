@@ -146,8 +146,8 @@
       },
       "Dunet": {
         "type": "Transitive",
-        "resolved": "1.11.2",
-        "contentHash": "T6dfqSJ9+gSqnopeuBv6gtnpHlC0lru6XK3NtQQ9fTeDQQa1ynuI8AmDfEcpQu/rWFYJTbu8ZYR5ED8IScVK7A=="
+        "resolved": "1.11.3",
+        "contentHash": "xve1qb4EfUFLnoluZlDlfByd2wm/dQnuPF42hcWD4TbK0q4UD8jQNWIXvdG90972sOpjDKn6fMf2fCyOOyPX3g=="
       },
       "FluentAssertions": {
         "type": "Transitive",
@@ -998,6 +998,7 @@
       "fifth.system": {
         "type": "Project",
         "dependencies": {
+          "Dunet": "[1.11.3, )",
           "dotNetRdf": "[3.4.0, )"
         }
       },

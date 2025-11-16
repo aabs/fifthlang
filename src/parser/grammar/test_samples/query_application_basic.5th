@@ -1,0 +1,11 @@
+// Test file for query application operator
+
+main(): int {
+    myStore: Store = Store.CreateInMemory();
+    myQuery: Query = ?<SELECT ?name WHERE { ?s ex:name ?name }>;
+    
+    // Apply query to store using <- operator
+    result: Result = myQuery <- myStore;
+    
+    return 0;
+}

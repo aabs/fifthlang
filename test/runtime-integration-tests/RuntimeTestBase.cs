@@ -208,6 +208,20 @@ public abstract class RuntimeTestBase : IDisposable
             }
         }
 
+        // Copy dotNetRdf dependencies from NuGet cache
+        var nugetPackages = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+        var dotNetRdfDll = Path.Combine(nugetPackages, "dotnetrdf.core", "3.4.0", "lib", "netstandard2.0", "dotNetRdf.dll");
+        var vdsCommonDll = Path.Combine(nugetPackages, "vds.common", "3.0.0", "lib", "netstandard2.0", "VDS.Common.dll");
+        
+        if (File.Exists(dotNetRdfDll))
+        {
+            try { File.Copy(dotNetRdfDll, Path.Combine(exeDir, "dotNetRdf.dll"), overwrite: true); } catch { /* ignore */ }
+        }
+        if (File.Exists(vdsCommonDll))
+        {
+            try { File.Copy(vdsCommonDll, Path.Combine(exeDir, "VDS.Common.dll"), overwrite: true); } catch { /* ignore */ }
+        }
+
         var systemDeps = Path.Combine(systemBin, "Fifth.System.deps.json");
         // To avoid cross-test contention on a shared deps.json during parallel runs,
         // copy the deps file into the per-test execution directory and use that local copy.

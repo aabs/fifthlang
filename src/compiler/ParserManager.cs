@@ -26,20 +26,23 @@ public static class FifthParserManager
         OverloadTransform = 9,
         DestructuringLowering = 10,
         UnaryOperatorLowering = 11,
-        TriGLiteralLowering = 12,
-        AugmentedAssignmentLowering = 13,
-        TreeRelink = 14,
-        TripleDiagnostics = 15,
-        TripleExpansion = 16,
-        GraphTripleOperatorLowering = 17,
-        SymbolTableFinal = 18,
-        VarRefResolver = 19,
-        TypeAnnotation = 20,
+        SparqlLiteralLowering = 12,
+        TriGLiteralLowering = 13,
+        AugmentedAssignmentLowering = 14,
+        TreeRelink = 15,
+        TripleDiagnostics = 16,
+        TripleExpansion = 17,
+        GraphTripleOperatorLowering = 18,
+        SymbolTableFinal = 19,
+        VarRefResolver = 20,
+        TypeAnnotation = 21,
+        QueryApplicationTypeCheck = 22,
+        QueryApplicationLowering = 23,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
         // All must be >= TypeAnnotation to ensure that block executes and the lowering runs.
-        All = TypeAnnotation
+        All = QueryApplicationLowering  // Update to include query application
     }
 
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, AnalysisPhase upTo = AnalysisPhase.All)
@@ -159,6 +162,14 @@ public static class FifthParserManager
             ast = result.Node;
         }
 
+        // Lower SPARQL literal expressions to Query.Parse() calls
+        if (upTo >= AnalysisPhase.SparqlLiteralLowering)
+        {
+            var rewriter = new SparqlLiteralLoweringRewriter();
+            var result = rewriter.Rewrite(ast);
+            ast = result.Node;
+        }
+
         // Lower TriG literal expressions to Store.LoadFromTriG() calls
         if (upTo >= AnalysisPhase.TriGLiteralLowering)
         {
@@ -274,6 +285,27 @@ public static class FifthParserManager
                 // Early exit - return null to indicate transform failure
                 return null;
             }
+        }
+
+        // Type check query application expressions (query <- store) AFTER type annotation
+        if (upTo >= AnalysisPhase.QueryApplicationTypeCheck)
+        {
+            var rewriter = new QueryApplicationTypeCheckRewriter(diagnostics);
+            var result = rewriter.Rewrite(ast);
+            ast = result.Node;
+            
+            if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
+            {
+                return null;
+            }
+        }
+
+        // Lower query application expressions to QueryApplicationExecutor.Execute() calls
+        if (upTo >= AnalysisPhase.QueryApplicationLowering)
+        {
+            var rewriter = new QueryApplicationLoweringRewriter();
+            var result = rewriter.Rewrite(ast);
+            ast = result.Node;
         }
 
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);

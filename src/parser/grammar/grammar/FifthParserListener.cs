@@ -489,6 +489,18 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitExp_member_access([NotNull] FifthParser.Exp_member_accessContext context);
 	/// <summary>
+	/// Enter a parse tree produced by the <c>exp_query_application</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterExp_query_application([NotNull] FifthParser.Exp_query_applicationContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>exp_query_application</c>
+	/// labeled alternative in <see cref="FifthParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitExp_query_application([NotNull] FifthParser.Exp_query_applicationContext context);
+	/// <summary>
 	/// Enter a parse tree produced by the <c>exp_or</c>
 	/// labeled alternative in <see cref="FifthParser.expression"/>.
 	/// </summary>

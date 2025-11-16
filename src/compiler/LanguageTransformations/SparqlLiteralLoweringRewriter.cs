@@ -30,7 +30,7 @@ namespace compiler.LanguageTransformations;
 public class SparqlLiteralLoweringRewriter : DefaultAstRewriter
 {
     // Use actual CLR-backed Fifth types
-    private static readonly FifthType QueryType = new FifthType.TType { Name = TypeName.From("Query") };
+    private static readonly FifthType QueryType = new FifthType.TDotnetType(typeof(Fifth.System.Query)) { Name = TypeName.From("Query") };
     private static readonly FifthType StringType = new FifthType.TDotnetType(typeof(string)) { Name = TypeName.From("string") };
     private static readonly Regex InterpolationPlaceholder = new Regex(@"\{\{__SPARQL_INTERP_(\d+)__\}\}", RegexOptions.Compiled);
 
@@ -65,9 +65,8 @@ public class SparqlLiteralLoweringRewriter : DefaultAstRewriter
             };
         }
 
-        // For now, create a simple FuncCallExp representing the Query construction
-        // In a complete implementation, this would also handle variable bindings
-        // by creating a parameters dictionary
+        // Create a FuncCallExp representing Fifth.System.Query.Parse(sparqlText)
+        // This matches the pattern used by TriGLiteralLoweringRewriter
         var funcCallExp = new FuncCallExp
         {
             InvocationArguments = new List<Expression> { sparqlStringExpression },
@@ -75,7 +74,10 @@ public class SparqlLiteralLoweringRewriter : DefaultAstRewriter
             Location = ctx.Location,
             Annotations = new Dictionary<string, object>
             {
-                // Mark this as a Query literal lowering for downstream processing
+                // Mark this as an external static method call so translators can emit
+                // a qualified invocation and validators can resolve the target method.
+                ["ExternalType"] = typeof(Fifth.System.Query),
+                ["ExternalMethodName"] = "Parse",
                 ["SparqlLiteralLowering"] = true,
                 ["HasInterpolations"] = ctx.Interpolations?.Count > 0,
                 ["HasBindings"] = ctx.Bindings?.Count > 0

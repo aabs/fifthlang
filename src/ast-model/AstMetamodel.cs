@@ -940,6 +940,46 @@ public record Interpolation : AstThing
 }
 
 /// <summary>
+/// Query application expression: applying a SPARQL query to a store using the &lt;- operator.
+/// Syntax: result = query &lt;- store
+/// </summary>
+/// <example>
+/// <code>result: Result = ?&lt;SELECT ?name WHERE { ?s ex:name ?name }> &lt;- myStore;</code>
+/// </example>
+/// <remarks>
+/// <para>
+/// This expression applies a SPARQL Query to a Store, producing a Result discriminated union.
+/// The Query operand (LHS) must be of type Fifth.System.Query, and the Store operand (RHS) 
+/// must be assignable to a SPARQL-queryable store interface.
+/// </para>
+/// <para>
+/// During lowering, this expression is transformed into a function call to 
+/// Fifth.System.QueryApplicationExecutor.Execute(query, store, cancellationToken?).
+/// The Result type inference depends on the query form (SELECT, CONSTRUCT, DESCRIBE, ASK).
+/// </para>
+/// </remarks>
+public record QueryApplicationExp : Expression
+{
+    /// <summary>
+    /// Query expression (left-hand side). Must evaluate to Fifth.System.Query type.
+    /// Typically a SparqlLiteralExpression (?&lt;...>) or variable reference.
+    /// </summary>
+    public required Expression Query { get; init; }
+    
+    /// <summary>
+    /// Store expression (right-hand side). Must evaluate to a SPARQL-queryable Store type.
+    /// Typically a variable reference, member access, or function call returning Store.
+    /// </summary>
+    public required Expression Store { get; init; }
+    
+    /// <summary>
+    /// Inferred Result type. Set by QueryApplicationTypeCheckVisitor.
+    /// Result is a discriminated union (TabularResult | GraphResult | BooleanResult).
+    /// </summary>
+    public FifthType? InferredType { get; set; }
+}
+
+/// <summary>
 /// Accessing a member of an object
 /// </summary>
 /// <example>
