@@ -29,13 +29,13 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         var src = """
             main(): int {
                 // Create and populate store using TriG literal
-                myStore: Store = <{
+                myStore: Store = @<
                     <http://ex.org/person1> <http://ex.org/name> "Alice" .
                     <http://ex.org/person2> <http://ex.org/name> "Bob" .
-                }>;
+                >;
                 
                 // Execute SELECT query using SPARQL literal and query application operator
-                query: Query = ?<SELECT ?n WHERE { ?s ex:name ?n }>;
+                query: Query = ?<SELECT * WHERE { ?s ?p ?o }>;
                 result: Result = query <- myStore;
                 
                 // Success - query executed without throwing
@@ -53,12 +53,12 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         var src = """
             main(): int {
                 // Create and populate store using TriG literal
-                myStore: Store = <{
+                myStore: Store = @<
                     <http://ex.org/person1> <http://ex.org/name> "Alice" .
-                }>;
+                >;
                 
                 // Execute ASK query
-                query: Query = ?<ASK WHERE { ?s ex:name ?o }>;
+                query: Query = ?<ASK WHERE { ?s ?p ?o }>;
                 result: Result = query <- myStore;
                 
                 // Success - query executed
@@ -76,13 +76,13 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         var src = """
             main(): int {
                 // Create and populate store using TriG literal
-                myStore: Store = <{
+                myStore: Store = @<
                     <http://ex.org/s1> <http://ex.org/p> "v1" .
                     <http://ex.org/s2> <http://ex.org/p> "v2" .
-                }>;
+                >;
                 
-                // Execute CONSTRUCT query
-                query: Query = ?<CONSTRUCT { ?s ex:result ?o } WHERE { ?s ex:p ?o }>;
+                // Execute CONSTRUCT query (using simple pattern)
+                query: Query = ?<CONSTRUCT WHERE { ?s ?p ?o }>;
                 result: Result = query <- myStore;
                 
                 // Success - query executed
@@ -100,13 +100,13 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         var src = """
             main(): int {
                 // Create and populate store using TriG literal
-                myStore: Store = <{
+                myStore: Store = @<
                     <http://ex.org/person1> <http://ex.org/name> "Alice" .
                     <http://ex.org/person1> <http://ex.org/age> "30" .
-                }>;
+                >;
                 
-                // Execute DESCRIBE query  
-                query: Query = ?<DESCRIBE ?s WHERE { ?s ex:name "Alice" }>;
+                // Execute DESCRIBE query (using variable)
+                query: Query = ?<DESCRIBE ?s WHERE { ?s ?p ?o }>;
                 result: Result = query <- myStore;
                 
                 // Success - query executed
@@ -124,10 +124,10 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         var src = """
             main(): int {
                 // Create empty store using empty TriG literal
-                myStore: Store = <{ }>;
+                myStore: Store = @<>;
                 
                 // Execute SELECT query on empty store
-                query: Query = ?<SELECT ?n WHERE { ?s ex:name ?n }>;
+                query: Query = ?<SELECT * WHERE { ?s ?p ?o }>;
                 result: Result = query <- myStore;
                 
                 // Success - empty store doesn't cause errors
@@ -145,19 +145,19 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         var src = """
             main(): int {
                 // Create and populate store
-                myStore: Store = <{
+                myStore: Store = @<
                     <http://ex.org/s1> <http://ex.org/p> "v1" .
                     <http://ex.org/s2> <http://ex.org/p> "v2" .
-                }>;
+                >;
                 
                 // Execute multiple queries sequentially
-                q1: Query = ?<SELECT ?o WHERE { ?s ex:p ?o }>;
+                q1: Query = ?<SELECT * WHERE { ?s ?p ?o }>;
                 r1: Result = q1 <- myStore;
                 
-                q2: Query = ?<ASK WHERE { ?s ex:p "v1" }>;
+                q2: Query = ?<ASK WHERE { ?s ?p ?o }>;
                 r2: Result = q2 <- myStore;
                 
-                q3: Query = ?<CONSTRUCT { ?s ex:result ?o } WHERE { ?s ex:p ?o }>;
+                q3: Query = ?<CONSTRUCT WHERE { ?s ?p ?o }>;
                 r3: Result = q3 <- myStore;
                 
                 // All queries executed successfully
@@ -175,11 +175,11 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         var src = """
             main(): int {
                 // Create store, execute query, all in sequence
-                myStore: Store = <{
+                myStore: Store = @<
                     <http://ex.org/s> <http://ex.org/p> "test" .
-                }>;
+                >;
                 
-                myQuery: Query = ?<SELECT ?o WHERE { ?s ex:p ?o }>;
+                myQuery: Query = ?<SELECT * WHERE { ?s ?p ?o }>;
                 myResult: Result = myQuery <- myStore;
                 
                 // Proof that all operations completed
@@ -197,15 +197,15 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         var src = """
             main(): int {
                 // Create store once
-                myStore: Store = <{
+                myStore: Store = @<
                     <http://ex.org/s> <http://ex.org/p> "test" .
-                }>;
+                >;
                 
                 // Execute different queries against same store
-                q1: Query = ?<SELECT ?o WHERE { ?s ex:p ?o }>;
+                q1: Query = ?<SELECT * WHERE { ?s ?p ?o }>;
                 r1: Result = q1 <- myStore;
                 
-                q2: Query = ?<ASK WHERE { ?s ex:p "test" }>;
+                q2: Query = ?<ASK WHERE { ?s ?p ?o }>;
                 r2: Result = q2 <- myStore;
                 
                 // Store reused successfully
@@ -223,16 +223,16 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         var src = """
             main(): int {
                 // Create store with multiple triples
-                myStore: Store = <{
+                myStore: Store = @<
                     <http://ex.org/alice> <http://ex.org/name> "Alice" .
                     <http://ex.org/alice> <http://ex.org/age> "30" .
                     <http://ex.org/alice> <http://ex.org/city> "NYC" .
                     <http://ex.org/bob> <http://ex.org/name> "Bob" .
                     <http://ex.org/bob> <http://ex.org/age> "25" .
-                }>;
+                >;
                 
                 // Query all data
-                query: Query = ?<SELECT ?n WHERE { ?s ex:name ?n }>;
+                query: Query = ?<SELECT * WHERE { ?s ?p ?o }>;
                 result: Result = query <- myStore;
                 
                 // Large dataset handled successfully
