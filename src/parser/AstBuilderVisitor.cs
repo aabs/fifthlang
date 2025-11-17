@@ -1296,7 +1296,10 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             }
             else
             {
-                return (innerTypeName, CollectionType.SingleInstance);
+                // For user-defined generic types like Box<int>, Stack<string>, etc.
+                // Construct the full generic type name including type arguments
+                var fullGenericTypeName = TypeName.From($"{genericName}<{innerTypeName.Value}>");
+                return (fullGenericTypeName, CollectionType.SingleInstance);
             }
         }
 

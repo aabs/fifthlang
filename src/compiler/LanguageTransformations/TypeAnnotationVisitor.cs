@@ -571,6 +571,26 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     }
 
     /// <summary>
+    /// Visits an ObjectInitializerExp and sets its type from TypeToInitialize.
+    /// </summary>
+    public override ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx)
+    {
+        var result = base.VisitObjectInitializerExp(ctx);
+
+        // The type of an object initializer expression is the type being initialized
+        if (result.TypeToInitialize != null)
+        {
+            OnTypeInferred(result, result.TypeToInitialize);
+            return result with { Type = result.TypeToInitialize };
+        }
+
+        // If no type is specified, return with unknown type
+        OnTypeNotFound(result);
+        var unknownType = new FifthType.UnknownType() { Name = TypeName.From("unknown") };
+        return result with { Type = unknownType };
+    }
+
+    /// <summary>
     /// Creates a FifthType from a TypeName and CollectionType.
     /// </summary>
     private FifthType CreateFifthType(TypeName typeName, CollectionType collectionType)
