@@ -382,3 +382,4 @@ build_debug_roslyn/
 TestResults/
 gen/
 issues/
+samples/generics/main.5th
