@@ -62,7 +62,8 @@ public class GuardValidationBenchmarks
                     ReturnType = new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From("Int32") },
                     IsConstructor = false,
                     IsStatic = false,
-                    Visibility = Visibility.Public
+                    Visibility = Visibility.Public,
+                    TypeParameters = new List<TypeParameterDef>()
                 };
 
                 overloads.Add(func);
