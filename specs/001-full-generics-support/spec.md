@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "Full Generics Support - Implement complete generic type support including generic classes, generic functions, type parameters, type constraints, and type inference for the Fifth programming language"
 
+## Clarifications
+
+### Session 2025-11-18
+
+- Q: Type information preservation strategy - reification vs type erasure? → A: Full .NET reification - preserve complete type information at runtime (Stack<int> and Stack<string> are distinct types at runtime)
+- Q: How to handle recursive generic constraints like class Node<T> where T: Node<T>? → A: Allow recursive constraints with cycle detection - support patterns like Node<T> where T: Node<T>, validate during type resolution
+- Q: Memory management strategy for generic type instantiation cache? → A: Reasonable cache size limit with LRU eviction - limit to 10,000 unique instantiations, evict least recently used
+- Q: How to disambiguate angle bracket syntax from less-than operator? → A: Contextual disambiguation with lookahead - parser checks if < is followed by type name (generic) vs expression (less-than)
+- Q: What format should generic type error diagnostics use? → A: Structured format with location, context, and actionable hints - "GEN003: Type 'MyClass' does not satisfy constraint 'IComparable<T>' at line 10, col 5 in func max<T>(a, b) where T: IComparable. Hint: Implement IComparable or use explicit type."
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Generic Collection Classes (Priority: P1)
@@ -108,11 +118,11 @@ Developers need to use generic types as type arguments to other generic types (l
 ### Edge Cases
 
 - What happens when a type parameter is used but never constrained or instantiated? (Should be allowed for abstract definitions)
-- How does the system handle recursive generic constraints like `class Node<T> where T: Node<T>`? (Should detect and report cycles)
+- How does the system handle recursive generic constraints like `class Node<T> where T: Node<T>`? (Allow with cycle detection during type resolution - supports self-referential patterns used in fluent APIs and comparable types)
 - What happens when type inference fails due to insufficient information? (Clear error message requiring explicit type arguments)
 - How does the system handle generic type instantiation with type arguments that don't satisfy constraints? (Compile-time error with constraint details)
 - What happens when a generic function is called with null and inference is ambiguous? (Error requiring explicit type arguments)
-- How does the system differentiate between `Stack<int>` and `Stack<long>` at runtime? (Type erasure vs reification decision needed)
+- How does the system differentiate between `Stack<int>` and `Stack<long>` at runtime? (Full .NET reification: Stack<int> and Stack<long> are distinct runtime types with complete type information preserved, enabling reflection and runtime type checks)
 - What happens when attempting to instantiate a generic type with void or incomplete types? (Compile-time error)
 
 ## Requirements *(mandatory)*
@@ -172,6 +182,11 @@ Developers need to use generic types as type arguments to other generic types (l
 - **FR-031**: System MUST prevent type parameter name conflicts within the same scope
 - **FR-032**: System MUST allow type parameters to be referenced anywhere within their defining class or function
 
+### Non-Functional Requirements
+
+- **NFR-001**: Generic type instantiation cache MUST limit entries to 10,000 unique instantiations with LRU eviction to prevent unbounded memory growth
+- **NFR-002**: Compilation time for programs using generics MUST increase by less than 15% compared to equivalent non-generic code (see SC-003)
+
 ### Key Entities
 
 - **TypeParameterDef**: Represents a declared type parameter with a name and optional constraints. Part of the AST model, attached to ClassDef or FunctionDef nodes.
@@ -186,7 +201,7 @@ Developers need to use generic types as type arguments to other generic types (l
 - **SC-001**: Developers can define a generic collection class (Stack, Queue, or List) with full type safety in under 20 lines of code
 - **SC-002**: Developers can call generic functions without explicit type arguments in 80% of common cases (successful type inference)
 - **SC-003**: Compilation time for programs using generics increases by less than 15% compared to equivalent non-generic code
-- **SC-004**: Type error messages for generic code include specific type parameter information and constraint violations in human-readable format
+- **SC-004**: Type error messages for generic code use structured format with error code, type parameter information, location (line/column), context (function/class name), and actionable hints for resolution
 - **SC-005**: Generic code passes all type safety tests (no successful compilation of type-violating code)
 - **SC-006**: 100% of existing non-generic code continues to compile without modification
 - **SC-007**: Developers can implement a generic sorting algorithm with type constraints in under 10 lines of constraint declaration
@@ -195,19 +210,19 @@ Developers need to use generic types as type arguments to other generic types (l
 
 ### Quality Metrics
 
-- **SC-010**: Generic type instantiation errors report line numbers, type parameter names, and specific constraint violations
+- **SC-010**: Generic type instantiation errors use structured diagnostic format reporting error code (GEN001-GEN006), exact location (line/column), type parameter names, constraint violations, declaration context, and actionable hints (e.g., "GEN003: Type 'MyClass' does not satisfy constraint 'IComparable<T>' at line 10, col 5. Hint: Implement IComparable.")
 - **SC-011**: Documentation includes at least 5 complete working examples of generic classes and functions
 - **SC-012**: Test suite includes tests for single type parameter, multiple type parameters, constraints, type inference, and nested generics
 - **SC-013**: All test scenarios from User Stories 1-6 pass with expected behavior
 
 ## Assumptions
 
-- The current Fifth grammar supports angle bracket syntax without ambiguity (less-than operator context can be distinguished)
+- The Fifth grammar uses contextual disambiguation with lookahead to distinguish angle bracket generic syntax from less-than operator (parser checks if < is followed by type name vs expression)
 - The .NET backend supports mapping Fifth generic types to .NET generic types
 - Type inference algorithm follows standard unification-based inference similar to C#/TypeScript
 - Constructor constraint checking can leverage existing type system capabilities for detecting parameterless constructors
 - Existing collection syntax `[T]` and `T[]` will be treated as sugar for `List<T>` and `Array<T>` once generics are implemented
-- Runtime will use reified generics (preserving type information) rather than type erasure, given .NET backend capabilities
+- Runtime uses full .NET reification (preserving complete type information at runtime), ensuring Stack<int> and Stack<string> are distinct types, enabling reflection and seamless .NET interop
 
 ## Dependencies
 
