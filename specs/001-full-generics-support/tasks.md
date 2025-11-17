@@ -348,7 +348,8 @@ Polish Phase (cross-cutting)
 - [ ] T097 Add generics section to `docs/learn5thInYMinutes.md` with examples from quickstart.md
 - [ ] T098 Run performance benchmarks: verify compilation time increase < 15% (SC-003), type inference < 100ms (per plan.md)
 - [ ] T099 Run full regression test suite: `dotnet test fifthlang.sln` to ensure 100% backward compatibility (SC-006)
-- [ ] T100 Update `.github/copilot-instructions.md` with final generic type support details (if not already updated by agent script)
+- [ ] T100 Review all generics documentation for completeness: verify `docs/learn5thInYMinutes.md` includes all examples from `quickstart.md`, ensure cross-references are accurate, validate that all user stories have corresponding documentation sections
+- [ ] T101 Update `.github/copilot-instructions.md` with final generic type support details (if not already updated by agent script)
 
 ---
 
