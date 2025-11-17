@@ -79,6 +79,10 @@ public static class FifthParserManager
         if (upTo >= AnalysisPhase.SymbolTableInitial)
             ast = new TypeParameterResolutionVisitor().Visit(ast);
 
+        // Infer generic type arguments after type parameter resolution (T045)
+        if (upTo >= AnalysisPhase.SymbolTableInitial)
+            ast = new GenericTypeInferenceVisitor().Visit(ast);
+
         try
         {
             if (upTo >= AnalysisPhase.PropertyToField)
