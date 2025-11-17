@@ -183,6 +183,25 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         var classDecl = ClassDeclaration(className)
             .AddModifiers(Token(SyntaxKind.PublicKeyword));
 
+        // Add type parameters if the class is generic (T093)
+        if (classDef.TypeParameters.Count > 0)
+        {
+            var typeParams = classDef.TypeParameters
+                .Select(tp => TypeParameter(SanitizeIdentifier(tp.Name.Value)))
+                .ToArray();
+            classDecl = classDecl.AddTypeParameterListParameters(typeParams);
+
+            // Add constraints for type parameters (T094)
+            foreach (var typeParam in classDef.TypeParameters)
+            {
+                var constraints = BuildTypeParameterConstraints(typeParam);
+                if (constraints != null)
+                {
+                    classDecl = classDecl.AddConstraintClauses(constraints);
+                }
+            }
+        }
+
         // Add members (which can be properties, methods, or fields)
         foreach (var member in classDef.MemberDefs)
         {
@@ -204,6 +223,52 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         }
 
         return classDecl;
+    }
+
+    /// <summary>
+    /// Builds type parameter constraints for Roslyn (T094).
+    /// Maps Fifth constraints to C# constraints:
+    /// - InterfaceConstraint → TypeConstraint
+    /// - BaseClassConstraint → ClassOrStructConstraint
+    /// - ConstructorConstraint → ConstructorConstraint
+    /// </summary>
+    private TypeParameterConstraintClauseSyntax? BuildTypeParameterConstraints(TypeParameterDef typeParam)
+    {
+        if (typeParam.Constraints.Count == 0)
+            return null;
+
+        var constraintList = new List<TypeParameterConstraintSyntax>();
+
+        foreach (var constraint in typeParam.Constraints)
+        {
+            switch (constraint)
+            {
+                case InterfaceConstraint interfaceConstraint:
+                    // Interface constraint: where T : IComparable
+                    var interfaceType = IdentifierName(SanitizeIdentifier(interfaceConstraint.InterfaceName.Value));
+                    constraintList.Add(TypeConstraint(interfaceType));
+                    break;
+
+                case BaseClassConstraint baseClassConstraint:
+                    // Base class constraint: where T : BaseClass
+                    var baseType = IdentifierName(SanitizeIdentifier(baseClassConstraint.BaseClassName.Value));
+                    constraintList.Add(TypeConstraint(baseType));
+                    break;
+
+                case ConstructorConstraint _:
+                    // Constructor constraint: where T : new()
+                    constraintList.Add(SyntaxFactory.ConstructorConstraint());
+                    break;
+            }
+        }
+
+        if (constraintList.Count == 0)
+            return null;
+
+        return TypeParameterConstraintClause(
+            IdentifierName(SanitizeIdentifier(typeParam.Name.Value)),
+            SeparatedList(constraintList)
+        );
     }
 
     private FieldDeclarationSyntax BuildFieldDeclaration(FieldDef field)
@@ -1431,6 +1496,25 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword))
             .WithParameterList(ParameterList(SeparatedList(parameters)))
             .WithBody(body);
+
+        // Add type parameters if the function is generic (T093, T095)
+        if (funcDef.TypeParameters.Count > 0)
+        {
+            var typeParams = funcDef.TypeParameters
+                .Select(tp => TypeParameter(SanitizeIdentifier(tp.Name.Value)))
+                .ToArray();
+            methodDecl = methodDecl.AddTypeParameterListParameters(typeParams);
+
+            // Add constraints for type parameters (T094)
+            foreach (var typeParam in funcDef.TypeParameters)
+            {
+                var constraints = BuildTypeParameterConstraints(typeParam);
+                if (constraints != null)
+                {
+                    methodDecl = methodDecl.AddConstraintClauses(constraints);
+                }
+            }
+        }
 
         // Add mapping entry for this method
         // Generate a unique node ID if not available
