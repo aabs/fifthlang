@@ -729,11 +729,11 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitFunction_declaration(FifthParser.Function_declarationContext context)
     {
-        var returnType = ResolveTypeFromName(context.result_type.GetText());
+        var returnType = ResolveTypeFromName(context.type_name().GetText());
 
         var b = new FunctionDefBuilder();
-        b.WithName(MemberName.From(context.name.GetText()))
-            .WithBody((BlockStatement)VisitBlock(context.body.block()))
+        b.WithName(MemberName.From(context.function_name().GetText()))
+            .WithBody((BlockStatement)VisitBlock(context.function_body().block()))
             .WithReturnType(returnType)
             .WithAnnotations([])
             .WithVisibility(Visibility.Public) // todo: grammar needs support for member visibility
