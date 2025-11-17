@@ -37,16 +37,17 @@ Each user story delivers independently testable value.
 
 ## Task Summary
 
-- **Total Tasks**: 89
+- **Total Tasks**: 101
 - **Setup Phase**: 5 tasks
 - **Foundational Phase**: 10 tasks
-- **US1 Phase**: 15 tasks (MVP)
-- **US2 Phase**: 13 tasks
+- **US1 Phase**: 18 tasks (MVP)
+- **US2 Phase**: 17 tasks
 - **US3 Phase**: 11 tasks
-- **US4 Phase**: 14 tasks
+- **US4 Phase**: 15 tasks
 - **US5 Phase**: 9 tasks
-- **US6 Phase**: 8 tasks
-- **Polish Phase**: 4 tasks
+- **US6 Phase**: 7 tasks
+- **Roslyn Backend Phase**: 4 tasks
+- **Polish Phase**: 5 tasks
 - **Parallelizable Tasks**: 42 (marked with [P])
 
 ---
@@ -348,7 +349,7 @@ Polish Phase (cross-cutting)
 - [ ] T097 Add generics section to `docs/learn5thInYMinutes.md` with examples from quickstart.md
 - [ ] T098 Run performance benchmarks: verify compilation time increase < 15% (SC-003), type inference < 100ms (per plan.md)
 - [ ] T099 Run full regression test suite: `dotnet test fifthlang.sln` to ensure 100% backward compatibility (SC-006)
-- [ ] T100 Review all generics documentation for completeness: verify `docs/learn5thInYMinutes.md` includes all examples from `quickstart.md`, ensure cross-references are accurate, validate that all user stories have corresponding documentation sections
+- [ ] T100 Review all generics documentation for completeness: verify `docs/learn5thInYMinutes.md` includes all examples from `specs/001-full-generics-support/quickstart.md`, ensure cross-references are accurate, validate that all user stories have corresponding documentation sections, and confirm examples demonstrate all six user stories (US1-US6)
 - [ ] T101 Update `.github/copilot-instructions.md` with final generic type support details (if not already updated by agent script)
 
 ---
@@ -379,4 +380,4 @@ Before marking the feature complete, verify:
 
 ---
 
-**Total: 100 tasks** | **MVP (US1): 33 tasks** | **Parallelizable: 42 tasks**
+**Total: 101 tasks** | **MVP (US1): 33 tasks** | **Parallelizable: 42 tasks**
