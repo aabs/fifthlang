@@ -75,6 +75,10 @@ public static class FifthParserManager
         if (upTo >= AnalysisPhase.SymbolTableInitial)
             ast = new SymbolTableBuilderVisitor().Visit(ast);
 
+        // Register type parameters in scope after symbol table building (T030)
+        if (upTo >= AnalysisPhase.SymbolTableInitial)
+            ast = new TypeParameterResolutionVisitor().Visit(ast);
+
         try
         {
             if (upTo >= AnalysisPhase.PropertyToField)

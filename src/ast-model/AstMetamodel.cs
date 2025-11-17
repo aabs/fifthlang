@@ -139,6 +139,7 @@ public enum SymbolKind
     TryStatement,
     TypeDef,
     TypeRef,
+    TypeParameter,  // Added for generic type parameters
     TriGLiteralExpression,
     SparqlLiteralExpression,
     VariableBinding,
