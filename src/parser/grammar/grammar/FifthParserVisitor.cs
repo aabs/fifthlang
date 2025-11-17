@@ -122,6 +122,36 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitType_name([NotNull] FifthParser.Type_nameContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.type_parameter_list"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitType_parameter_list([NotNull] FifthParser.Type_parameter_listContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.type_parameter"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitType_parameter([NotNull] FifthParser.Type_parameterContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.constraint_clause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitConstraint_clause([NotNull] FifthParser.Constraint_clauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.constraint_list"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitConstraint_list([NotNull] FifthParser.Constraint_listContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.type_constraint"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitType_constraint([NotNull] FifthParser.Type_constraintContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.block"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

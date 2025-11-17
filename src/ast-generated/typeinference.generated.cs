@@ -7,6 +7,10 @@ public interface ITypeChecker
 {
     public FifthType Infer(ScopeAstThing scope, AssemblyDef node);
     public FifthType Infer(ScopeAstThing scope, ModuleDef node);
+    public FifthType Infer(ScopeAstThing scope, TypeParameterDef node);
+    public FifthType Infer(ScopeAstThing scope, InterfaceConstraint node);
+    public FifthType Infer(ScopeAstThing scope, BaseClassConstraint node);
+    public FifthType Infer(ScopeAstThing scope, ConstructorConstraint node);
     public FifthType Infer(ScopeAstThing scope, FunctionDef node);
     public FifthType Infer(ScopeAstThing scope, FunctorDef node);
     public FifthType Infer(ScopeAstThing scope, FieldDef node);
@@ -104,6 +108,10 @@ public abstract class FunctionalTypeChecker : ITypeChecker
         {
             AssemblyDef node => Infer(scope, node),
             ModuleDef node => Infer(scope, node),
+            TypeParameterDef node => Infer(scope, node),
+            InterfaceConstraint node => Infer(scope, node),
+            BaseClassConstraint node => Infer(scope, node),
+            ConstructorConstraint node => Infer(scope, node),
             FunctionDef node => Infer(scope, node),
             FunctorDef node => Infer(scope, node),
             FieldDef node => Infer(scope, node),
@@ -195,6 +203,10 @@ public abstract class FunctionalTypeChecker : ITypeChecker
 
     public abstract FifthType Infer(ScopeAstThing scope, AssemblyDef node);
     public abstract FifthType Infer(ScopeAstThing scope, ModuleDef node);
+    public abstract FifthType Infer(ScopeAstThing scope, TypeParameterDef node);
+    public abstract FifthType Infer(ScopeAstThing scope, InterfaceConstraint node);
+    public abstract FifthType Infer(ScopeAstThing scope, BaseClassConstraint node);
+    public abstract FifthType Infer(ScopeAstThing scope, ConstructorConstraint node);
     public abstract FifthType Infer(ScopeAstThing scope, FunctionDef node);
     public abstract FifthType Infer(ScopeAstThing scope, FunctorDef node);
     public abstract FifthType Infer(ScopeAstThing scope, FieldDef node);

@@ -168,8 +168,113 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
     }
 
 }
+public class TypeParameterDefBuilder : IBuilder<ast.TypeParameterDef>
+{
+    private ast.TypeParameterName _Name;
+    private List<ast.TypeConstraint> _Constraints = [];
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.TypeParameterDef Build()
+    {
+        return new ast.TypeParameterDef(){
+             Name = this._Name // from TypeParameterDef
+           , Constraints = this._Constraints // from TypeParameterDef
+           , Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public TypeParameterDefBuilder WithName(ast.TypeParameterName value){
+        _Name = value;
+        return this;
+    }
+
+    public TypeParameterDefBuilder WithConstraints(List<ast.TypeConstraint> value){
+        _Constraints = value;
+        return this;
+    }
+
+    public TypeParameterDefBuilder AddingItemToConstraints(ast.TypeConstraint value){
+        _Constraints  ??= [];
+        _Constraints.Add(value);
+        return this;
+    }
+    public TypeParameterDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public TypeParameterDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class InterfaceConstraintBuilder : IBuilder<ast.InterfaceConstraint>
+{
+    private ast_model.TypeSystem.TypeName _InterfaceName;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.InterfaceConstraint Build()
+    {
+        return new ast.InterfaceConstraint(){
+             InterfaceName = this._InterfaceName // from InterfaceConstraint
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public InterfaceConstraintBuilder WithInterfaceName(ast_model.TypeSystem.TypeName value){
+        _InterfaceName = value;
+        return this;
+    }
+
+    public InterfaceConstraintBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class BaseClassConstraintBuilder : IBuilder<ast.BaseClassConstraint>
+{
+    private ast_model.TypeSystem.TypeName _BaseClassName;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.BaseClassConstraint Build()
+    {
+        return new ast.BaseClassConstraint(){
+             BaseClassName = this._BaseClassName // from BaseClassConstraint
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public BaseClassConstraintBuilder WithBaseClassName(ast_model.TypeSystem.TypeName value){
+        _BaseClassName = value;
+        return this;
+    }
+
+    public BaseClassConstraintBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class ConstructorConstraintBuilder : IBuilder<ast.ConstructorConstraint>
+{
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.ConstructorConstraint Build()
+    {
+        return new ast.ConstructorConstraint(){
+             Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public ConstructorConstraintBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
 {
+    private List<ast.TypeParameterDef> _TypeParameters = [];
     private List<ast.ParamDef> _Params = [];
     private ast.BlockStatement _Body;
     private ast_model.TypeSystem.FifthType _ReturnType;
@@ -184,7 +289,8 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
     public ast.FunctionDef Build()
     {
         return new ast.FunctionDef(){
-             Params = this._Params // from FunctionDef
+             TypeParameters = this._TypeParameters // from FunctionDef
+           , Params = this._Params // from FunctionDef
            , Body = this._Body // from FunctionDef
            , ReturnType = this._ReturnType // from FunctionDef
            , Name = this._Name // from FunctionDef
@@ -195,6 +301,16 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
            , SymbolTable = this._SymbolTable // from ScopeAstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
+    }
+    public FunctionDefBuilder WithTypeParameters(List<ast.TypeParameterDef> value){
+        _TypeParameters = value;
+        return this;
+    }
+
+    public FunctionDefBuilder AddingItemToTypeParameters(ast.TypeParameterDef value){
+        _TypeParameters  ??= [];
+        _TypeParameters.Add(value);
+        return this;
     }
     public FunctionDefBuilder WithParams(List<ast.ParamDef> value){
         _Params = value;
@@ -857,6 +973,7 @@ public class TypeDefBuilder : IBuilder<ast.TypeDef>
 public class ClassDefBuilder : IBuilder<ast.ClassDef>
 {
     private ast_model.TypeSystem.TypeName _Name;
+    private List<ast.TypeParameterDef> _TypeParameters = [];
     private List<ast.MemberDef> _MemberDefs = [];
     private List<System.String> _BaseClasses = [];
     private System.String _AliasScope;
@@ -869,6 +986,7 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
     {
         return new ast.ClassDef(){
              Name = this._Name // from ClassDef
+           , TypeParameters = this._TypeParameters // from ClassDef
            , MemberDefs = this._MemberDefs // from ClassDef
            , BaseClasses = this._BaseClasses // from ClassDef
            , AliasScope = this._AliasScope // from ClassDef
@@ -883,6 +1001,16 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
         return this;
     }
 
+    public ClassDefBuilder WithTypeParameters(List<ast.TypeParameterDef> value){
+        _TypeParameters = value;
+        return this;
+    }
+
+    public ClassDefBuilder AddingItemToTypeParameters(ast.TypeParameterDef value){
+        _TypeParameters  ??= [];
+        _TypeParameters.Add(value);
+        return this;
+    }
     public ClassDefBuilder WithMemberDefs(List<ast.MemberDef> value){
         _MemberDefs = value;
         return this;
