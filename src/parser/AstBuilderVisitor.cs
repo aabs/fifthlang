@@ -194,6 +194,17 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         b.WithVisibility(Visibility.Public);
         b.WithName(TypeName.From(context.name.Text));
         b.WithAnnotations([]);
+        
+        // Parse type parameters if present (T020)
+        if (context.type_parameter_list() != null)
+        {
+            var typeParams = ParseTypeParameterList(context.type_parameter_list());
+            foreach (var tp in typeParams)
+            {
+                b.AddingItemToTypeParameters(tp);
+            }
+        }
+        
         // Set optional features prior to building so they appear in the result
         if (context.superClass is not null)
         {
@@ -212,6 +223,56 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             Type = new FifthType.TType() { Name = TypeName.From(context.name.Text) }
         };
         return result;
+    }
+    
+    // Helper method to parse type parameters from grammar context (T021-T022)
+    private List<TypeParameterDef> ParseTypeParameterList(FifthParser.Type_parameter_listContext context)
+    {
+        var typeParams = new List<TypeParameterDef>();
+        foreach (var tpCtx in context.type_parameter())
+        {
+            var tpDef = new TypeParameterDef
+            {
+                Name = TypeParameterName.From(tpCtx.GetText()),
+                Constraints = [],
+                Visibility = Visibility.Public,
+                Annotations = [],
+                Location = GetLocationDetails(tpCtx)
+            };
+            typeParams.Add(tpDef);
+        }
+        return typeParams;
+    }
+
+    public override IAstThing VisitType_parameter_list(FifthParser.Type_parameter_listContext context)
+    {
+        // This method returns a list of TypeParameterDef
+        // We'll handle this in the calling code (VisitClass_definition or VisitFunction_declaration)
+        return null;
+    }
+
+    public override IAstThing VisitType_parameter(FifthParser.Type_parameterContext context)
+    {
+        // This is called by the type_parameter_list visitor
+        return null;
+    }
+
+    public override IAstThing VisitConstraint_clause(FifthParser.Constraint_clauseContext context)
+    {
+        // Returns a constraint clause to be attached to a type parameter
+        return null;
+    }
+
+    public override IAstThing VisitConstraint_list(FifthParser.Constraint_listContext context)
+    {
+        // Returns a list of constraints
+        return null;
+    }
+
+    public override IAstThing VisitType_constraint(FifthParser.Type_constraintContext context)
+    {
+        // Returns a single constraint (interface or base class)
+        return null;
     }
 
     public override IAstThing VisitDeclaration([NotNull] FifthParser.DeclarationContext context)
@@ -677,6 +738,17 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             .WithAnnotations([])
             .WithVisibility(Visibility.Public) // todo: grammar needs support for member visibility
             ;
+        
+        // Parse type parameters if present (T038)
+        if (context.type_parameter_list() != null)
+        {
+            var typeParams = ParseTypeParameterList(context.type_parameter_list());
+            foreach (var tp in typeParams)
+            {
+                b.AddingItemToTypeParameters(tp);
+            }
+        }
+        
         foreach (var paramdeclContext in context.paramdecl())
         {
             b.AddingItemToParams((ParamDef)VisitParamdecl(paramdeclContext));
