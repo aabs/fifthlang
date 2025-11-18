@@ -20,9 +20,9 @@ alias: ALIAS name = packagename AS iri SEMI;
 
 // ========[FUNC DEFS]========= Ex: Foo(x:int, y:int):int { . . . }
 function_declaration:
-	name = function_name L_PAREN (
+	name = function_name type_parameter_list? L_PAREN (
 		args += paramdecl (COMMA args += paramdecl)*
-	)? R_PAREN COLON result_type = type_name body = function_body;
+	)? R_PAREN COLON result_type = type_name constraint_clause* body = function_body;
 
 function_body: block;
 
@@ -50,9 +50,9 @@ destructure_binding:
 
 // ========[TYPE DEFINITIONS]=========
 class_definition:
-	CLASS name = IDENTIFIER (EXTENDS superClass = type_name)? (
+	CLASS name = IDENTIFIER type_parameter_list? (EXTENDS superClass = type_name)? (
 		IN aliasScope = alias_scope_ref
-	)? L_CURLY (
+	)? constraint_clause* L_CURLY (
 		functions += function_declaration
 		| properties += property_declaration
 	)* R_CURLY;
@@ -61,6 +61,18 @@ property_declaration:
 	name = IDENTIFIER COLON type = type_spec SEMI;
 
 type_name: IDENTIFIER;
+
+// Type parameter definitions for generics
+type_parameter_list: LESS type_parameter (COMMA type_parameter)* GREATER;
+
+type_parameter: IDENTIFIER;
+
+// Constraint clauses for generic type parameters
+constraint_clause: WHERE type_parameter COLON constraint_list;
+
+constraint_list: type_constraint (COMMA type_constraint)*;
+
+type_constraint: type_name;  // For now, constraints are just type names (interfaces or base classes)
 
 // ========[STATEMENTS]=========
 block: L_CURLY statement* R_CURLY;

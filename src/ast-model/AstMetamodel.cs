@@ -139,6 +139,7 @@ public enum SymbolKind
     TryStatement,
     TypeDef,
     TypeRef,
+    TypeParameter,  // Added for generic type parameters
     TriGLiteralExpression,
     SparqlLiteralExpression,
     VariableBinding,
@@ -192,6 +193,9 @@ public partial struct MemberName;
 
 [Ignore, ValueObject<string>]
 public partial struct NamespaceName;
+
+[Ignore, ValueObject<string>]
+public partial struct TypeParameterName;
 
 [Ignore, ValueObject<string>]
 public partial struct OperatorId;
@@ -336,11 +340,46 @@ public interface IOverloadableFunction
 }
 
 /// <summary>
+/// Represents a type parameter definition in a generic class or function (e.g., T in class Stack&lt;T&gt;)
+/// </summary>
+public record TypeParameterDef : Definition
+{
+    public required TypeParameterName Name { get; init; }
+    public required List<TypeConstraint> Constraints { get; init; } = [];
+}
+
+/// <summary>
+/// Base class for type parameter constraints (where T: IComparable, where T: new(), etc.)
+/// </summary>
+public abstract record TypeConstraint : AstThing;
+
+/// <summary>
+/// Interface constraint: requires type parameter to implement an interface (where T: IComparable)
+/// </summary>
+public record InterfaceConstraint : TypeConstraint
+{
+    public required TypeName InterfaceName { get; init; }
+}
+
+/// <summary>
+/// Base class constraint: requires type parameter to derive from a base class (where T: BaseClass)
+/// </summary>
+public record BaseClassConstraint : TypeConstraint
+{
+    public required TypeName BaseClassName { get; init; }
+}
+
+/// <summary>
+/// Constructor constraint: requires type parameter to have a parameterless constructor (where T: new())
+/// </summary>
+public record ConstructorConstraint : TypeConstraint;
+
+/// <summary>
 /// A bare function is a member of a singleton Global type.  A member, in other words.
 /// </summary>
 public record FunctionDef : ScopedDefinition, IOverloadableFunction
 {
-    // todo: need the possibility of type parameters here.
+    public required List<TypeParameterDef> TypeParameters { get; set; } = [];
     public required List<ParamDef> Params { get; set; } = [];
     public required BlockStatement Body { get; set; }
     public required FifthType ReturnType { get; init; }
@@ -489,6 +528,7 @@ public record TypeDef : Definition
 public record ClassDef : ScopedDefinition
 {
     public required TypeName Name { get; init; }
+    public required List<TypeParameterDef> TypeParameters { get; set; } = [];
     public required List<MemberDef> MemberDefs { get; set; } = [];
     public required List<string> BaseClasses { get; set; } = [];
     public required string? AliasScope { get; set; } = default;

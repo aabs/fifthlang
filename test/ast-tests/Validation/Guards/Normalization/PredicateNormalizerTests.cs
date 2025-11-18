@@ -70,6 +70,7 @@ public class PredicateNormalizerTests
         var complexFunctionDef = new FunctionDef
         {
             Name = MemberName.From("complexFunction"),
+            TypeParameters = [],
             Params = [],
             Body = new BlockStatement { Statements = [] },
             IsStatic = true,

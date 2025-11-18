@@ -26,6 +26,9 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     // Track variables that have been declared in the current method scope
     private HashSet<string> _declaredVariables = new HashSet<string>();
 
+    // Track class-level property/field names for the current class being translated
+    private HashSet<string> _classMembers = new HashSet<string>();
+
     /// <summary>
     /// Translate AssemblyDef (from IBackendTranslator interface)
     /// </summary>
@@ -179,9 +182,42 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private ClassDeclarationSyntax BuildClassDeclaration(ClassDef classDef, MappingTable mapping)
     {
+        // Clear and populate class members (properties and fields) to prevent shadowing
+        _classMembers.Clear();
+        foreach (var member in classDef.MemberDefs)
+        {
+            if (member is PropertyDef prop)
+            {
+                _classMembers.Add(SanitizeIdentifier(prop.Name.ToString()));
+            }
+            else if (member is FieldDef field)
+            {
+                _classMembers.Add(SanitizeIdentifier(field.Name.ToString()));
+            }
+        }
+
         var className = SanitizeIdentifier(classDef.Name.ToString());
         var classDecl = ClassDeclaration(className)
             .AddModifiers(Token(SyntaxKind.PublicKeyword));
+
+        // Add type parameters if the class is generic (T093)
+        if (classDef.TypeParameters.Count > 0)
+        {
+            var typeParams = classDef.TypeParameters
+                .Select(tp => TypeParameter(SanitizeIdentifier(tp.Name.Value)))
+                .ToArray();
+            classDecl = classDecl.AddTypeParameterListParameters(typeParams);
+
+            // Add constraints for type parameters (T094)
+            foreach (var typeParam in classDef.TypeParameters)
+            {
+                var constraints = BuildTypeParameterConstraints(typeParam);
+                if (constraints != null)
+                {
+                    classDecl = classDecl.AddConstraintClauses(constraints);
+                }
+            }
+        }
 
         // Add members (which can be properties, methods, or fields)
         foreach (var member in classDef.MemberDefs)
@@ -194,6 +230,21 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             else if (member is MethodDef method)
             {
                 var methodDecl = BuildMethodDeclarationFromMethodDef(method, mapping);
+
+                // If the method redeclares generic parameters that are already declared at the class level (same names),
+                // strip the method-level generic parameter list so C# treats them as the class's type parameters.
+                if (methodDecl.TypeParameterList != null && classDef.TypeParameters.Count > 0)
+                {
+                    var classTypeParamNames = classDef.TypeParameters.Select(tp => SanitizeIdentifier(tp.Name.Value)).ToHashSet();
+                    var methodTypeParamNames = methodDecl.TypeParameterList.Parameters.Select(p => p.Identifier.Text).ToList();
+
+                    if (methodTypeParamNames.All(n => classTypeParamNames.Contains(n)))
+                    {
+                        // Remove generic parameter list & any constraint clauses tied to them
+                        methodDecl = methodDecl.WithTypeParameterList(null)
+                                               .WithConstraintClauses(new SyntaxList<TypeParameterConstraintClauseSyntax>());
+                    }
+                }
                 classDecl = classDecl.AddMembers(methodDecl);
             }
             else if (member is FieldDef field)
@@ -204,6 +255,52 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         }
 
         return classDecl;
+    }
+
+    /// <summary>
+    /// Builds type parameter constraints for Roslyn (T094).
+    /// Maps Fifth constraints to C# constraints:
+    /// - InterfaceConstraint → TypeConstraint
+    /// - BaseClassConstraint → ClassOrStructConstraint
+    /// - ConstructorConstraint → ConstructorConstraint
+    /// </summary>
+    private TypeParameterConstraintClauseSyntax? BuildTypeParameterConstraints(TypeParameterDef typeParam)
+    {
+        if (typeParam.Constraints.Count == 0)
+            return null;
+
+        var constraintList = new List<TypeParameterConstraintSyntax>();
+
+        foreach (var constraint in typeParam.Constraints)
+        {
+            switch (constraint)
+            {
+                case InterfaceConstraint interfaceConstraint:
+                    // Interface constraint: where T : IComparable
+                    var interfaceType = IdentifierName(SanitizeIdentifier(interfaceConstraint.InterfaceName.Value));
+                    constraintList.Add(TypeConstraint(interfaceType));
+                    break;
+
+                case BaseClassConstraint baseClassConstraint:
+                    // Base class constraint: where T : BaseClass
+                    var baseType = IdentifierName(SanitizeIdentifier(baseClassConstraint.BaseClassName.Value));
+                    constraintList.Add(TypeConstraint(baseType));
+                    break;
+
+                case ConstructorConstraint _:
+                    // Constructor constraint: where T : new()
+                    constraintList.Add(SyntaxFactory.ConstructorConstraint());
+                    break;
+            }
+        }
+
+        if (constraintList.Count == 0)
+            return null;
+
+        return TypeParameterConstraintClause(
+            IdentifierName(SanitizeIdentifier(typeParam.Name.Value)),
+            SeparatedList(constraintList)
+        );
     }
 
     private FieldDeclarationSyntax BuildFieldDeclaration(FieldDef field)
@@ -309,19 +406,10 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         // Track that this variable has been declared
         _declaredVariables.Add(varName);
 
-        var typeName = MapTypeName(varDecl.VariableDecl.TypeName.ToString());
-
-        if (varDecl.VariableDecl.CollectionType == ast.CollectionType.Array ||
-            varDecl.VariableDecl.CollectionType == ast.CollectionType.List)
-        {
-            typeName = $"{typeName}[]";
-        }
+        // Use CreateTypeSyntax which already handles collection types and the [T] -> List<T> mapping
+        var declaredType = CreateTypeSyntax(varDecl.VariableDecl.TypeName.ToString(), varDecl.VariableDecl.CollectionType);
 
         var useVarType = varDecl.InitialValue is List;
-
-        var declaredType = useVarType
-            ? IdentifierName("var")
-            : ParseTypeName(typeName);
 
         if (varDecl.InitialValue != null)
         {
@@ -398,6 +486,22 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         if (assignStmt.LValue is VarRefExp varRef)
         {
             var varName = SanitizeIdentifier(varRef.VarName);
+
+            // If this is a class member (property/field), generate this.PropertyName assignment
+            if (_classMembers.Contains(varName))
+            {
+                var memberTarget = MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    ThisExpression(),
+                    IdentifierName(varName));
+                var memberValue = TranslateExpression(assignStmt.RValue);
+
+                return ExpressionStatement(
+                    AssignmentExpression(
+                        SyntaxKind.SimpleAssignmentExpression,
+                        memberTarget,
+                        memberValue));
+            }
 
             // If this variable hasn't been declared yet, create a declaration with var
             if (!_declaredVariables.Contains(varName))
@@ -989,6 +1093,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 argumentsInst2.Add(Argument(argExpr));
             }
 
+            // Special case: translate collection Item(idx) access to indexer syntax obj[idx]
+            if (string.Equals(methodName, "Item", StringComparison.Ordinal) && argumentsInst2.Count == 1)
+            {
+                return ElementAccessExpression(objExpr)
+                    .WithArgumentList(BracketedArgumentList(SingletonSeparatedList(argumentsInst2[0])));
+            }
+
             var member2 = MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 objExpr,
@@ -1045,28 +1156,34 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             return TranslateArrayCreationExpression(objInit, arrayType);
         }
 
-        string typeName;
+        // Also handle TListOf which is used for Fifth's [T] syntax
+        if (objInit.TypeToInitialize is FifthType.TListOf listType)
+        {
+            return TranslateListCreationExpression(objInit, listType);
+        }
+
+        string typeName2;
         try
         {
             // Try to get the type name from the FifthType
             if (objInit.TypeToInitialize != null)
             {
-                typeName = SanitizeIdentifier(objInit.TypeToInitialize.Name.ToString());
+                typeName2 = SanitizeIdentifier(objInit.TypeToInitialize.Name.ToString());
             }
             else
             {
-                typeName = "object";
+                typeName2 = "object";
             }
         }
         catch
         {
-            typeName = "object";
+            typeName2 = "object";
         }
 
         // If there are no property initializers, create simple object creation: new TypeName()
         if (objInit.PropertyInitialisers == null || objInit.PropertyInitialisers.Count == 0)
         {
-            return ObjectCreationExpression(IdentifierName(typeName))
+            return ObjectCreationExpression(IdentifierName(typeName2))
                 .WithArgumentList(ArgumentList());
         }
 
@@ -1103,7 +1220,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             initializers.Add(assignment);
         }
 
-        return ObjectCreationExpression(IdentifierName(typeName))
+        return ObjectCreationExpression(IdentifierName(typeName2))
             .WithInitializer(
                 InitializerExpression(
                     SyntaxKind.ObjectInitializerExpression,
@@ -1112,52 +1229,64 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private ExpressionSyntax TranslateArrayCreationExpression(ObjectInitializerExp objInit, FifthType.TArrayOf arrayType)
     {
+        // Treat Fifth array syntax [T] as List<T> for dynamic operations (Add, RemoveAt, Item). Generate new List<T>() with optional initializer.
         var elementTypeName = ExtractTypeName(arrayType.ElementType);
-        var elementTypeSyntax = ParseTypeName(elementTypeName);
+        var listType = GenericName(Identifier("List"))
+            .WithTypeArgumentList(
+                TypeArgumentList(
+                    SingletonSeparatedList<TypeSyntax>(ParseTypeName(elementTypeName))));
 
-        ExpressionSyntax? sizeExpression = null;
-        if (objInit.Annotations != null &&
-            objInit.Annotations.TryGetValue("ArraySize", out var sizeObj) &&
-            sizeObj is Expression arraySize)
-        {
-            sizeExpression = TranslateExpression(arraySize);
-        }
+        ObjectCreationExpressionSyntax creation = ObjectCreationExpression(listType)
+            .WithArgumentList(ArgumentList());
 
-        List<ExpressionSyntax>? initializerElements = null;
         if (objInit.PropertyInitialisers != null && objInit.PropertyInitialisers.Count > 0)
         {
-            initializerElements = new List<ExpressionSyntax>();
+            var elements = new List<ExpressionSyntax>();
             foreach (var propInit in objInit.PropertyInitialisers)
             {
                 if (propInit.RHS != null)
                 {
-                    initializerElements.Add(TranslateExpression(propInit.RHS));
+                    elements.Add(TranslateExpression(propInit.RHS));
                 }
             }
-        }
-
-        ExpressionSyntax rankSizeExpression = sizeExpression ??
-            (initializerElements != null
-                ? (ExpressionSyntax)OmittedArraySizeExpression()
-                : LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0)));
-
-        var arrayTypeSyntax = ArrayType(elementTypeSyntax)
-            .WithRankSpecifiers(
-                SingletonList(
-                    ArrayRankSpecifier(
-                        SingletonSeparatedList(rankSizeExpression))));
-
-        var arrayCreation = ArrayCreationExpression(arrayTypeSyntax);
-
-        if (initializerElements != null)
-        {
-            arrayCreation = arrayCreation.WithInitializer(
+            creation = creation.WithInitializer(
                 InitializerExpression(
-                    SyntaxKind.ArrayInitializerExpression,
-                    SeparatedList(initializerElements)));
+                    SyntaxKind.CollectionInitializerExpression,
+                    SeparatedList(elements)));
         }
 
-        return arrayCreation;
+        return creation;
+    }
+
+    private ExpressionSyntax TranslateListCreationExpression(ObjectInitializerExp objInit, FifthType.TListOf listType)
+    {
+        // Handle TListOf same as TArrayOf - generate new List<T>()
+        var elementTypeName = ExtractTypeName(listType.ElementType);
+        var genericListType = GenericName(Identifier("List"))
+            .WithTypeArgumentList(
+                TypeArgumentList(
+                    SingletonSeparatedList<TypeSyntax>(ParseTypeName(elementTypeName))));
+
+        ObjectCreationExpressionSyntax creation = ObjectCreationExpression(genericListType)
+            .WithArgumentList(ArgumentList());
+
+        if (objInit.PropertyInitialisers != null && objInit.PropertyInitialisers.Count > 0)
+        {
+            var elements = new List<ExpressionSyntax>();
+            foreach (var propInit in objInit.PropertyInitialisers)
+            {
+                if (propInit.RHS != null)
+                {
+                    elements.Add(TranslateExpression(propInit.RHS));
+                }
+            }
+            creation = creation.WithInitializer(
+                InitializerExpression(
+                    SyntaxKind.CollectionInitializerExpression,
+                    SeparatedList(elements)));
+        }
+
+        return creation;
     }
 
     private ExpressionSyntax TranslateUnaryExpression(UnaryExp unary)
@@ -1243,9 +1372,10 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         // Examples: [int] -> int[], [[int]] -> int[][]
         if (fifthTypeName.StartsWith("[") && fifthTypeName.EndsWith("]"))
         {
+            // Recursively convert bracketed types to nested List<...>
             var innerType = fifthTypeName.Substring(1, fifthTypeName.Length - 2);
             var mappedInner = MapTypeName(innerType);
-            return $"{mappedInner}[]";
+            return $"System.Collections.Generic.List<{mappedInner}>";
         }
 
         // Also handle legacy list<T> syntax for compatibility
@@ -1253,7 +1383,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         {
             var innerType = fifthTypeName.Substring(5, fifthTypeName.Length - 6);
             var mappedInner = MapTypeName(innerType);
-            return $"{mappedInner}[]";
+            return $"System.Collections.Generic.List<{mappedInner}>";
         }
 
         return fifthTypeName switch
@@ -1281,10 +1411,11 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     {
         var mappedType = MapTypeName(typeName);
 
+        // If collection type is Array or List and mappedType is not already a generic List, wrap as List<T>
         if ((collectionType == ast.CollectionType.Array || collectionType == ast.CollectionType.List)
-            && !mappedType.EndsWith("[]", StringComparison.Ordinal))
+            && !mappedType.StartsWith("System.Collections.Generic.List<", StringComparison.Ordinal))
         {
-            mappedType += "[]";
+            mappedType = $"System.Collections.Generic.List<{mappedType}>";
         }
 
         return ParseTypeName(mappedType);
@@ -1432,6 +1563,25 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             .WithParameterList(ParameterList(SeparatedList(parameters)))
             .WithBody(body);
 
+        // Add type parameters if the function is generic (T093, T095)
+        if (funcDef.TypeParameters.Count > 0)
+        {
+            var typeParams = funcDef.TypeParameters
+                .Select(tp => TypeParameter(SanitizeIdentifier(tp.Name.Value)))
+                .ToArray();
+            methodDecl = methodDecl.AddTypeParameterListParameters(typeParams);
+
+            // Add constraints for type parameters (T094)
+            foreach (var typeParam in funcDef.TypeParameters)
+            {
+                var constraints = BuildTypeParameterConstraints(typeParam);
+                if (constraints != null)
+                {
+                    methodDecl = methodDecl.AddConstraintClauses(constraints);
+                }
+            }
+        }
+
         // Add mapping entry for this method
         // Generate a unique node ID if not available
         var nodeId = $"func_{methodName}_{Guid.NewGuid().ToString("N")[..8]}";
@@ -1457,21 +1607,46 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         if (fifthType == null)
             return "void";
 
+        // Handle specific FifthType discriminated union cases first
+        switch (fifthType)
+        {
+            case FifthType.TVoidType:
+                return "void";
+
+            case FifthType.TDotnetType dotnetType:
+                return dotnetType.TheType.Name;
+
+            case FifthType.TGenericParameter genericParam:
+                // For generic parameters like T, extract the parameter name
+                return SanitizeIdentifier(genericParam.ParameterName.Value);
+
+            case FifthType.TArrayOf arrayOf:
+                // For arrays like [T], recursively extract element type and add []
+                var elementTypeName = ExtractTypeName(arrayOf.ElementType);
+                return $"{elementTypeName}[]";
+
+            case FifthType.TListOf listOf:
+                // For lists, treat as arrays for C# generation
+                var listElementTypeName = ExtractTypeName(listOf.ElementType);
+                return $"{listElementTypeName}[]";
+
+            case FifthType.TGenericInstance genericInstance:
+                // For generic instantiations like Stack<int>, format with type arguments
+                var baseTypeName = SanitizeIdentifier(genericInstance.GenericTypeDefinition.ToString());
+                var typeArgs = string.Join(", ", genericInstance.TypeArguments.Select(ExtractTypeName));
+                return $"{baseTypeName}<{typeArgs}>";
+        }
+
+        // Fallback: try to use the Name property
         try
         {
-            // FifthType has a Name property that is a TypeName
             var typeName = fifthType.Name.ToString();
             return MapTypeName(typeName);
         }
         catch
         {
-            // Fallback for complex types or errors
-            return fifthType switch
-            {
-                FifthType.TVoidType => "void",
-                FifthType.TDotnetType dotnetType => dotnetType.TheType.Name,
-                _ => "object"
-            };
+            // Last resort fallback
+            return "object";
         }
     }
 

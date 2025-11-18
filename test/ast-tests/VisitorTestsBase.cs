@@ -29,6 +29,7 @@ public class VisitorTestsBase
             Name = MemberName.From(name),
             ReturnType = new FifthType.TType() { Name = TypeName.From(returnType) },
             Visibility = Visibility.Public,
+            TypeParameters = [],
             Params = [],
             Body = new BlockStatement()
             {
@@ -51,6 +52,7 @@ public class VisitorTestsBase
             Name = MemberName.From(name),
             ReturnType = new FifthType.TType() { Name = TypeName.From(returnType) },
             Visibility = Visibility.Public,
+            TypeParameters = [],
             Params = [],
             Body = new BlockStatement
             {

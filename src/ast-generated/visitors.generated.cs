@@ -8,6 +8,14 @@ public interface IAstVisitor
     public void LeaveAssemblyDef(AssemblyDef ctx);
     public void EnterModuleDef(ModuleDef ctx);
     public void LeaveModuleDef(ModuleDef ctx);
+    public void EnterTypeParameterDef(TypeParameterDef ctx);
+    public void LeaveTypeParameterDef(TypeParameterDef ctx);
+    public void EnterInterfaceConstraint(InterfaceConstraint ctx);
+    public void LeaveInterfaceConstraint(InterfaceConstraint ctx);
+    public void EnterBaseClassConstraint(BaseClassConstraint ctx);
+    public void LeaveBaseClassConstraint(BaseClassConstraint ctx);
+    public void EnterConstructorConstraint(ConstructorConstraint ctx);
+    public void LeaveConstructorConstraint(ConstructorConstraint ctx);
     public void EnterFunctionDef(FunctionDef ctx);
     public void LeaveFunctionDef(FunctionDef ctx);
     public void EnterFunctorDef(FunctorDef ctx);
@@ -184,6 +192,14 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveAssemblyDef(AssemblyDef ctx){}
     public virtual void EnterModuleDef(ModuleDef ctx){}
     public virtual void LeaveModuleDef(ModuleDef ctx){}
+    public virtual void EnterTypeParameterDef(TypeParameterDef ctx){}
+    public virtual void LeaveTypeParameterDef(TypeParameterDef ctx){}
+    public virtual void EnterInterfaceConstraint(InterfaceConstraint ctx){}
+    public virtual void LeaveInterfaceConstraint(InterfaceConstraint ctx){}
+    public virtual void EnterBaseClassConstraint(BaseClassConstraint ctx){}
+    public virtual void LeaveBaseClassConstraint(BaseClassConstraint ctx){}
+    public virtual void EnterConstructorConstraint(ConstructorConstraint ctx){}
+    public virtual void LeaveConstructorConstraint(ConstructorConstraint ctx){}
     public virtual void EnterFunctionDef(FunctionDef ctx){}
     public virtual void LeaveFunctionDef(FunctionDef ctx){}
     public virtual void EnterFunctorDef(FunctorDef ctx){}
@@ -360,6 +376,10 @@ public interface IAstRecursiveDescentVisitor
     public AstThing Visit(AstThing ctx);
     public AssemblyDef VisitAssemblyDef(AssemblyDef ctx);
     public ModuleDef VisitModuleDef(ModuleDef ctx);
+    public TypeParameterDef VisitTypeParameterDef(TypeParameterDef ctx);
+    public InterfaceConstraint VisitInterfaceConstraint(InterfaceConstraint ctx);
+    public BaseClassConstraint VisitBaseClassConstraint(BaseClassConstraint ctx);
+    public ConstructorConstraint VisitConstructorConstraint(ConstructorConstraint ctx);
     public FunctionDef VisitFunctionDef(FunctionDef ctx);
     public FunctorDef VisitFunctorDef(FunctorDef ctx);
     public FieldDef VisitFieldDef(FieldDef ctx);
@@ -454,6 +474,10 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         {
              AssemblyDef node => VisitAssemblyDef(node),
              ModuleDef node => VisitModuleDef(node),
+             TypeParameterDef node => VisitTypeParameterDef(node),
+             InterfaceConstraint node => VisitInterfaceConstraint(node),
+             BaseClassConstraint node => VisitBaseClassConstraint(node),
+             ConstructorConstraint node => VisitConstructorConstraint(node),
              FunctionDef node => VisitFunctionDef(node),
              FunctorDef node => VisitFunctorDef(node),
              FieldDef node => VisitFieldDef(node),
@@ -565,12 +589,38 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         ,Functions = tmpFunctions
         };
     }
+    public virtual TypeParameterDef VisitTypeParameterDef(TypeParameterDef ctx)
+    {
+        List<ast.TypeConstraint> tmpConstraints = [];
+        tmpConstraints.AddRange(ctx.Constraints.Select(x => (ast.TypeConstraint)Visit(x)));
+     return ctx with {
+         Constraints = tmpConstraints
+        };
+    }
+    public virtual InterfaceConstraint VisitInterfaceConstraint(InterfaceConstraint ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual BaseClassConstraint VisitBaseClassConstraint(BaseClassConstraint ctx)
+    {
+     return ctx with {
+        };
+    }
+    public virtual ConstructorConstraint VisitConstructorConstraint(ConstructorConstraint ctx)
+    {
+     return ctx with {
+        };
+    }
     public virtual FunctionDef VisitFunctionDef(FunctionDef ctx)
     {
+        List<ast.TypeParameterDef> tmpTypeParameters = [];
+        tmpTypeParameters.AddRange(ctx.TypeParameters.Select(x => (ast.TypeParameterDef)Visit(x)));
         List<ast.ParamDef> tmpParams = [];
         tmpParams.AddRange(ctx.Params.Select(x => (ast.ParamDef)Visit(x)));
      return ctx with {
-         Params = tmpParams
+         TypeParameters = tmpTypeParameters
+        ,Params = tmpParams
         ,Body = (ast.BlockStatement)Visit((AstThing)ctx.Body)
         };
     }
@@ -650,10 +700,13 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     }
     public virtual ClassDef VisitClassDef(ClassDef ctx)
     {
+        List<ast.TypeParameterDef> tmpTypeParameters = [];
+        tmpTypeParameters.AddRange(ctx.TypeParameters.Select(x => (ast.TypeParameterDef)Visit(x)));
         List<ast.MemberDef> tmpMemberDefs = [];
         tmpMemberDefs.AddRange(ctx.MemberDefs.Select(x => (ast.MemberDef)Visit(x)));
      return ctx with {
-         MemberDefs = tmpMemberDefs
+         TypeParameters = tmpTypeParameters
+        ,MemberDefs = tmpMemberDefs
         };
     }
     public virtual VariableDecl VisitVariableDecl(VariableDecl ctx)
