@@ -383,3 +383,4 @@ TestResults/
 gen/
 issues/
 samples/generics/main.5th
+samples/generics/main
