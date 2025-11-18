@@ -95,14 +95,27 @@ Developers instantiate generic classes and rely on constructors referencing clas
 - **FR-CTOR-005**: If no constructors are declared and any required field lacks initialization, compilation MUST emit a diagnostic requiring an explicit constructor.
 - **FR-CTOR-006**: Each constructor overload MUST have a unique ordered parameter type list.
 - **FR-CTOR-007**: Object creation MUST select a single best overload or produce an ambiguity diagnostic.
-- **FR-CTOR-008**: Constructor bodies MUST NOT return a value; `return;` is allowed.
+- **FR-CTOR-008**: Constructor bodies MUST NOT return a value; `return;` (without expression) is allowed for early exit. Any `return <expr>;` form MUST produce diagnostic CTOR009 with the location and constructor signature.
 - **FR-CTOR-009**: All required fields MUST be definitely assigned along all execution paths prior to constructor completion.
 - **FR-CTOR-010**: Derived class constructors MUST invoke a base constructor if the base lacks a parameterless constructor.
 - **FR-CTOR-011**: Base constructor invocation MUST appear in a leading initializer `: base(...)` preceding the body.
-- **FR-CTOR-012**: Parameters may shadow field names; qualification via `this.` MUST be supported and required for disambiguation.
+- **FR-CTOR-012**: Parameters may shadow field names; qualification via `this.` MUST be supported and required for disambiguation. When a parameter name matches a field name, unqualified assignment assigns to the parameter (no-op); field assignment requires `this.fieldName = value;`. Missing qualification does not produce a diagnostic but results in ineffective assignment (the field remains uninitialized). Static analysis SHOULD detect this pattern and emit a warning (future enhancement).
+
+**Example**:
+```fifth
+class Person {
+    Name: string;
+    
+    Person(string Name) {
+        Name = Name;           // No-op: assigns parameter to itself
+        this.Name = Name;      // Correct: assigns parameter to field
+    }
+}
+```
+
 - **FR-CTOR-013**: Object creation MUST validate argument arity and type compatibility with the resolved constructor.
 - **FR-CTOR-014**: In generic classes, constructor parameter types referencing class type parameters MUST reflect concrete arguments at instantiation.
-- **FR-CTOR-015**: Constructors MUST reject disallowed modifiers (e.g., async) with a diagnostic.
+- **FR-CTOR-015**: Constructors MUST reject disallowed modifiers with diagnostic CTOR010. Forbidden modifiers: `async`, `static`, `abstract`, `virtual`, `override`, `sealed`. Only visibility modifiers (`public`, `private`, `protected`, `internal`) are permitted.
 - **FR-CTOR-016**: Cyclic base constructor requirements MUST be detected and reported.
 - **FR-CTOR-017**: User-declared parameterless constructor MUST suppress synthesis of an implicit one.
 - **FR-CTOR-018**: `null` arguments for unconstrained generic parameters MUST follow standard type compatibility rules without special inference.
@@ -115,6 +128,40 @@ Developers instantiate generic classes and rely on constructors referencing clas
 - **Base Constructor**: Parent class constructor potentially required for proper inherited state setup.
 - **Field**: Named piece of data; may be required (non-nullable, no default) or optional.
 - **Generic Class**: Class parameterized by one or more type parameters whose concrete types influence constructor parameter types and field types.
+
+## Diagnostic Codes *(mandatory)*
+
+All constructor-related diagnostics use structured codes CTOR001–CTOR010 with JSON-formatted output.
+
+| Code | Severity | Triggered By | Message Pattern | Related FR |
+|------|----------|--------------|-----------------|------------|
+| CTOR001 | Error | No matching constructor found | "No constructor found for class '{ClassName}' matching arguments ({ArgTypes})" | FR-CTOR-007, FR-CTOR-013 |
+| CTOR002 | Error | Ambiguous overload | "Ambiguous constructor call for class '{ClassName}'. Candidates: {CandidateSignatures}" | FR-CTOR-007 |
+| CTOR003 | Error | Unassigned required field | "Constructor for '{ClassName}' does not assign required fields: {FieldList}" | FR-CTOR-009 |
+| CTOR004 | Error | Missing base constructor call | "Constructor for '{ClassName}' must invoke base constructor; base class '{BaseClassName}' has no parameterless constructor" | FR-CTOR-010, FR-CTOR-011 |
+| CTOR005 | Error | Cannot synthesize parameterless | "Cannot synthesize parameterless constructor for '{ClassName}'; required fields lack defaults: {FieldList}" | FR-CTOR-004, FR-CTOR-005 |
+| CTOR006 | Error | Duplicate constructor signature | "Duplicate constructor signature for '{ClassName}': {Signature}" | FR-CTOR-006 |
+| CTOR007 | Error | Invalid constructor type parameter | "Constructor '{ClassName}' cannot declare independent type parameters; only class-level type parameters allowed" | FR-CTOR-003 |
+| CTOR008 | Error | Cyclic base constructor | "Cyclic base constructor dependency detected: {CyclePath}" | FR-CTOR-016 |
+| CTOR009 | Error | Value return in constructor | "Constructor '{ClassName}' cannot return a value; use 'return;' without expression" | FR-CTOR-008 |
+| CTOR010 | Error | Forbidden modifier | "Constructor '{ClassName}' has forbidden modifier '{Modifier}'; constructors cannot be {ModifierList}" | FR-CTOR-015 |
+
+### Diagnostic JSON Schema
+```json
+{
+  "code": "CTOR00X",
+  "severity": "Error",
+  "message": "...",
+  "class": "ClassName",
+  "signature": "ClassName(ParamTypes)",
+  "location": {
+    "file": "path/to/file.5th",
+    "line": 42,
+    "column": 10
+  },
+  "hint": "Actionable suggestion..."
+}
+```
 
 ## Success Criteria *(mandatory)*
 

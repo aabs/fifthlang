@@ -47,6 +47,14 @@ This is a compiler feature spanning multiple projects in the Fifth language mono
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
+### Foundational Tests (Write FIRST - Must FAIL before implementation)
+
+- [ ] T003a [P] Parser test expecting failure for minimal constructor syntax in test/syntax-parser-tests/ConstructorParsingTests.cs
+- [ ] T003b [P] Parser test expecting failure for base constructor call in test/syntax-parser-tests/ConstructorParsingTests.cs
+- [ ] T003c [P] Verify tests fail due to missing grammar/metamodel support
+
+### Foundational Implementation (After tests fail)
+
 - [ ] T004 Add ConstructorDef to AstMetamodel.cs in src/ast-model/AstMetamodel.cs
 - [ ] T005 Add BaseConstructorCall to AstMetamodel.cs in src/ast-model/AstMetamodel.cs
 - [ ] T006 Add InstantiationExpression updates to AstMetamodel.cs in src/ast-model/AstMetamodel.cs
@@ -55,8 +63,28 @@ This is a compiler feature spanning multiple projects in the Fifth language mono
 - [ ] T009 Update FifthLexer.g4 if new keywords needed in src/parser/grammar/FifthLexer.g4
 - [ ] T010 Implement VisitConstructorDeclaration in AstBuilderVisitor.cs in src/parser/AstBuilderVisitor.cs
 - [ ] T011 Implement VisitBaseConstructorCall in AstBuilderVisitor.cs in src/parser/AstBuilderVisitor.cs
-- [ ] T012 Create diagnostic codes CTOR001-CTOR008 in src/compiler/Diagnostics/ following existing pattern
+- [ ] T012 Create diagnostic codes CTOR001-CTOR010 in src/compiler/Diagnostics/ following existing pattern
 - [ ] T013 Build solution to validate metamodel and grammar changes: dotnet build fifthlang.sln
+
+### Additional Foundational Tests (Value Return Prohibition)
+
+- [ ] T013a [P] Parser negative test for `return expr;` in constructor in test/syntax-parser-tests/ConstructorParsingTests.cs
+- [ ] T013b [P] Semantic test expecting CTOR009 for value return in test/runtime-integration-tests/ConstructorDiagnosticTests.cs
+
+### Additional Foundational Tests (Parameter Shadowing)
+
+- [ ] T013c [P] Parser test for shadowed parameter with/without this qualification in test/syntax-parser-tests/ConstructorParsingTests.cs
+- [ ] T013d [P] Semantic test verifying field uninitialized when unqualified in test/ast-tests/ShadowingTests.cs (new file)
+
+### Additional Foundational Tests (Forbidden Modifiers)
+
+- [ ] T013e [P] Parser negative test for async constructor in test/syntax-parser-tests/ConstructorParsingTests.cs
+- [ ] T013f [P] Parser negative test for static constructor in test/syntax-parser-tests/ConstructorParsingTests.cs
+- [ ] T013g [P] Semantic test expecting CTOR010 for each forbidden modifier in test/runtime-integration-tests/ConstructorDiagnosticTests.cs
+
+### Foundational Validation (Verify tests now PASS)
+
+- [ ] T013h Verify T003a-T003c now pass after implementation
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -88,6 +116,8 @@ This is a compiler feature spanning multiple projects in the Fifth language mono
 - [ ] T024 [US1] Update ParserManager.cs pipeline to include constructor resolution pass in src/compiler/ParserManager.cs
 - [ ] T025 [US1] Validate tests pass: dotnet test test/syntax-parser-tests/ --filter FullyQualifiedName~BasicConstructor
 - [ ] T026 [US1] Validate runtime tests pass: dotnet test test/runtime-integration-tests/ --filter FullyQualifiedName~BasicConstructor
+- [ ] T026a [US1] Implement CTOR009 emission for value return in src/compiler/SemanticAnalysis/ConstructorValidator.cs (new file)
+- [ ] T026b [US1] Implement CTOR010 emission for forbidden modifiers in src/compiler/SemanticAnalysis/ConstructorValidator.cs
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -199,6 +229,11 @@ This is a compiler feature spanning multiple projects in the Fifth language mono
 - [ ] T071 [US5] Update overload resolution to handle generic parameter substitution in src/compiler/SemanticAnalysis/ConstructorResolver.cs
 - [ ] T072 [US5] Validate tests pass: dotnet test test/runtime-integration-tests/ --filter FullyQualifiedName~GenericConstructor
 
+### Additional Generic Constructor Tests
+
+- [ ] T072a [P] [US5] Semantic test verifying type parameters bound before field type resolution in test/ast-tests/TypeBindingTests.cs (new file)
+- [ ] T072b [P] [US5] Integration test for generic constructor accessing generic field types in test/runtime-integration-tests/GenericConstructorTests.cs
+
 **Checkpoint**: Generic class constructors should work correctly with type substitution
 
 ---
@@ -238,7 +273,21 @@ This is a compiler feature spanning multiple projects in the Fifth language mono
 - [ ] T089 [P] Validate all example .5th files parse correctly via scripts/validate-examples.fish
 - [ ] T090 Create performance benchmark for 200-constructor synthetic class in test/perf/ConstructorBenchmarks.cs (new file)
 - [ ] T091 Run performance benchmarks and validate <5% compile time increase
-- [ ] T092 [P] Add negative diagnostic tests for all CTOR001-CTOR008 codes in test/runtime-integration-tests/ConstructorDiagnosticTests.cs (new file)
+- [ ] T092 [P] Add negative diagnostic tests for all CTOR001-CTOR010 codes in test/runtime-integration-tests/ConstructorDiagnosticTests.cs (new file)
+
+### Diagnostic Formatting Tests
+
+- [ ] T092a [P] Test CTOR001 JSON output structure in test/runtime-integration-tests/ConstructorDiagnosticTests.cs
+- [ ] T092b [P] Test CTOR002 JSON output structure in test/runtime-integration-tests/ConstructorDiagnosticTests.cs
+- [ ] T092c [P] Test CTOR003 JSON output structure in test/runtime-integration-tests/ConstructorDiagnosticTests.cs
+- [ ] T092d [P] Test CTOR004 JSON output structure in test/runtime-integration-tests/ConstructorDiagnosticTests.cs
+- [ ] T092e [P] Test CTOR005 JSON output structure in test/runtime-integration-tests/ConstructorDiagnosticTests.cs
+- [ ] T092f [P] Test CTOR006 JSON output structure in test/runtime-integration-tests/ConstructorDiagnosticTests.cs
+- [ ] T092g [P] Test CTOR007 JSON output structure in test/runtime-integration-tests/ConstructorDiagnosticTests.cs
+- [ ] T092h [P] Test CTOR008 JSON output structure in test/runtime-integration-tests/ConstructorDiagnosticTests.cs
+- [ ] T092i [P] Test CTOR009 JSON output structure in test/runtime-integration-tests/ConstructorDiagnosticTests.cs
+- [ ] T092j [P] Test CTOR010 JSON output structure in test/runtime-integration-tests/ConstructorDiagnosticTests.cs
+
 - [ ] T093 Run full test suite: dotnet test fifthlang.sln
 - [ ] T094 Validate quickstart.md instructions in specs/001-constructor-functions/quickstart.md
 - [ ] T095 Update AGENTS.md with constructor feature notes if needed in AGENTS.md
@@ -337,10 +386,10 @@ With multiple developers:
 
 ## Summary
 
-- **Total Tasks**: 95
-- **MVP Tasks (US1 + US2)**: ~26 tasks (T001-T026)
-- **Full Feature**: 95 tasks across 9 phases
-- **Parallel Opportunities**: 20+ tasks marked [P]
+- **Total Tasks**: 113
+- **MVP Tasks (US1 + US2)**: ~34 tasks (T001-T026b plus foundational tests)
+- **Full Feature**: 113 tasks across 9 phases
+- **Parallel Opportunities**: 30+ tasks marked [P]
 - **Independent Test Criteria**: Each user story has specific acceptance tests
 - **Suggested MVP Scope**: User Stories 1 & 2 (basic construction + field safety)
 
