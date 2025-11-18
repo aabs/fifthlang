@@ -329,12 +329,97 @@ Examples:
         }
     }
 
+    private async Task CopyRuntimeDependenciesAsync(string outputPath, List<Diagnostic> diagnostics)
+    {
+        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"CopyRuntimeDependenciesAsync called with output: {outputPath}"));
+
+        try
+        {
+            var outputDir = Path.GetDirectoryName(outputPath);
+            if (string.IsNullOrWhiteSpace(outputDir))
+            {
+                // If output is just a filename, use current directory
+                outputDir = Directory.GetCurrentDirectory();
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Using current directory for dependencies: {outputDir}"));
+            }
+            else
+            {
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Output directory: {outputDir}"));
+            }
+
+            // Copy Fifth.System.dll
+            try
+            {
+                var fifthSystemAsm = typeof(Fifth.System.KG).Assembly.Location;
+                if (!string.IsNullOrWhiteSpace(fifthSystemAsm) && File.Exists(fifthSystemAsm))
+                {
+                    var destPath = Path.Combine(outputDir, Path.GetFileName(fifthSystemAsm));
+                    if (!File.Exists(destPath) || File.GetLastWriteTimeUtc(fifthSystemAsm) > File.GetLastWriteTimeUtc(destPath))
+                    {
+                        await Task.Run(() => File.Copy(fifthSystemAsm, destPath, overwrite: true));
+                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Copied Fifth.System.dll to output directory"));
+                    }
+                }
+                else
+                {
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Fifth.System assembly not found at: {fifthSystemAsm}"));
+                }
+            }
+            catch (System.Exception ex)
+            {
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to copy Fifth.System.dll: {ex.Message}"));
+            }
+
+            // Copy VDS.RDF.dll and its dependencies
+            try
+            {
+                var dotNetRdfAsm = typeof(VDS.RDF.IGraph).Assembly.Location;
+                if (!string.IsNullOrWhiteSpace(dotNetRdfAsm) && File.Exists(dotNetRdfAsm))
+                {
+                    var destPath = Path.Combine(outputDir, Path.GetFileName(dotNetRdfAsm));
+                    if (!File.Exists(destPath) || File.GetLastWriteTimeUtc(dotNetRdfAsm) > File.GetLastWriteTimeUtc(destPath))
+                    {
+                        await Task.Run(() => File.Copy(dotNetRdfAsm, destPath, overwrite: true));
+                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Copied VDS.RDF.dll to output directory"));
+                    }
+                }
+                else
+                {
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"VDS.RDF assembly not found at: {dotNetRdfAsm}"));
+                }
+            }
+            catch (System.Exception ex)
+            {
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to copy VDS.RDF.dll: {ex.Message}"));
+            }
+        }
+        catch (System.Exception ex)
+        {
+            diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to copy runtime dependencies: {ex.Message}"));
+        }
+    }
+
     private async Task<(int exitCode, string stdout, string stderr)> RunPhase(string executablePath, CompilerOptions options, List<Diagnostic> diagnostics)
     {
         try
         {
-            var arguments = string.Join(" ", options.Args ?? Array.Empty<string>());
-            var result = await _processRunner.RunAsync(executablePath, arguments);
+            // If the executable is a .dll, run it with dotnet
+            string command;
+            string arguments;
+
+            if (executablePath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+            {
+                command = "dotnet";
+                var userArgs = string.Join(" ", options.Args ?? Array.Empty<string>());
+                arguments = string.IsNullOrWhiteSpace(userArgs) ? $"\"{executablePath}\"" : $"\"{executablePath}\" {userArgs}";
+            }
+            else
+            {
+                command = executablePath;
+                arguments = string.Join(" ", options.Args ?? Array.Empty<string>());
+            }
+
+            var result = await _processRunner.RunAsync(command, arguments);
 
             // Stream stdout/stderr (for now, just capture them)
             if (!string.IsNullOrWhiteSpace(result.StandardOutput))
@@ -398,7 +483,7 @@ Examples:
             if (options.Diagnostics && translationResult.Sources.Any())
             {
                 var debugDir = Path.Combine(Directory.GetCurrentDirectory(), "build_debug_roslyn");
-                
+
                 for (int i = 0; i < translationResult.Sources.Count; i++)
                 {
                     await WriteSourceFileWithRetryAsync(debugDir, i, translationResult.Sources[i], diagnostics);
@@ -483,8 +568,9 @@ Examples:
             // Common dotNetRDF locations: next to exe or in NuGet cache not resolved here; try sibling bin
             TryAddRef(Path.Combine(baseDir, "VDS.RDF.dll"));
 
-            // Create the compilation
+            // Create the compilation - emit as DLL for proper .NET Core format
             var assemblyName = Path.GetFileNameWithoutExtension(options.Output);
+            var outputPath = Path.ChangeExtension(options.Output, ".dll");
             var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees: syntaxTrees,
@@ -495,15 +581,15 @@ Examples:
                     platform: Microsoft.CodeAnalysis.Platform.AnyCpu));
 
             // Ensure output directory exists
-            var outputDir = Path.GetDirectoryName(options.Output);
+            var outputDir = Path.GetDirectoryName(outputPath);
             if (!string.IsNullOrWhiteSpace(outputDir) && !Directory.Exists(outputDir))
             {
                 Directory.CreateDirectory(outputDir);
             }
 
-            // Emit the assembly
-            using var peStream = new FileStream(options.Output, FileMode.Create, FileAccess.Write);
-            using var pdbStream = new FileStream(Path.ChangeExtension(options.Output, ".pdb"), FileMode.Create, FileAccess.Write);
+            // Emit the assembly as .dll
+            using var peStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write);
+            using var pdbStream = new FileStream(Path.ChangeExtension(outputPath, ".pdb"), FileMode.Create, FileAccess.Write);
 
             var emitOptions = new Microsoft.CodeAnalysis.Emit.EmitOptions(
                 debugInformationFormat: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb);
@@ -523,31 +609,19 @@ Examples:
 
             if (options.Diagnostics)
             {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Successfully compiled assembly: {options.Output}"));
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated PDB: {Path.ChangeExtension(options.Output, ".pdb")}"));
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Successfully compiled assembly: {outputPath}"));
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated PDB: {Path.ChangeExtension(outputPath, ".pdb")}"));
             }
 
             // Generate runtime configuration file for framework-dependent execution
-            await GenerateRuntimeConfigAsync(options.Output, diagnostics);
+            await GenerateRuntimeConfigAsync(outputPath, diagnostics);
 
-            // Set execute permission on Unix-like systems
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                try
-                {
-                    var chmodResult = await _processRunner.RunAsync("chmod", $"+x \"{options.Output}\"");
-                    if (!chmodResult.Success && options.Diagnostics)
-                    {
-                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission on {options.Output}"));
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to set execute permission: {ex.Message}"));
-                }
-            }
+            // Copy runtime dependencies to output directory
+            await CopyRuntimeDependenciesAsync(outputPath, diagnostics);
 
-            return (true, options.Output);
+            // No need to set execute permission on DLLs - they're executed via dotnet runtime
+
+            return (true, outputPath);
         }
         catch (System.Exception ex)
         {
@@ -564,31 +638,31 @@ Examples:
     {
         const int maxAttempts = 3;
         const int retryDelayMs = 50;
-        
+
         // Create unique filename to avoid cross-process collisions
         var pid = Environment.ProcessId;
         var ticks = DateTime.UtcNow.Ticks;
         var guid = Guid.NewGuid().ToString("N")[..8]; // Use range operator for modern C#
         var fileName = $"generated_{sourceIndex}_{pid}_{ticks}_{guid}.cs";
         var finalPath = Path.Combine(directory, fileName);
-        
+
         for (int attempt = 1; attempt <= maxAttempts; attempt++)
         {
             try
             {
                 // Ensure directory exists
                 Directory.CreateDirectory(directory);
-                
+
                 // Write to temporary file first for atomic operation
                 var tempGuid = Guid.NewGuid().ToString("N")[..8];
                 var tempFileName = $".tmp_{tempGuid}";
                 var tempPath = Path.Combine(directory, tempFileName);
-                
+
                 await File.WriteAllTextAsync(tempPath, sourceContent);
-                
+
                 // Atomic move to final location - don't overwrite since filename should be unique
                 File.Move(tempPath, finalPath, overwrite: false);
-                
+
                 // Success - log informational message
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated C# source written to: {finalPath}"));
                 return;
@@ -596,37 +670,37 @@ Examples:
             catch (IOException ioEx) when (attempt < maxAttempts)
             {
                 // Transient file-lock issue - retry with backoff
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, 
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info,
                     $"Retrying write to {fileName} (attempt {attempt}/{maxAttempts}): {ioEx.Message}"));
                 await Task.Delay(retryDelayMs * attempt);
             }
             catch (System.Exception ex)
             {
                 // Non-transient error or final attempt failed - try fallback location
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, 
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info,
                     $"Failed to write to {directory}: {ex.Message}. Attempting fallback location."));
-                
+
                 try
                 {
                     // Fallback to system temp directory
                     var fallbackPath = Path.Combine(Path.GetTempPath(), fileName);
                     await File.WriteAllTextAsync(fallbackPath, sourceContent);
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, 
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Info,
                         $"Generated C# source written to fallback location: {fallbackPath}"));
                     return;
                 }
                 catch (System.Exception fallbackEx)
                 {
                     // Even fallback failed - just log it and continue
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, 
+                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Info,
                         $"Unable to write C# source for diagnostics: {fallbackEx.Message}"));
                     return;
                 }
             }
         }
-        
+
         // All retry attempts exhausted
-        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, 
+        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info,
             $"Unable to write C# source after {maxAttempts} attempts. Continuing compilation."));
     }
 
