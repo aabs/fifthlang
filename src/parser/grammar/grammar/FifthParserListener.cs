@@ -181,6 +181,56 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitType_name([NotNull] FifthParser.Type_nameContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.type_parameter_list"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterType_parameter_list([NotNull] FifthParser.Type_parameter_listContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.type_parameter_list"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitType_parameter_list([NotNull] FifthParser.Type_parameter_listContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.type_parameter"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterType_parameter([NotNull] FifthParser.Type_parameterContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.type_parameter"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitType_parameter([NotNull] FifthParser.Type_parameterContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.constraint_clause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterConstraint_clause([NotNull] FifthParser.Constraint_clauseContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.constraint_clause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitConstraint_clause([NotNull] FifthParser.Constraint_clauseContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.constraint_list"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterConstraint_list([NotNull] FifthParser.Constraint_listContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.constraint_list"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitConstraint_list([NotNull] FifthParser.Constraint_listContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.type_constraint"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterType_constraint([NotNull] FifthParser.Type_constraintContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.type_constraint"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitType_constraint([NotNull] FifthParser.Type_constraintContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.block"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

@@ -33,6 +33,7 @@ public class AstVisitorTests
             Type = CreateType(name, typeId, SymbolKind.ClassDef),
             Visibility = Visibility.Public,
             Location = null,
+            TypeParameters = [],
             BaseClasses = [],
             AliasScope = null
         };
@@ -68,6 +69,7 @@ public class AstVisitorTests
             Name = MemberName.From(name),
             ReturnType = new FifthType.TType() { Name = TypeName.From(returnType) },
             Visibility = Visibility.Public,
+            TypeParameters = [],
             Params = [],
             Body = new BlockStatement()
             {

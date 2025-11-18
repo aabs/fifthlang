@@ -47,4 +47,14 @@ public partial record FifthType
     /// type of a list of things
     /// </summary>
     partial record TListOf(FifthType ElementType);
+    
+    /// <summary>
+    /// A generic type parameter (e.g., T in class Stack&lt;T&gt;)
+    /// </summary>
+    partial record TGenericParameter(TypeParameterName ParameterName, List<TypeConstraint> Constraints);
+    
+    /// <summary>
+    /// A generic type instantiation (e.g., Stack&lt;int&gt;)
+    /// </summary>
+    partial record TGenericInstance(TypeName GenericTypeDefinition, List<FifthType> TypeArguments);
 }

@@ -450,6 +450,180 @@ main(): int {
 }
 
 //////////////////////////////////////
+// 8. Generic Types
+//////////////////////////////////////
+
+// Generic classes allow type parameters for reusable data structures
+// Syntax: class Name<TypeParam> { ... }
+
+class Stack<T> {
+    items: [T];
+    
+    push(item: T): int {
+        return 0;
+    }
+    
+    pop(): T {
+        return items;
+    }
+}
+
+main(): int {
+    intStack: Stack<int>;
+    stringStack: Stack<string>;
+    
+    // Each instantiation creates a distinct type
+    intStack = new Stack<int>();
+    stringStack = new Stack<string>();
+    
+    return 0;
+}
+
+// Multiple type parameters
+class Pair<T1, T2> {
+    first: T1;
+    second: T2;
+}
+
+class Dictionary<TKey, TValue> {
+    keys: [TKey];
+    values: [TValue];
+}
+
+main(): int {
+    pair: Pair<int, string>;
+    dict: Dictionary<string, int>;
+    
+    pair = new Pair<int, string>() {
+        first = 42,
+        second = "answer"
+    };
+    
+    return 0;
+}
+
+// Generic functions with type inference
+// The compiler can infer type arguments from the call site
+identity<T>(x: T): T {
+    return x;
+}
+
+main(): int {
+    result: int;
+    text: string;
+    
+    // Explicit type arguments
+    result = identity<int>(42);
+    text = identity<string>("hello");
+    
+    // Type inference (types inferred from arguments)
+    result = identity(42);        // Infers T = int
+    text = identity("world");     // Infers T = string
+    
+    return 0;
+}
+
+// Functions with multiple type parameters
+pair<T1, T2>(a: T1, b: T2): int {
+    return 0;
+}
+
+triple<T1, T2, T3>(a: T1, b: T2, c: T3): int {
+    return 0;
+}
+
+main(): int {
+    // Type inference works with multiple parameters
+    pair(1, "one");          // Infers T1=int, T2=string
+    triple(1, 2.0, "three"); // Infers T1=int, T2=float, T3=string
+    
+    return 0;
+}
+
+// Type constraints ensure type parameters meet requirements
+// Syntax: where TypeParam: Constraint
+
+// Interface constraint
+sort<T>(items: int): int where T: IComparable {
+    return 0;
+}
+
+// Base class constraint
+extend<T>(base: T): int where T: BaseClass {
+    return 0;
+}
+
+// Multiple constraints
+process<T>(item: T): int where T: IComparable, IDisposable {
+    return 0;
+}
+
+// Constraints on multiple type parameters
+class Mapper<TIn, TOut> where TIn: IComparable where TOut: BaseType {
+    input: TIn;
+    output: TOut;
+}
+
+main(): int {
+    mapper: Mapper<int, string>;
+    
+    return 0;
+}
+
+// Generic methods in classes
+class Container<T> {
+    value: T;
+    
+    // Non-generic method using class type parameter
+    getValue(): T {
+        return value;
+    }
+    
+    // Methods can have their own type parameters
+    // (Note: Parser limitations exist for method-level generics)
+}
+
+class Util {
+    // Generic methods in non-generic classes
+    swap(x: int, y: int): int {
+        return 0;
+    }
+}
+
+main(): int {
+    container: Container<int>;
+    util: Util;
+    
+    container = new Container<int>() { value = 42 };
+    util = new Util();
+    
+    return 0;
+}
+
+// Nested generic types
+class Box<T> {
+    items: [T];  // List of T
+}
+
+main(): int {
+    // Box containing a list of integers
+    intBox: Box<int>;
+    
+    // You can nest generic types
+    // (Advanced nested syntax may have parser limitations)
+    
+    return 0;
+}
+
+// Key Points about Generics:
+// 1. Full type reification: Stack<int> and Stack<string> are distinct types at runtime
+// 2. Type inference works from function call arguments (local inference, C#-style)
+// 3. Type parameters can have constraints (interface, base class)
+// 4. Multiple type parameters supported: Pair<T1, T2>, Dictionary<TKey, TValue>
+// 5. Generic methods inherit functionality from class type parameters
+// 6. Backward compatible: all non-generic code works unchanged
+
+//////////////////////////////////////
 // 8. Module System
 //////////////////////////////////////
 

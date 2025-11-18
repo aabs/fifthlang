@@ -68,6 +68,7 @@ TYPE        : 'type';
 USE         : 'use';
 VAR         : 'var';
 WHEN        : 'when';
+WHERE       : 'where';
 WHILE       : 'while';
 WITH        : 'with';
 TRUE        : 'true';

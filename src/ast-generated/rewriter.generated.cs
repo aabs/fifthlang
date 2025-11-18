@@ -22,6 +22,10 @@ public interface IAstRewriter
     RewriteResult Rewrite(AstThing ctx);
     RewriteResult VisitAssemblyDef(AssemblyDef ctx);
     RewriteResult VisitModuleDef(ModuleDef ctx);
+    RewriteResult VisitTypeParameterDef(TypeParameterDef ctx);
+    RewriteResult VisitInterfaceConstraint(InterfaceConstraint ctx);
+    RewriteResult VisitBaseClassConstraint(BaseClassConstraint ctx);
+    RewriteResult VisitConstructorConstraint(ConstructorConstraint ctx);
     RewriteResult VisitFunctionDef(FunctionDef ctx);
     RewriteResult VisitFunctorDef(FunctorDef ctx);
     RewriteResult VisitFieldDef(FieldDef ctx);
@@ -121,6 +125,10 @@ public class DefaultAstRewriter : IAstRewriter
         {
              AssemblyDef node => VisitAssemblyDef(node),
              ModuleDef node => VisitModuleDef(node),
+             TypeParameterDef node => VisitTypeParameterDef(node),
+             InterfaceConstraint node => VisitInterfaceConstraint(node),
+             BaseClassConstraint node => VisitBaseClassConstraint(node),
+             ConstructorConstraint node => VisitConstructorConstraint(node),
              FunctionDef node => VisitFunctionDef(node),
              FunctorDef node => VisitFunctorDef(node),
              FieldDef node => VisitFieldDef(node),
@@ -256,9 +264,52 @@ public class DefaultAstRewriter : IAstRewriter
         };
         return new RewriteResult(rebuilt, prologue);
     }
+    public virtual RewriteResult VisitTypeParameterDef(TypeParameterDef ctx)
+    {
+        var prologue = new List<Statement>();
+        List<ast.TypeConstraint> tmpConstraints = [];
+        foreach (var item in ctx.Constraints)
+        {
+            var rr = Rewrite(item);
+            tmpConstraints.Add((ast.TypeConstraint)rr.Node);
+            prologue.AddRange(rr.Prologue);
+        }
+        var rebuilt = ctx with {
+         Constraints = tmpConstraints
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
+    public virtual RewriteResult VisitInterfaceConstraint(InterfaceConstraint ctx)
+    {
+        var prologue = new List<Statement>();
+        var rebuilt = ctx with {
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
+    public virtual RewriteResult VisitBaseClassConstraint(BaseClassConstraint ctx)
+    {
+        var prologue = new List<Statement>();
+        var rebuilt = ctx with {
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
+    public virtual RewriteResult VisitConstructorConstraint(ConstructorConstraint ctx)
+    {
+        var prologue = new List<Statement>();
+        var rebuilt = ctx with {
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
     public virtual RewriteResult VisitFunctionDef(FunctionDef ctx)
     {
         var prologue = new List<Statement>();
+        List<ast.TypeParameterDef> tmpTypeParameters = [];
+        foreach (var item in ctx.TypeParameters)
+        {
+            var rr = Rewrite(item);
+            tmpTypeParameters.Add((ast.TypeParameterDef)rr.Node);
+            prologue.AddRange(rr.Prologue);
+        }
         List<ast.ParamDef> tmpParams = [];
         foreach (var item in ctx.Params)
         {
@@ -269,7 +320,8 @@ public class DefaultAstRewriter : IAstRewriter
         var rrBody = Rewrite((AstThing)ctx.Body);
         prologue.AddRange(rrBody.Prologue);
         var rebuilt = ctx with {
-         Params = tmpParams
+         TypeParameters = tmpTypeParameters
+        ,Params = tmpParams
         ,Body = (ast.BlockStatement)rrBody.Node
         };
         return new RewriteResult(rebuilt, prologue);
@@ -409,6 +461,13 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitClassDef(ClassDef ctx)
     {
         var prologue = new List<Statement>();
+        List<ast.TypeParameterDef> tmpTypeParameters = [];
+        foreach (var item in ctx.TypeParameters)
+        {
+            var rr = Rewrite(item);
+            tmpTypeParameters.Add((ast.TypeParameterDef)rr.Node);
+            prologue.AddRange(rr.Prologue);
+        }
         List<ast.MemberDef> tmpMemberDefs = [];
         foreach (var item in ctx.MemberDefs)
         {
@@ -417,7 +476,8 @@ public class DefaultAstRewriter : IAstRewriter
             prologue.AddRange(rr.Prologue);
         }
         var rebuilt = ctx with {
-         MemberDefs = tmpMemberDefs
+         TypeParameters = tmpTypeParameters
+        ,MemberDefs = tmpMemberDefs
         };
         return new RewriteResult(rebuilt, prologue);
     }

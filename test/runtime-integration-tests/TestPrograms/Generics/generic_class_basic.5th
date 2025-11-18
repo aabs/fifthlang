@@ -1,0 +1,16 @@
+// Basic generic class test - Stack<T>
+// Tests: Generic class definition with single type parameter
+
+class Stack<T> {
+    items: [T];
+    
+    push<T>(item: T): void {
+    }
+    
+    pop<T>(): T {
+    }
+}
+
+main(): int {
+    return 0;
+}
