@@ -70,7 +70,7 @@ public static class FifthParserManager
             ast = new BuiltinInjectorVisitor().Visit(ast);
 
         if (upTo >= AnalysisPhase.ClassCtors)
-            ast = new ClassCtorInserter().Visit(ast);
+            ast = new ClassCtorInserter(diagnostics).Visit(ast);
 
         if (upTo >= AnalysisPhase.SymbolTableInitial)
             ast = new SymbolTableBuilderVisitor().Visit(ast);
