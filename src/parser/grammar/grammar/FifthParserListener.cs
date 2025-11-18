@@ -161,6 +161,26 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitClass_definition([NotNull] FifthParser.Class_definitionContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.constructor_declaration"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterConstructor_declaration([NotNull] FifthParser.Constructor_declarationContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.constructor_declaration"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitConstructor_declaration([NotNull] FifthParser.Constructor_declarationContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.base_constructor_call"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterBase_constructor_call([NotNull] FifthParser.Base_constructor_callContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.base_constructor_call"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitBase_constructor_call([NotNull] FifthParser.Base_constructor_callContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.property_declaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

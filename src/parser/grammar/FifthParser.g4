@@ -53,9 +53,21 @@ class_definition:
 	CLASS name = IDENTIFIER type_parameter_list? (EXTENDS superClass = type_name)? (
 		IN aliasScope = alias_scope_ref
 	)? constraint_clause* L_CURLY (
-		functions += function_declaration
+		constructors += constructor_declaration
+		| functions += function_declaration
 		| properties += property_declaration
 	)* R_CURLY;
+
+// ========[CONSTRUCTOR DEFS]========= Ex: Person(string name, int age) : base() { ... }
+constructor_declaration:
+	name = IDENTIFIER L_PAREN (
+		args += paramdecl (COMMA args += paramdecl)*
+	)? R_PAREN base_constructor_call? body = function_body;
+
+base_constructor_call:
+	COLON BASE L_PAREN (
+		args += expression (COMMA args += expression)*
+	)? R_PAREN;
 
 property_declaration:
 	name = IDENTIFIER COLON type = type_spec SEMI;

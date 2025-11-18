@@ -168,6 +168,26 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     public override IAstThing VisitClass_definition(FifthParser.Class_definitionContext context)
     {
         var b = new ClassDefBuilder();
+        var className = context.name.Text;
+        
+        // Process constructors
+        foreach (var cctx in context._constructors)
+        {
+            var ctor = (FunctionDef)VisitConstructor_declaration(cctx, className);
+            // Wrap the constructor as a MethodDef member
+            var methodMember = new MethodDef
+            {
+                Name = ctor.Name,
+                TypeName = TypeName.From("void"),  // Constructors have no return type
+                CollectionType = CollectionType.SingleInstance,
+                IsReadOnly = false,
+                Visibility = Visibility.Public,
+                Annotations = [],
+                FunctionDef = ctor
+            };
+            b.AddingItemToMemberDefs(methodMember);
+        }
+        
         foreach (var fctx in context._functions)
         {
             var f = (FunctionDef)Visit(fctx);
@@ -748,6 +768,30 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 b.AddingItemToTypeParameters(tp);
             }
         }
+        
+        foreach (var paramdeclContext in context.paramdecl())
+        {
+            b.AddingItemToParams((ParamDef)VisitParamdecl(paramdeclContext));
+        }
+
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        return result;
+    }
+
+    // Constructor declaration visitor - handles class constructors
+    public IAstThing VisitConstructor_declaration(FifthParser.Constructor_declarationContext context, string className)
+    {
+        var b = new FunctionDefBuilder();
+        b.WithName(MemberName.From(className))  // Constructor name must match class name
+            .WithBody((BlockStatement)VisitBlock(context.function_body().block()))
+            .WithReturnType(Void)  // Constructors have no return type
+            .WithAnnotations([])
+            .WithVisibility(Visibility.Public)
+            .WithIsStatic(false)
+            .WithIsConstructor(true);  // Mark as constructor
+        
+        // Constructors do not have type parameters (per spec FR-CTOR-003)
+        // They can only reference class-level type parameters
         
         foreach (var paramdeclContext in context.paramdecl())
         {
