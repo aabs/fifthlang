@@ -799,7 +799,39 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         }
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        
+        // Handle base constructor call if present
+        if (context.base_constructor_call() != null)
+        {
+            var baseCall = (BaseConstructorCall)VisitBase_constructor_call(context.base_constructor_call());
+            result = result with { BaseCall = baseCall };
+        }
+        
         return result;
+    }
+
+    // Base constructor call visitor - handles : base(...) syntax
+    public override IAstThing VisitBase_constructor_call(FifthParser.Base_constructor_callContext context)
+    {
+        var baseCall = new BaseConstructorCall
+        {
+            Arguments = [],
+            ResolvedConstructor = null,  // Will be resolved during semantic analysis
+            Annotations = [],
+            Location = GetLocationDetails(context),
+            Type = Void
+        };
+        
+        // Parse base constructor arguments
+        if (context.expression() != null)
+        {
+            foreach (var exprContext in context.expression())
+            {
+                baseCall.Arguments.Add((Expression)Visit(exprContext));
+            }
+        }
+        
+        return baseCall;
     }
 
     public override IAstThing VisitIf_statement([NotNull] FifthParser.If_statementContext context)

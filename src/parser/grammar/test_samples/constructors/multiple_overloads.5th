@@ -1,0 +1,24 @@
+// Multiple constructor overloads
+class Rectangle {
+    Width: int;
+    Height: int;
+    
+    Rectangle() {
+        this.Width = 0;
+        this.Height = 0;
+    }
+    
+    Rectangle(size: int) {
+        this.Width = size;
+        this.Height = size;
+    }
+    
+    Rectangle(width: int, height: int) {
+        this.Width = width;
+        this.Height = height;
+    }
+}
+
+main(): int {
+    return 0;
+}

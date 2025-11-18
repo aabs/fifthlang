@@ -1,0 +1,20 @@
+// Constructor with base call
+class Animal {
+    Name: string;
+    
+    Animal(name: string) {
+        this.Name = name;
+    }
+}
+
+class Dog {
+    Breed: string;
+    
+    Dog(name: string, breed: string) : base(name) {
+        this.Breed = breed;
+    }
+}
+
+main(): int {
+    return 0;
+}

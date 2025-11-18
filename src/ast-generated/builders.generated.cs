@@ -1885,6 +1885,34 @@ public class FuncCallExpBuilder : IBuilder<ast.FuncCallExp>
     }
 
 }
+public class BaseConstructorCallBuilder : IBuilder<ast.BaseConstructorCall>
+{
+    private List<ast.Expression> _Arguments = [];
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.BaseConstructorCall Build()
+    {
+        return new ast.BaseConstructorCall(){
+             Arguments = this._Arguments // from BaseConstructorCall
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public BaseConstructorCallBuilder WithArguments(List<ast.Expression> value){
+        _Arguments = value;
+        return this;
+    }
+
+    public BaseConstructorCallBuilder AddingItemToArguments(ast.Expression value){
+        _Arguments  ??= [];
+        _Arguments.Add(value);
+        return this;
+    }
+    public BaseConstructorCallBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class Int8LiteralExpBuilder : IBuilder<ast.Int8LiteralExp>
 {
     private Dictionary<System.String, System.Object> _Annotations;

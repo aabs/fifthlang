@@ -1,0 +1,12 @@
+// INVALID: Static constructor (forbidden modifier)
+class Person {
+    Name: string;
+    
+    static Person(name: string) {
+        this.Name = name;
+    }
+}
+
+main(): int {
+    return 0;
+}

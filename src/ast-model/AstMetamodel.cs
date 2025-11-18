@@ -386,6 +386,7 @@ public record FunctionDef : ScopedDefinition, IOverloadableFunction
     public required MemberName Name { get; init; }
     public required bool IsStatic { get; init; }
     public required bool IsConstructor { get; init; }
+    public BaseConstructorCall? BaseCall { get; set; }
 }
 
 /// <summary>
@@ -795,6 +796,15 @@ public record FuncCallExp : Expression
 {
     public FunctionDef FunctionDef { get; set; }
     public List<Expression> InvocationArguments { get; set; }
+}
+
+/// <summary>
+/// Represents a base constructor invocation (: base(...)) in a derived class constructor
+/// </summary>
+public record BaseConstructorCall : AstThing
+{
+    public required List<Expression> Arguments { get; set; } = [];
+    public FunctionDef? ResolvedConstructor { get; set; }
 }
 
 [Ignore]
