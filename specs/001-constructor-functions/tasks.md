@@ -141,38 +141,39 @@ This is a compiler feature spanning multiple projects in the Fifth language mono
 
 ---
 
-## Phase 4: User Story 2 - Field Safety & Definite Assignment (Priority: P1) - DEFERRED ⏸️
+## Phase 4: User Story 2 - Field Safety & Definite Assignment (Priority: P1) - INFRASTRUCTURE ADDED 🔧
 
 **Goal**: Ensure all required fields are assigned before construction completes with clear diagnostics.
 
 **Independent Test**: Define a constructor omitting one required field assignment; expect a definite assignment diagnostic listing missing fields.
 
-**Status**: DEFERRED - Depends on completed Phase 3 (constructor resolution) and Phase 5 (symbol table). Definite assignment analysis requires:
-1. Resolved constructor calls to know which constructor is being invoked
-2. Symbol table to look up field definitions and their types
-3. Control flow graph (CFG) analysis infrastructure
+**Status**: INFRASTRUCTURE STUB CREATED (commit 4fd057d) - DefiniteAssignmentAnalyzer added to pipeline as Phase 7. Full implementation requires:
+1. ✅ Resolved constructor calls (Phase 3 complete)
+2. ✅ Symbol table for field lookups (already exists)
+3. ⏳ Control flow graph (CFG) construction
+4. ⏳ Field assignment tracking through all control flow paths
 
 ### Tests for User Story 2
 
-- [ ] T027 [P] [US2] Parser test for constructor with missing field assignment in test/syntax-parser-tests/ConstructorParsingTests.cs (DEFERRED)
-- [ ] T028 [P] [US2] AST test for RequiredFieldSet computation in test/ast-tests/DefiniteAssignmentTests.cs (new file) (DEFERRED)
-- [ ] T029 [P] [US2] AST test for definite assignment analysis in test/ast-tests/DefiniteAssignmentTests.cs (DEFERRED)
-- [ ] T030 [P] [US2] Runtime test expecting CTOR003 diagnostic for unassigned field in test/runtime-integration-tests/DefiniteAssignmentTests.cs (new file) (DEFERRED)
+- [ ] T027 [P] [US2] Parser test for constructor with missing field assignment in test/syntax-parser-tests/ConstructorParsingTests.cs (PENDING: awaits CFG implementation)
+- [ ] T028 [P] [US2] AST test for RequiredFieldSet computation in test/ast-tests/DefiniteAssignmentTests.cs (new file) (PENDING)
+- [ ] T029 [P] [US2] AST test for definite assignment analysis in test/ast-tests/DefiniteAssignmentTests.cs (PENDING)
+- [ ] T030 [P] [US2] Runtime test expecting CTOR003 diagnostic for unassigned field in test/runtime-integration-tests/DefiniteAssignmentTests.cs (new file) (PENDING)
 
 ### Implementation for User Story 2
 
-- [ ] T031 [US2] Create RequiredFieldSet analysis data structure in src/compiler/SemanticAnalysis/RequiredFieldSet.cs (new file) (DEFERRED)
-- [ ] T032 [US2] Implement field requirement detection (non-nullable, no default) in src/compiler/SemanticAnalysis/RequiredFieldSet.cs (DEFERRED)
-- [ ] T033 [US2] Implement single-pass forward CFG data-flow analysis in src/compiler/SemanticAnalysis/DefiniteAssignmentAnalyzer.cs (new file) (DEFERRED)
-- [ ] T034 [US2] Add conservative merging at control flow join points in src/compiler/SemanticAnalysis/DefiniteAssignmentAnalyzer.cs (DEFERRED)
-- [ ] T035 [US2] Emit CTOR003 diagnostic with missing field list in src/compiler/SemanticAnalysis/DefiniteAssignmentAnalyzer.cs (DEFERRED)
-- [ ] T036 [US2] Integrate definite assignment pass into ParserManager.cs pipeline in src/compiler/ParserManager.cs (DEFERRED)
-- [ ] T037 [US2] Validate tests pass: dotnet test test/ast-tests/ --filter FullyQualifiedName~DefiniteAssignment (DEFERRED)
-- [ ] T038 [US2] Validate runtime tests pass: dotnet test test/runtime-integration-tests/ --filter FullyQualifiedName~DefiniteAssignment (DEFERRED)
+- [x] T031 [US2] Create DefiniteAssignmentAnalyzer infrastructure in src/compiler/SemanticAnalysis/DefiniteAssignmentAnalyzer.cs (commit 4fd057d) ✅
+- [x] T032 [US2] Implement field requirement detection (non-nullable, no default) - basic version using same logic as ClassCtorInserter (commit 4fd057d) ✅
+- [ ] T033 [US2] Implement single-pass forward CFG data-flow analysis in src/compiler/SemanticAnalysis/DefiniteAssignmentAnalyzer.cs (PENDING: requires CFG infrastructure)
+- [ ] T034 [US2] Add conservative merging at control flow join points in src/compiler/SemanticAnalysis/DefiniteAssignmentAnalyzer.cs (PENDING)
+- [ ] T035 [US2] Emit CTOR003 diagnostic with missing field list in src/compiler/SemanticAnalysis/DefiniteAssignmentAnalyzer.cs (PENDING)
+- [x] T036 [US2] Integrate definite assignment pass into ParserManager.cs pipeline - added as AnalysisPhase.DefiniteAssignment (phase 7) (commit 4fd057d) ✅
+- [ ] T037 [US2] Validate tests pass: dotnet test test/ast-tests/ --filter FullyQualifiedName~DefiniteAssignment (PENDING)
+- [ ] T038 [US2] Validate runtime tests pass: dotnet test test/runtime-integration-tests/ --filter FullyQualifiedName~DefiniteAssignment (PENDING)
 
-**Dependency Chain**: Phase 3 completion → Phase 5 (symbol table) → Phase 4 (definite assignment)
+**Progress**: Infrastructure complete, CFG-based analysis implementation pending
 
-**Checkpoint**: User Story 2 cannot be completed until User Story 1 is fully implemented with constructor resolution working
+**Checkpoint**: Phase 4 infrastructure stub in place, ready for CFG implementation when prioritized
 
 ---
 
