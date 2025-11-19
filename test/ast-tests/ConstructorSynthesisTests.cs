@@ -293,4 +293,79 @@ public class ConstructorSynthesisTests
         diagnostics[0].Message.Should().Contain("Person");
         diagnostics[0].Message.Should().Contain("return");
     }
+
+    [Test]
+    public void ConstructorWithUnassignedFields_ShouldEmitCTOR003Diagnostic()
+    {
+        // Arrange - Constructor that doesn't assign required fields
+        var requiredField = new FieldDef
+        {
+            Name = MemberName.From("Name"),
+            TypeName = TypeName.From("string"),
+            CollectionType = CollectionType.SingleInstance,
+            IsReadOnly = false,
+            AccessConstraints = [],
+            Annotations = [],
+            Location = new SourceLocationMetadata(0, "test.5th", 0, ""),
+            Type = new FifthType.TType { Name = TypeName.From("string") },
+            Visibility = Visibility.Public
+        };
+
+        var emptyConstructor = new FunctionDefBuilder()
+            .WithName(MemberName.From("Person"))
+            .WithIsStatic(false)
+            .WithIsConstructor(true)
+            .WithParams([])
+            .WithReturnType(new FifthType.TVoidType { Name = TypeName.From("void") })
+            .WithBody(new BlockStatement 
+            { 
+                Statements = [],  // No field assignments!
+                Annotations = [],
+                Location = new SourceLocationMetadata(0, "test.5th", 0, ""),
+                Type = new FifthType.TVoidType { Name = TypeName.From("void") }
+            })
+            .WithAnnotations([])
+            .WithVisibility(Visibility.Public)
+            .WithTypeParameters([])
+            .Build();
+
+        var methodDef = new MethodDef
+        {
+            Name = MemberName.From("Person"),
+            TypeName = TypeName.From("void"),
+            CollectionType = CollectionType.SingleInstance,
+            IsReadOnly = false,
+            Visibility = Visibility.Public,
+            Annotations = [],
+            FunctionDef = emptyConstructor,
+            Location = new SourceLocationMetadata(0, "test.5th", 0, ""),
+            Type = new FifthType.TVoidType { Name = TypeName.From("void") }
+        };
+
+        var classDef = new ClassDef
+        {
+            Name = TypeName.From("Person"),
+            TypeParameters = [],
+            MemberDefs = [requiredField, methodDef],
+            BaseClasses = [],
+            AliasScope = null,
+            Annotations = [],
+            Location = new SourceLocationMetadata(0, "test.5th", 0, ""),
+            Type = new FifthType.TType { Name = TypeName.From("Person") },
+            Visibility = Visibility.Public
+        };
+
+        var diagnostics = new List<Diagnostic>();
+        var analyzer = new compiler.SemanticAnalysis.DefiniteAssignmentAnalyzer();
+
+        // Act
+        var result = analyzer.VisitClassDef(classDef);
+
+        // Assert - Should emit CTOR003 diagnostic for unassigned required field
+        analyzer.Diagnostics.Should().HaveCount(1, "Should emit CTOR003 diagnostic for unassigned field");
+        analyzer.Diagnostics[0].Code.Should().Be("CTOR003");
+        analyzer.Diagnostics[0].Level.Should().Be(DiagnosticLevel.Error);
+        analyzer.Diagnostics[0].Message.Should().Contain("Person");
+        analyzer.Diagnostics[0].Message.Should().Contain("Name");
+    }
 }
