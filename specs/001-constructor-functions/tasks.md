@@ -102,54 +102,67 @@ This is a compiler feature spanning multiple projects in the Fifth language mono
 
 - [x] T014 [P] [US1] Parser test for basic constructor syntax in test/syntax-parser-tests/ConstructorParsingTests.cs (commit 5966414 - 6 tests)
 - [x] T015 [P] [US1] Parser test for constructor with multiple parameters in test/syntax-parser-tests/ConstructorParsingTests.cs (commit 5966414)
-- [ ] T016 [P] [US1] Runtime test for simple constructor instantiation in test/runtime-integration-tests/BasicConstructorTests.cs (BLOCKED: needs new keyword)
-- [ ] T017 [P] [US1] Runtime test verifying field values after construction in test/runtime-integration-tests/BasicConstructorTests.cs (BLOCKED: needs new keyword)
+- [ ] T016 [P] [US1] Runtime test for simple constructor instantiation in test/runtime-integration-tests/BasicConstructorTests.cs (BLOCKED: needs code generation)
+- [ ] T017 [P] [US1] Runtime test verifying field values after construction in test/runtime-integration-tests/BasicConstructorTests.cs (BLOCKED: needs code generation)
 
 ### Implementation for User Story 1
 
 - [x] T018 [US1] Implement ClassCtorInserter synthesis logic in src/compiler/LanguageTransformations/ClassCtorInserter.cs (commit 27c0eff)
 - [x] T019 [US1] Add constructor synthesis detection for classes without explicit constructors in src/compiler/LanguageTransformations/ClassCtorInserter.cs (commit 27c0eff)
-- [ ] T020 [US1] Implement basic constructor overload resolution in src/compiler/SemanticAnalysis/ConstructorResolver.cs (new file) (BLOCKED: needs new keyword)
-- [ ] T021 [US1] Add constructor resolution to InstantiationExpression in src/compiler/SemanticAnalysis/ConstructorResolver.cs (BLOCKED: needs new keyword)
-- [ ] T022 [US1] Emit CTOR001 diagnostic for no matching constructor in src/compiler/SemanticAnalysis/ConstructorResolver.cs (BLOCKED: needs new keyword)
+- [ ] T020 [US1] Implement basic constructor overload resolution in src/compiler/SemanticAnalysis/ConstructorResolver.cs (new file) (BLOCKED: needs symbol table - Phase 5)
+- [ ] T021 [US1] Add constructor resolution to InstantiationExpression in src/compiler/SemanticAnalysis/ConstructorResolver.cs (BLOCKED: needs symbol table - Phase 5)
+- [ ] T022 [US1] Emit CTOR001 diagnostic for no matching constructor in src/compiler/SemanticAnalysis/ConstructorResolver.cs (BLOCKED: needs symbol table - Phase 5)
 - [x] T023 [US1] Emit CTOR005 diagnostic when synthesis not possible in src/compiler/LanguageTransformations/ClassCtorInserter.cs (commit 27c0eff)
-- [x] T024 [US1] Update ParserManager.cs pipeline to include constructor resolution pass in src/compiler/ParserManager.cs (commit 27c0eff, b97a3f4)
+- [x] T024 [US1] Update ParserManager.cs pipeline to include constructor resolution pass in src/compiler/ParserManager.cs (commit 27c0eff, b97a3f4, ce0e396 - TODO added)
 - [x] T025 [US1] Validate tests pass: dotnet test test/syntax-parser-tests/ --filter FullyQualifiedName~BasicConstructor (all passing)
-- [ ] T026 [US1] Validate runtime tests pass: dotnet test test/runtime-integration-tests/ --filter FullyQualifiedName~BasicConstructor (BLOCKED: needs new keyword)
+- [ ] T026 [US1] Validate runtime tests pass: dotnet test test/runtime-integration-tests/ --filter FullyQualifiedName~BasicConstructor (BLOCKED: needs code generation)
 - [x] T026a [US1] Implement CTOR009 emission for value return in src/compiler/SemanticAnalysis/ConstructorValidator.cs (new file) (commit b97a3f4)
 - [x] T026b [US1] Implement CTOR010 emission for forbidden modifiers in src/compiler/SemanticAnalysis/ConstructorValidator.cs (commit b97a3f4)
+- [x] T026c [US1] Implement `new` keyword support for object instantiation (commit 018d251)
+- [x] T026d [US1] Create ConstructorResolver stub with TODO for Phase 5 integration (commit ce0e396)
 
-**Status**: Constructor synthesis and validation complete. Overload resolution blocked by missing `new` keyword support for object instantiation.
+**Status**: Constructor synthesis, validation, and `new` keyword support complete. Constructor resolution stub created with documented dependency on symbol table infrastructure (Phase 5). Runtime tests blocked by missing code generation/lowering.
 
-**Checkpoint**: Parser tests passing, synthesis and validation working. Runtime tests blocked pending instantiation support.
+**Blockers**: 
+- Constructor overload resolution requires symbol table for class lookup (Phase 5 dependency)
+- Runtime integration tests require lowering and code generation implementation
+
+**Checkpoint**: Parser tests passing (12/12), synthesis and validation working (5/5 tests). ConstructorResolver stub in place with clear path forward once symbol table is available.
 
 ---
 
-## Phase 4: User Story 2 - Field Safety & Definite Assignment (Priority: P1)
+## Phase 4: User Story 2 - Field Safety & Definite Assignment (Priority: P1) - DEFERRED ⏸️
 
 **Goal**: Ensure all required fields are assigned before construction completes with clear diagnostics.
 
 **Independent Test**: Define a constructor omitting one required field assignment; expect a definite assignment diagnostic listing missing fields.
 
+**Status**: DEFERRED - Depends on completed Phase 3 (constructor resolution) and Phase 5 (symbol table). Definite assignment analysis requires:
+1. Resolved constructor calls to know which constructor is being invoked
+2. Symbol table to look up field definitions and their types
+3. Control flow graph (CFG) analysis infrastructure
+
 ### Tests for User Story 2
 
-- [ ] T027 [P] [US2] Parser test for constructor with missing field assignment in test/syntax-parser-tests/ConstructorParsingTests.cs
-- [ ] T028 [P] [US2] AST test for RequiredFieldSet computation in test/ast-tests/DefiniteAssignmentTests.cs (new file)
-- [ ] T029 [P] [US2] AST test for definite assignment analysis in test/ast-tests/DefiniteAssignmentTests.cs
-- [ ] T030 [P] [US2] Runtime test expecting CTOR003 diagnostic for unassigned field in test/runtime-integration-tests/DefiniteAssignmentTests.cs (new file)
+- [ ] T027 [P] [US2] Parser test for constructor with missing field assignment in test/syntax-parser-tests/ConstructorParsingTests.cs (DEFERRED)
+- [ ] T028 [P] [US2] AST test for RequiredFieldSet computation in test/ast-tests/DefiniteAssignmentTests.cs (new file) (DEFERRED)
+- [ ] T029 [P] [US2] AST test for definite assignment analysis in test/ast-tests/DefiniteAssignmentTests.cs (DEFERRED)
+- [ ] T030 [P] [US2] Runtime test expecting CTOR003 diagnostic for unassigned field in test/runtime-integration-tests/DefiniteAssignmentTests.cs (new file) (DEFERRED)
 
 ### Implementation for User Story 2
 
-- [ ] T031 [US2] Create RequiredFieldSet analysis data structure in src/compiler/SemanticAnalysis/RequiredFieldSet.cs (new file)
-- [ ] T032 [US2] Implement field requirement detection (non-nullable, no default) in src/compiler/SemanticAnalysis/RequiredFieldSet.cs
-- [ ] T033 [US2] Implement single-pass forward CFG data-flow analysis in src/compiler/SemanticAnalysis/DefiniteAssignmentAnalyzer.cs (new file)
-- [ ] T034 [US2] Add conservative merging at control flow join points in src/compiler/SemanticAnalysis/DefiniteAssignmentAnalyzer.cs
-- [ ] T035 [US2] Emit CTOR003 diagnostic with missing field list in src/compiler/SemanticAnalysis/DefiniteAssignmentAnalyzer.cs
-- [ ] T036 [US2] Integrate definite assignment pass into ParserManager.cs pipeline in src/compiler/ParserManager.cs
-- [ ] T037 [US2] Validate tests pass: dotnet test test/ast-tests/ --filter FullyQualifiedName~DefiniteAssignment
-- [ ] T038 [US2] Validate runtime tests pass: dotnet test test/runtime-integration-tests/ --filter FullyQualifiedName~DefiniteAssignment
+- [ ] T031 [US2] Create RequiredFieldSet analysis data structure in src/compiler/SemanticAnalysis/RequiredFieldSet.cs (new file) (DEFERRED)
+- [ ] T032 [US2] Implement field requirement detection (non-nullable, no default) in src/compiler/SemanticAnalysis/RequiredFieldSet.cs (DEFERRED)
+- [ ] T033 [US2] Implement single-pass forward CFG data-flow analysis in src/compiler/SemanticAnalysis/DefiniteAssignmentAnalyzer.cs (new file) (DEFERRED)
+- [ ] T034 [US2] Add conservative merging at control flow join points in src/compiler/SemanticAnalysis/DefiniteAssignmentAnalyzer.cs (DEFERRED)
+- [ ] T035 [US2] Emit CTOR003 diagnostic with missing field list in src/compiler/SemanticAnalysis/DefiniteAssignmentAnalyzer.cs (DEFERRED)
+- [ ] T036 [US2] Integrate definite assignment pass into ParserManager.cs pipeline in src/compiler/ParserManager.cs (DEFERRED)
+- [ ] T037 [US2] Validate tests pass: dotnet test test/ast-tests/ --filter FullyQualifiedName~DefiniteAssignment (DEFERRED)
+- [ ] T038 [US2] Validate runtime tests pass: dotnet test test/runtime-integration-tests/ --filter FullyQualifiedName~DefiniteAssignment (DEFERRED)
 
-**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
+**Dependency Chain**: Phase 3 completion → Phase 5 (symbol table) → Phase 4 (definite assignment)
+
+**Checkpoint**: User Story 2 cannot be completed until User Story 1 is fully implemented with constructor resolution working
 
 ---
 
