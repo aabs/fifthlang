@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Announcing Graph Assertion Blocks in Fifth - Fifthlang</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Fifthlang</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">Fifth Language</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Blog</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Announcing Graph Assertion Blocks in Fifth</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Designs</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../Designs/5thproj-implementation-summary/" class="dropdown-item">.5thproj MSBuild Project Type Implementation Summary</a>
+</li>
+                                    
+<li>
+    <a href="../../Designs/fifth-sdk-readme/" class="dropdown-item">Fifth.Sdk</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Misc</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../Designs/misc/AST_REWRITER_DESIGN/" class="dropdown-item">AST Rewriter Design</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/debugging/" class="dropdown-item">Debugging Workflows</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/destructuring-lowering-migration/" class="dropdown-item">Destructuring Lowering Migration to Statement-Hoisting Rewriter</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/generics-implementation-summary/" class="dropdown-item">Generic Type Support Implementation Summary</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/migration-exception-handling/" class="dropdown-item">Migration Notes - Exception Handling Support</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/namespace-import-directives-research/" class="dropdown-item">Research Notes: Namespace Import Directives</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/syntax-samples-readme/" class="dropdown-item">Syntax Samples</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/syntax-testcases-bulleted/" class="dropdown-item">Fifth Syntax Unit Tests (Bulleted)</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/syntax-testplan/" class="dropdown-item">Fifth Language Syntax Test Plan</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/triple-diagnostics-refactor/" class="dropdown-item">Deferred Triple Diagnostics Refactor</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/vscode-devkit-tests/" class="dropdown-item">VS Code Dev Kit: Running TUnit Tests</a>
+</li>
+    </ul>
+  </li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Perf</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../Designs/perf/baselines/" class="dropdown-item">Baselines</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../Getting-Started/knowledge-graphs/" class="dropdown-item">Knowledge Graphs in Fifth</a>
+</li>
+                                    
+<li>
+    <a href="../../Getting-Started/learn5thInYMinutes/" class="dropdown-item">learn5thInYMinutes</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Planning</a>
+                                <ul class="dropdown-menu">
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Architecture review</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../Planning/architecture-review/NEXT-STEPS/" class="dropdown-item">Architectural Review - Next Steps</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/architectural-review-2025/" class="dropdown-item">Fifth Language Compiler - Architectural Review Report</a>
+</li>
+            
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Arch review issues</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/" class="dropdown-item">Architectural Review Issues</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-001-error-recovery/" class="dropdown-item">Parser Needs Error Recovery for IDE Support</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-002-lsp-implementation/" class="dropdown-item">Implement Language Server Protocol (LSP) for IDE Integration</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-003-incremental-compilation/" class="dropdown-item">Implement Incremental Compilation for Performance and IDE Support</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-004-diagnostic-system/" class="dropdown-item">Redesign Diagnostic System for Quality Error Messages and IDE Support</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-005-composable-pipeline/" class="dropdown-item">Refactor Transformation Pipeline to Composable Architecture</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-006-symbol-table/" class="dropdown-item">Enhance Symbol Table for Performance and IDE Features</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-007-testing-architecture/" class="dropdown-item">Restructure Testing Architecture for Better Coverage and Maintainability</a>
+</li>
+    </ul>
+  </li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../.." class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../../Designs/5thproj-implementation-summary/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#announcing-graph-assertion-blocks-in-fifth" class="nav-link">Announcing Graph Assertion Blocks in Fifth</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#whats-new" class="nav-link">What’s New</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#syntax-overview" class="nav-link">Syntax Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#semantics-at-a-glance" class="nav-link">Semantics at a Glance</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#current-compiler-status" class="nav-link">Current Compiler Status</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#try-it-locally" class="nav-link">Try It Locally</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#design-principles-reflected" class="nav-link">Design Principles Reflected</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#whats-next" class="nav-link">What’s Next</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="announcing-graph-assertion-blocks-in-fifth">Announcing Graph Assertion Blocks in Fifth</h1>
+<p>Today we’re excited to announce Graph Assertion Blocks — a new, first-class construct in Fifth that lets your ordinary code produce knowledge graph facts with zero boilerplate. Wherever you can use a regular block, you can now write a Graph Assertion Block delimited by <code>&lt;{</code> and <code>}&gt;</code>. While the block runs, mutations to assertable objects are accumulated as assertions; on completion, you either get a graph value you can assign or persist, or, when used as a standalone statement, those assertions are written to the default knowledge graph.</p>
+<p>TL;DR
+- New syntax: <code>&lt;{ ... }&gt;</code> works as both a statement and an expression.
+- As a statement: persists to the default graph on successful completion.
+- As an expression: yields a graph value; persist it explicitly with <code>store += graphValue</code> or assign it to a graph variable.
+- Nested blocks, deterministic scoping, set semantics, and clear exception behavior.</p>
+<hr />
+<h2 id="whats-new">What’s New</h2>
+<ul>
+<li>Graph Assertion Block construct: <code>&lt;{ ... }&gt;</code></li>
+<li>Behaves like a normal block for variables, control flow, and object state.</li>
+<li>Additionally records assertions from mutations to assertable objects executed within the block.</li>
+<li>Dual role (statement + expression)</li>
+<li>Statement-form: commits to the default graph if the block completes without an unhandled exception.</li>
+<li>Expression-form: produces a graph value; nothing is persisted until you do it explicitly.</li>
+<li>Explicit graph targeting</li>
+<li>Assign the result to a graph l-value (in-memory) or persist to a store via <code>storeVar += graphValue</code>.</li>
+<li>Named graph scoping via <code>in &lt;iri-or-alias&gt;</code> is supported on graph variables.</li>
+<li>Nesting and composition</li>
+<li>Inner blocks merge their assertions into the enclosing block’s assertion set; commit happens at the outer boundary unless you explicitly persist earlier.</li>
+<li>Set semantics + open world</li>
+<li>Identical triples deduplicate; multiple distinct values for the same predicate are allowed by design.</li>
+<li>Robust error model</li>
+<li>On an unhandled exception: transactional l-value commits do not happen. Any explicit persist already performed to the default store isn’t rolled back.</li>
+<li>Missing default graph/store yields a clear ‘Unknown Default Graph or Store’ error.</li>
+</ul>
+<p>These semantics align with the Feature Specification “Graph Assertion Block” and are consistent with Fifth’s existing aliasing, scope, and type checking rules.</p>
+<hr />
+<h2 id="syntax-overview">Syntax Overview</h2>
+<ul>
+<li>Statement-form (auto-persist to default graph on success):</li>
+</ul>
+<pre><code class="language-fifth">&lt;{
+   // Your code here; assertions come from assertable object mutations
+}&gt;;
+</code></pre>
+<ul>
+<li>Expression-form (produce a graph value; no auto-persist):</li>
+</ul>
+<pre><code class="language-fifth">- g: graph = &lt;{ /* compute facts */ }&gt;;  // in-memory graph value
+store default = sparql_store(&lt;http://example.org/store&gt;);
+default += g;                         // explicit persist
+</code></pre>
+<ul>
+<li>Graph variable with named graph scope:</li>
+</ul>
+<pre><code class="language-fifth">alias x as &lt;http://example.org/people#&gt;;
+
+store default = sparql_store(&lt;http://example.org/store&gt;);
+
+ericKnowledge : graph in &lt;x:people&gt; = &lt;{
+   d: datetime = new datetime(1926, 5, 14);
+   eric.dob = d;
+   eric.age = calculate_age(d);
+}&gt;;
+
+default += ericKnowledge;  // persist to the store; scoped to &lt;x:people&gt;
+</code></pre>
+<ul>
+<li>Inline expression usage:</li>
+</ul>
+<pre><code class="language-fifth">store default = sparql_store(&lt;http://example.org/store&gt;);
+
+default += &lt;{
+   eric.age = 99;
+}&gt;;
+</code></pre>
+<ul>
+<li>Direct triple assertions (when you want to assert triples as statements):</li>
+</ul>
+<pre><code class="language-fifth">store default = sparql_store(&lt;http://example.org/store&gt;);
+
+main(): int {
+   &lt;{
+      &lt;http://example.org/s&gt; &lt;http://example.org/p&gt; 42;
+   }&gt;;  // persists to default on success
+   return 0;
+}
+</code></pre>
+<p>Notes
+- “Assertable objects” are domain/runtime objects whose mutations translate to graph assertions.
+- Expression-form always yields a graph value. Assign it, transform it, or persist it explicitly.
+- Statement-form targets the default graph. If no default store/graph is configured, you’ll get ‘Unknown Default Graph or Store’.</p>
+<hr />
+<h2 id="semantics-at-a-glance">Semantics at a Glance</h2>
+<ul>
+<li>Execution model</li>
+<li>Runs like a regular block. Only statements actually executed contribute assertions.</li>
+<li>Works in loops/conditionals — only the executed paths assert.</li>
+<li>Persistence model</li>
+<li>Statement-form: auto-persist to default on success.</li>
+<li>Expression-form: no auto-persist; persist with <code>storeVar += graphValue</code>.</li>
+<li>Assignment to a graph variable is transactional at the commit boundary; explicit store writes are atomic at the store level per SPARQL 1.2 semantics (no rollback for partial success unless the store supports it; currently not supported).</li>
+<li>Nesting</li>
+<li>Inner assertions merge into the enclosing block’s assertion set; the outer boundary determines commit unless you explicitly persist earlier.</li>
+<li>Exceptions</li>
+<li>Unhandled exception: do not commit transactional l-values; explicit default store writes already performed aren’t rolled back.</li>
+<li>Set semantics</li>
+<li>Identical triples deduplicate; contradictory facts are allowed (open world). No last-write-wins unless functional properties are later introduced.</li>
+<li>Aliases</li>
+<li>Prefix/alias resolution inside the block follows the normal Fifth rules and the in-scope declarations.</li>
+</ul>
+<hr />
+<h2 id="current-compiler-status">Current Compiler Status</h2>
+<ul>
+<li>Parser + AST</li>
+<li>Grammar recognizes Graph Assertion Blocks <code>&lt;{ ... }&gt;</code> in statement and expression contexts.</li>
+<li>AST models blocks uniformly; graph-producing semantics are represented explicitly in the tree.</li>
+<li>Code generation &amp; lowering</li>
+<li>Language transformations lower assertion blocks to a consistent internal form so all syntactic variations map to the same semantics.</li>
+<li>Type checking</li>
+<li>Type rules come from Fifth (not KG ontology). If your program type-checks, its assertions are permissible.</li>
+<li>Persistence</li>
+<li>Default and explicit store operations supported via <code>storeVar += graphValue</code>.</li>
+<li>Error surfaced if default store/graph isn’t declared/connected.</li>
+<li>Testing</li>
+<li>Smoke tests cover statement- and expression-forms, nested blocks, empty blocks, and persistence failure paths.</li>
+</ul>
+<p>Expected build warnings
+- ANTLR grammar and C# nullable warnings may appear; these are expected and safe to ignore as noted in project docs.</p>
+<hr />
+<h2 id="try-it-locally">Try It Locally</h2>
+<p>Prereqs
+- .NET 8.0 SDK (global.json pins 8.0.118)
+- Java 17+ (for ANTLR)</p>
+<p>Build + test (fish shell)</p>
+<pre><code class="language-fish"># Verify prerequisites
+ dotnet --version
+ java -version
+
+# Restore and build (first run can take ~1–2 minutes)
+ dotnet restore fifthlang.sln
+ dotnet build fifthlang.sln
+
+# Run focused tests (optional)
+ dotnet test test/ast-tests/ast_tests.csproj
+ # or try KG smoke tests if available
+ dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj -v minimal --filter FullyQualifiedName~GraphAssertionBlock_
+</code></pre>
+<p>Minimal sample</p>
+<pre><code class="language-fifth">alias x as &lt;http://example.org/people#&gt;;
+store default = sparql_store(&lt;http://example.org/store&gt;);
+
+main(): int {
+   ericKnowledge : graph in &lt;x:people&gt; = &lt;{
+      d: datetime = new datetime(1926, 5, 14);
+      eric.dob = d;
+      eric.age = calculate_age(d);
+   }&gt;;
+   default += ericKnowledge;
+   return 0;
+}
+</code></pre>
+<hr />
+<h2 id="design-principles-reflected">Design Principles Reflected</h2>
+<ul>
+<li>Code as facts: write ordinary imperative code; get graph assertions for free.</li>
+<li>Explicit persistence: expression-form never auto-writes; you stay in control.</li>
+<li>Predictable scope: only executed statements assert; nesting composes naturally.</li>
+<li>Open world: multiple values are allowed; identical triples deduplicate.</li>
+</ul>
+<hr />
+<h2 id="whats-next">What’s Next</h2>
+<ul>
+<li>Ergonomics: additional sugar for common assertion patterns.</li>
+<li>Tooling: richer diagnostics and editor hints for assertion-producing code.</li>
+<li>Performance: further tuning for large assertion sets and batch persistence.</li>
+</ul>
+<p>If you build something with Graph Assertion Blocks, we’d love to hear about it. Share examples, questions, and feedback in the GitHub Discussions — it helps us refine the feature and prioritize what comes next.</p>
+<p>— The Fifth Language Team</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

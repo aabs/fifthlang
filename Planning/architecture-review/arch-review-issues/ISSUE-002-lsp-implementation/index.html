@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>Implement Language Server Protocol (LSP) for IDE Integration - Fifthlang</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">Fifthlang</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../../../.." class="nav-link">Fifth Language</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Blog</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../../Blog/2025-09-16-graph-assertion-block/" class="dropdown-item">Announcing Graph Assertion Blocks in Fifth</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Designs</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../../Designs/5thproj-implementation-summary/" class="dropdown-item">.5thproj MSBuild Project Type Implementation Summary</a>
+</li>
+                                    
+<li>
+    <a href="../../../../Designs/fifth-sdk-readme/" class="dropdown-item">Fifth.Sdk</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Misc</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../../../Designs/misc/AST_REWRITER_DESIGN/" class="dropdown-item">AST Rewriter Design</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/debugging/" class="dropdown-item">Debugging Workflows</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/destructuring-lowering-migration/" class="dropdown-item">Destructuring Lowering Migration to Statement-Hoisting Rewriter</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/generics-implementation-summary/" class="dropdown-item">Generic Type Support Implementation Summary</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/migration-exception-handling/" class="dropdown-item">Migration Notes - Exception Handling Support</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/namespace-import-directives-research/" class="dropdown-item">Research Notes: Namespace Import Directives</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/syntax-samples-readme/" class="dropdown-item">Syntax Samples</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/syntax-testcases-bulleted/" class="dropdown-item">Fifth Syntax Unit Tests (Bulleted)</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/syntax-testplan/" class="dropdown-item">Fifth Language Syntax Test Plan</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/triple-diagnostics-refactor/" class="dropdown-item">Deferred Triple Diagnostics Refactor</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/vscode-devkit-tests/" class="dropdown-item">VS Code Dev Kit: Running TUnit Tests</a>
+</li>
+    </ul>
+  </li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Perf</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../../../Designs/perf/baselines/" class="dropdown-item">Baselines</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../../Getting-Started/knowledge-graphs/" class="dropdown-item">Knowledge Graphs in Fifth</a>
+</li>
+                                    
+<li>
+    <a href="../../../../Getting-Started/learn5thInYMinutes/" class="dropdown-item">learn5thInYMinutes</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Planning</a>
+                                <ul class="dropdown-menu">
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Architecture review</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../NEXT-STEPS/" class="dropdown-item">Architectural Review - Next Steps</a>
+</li>
+            
+<li>
+    <a href="../../architectural-review-2025/" class="dropdown-item">Fifth Language Compiler - Architectural Review Report</a>
+</li>
+            
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Arch review issues</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../" class="dropdown-item">Architectural Review Issues</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-001-error-recovery/" class="dropdown-item">Parser Needs Error Recovery for IDE Support</a>
+</li>
+            
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Implement Language Server Protocol (LSP) for IDE Integration</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-003-incremental-compilation/" class="dropdown-item">Implement Incremental Compilation for Performance and IDE Support</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-004-diagnostic-system/" class="dropdown-item">Redesign Diagnostic System for Quality Error Messages and IDE Support</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-005-composable-pipeline/" class="dropdown-item">Refactor Transformation Pipeline to Composable Architecture</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-006-symbol-table/" class="dropdown-item">Enhance Symbol Table for Performance and IDE Features</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-007-testing-architecture/" class="dropdown-item">Restructure Testing Architecture for Better Coverage and Maintainability</a>
+</li>
+    </ul>
+  </li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../ISSUE-001-error-recovery/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../ISSUE-003-incremental-compilation/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#implement-language-server-protocol-lsp-for-ide-integration" class="nav-link">Implement Language Server Protocol (LSP) for IDE Integration</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#problem-summary" class="nav-link">Problem Summary</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#current-state" class="nav-link">Current State</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#impact" class="nav-link">Impact</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#requirements" class="nav-link">Requirements</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#architecture" class="nav-link">Architecture</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#implementation-plan" class="nav-link">Implementation Plan</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#acceptance-criteria" class="nav-link">Acceptance Criteria</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#technical-requirements" class="nav-link">Technical Requirements</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#example-implementation" class="nav-link">Example Implementation</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#references" class="nav-link">References</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#estimated-effort" class="nav-link">Estimated Effort</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#dependencies_1" class="nav-link">Dependencies</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#success-metrics" class="nav-link">Success Metrics</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="implement-language-server-protocol-lsp-for-ide-integration">Implement Language Server Protocol (LSP) for IDE Integration</h1>
+<p><strong>Labels:</strong> <code>arch-review</code>, <code>ide-support</code>, <code>lsp</code>, <code>critical</code><br />
+<strong>Priority:</strong> P0<br />
+<strong>Severity:</strong> CRITICAL<br />
+<strong>Epic:</strong> Architectural Improvements Q2 2026</p>
+<h2 id="problem-summary">Problem Summary</h2>
+<p>The compiler has no Language Server Protocol implementation, preventing integration with modern editors (VS Code, Neovim, Emacs, etc.). This severely limits the language's adoption potential and developer experience.</p>
+<h2 id="current-state">Current State</h2>
+<ul>
+<li>No LSP-related code in codebase</li>
+<li>No language server executable</li>
+<li>Only basic VS Code configuration</li>
+<li>No incremental compilation (required for LSP)</li>
+<li>No real-time diagnostics</li>
+<li>No IDE features (autocomplete, go-to-definition, etc.)</li>
+</ul>
+<h2 id="impact">Impact</h2>
+<h3 id="adoption-barrier">Adoption Barrier</h3>
+<ul>
+<li>Developers expect IDE features from modern languages</li>
+<li>Competing languages (Rust, TypeScript, Swift) all have excellent LSP support</li>
+<li>No Fifth language support for popular editors</li>
+<li>Makes language feel "unfinished" or "hobby project"</li>
+</ul>
+<h3 id="development-velocity">Development Velocity</h3>
+<ul>
+<li>Contributors cannot efficiently work on Fifth code</li>
+<li>No tooling to support language feature development</li>
+<li>Testing requires full compilation cycles</li>
+<li>Debugging is manual and time-consuming</li>
+</ul>
+<h3 id="feature-gap">Feature Gap</h3>
+<p>Cannot implement standard IDE features:
+- Hover information (type info, documentation)
+- Signature help (function parameter hints)
+- Code completion (context-aware suggestions)
+- Go to definition/implementation
+- Find all references
+- Rename symbol
+- Code actions/quick fixes
+- Semantic tokens (syntax highlighting)
+- Document/workspace symbols
+- Document formatting</p>
+<h2 id="requirements">Requirements</h2>
+<h3 id="core-lsp-server">Core LSP Server</h3>
+<ol>
+<li>Implement LSP server as separate executable</li>
+<li>Support stdio communication protocol</li>
+<li>Handle standard LSP lifecycle (initialize, initialized, shutdown)</li>
+<li>Implement core capabilities negotiation</li>
+</ol>
+<h3 id="document-management">Document Management</h3>
+<ol>
+<li>Track open documents in workspace</li>
+<li>Synchronize document changes (didOpen, didChange, didClose)</li>
+<li>Parse documents incrementally</li>
+<li>Maintain AST cache per document</li>
+</ol>
+<h3 id="essential-features-mvp">Essential Features (MVP)</h3>
+<ol>
+<li><strong>Diagnostics</strong> (textDocument/publishDiagnostics)</li>
+<li>Real-time syntax errors</li>
+<li>Real-time semantic errors</li>
+<li>
+<p>Error recovery support</p>
+</li>
+<li>
+<p><strong>Hover</strong> (textDocument/hover)</p>
+</li>
+<li>Type information</li>
+<li>Function signatures</li>
+<li>
+<p>Symbol documentation</p>
+</li>
+<li>
+<p><strong>Completion</strong> (textDocument/completion)</p>
+</li>
+<li>Context-aware suggestions</li>
+<li>Keyword completion</li>
+<li>Symbol completion</li>
+<li>
+<p>Function completion with signatures</p>
+</li>
+<li>
+<p><strong>Go to Definition</strong> (textDocument/definition)</p>
+</li>
+<li>Navigate to symbol definition</li>
+<li>Support cross-file navigation</li>
+</ol>
+<h3 id="advanced-features-post-mvp">Advanced Features (Post-MVP)</h3>
+<ol>
+<li>Find References (textDocument/references)</li>
+<li>Rename Symbol (textDocument/rename)</li>
+<li>Document Symbols (textDocument/documentSymbol)</li>
+<li>Code Actions (textDocument/codeAction)</li>
+<li>Semantic Tokens (textDocument/semanticTokens)</li>
+<li>Signature Help (textDocument/signatureHelp)</li>
+</ol>
+<h2 id="architecture">Architecture</h2>
+<h3 id="project-structure">Project Structure</h3>
+<pre><code>src/language-server/
+├── FifthLanguageServer.csproj
+├── Program.cs                    # Entry point
+├── LanguageServer.cs             # Main server class
+├── Handlers/
+│   ├── TextDocumentHandler.cs   # Document sync
+│   ├── DiagnosticHandler.cs     # Error checking
+│   ├── CompletionHandler.cs     # Code completion
+│   ├── HoverHandler.cs          # Hover info
+│   └── DefinitionHandler.cs     # Go to definition
+├── Services/
+│   ├── WorkspaceService.cs      # Workspace management
+│   ├── DocumentService.cs       # Document tracking
+│   ├── ParsingService.cs        # Incremental parsing
+│   ├── DiagnosticService.cs     # Error collection
+│   ├── CompletionService.cs     # Completion logic
+│   └── SymbolService.cs         # Symbol queries
+└── Protocol/
+    └── LSPTypes.cs              # LSP protocol types
+</code></pre>
+<h3 id="key-components">Key Components</h3>
+<p><strong>WorkspaceService:</strong>
+- Manages open documents
+- Tracks project structure
+- Handles workspace-wide operations</p>
+<p><strong>DocumentService:</strong>
+- Synchronizes document state
+- Manages document versions
+- Caches parsed ASTs</p>
+<p><strong>ParsingService:</strong>
+- Incremental parsing with error recovery
+- AST caching and invalidation
+- Background parsing for diagnostics</p>
+<p><strong>SymbolService:</strong>
+- Symbol resolution using enhanced symbol table
+- Cross-file symbol queries
+- Supports "find references" and "go to definition"</p>
+<h2 id="implementation-plan">Implementation Plan</h2>
+<h3 id="phase-1-infrastructure-weeks-1-4">Phase 1: Infrastructure (Weeks 1-4)</h3>
+<ol>
+<li>Create language-server project</li>
+<li>Add OmniSharp LSP library dependency</li>
+<li>Implement basic server lifecycle</li>
+<li>Set up stdio communication</li>
+<li>Add VS Code extension configuration</li>
+</ol>
+<h3 id="phase-2-document-synchronization-weeks-5-8">Phase 2: Document Synchronization (Weeks 5-8)</h3>
+<ol>
+<li>Implement document tracking</li>
+<li>Handle didOpen/didChange/didClose</li>
+<li>Set up incremental parsing</li>
+<li>Add document AST caching</li>
+</ol>
+<h3 id="phase-3-core-features-weeks-9-12">Phase 3: Core Features (Weeks 9-12)</h3>
+<ol>
+<li><strong>Diagnostics:</strong></li>
+<li>Real-time syntax error reporting</li>
+<li>Semantic error reporting</li>
+<li>
+<p>Error recovery integration</p>
+</li>
+<li>
+<p><strong>Hover:</strong></p>
+</li>
+<li>Type information display</li>
+<li>Function signature display</li>
+<li>
+<p>Symbol documentation</p>
+</li>
+<li>
+<p><strong>Completion:</strong></p>
+</li>
+<li>Keyword completion</li>
+<li>Symbol completion</li>
+<li>Context-aware filtering</li>
+</ol>
+<h3 id="phase-4-navigation-features-weeks-13-16">Phase 4: Navigation Features (Weeks 13-16)</h3>
+<ol>
+<li><strong>Go to Definition:</strong></li>
+<li>Symbol resolution</li>
+<li>Cross-file navigation</li>
+<li>
+<p>Handle multiple definitions</p>
+</li>
+<li>
+<p><strong>Find References:</strong></p>
+</li>
+<li>Build reference index</li>
+<li>Query all usages</li>
+<li>Workspace-wide search</li>
+</ol>
+<h3 id="phase-5-polish-testing-weeks-17-20">Phase 5: Polish &amp; Testing (Weeks 17-20)</h3>
+<ol>
+<li>Performance optimization</li>
+<li>Integration testing</li>
+<li>VS Code extension</li>
+<li>Documentation and examples</li>
+</ol>
+<h2 id="acceptance-criteria">Acceptance Criteria</h2>
+<ul>
+<li>[ ] Language server starts and responds to LSP messages</li>
+<li>[ ] Real-time diagnostics work in VS Code</li>
+<li>[ ] Hover shows type information</li>
+<li>[ ] Code completion provides context-aware suggestions</li>
+<li>[ ] Go to definition navigates to symbol</li>
+<li>[ ] Works with multiple open files</li>
+<li>[ ] Performance: &lt;100ms response time for most operations</li>
+<li>[ ] VS Code extension published (optional)</li>
+<li>[ ] Documentation for setup and usage</li>
+</ul>
+<h2 id="technical-requirements">Technical Requirements</h2>
+<h3 id="dependencies">Dependencies</h3>
+<pre><code class="language-xml">&lt;ItemGroup&gt;
+  &lt;PackageReference Include=&quot;OmniSharp.Extensions.LanguageServer&quot; Version=&quot;0.19.x&quot; /&gt;
+  &lt;ProjectReference Include=&quot;..\compiler\compiler.csproj&quot; /&gt;
+  &lt;ProjectReference Include=&quot;..\parser\parser.csproj&quot; /&gt;
+&lt;/ItemGroup&gt;
+</code></pre>
+<h3 id="vs-code-extension">VS Code Extension</h3>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;fifth-language&quot;,
+  &quot;displayName&quot;: &quot;Fifth Language Support&quot;,
+  &quot;description&quot;: &quot;Language support for Fifth&quot;,
+  &quot;version&quot;: &quot;0.1.0&quot;,
+  &quot;engines&quot;: { &quot;vscode&quot;: &quot;^1.75.0&quot; },
+  &quot;activationEvents&quot;: [&quot;onLanguage:fifth&quot;],
+  &quot;contributes&quot;: {
+    &quot;languages&quot;: [{
+      &quot;id&quot;: &quot;fifth&quot;,
+      &quot;extensions&quot;: [&quot;.5th&quot;],
+      &quot;configuration&quot;: &quot;./language-configuration.json&quot;
+    }],
+    &quot;grammars&quot;: [{
+      &quot;language&quot;: &quot;fifth&quot;,
+      &quot;scopeName&quot;: &quot;source.fifth&quot;,
+      &quot;path&quot;: &quot;./syntaxes/fifth.tmLanguage.json&quot;
+    }]
+  }
+}
+</code></pre>
+<h2 id="example-implementation">Example Implementation</h2>
+<p><strong>Hover Handler:</strong></p>
+<pre><code class="language-csharp">public class HoverHandler : IRequestHandler&lt;HoverParams, Hover&gt;
+{
+    private readonly DocumentService _documentService;
+    private readonly SymbolService _symbolService;
+
+    public async Task&lt;Hover&gt; Handle(HoverParams request, CancellationToken token)
+    {
+        var document = _documentService.GetDocument(request.TextDocument.Uri);
+        var position = request.Position;
+
+        // Get AST for document (from cache or parse)
+        var (ast, _) = await document.GetASTAsync(resilient: true);
+
+        // Find symbol at position
+        var symbol = _symbolService.GetSymbolAt(ast, position);
+        if (symbol == null)
+            return null;
+
+        // Build hover content
+        var content = new MarkedStringsOrMarkupContent(
+            new MarkupContent
+            {
+                Kind = MarkupKind.Markdown,
+                Value = FormatSymbolInfo(symbol)
+            });
+
+        return new Hover
+        {
+            Contents = content,
+            Range = symbol.Range
+        };
+    }
+}
+</code></pre>
+<h2 id="references">References</h2>
+<ul>
+<li>Architectural Review: <code>docs/architectural-review-2025.md</code> - Finding #2</li>
+<li>LSP Specification: https://microsoft.github.io/language-server-protocol/</li>
+<li>OmniSharp LSP library: https://github.com/OmniSharp/csharp-language-server-protocol</li>
+<li>Rust-analyzer (reference impl): https://github.com/rust-lang/rust-analyzer</li>
+<li>Related Issues: Requires #ISSUE-001 (Error Recovery), #ISSUE-003 (Incremental Compilation), #ISSUE-006 (Symbol Table)</li>
+</ul>
+<h2 id="estimated-effort">Estimated Effort</h2>
+<p><strong>20 weeks</strong> (5 months)
+- Weeks 1-4: Infrastructure and setup
+- Weeks 5-8: Document synchronization
+- Weeks 9-12: Core features (diagnostics, hover, completion)
+- Weeks 13-16: Navigation features
+- Weeks 17-20: Polish, testing, and documentation</p>
+<h2 id="dependencies_1">Dependencies</h2>
+<ul>
+<li>Issue #001: Error Recovery (CRITICAL - must complete first)</li>
+<li>Issue #003: Incremental Compilation (for performance)</li>
+<li>Issue #006: Enhanced Symbol Table (for navigation features)</li>
+</ul>
+<h2 id="success-metrics">Success Metrics</h2>
+<ul>
+<li>Language server handles 1000+ document operations without restart</li>
+<li>Response time &lt;100ms for 90% of operations</li>
+<li>Diagnostics appear within 500ms of typing</li>
+<li>Zero crashes in normal usage</li>
+<li>Positive user feedback on IDE experience</li>
+</ul></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

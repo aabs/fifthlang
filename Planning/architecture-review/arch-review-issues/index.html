@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>Architectural Review Issues - Fifthlang</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">Fifthlang</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../../.." class="nav-link">Fifth Language</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Blog</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../Blog/2025-09-16-graph-assertion-block/" class="dropdown-item">Announcing Graph Assertion Blocks in Fifth</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Designs</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../Designs/5thproj-implementation-summary/" class="dropdown-item">.5thproj MSBuild Project Type Implementation Summary</a>
+</li>
+                                    
+<li>
+    <a href="../../../Designs/fifth-sdk-readme/" class="dropdown-item">Fifth.Sdk</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Misc</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../../Designs/misc/AST_REWRITER_DESIGN/" class="dropdown-item">AST Rewriter Design</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/debugging/" class="dropdown-item">Debugging Workflows</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/destructuring-lowering-migration/" class="dropdown-item">Destructuring Lowering Migration to Statement-Hoisting Rewriter</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/generics-implementation-summary/" class="dropdown-item">Generic Type Support Implementation Summary</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/migration-exception-handling/" class="dropdown-item">Migration Notes - Exception Handling Support</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/namespace-import-directives-research/" class="dropdown-item">Research Notes: Namespace Import Directives</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/syntax-samples-readme/" class="dropdown-item">Syntax Samples</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/syntax-testcases-bulleted/" class="dropdown-item">Fifth Syntax Unit Tests (Bulleted)</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/syntax-testplan/" class="dropdown-item">Fifth Language Syntax Test Plan</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/triple-diagnostics-refactor/" class="dropdown-item">Deferred Triple Diagnostics Refactor</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/vscode-devkit-tests/" class="dropdown-item">VS Code Dev Kit: Running TUnit Tests</a>
+</li>
+    </ul>
+  </li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Perf</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../../Designs/perf/baselines/" class="dropdown-item">Baselines</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../Getting-Started/knowledge-graphs/" class="dropdown-item">Knowledge Graphs in Fifth</a>
+</li>
+                                    
+<li>
+    <a href="../../../Getting-Started/learn5thInYMinutes/" class="dropdown-item">learn5thInYMinutes</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Planning</a>
+                                <ul class="dropdown-menu">
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Architecture review</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../NEXT-STEPS/" class="dropdown-item">Architectural Review - Next Steps</a>
+</li>
+            
+<li>
+    <a href="../architectural-review-2025/" class="dropdown-item">Fifth Language Compiler - Architectural Review Report</a>
+</li>
+            
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Arch review issues</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Architectural Review Issues</a>
+</li>
+            
+<li>
+    <a href="ISSUE-001-error-recovery/" class="dropdown-item">Parser Needs Error Recovery for IDE Support</a>
+</li>
+            
+<li>
+    <a href="ISSUE-002-lsp-implementation/" class="dropdown-item">Implement Language Server Protocol (LSP) for IDE Integration</a>
+</li>
+            
+<li>
+    <a href="ISSUE-003-incremental-compilation/" class="dropdown-item">Implement Incremental Compilation for Performance and IDE Support</a>
+</li>
+            
+<li>
+    <a href="ISSUE-004-diagnostic-system/" class="dropdown-item">Redesign Diagnostic System for Quality Error Messages and IDE Support</a>
+</li>
+            
+<li>
+    <a href="ISSUE-005-composable-pipeline/" class="dropdown-item">Refactor Transformation Pipeline to Composable Architecture</a>
+</li>
+            
+<li>
+    <a href="ISSUE-006-symbol-table/" class="dropdown-item">Enhance Symbol Table for Performance and IDE Features</a>
+</li>
+            
+<li>
+    <a href="ISSUE-007-testing-architecture/" class="dropdown-item">Restructure Testing Architecture for Better Coverage and Maintainability</a>
+</li>
+    </ul>
+  </li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../architectural-review-2025/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="ISSUE-001-error-recovery/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#architectural-review-issues" class="nav-link">Architectural Review Issues</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#issue-templates" class="nav-link">Issue Templates</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#creating-github-issues" class="nav-link">Creating GitHub Issues</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#labels-required" class="nav-link">Labels Required</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#implementation-timeline" class="nav-link">Implementation Timeline</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#dependencies" class="nav-link">Dependencies</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#priority-rationale" class="nav-link">Priority Rationale</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#references" class="nav-link">References</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#notes" class="nav-link">Notes</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="architectural-review-issues">Architectural Review Issues</h1>
+<p>This directory contains issue templates for the major architectural findings from the 2025 architectural review.</p>
+<h2 id="issue-templates">Issue Templates</h2>
+<table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Title</th>
+<th>Severity</th>
+<th>Priority</th>
+<th>Effort</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="ISSUE-001-error-recovery/">ISSUE-001</a></td>
+<td>Parser Needs Error Recovery for IDE Support</td>
+<td>CRITICAL</td>
+<td>P0</td>
+<td>8 weeks</td>
+</tr>
+<tr>
+<td><a href="ISSUE-002-lsp-implementation/">ISSUE-002</a></td>
+<td>Implement Language Server Protocol (LSP)</td>
+<td>CRITICAL</td>
+<td>P0</td>
+<td>20 weeks</td>
+</tr>
+<tr>
+<td><a href="ISSUE-003-incremental-compilation/">ISSUE-003</a></td>
+<td>Implement Incremental Compilation</td>
+<td>CRITICAL</td>
+<td>P0</td>
+<td>20 weeks</td>
+</tr>
+<tr>
+<td><a href="ISSUE-004-diagnostic-system/">ISSUE-004</a></td>
+<td>Redesign Diagnostic System</td>
+<td>HIGH</td>
+<td>P1</td>
+<td>8 weeks</td>
+</tr>
+<tr>
+<td><a href="ISSUE-005-composable-pipeline/">ISSUE-005</a></td>
+<td>Refactor to Composable Pipeline</td>
+<td>HIGH</td>
+<td>P1</td>
+<td>10 weeks</td>
+</tr>
+<tr>
+<td><a href="ISSUE-006-symbol-table/">ISSUE-006</a></td>
+<td>Enhance Symbol Table Architecture</td>
+<td>MEDIUM</td>
+<td>P2</td>
+<td>8 weeks</td>
+</tr>
+<tr>
+<td><a href="ISSUE-007-testing-architecture/">ISSUE-007</a></td>
+<td>Restructure Testing Architecture</td>
+<td>MEDIUM</td>
+<td>P2</td>
+<td>10 weeks</td>
+</tr>
+</tbody>
+</table>
+<h2 id="creating-github-issues">Creating GitHub Issues</h2>
+<p>Since GitHub CLI or API tools are not available in this environment, these templates need to be converted to GitHub issues manually. Here's how:</p>
+<h3 id="option-1-github-web-ui">Option 1: GitHub Web UI</h3>
+<p>For each issue template:</p>
+<ol>
+<li>Go to https://github.com/aabs/fifthlang/issues/new</li>
+<li>Copy the issue title (after the <code>#</code> on line 1)</li>
+<li>Copy the content starting from "<strong>Labels:</strong>" section</li>
+<li>Add labels as specified in the template</li>
+<li>Create the issue</li>
+</ol>
+<h3 id="option-2-github-cli-if-available">Option 2: GitHub CLI (if available)</h3>
+<pre><code class="language-bash"># Install GitHub CLI if not available
+# See: https://cli.github.com/
+
+# Create issues from templates
+gh issue create \
+  --repo aabs/fifthlang \
+  --title &quot;Parser Needs Error Recovery for IDE Support&quot; \
+  --body-file ISSUE-001-error-recovery.md \
+  --label &quot;arch-review,parser,ide-support,critical&quot;
+
+# Repeat for each issue template
+</code></pre>
+<h3 id="option-3-automated-script">Option 3: Automated Script</h3>
+<pre><code class="language-bash">#!/bin/bash
+# create-arch-review-issues.sh
+
+REPO=&quot;aabs/fifthlang&quot;
+
+# Issue 001
+gh issue create --repo $REPO \
+  --title &quot;Parser Needs Error Recovery for IDE Support&quot; \
+  --body-file ISSUE-001-error-recovery.md \
+  --label &quot;arch-review,parser,ide-support,critical&quot;
+
+# Issue 002
+gh issue create --repo $REPO \
+  --title &quot;Implement Language Server Protocol (LSP) for IDE Integration&quot; \
+  --body-file ISSUE-002-lsp-implementation.md \
+  --label &quot;arch-review,ide-support,lsp,critical&quot;
+
+# Issue 003
+gh issue create --repo $REPO \
+  --title &quot;Implement Incremental Compilation for Performance and IDE Support&quot; \
+  --body-file ISSUE-003-incremental-compilation.md \
+  --label &quot;arch-review,performance,ide-support,critical&quot;
+
+# Issue 004
+gh issue create --repo $REPO \
+  --title &quot;Redesign Diagnostic System for Quality Error Messages and IDE Support&quot; \
+  --body-file ISSUE-004-diagnostic-system.md \
+  --label &quot;arch-review,diagnostics,developer-experience,high&quot;
+
+# Issue 005
+gh issue create --repo $REPO \
+  --title &quot;Refactor Transformation Pipeline to Composable Architecture&quot; \
+  --body-file ISSUE-005-composable-pipeline.md \
+  --label &quot;arch-review,maintainability,performance,high&quot;
+
+# Issue 006
+gh issue create --repo $REPO \
+  --title &quot;Enhance Symbol Table for Performance and IDE Features&quot; \
+  --body-file ISSUE-006-symbol-table.md \
+  --label &quot;arch-review,symbol-table,performance,medium&quot;
+
+# Issue 007
+gh issue create --repo $REPO \
+  --title &quot;Restructure Testing Architecture for Better Coverage and Maintainability&quot; \
+  --body-file ISSUE-007-testing-architecture.md \
+  --label &quot;arch-review,testing,quality,medium&quot;
+</code></pre>
+<h2 id="labels-required">Labels Required</h2>
+<p>Ensure these labels exist in the repository:</p>
+<ul>
+<li><code>arch-review</code> (main label for all architectural review issues)</li>
+<li><code>parser</code></li>
+<li><code>ide-support</code></li>
+<li><code>lsp</code></li>
+<li><code>performance</code></li>
+<li><code>diagnostics</code></li>
+<li><code>developer-experience</code></li>
+<li><code>maintainability</code></li>
+<li><code>symbol-table</code></li>
+<li><code>testing</code></li>
+<li><code>quality</code></li>
+<li><code>critical</code></li>
+<li><code>high</code></li>
+<li><code>medium</code></li>
+</ul>
+<h2 id="implementation-timeline">Implementation Timeline</h2>
+<p>Based on the architectural review recommendations:</p>
+<h3 id="q1-2026-weeks-1-13">Q1 2026 (Weeks 1-13)</h3>
+<ul>
+<li><strong>ISSUE-001:</strong> Error Recovery (Weeks 1-8)</li>
+<li><strong>ISSUE-004:</strong> Diagnostic System (Weeks 1-8)</li>
+<li><strong>ISSUE-007:</strong> Testing Architecture (Weeks 1-10, ongoing)</li>
+</ul>
+<h3 id="q2-2026-weeks-14-39">Q2 2026 (Weeks 14-39)</h3>
+<ul>
+<li><strong>ISSUE-002:</strong> LSP Implementation (Weeks 14-33)</li>
+<li><strong>ISSUE-003:</strong> Incremental Compilation (Weeks 14-33)</li>
+<li><strong>ISSUE-005:</strong> Composable Pipeline (Weeks 14-23)</li>
+<li><strong>ISSUE-006:</strong> Symbol Table Enhancement (Weeks 24-31)</li>
+</ul>
+<h2 id="dependencies">Dependencies</h2>
+<pre><code>ISSUE-001 (Error Recovery)
+    ├─&gt; ISSUE-002 (LSP) [BLOCKS]
+    └─&gt; ISSUE-004 (Diagnostics) [ENABLES]
+
+ISSUE-003 (Incremental Compilation)
+    └─&gt; ISSUE-002 (LSP) [ENABLES]
+
+ISSUE-005 (Composable Pipeline)
+    └─&gt; ISSUE-007 (Testing) [ENABLES]
+
+ISSUE-006 (Symbol Table)
+    └─&gt; ISSUE-002 (LSP) [ENABLES]
+</code></pre>
+<h2 id="priority-rationale">Priority Rationale</h2>
+<p><strong>P0 (Critical Path):</strong>
+- Error Recovery: Foundation for all IDE work
+- LSP: Critical for adoption and developer experience
+- Incremental Compilation: Required for performance at scale</p>
+<p><strong>P1 (High Impact):</strong>
+- Diagnostic System: Improves developer experience
+- Composable Pipeline: Improves maintainability</p>
+<p><strong>P2 (Important but not blocking):</strong>
+- Symbol Table: Performance optimization
+- Testing Architecture: Quality improvement</p>
+<h2 id="references">References</h2>
+<ul>
+<li>Full Architectural Review: <code>../architectural-review-2025.md</code></li>
+<li>Implementation Roadmap: See review document Section "Implementation Roadmap"</li>
+<li>Priority Matrix: See review document Section "Recommendations Priority Matrix"</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<p>These issue templates are comprehensive and include:
+- Problem description
+- Current state analysis
+- Requirements and architecture
+- Implementation plans
+- Acceptance criteria
+- Code examples
+- References and dependencies
+- Effort estimates</p>
+<p>Feel free to adjust based on project priorities and available resources.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

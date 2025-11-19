@@ -1,0 +1,609 @@
+// Learn Fifth in Y Minutes - Compilable Example
+// This file contains all examples from the learn5thInYMinutes.md guide
+// with unique function names to avoid clashes (except for overload demonstrations)
+
+/*
+   Multi-line comments
+   work like this
+*/
+
+//////////////////////////////////////
+// Module System
+//////////////////////////////////////
+
+// Import modules
+use Math, IO, Net;
+
+//////////////////////////////////////
+// Knowledge Graphs & Semantic Web
+//////////////////////////////////////
+
+// Alias declarations for IRI namespaces
+alias ex as <http://example.org/>;
+alias foaf as <http://xmlns.com/foaf/0.1/>;
+alias foaf2 as <http://xmlns.com/foaf/0.1/>;
+alias ex2 as <http://example.org/people/>;
+
+// Store declaration (SPARQL endpoint)
+// Syntax: name : store = sparql_store(<iri>);
+myStore : store = sparql_store(<http://localhost:8080/graphdb>);
+peopleDB : store = sparql_store(<http://localhost:8080/graphdb2>);
+
+//////////////////////////////////////
+// 1. Basic Syntax and Literals
+//////////////////////////////////////
+
+// Integer literals support multiple bases
+example_integer_literals(): int {
+    x: int;
+    x = 42;           // Decimal
+    x = 0b101010;     // Binary (prefix 0b)
+    x = 0o52;         // Octal (prefix 0o)
+    x = 0x2A;         // Hexadecimal (prefix 0x)
+    x = 42i;          // Imaginary numbers
+    
+    return 0;
+}
+
+// Floating-point literals
+example_float_literals(): int {
+    pi: float;
+    pi = 3.14159;
+    pi = 3.14e0;      // Scientific notation
+    
+    return 0;
+}
+
+// Boolean literals
+example_bool_literals(): int {
+    t: bool;
+    f: bool;
+    t = true;
+    f = false;
+    
+    return 0;
+}
+
+// String literals
+example_string_literals(): int {
+    plain: string;
+    raw: string;
+    
+    plain = "Hello, World!";          // Interpreted strings
+    raw = `Raw\nstring\twith\escapes`; // Raw strings (backticks)
+    
+    return 0;
+}
+
+// Null literal
+example_null_literal(): int {
+    ptr: int;
+    ptr = null;
+    
+    return 0;
+}
+
+//////////////////////////////////////
+// 2. Variables and Type Declarations
+//////////////////////////////////////
+
+// Variable declarations use colon syntax: name : type
+example_variable_decl(): int {
+    x: int;
+    y: float;
+    s: string;
+    
+    // Declaration with initialization
+    z: int;
+    z = 100;
+    
+    return 0;
+}
+
+// Type specifications for arrays and lists
+example_type_specs(): int {
+    arr: int[10];          // Fixed-size array
+    dynamicArr: int[];     // Dynamic array
+    matrix: int[5][5];     // Multi-dimensional array
+    
+    // List type with brackets
+    numbers: [int];
+    
+    // Generic types
+    optional: Maybe<int>;
+    
+    return 0;
+}
+
+//////////////////////////////////////
+// 3. Operators
+//////////////////////////////////////
+
+// Arithmetic operators
+example_arithmetic_ops(): int {
+    x: int;
+    x = 10 + 5;       // Addition
+    x = 10 - 5;       // Subtraction
+    x = 10 * 5;       // Multiplication
+    x = 10 / 5;       // Division
+    x = 10 % 3;       // Modulo
+    x = 2 ** 8;       // Power (exponentiation with **)
+    x = 2 ^ 8;        // Bitwise XOR (use ** for power)
+    
+    return 0;
+}
+
+// Comparison operators
+example_comparison_ops(): int {
+    result: bool;
+    result = 5 == 5;  // Equality
+    result = 5 != 3;  // Inequality
+    result = 5 < 10;  // Less than
+    result = 5 <= 5;  // Less than or equal
+    result = 10 > 5;  // Greater than
+    result = 10 >= 5; // Greater than or equal
+    
+    return 0;
+}
+
+// Logical operators
+example_logical_ops(): int {
+    result: bool;
+    result = true && false;   // Logical AND
+    result = true || false;   // Logical OR
+    result = !true;           // Logical NOT
+    result = true ~ false;    // Logical XOR
+    
+    return 0;
+}
+
+// Bitwise operators
+example_bitwise_ops(): int {
+    x: int;
+    x = 5 | 3;        // Bitwise OR
+    x = 5 & 3;        // Bitwise AND
+    x = 5 << 2;       // Left shift
+    x = 20 >> 2;      // Right shift
+    
+    return 0;
+}
+
+// Increment and decrement
+example_increment_decrement(): int {
+    x: int;
+    x = 5;
+    x++;              // Post-increment
+    x--;              // Post-decrement
+    ++x;              // Pre-increment
+    --x;              // Pre-decrement
+    
+    return 0;
+}
+
+// Compound assignment
+example_compound_assign(): int {
+    x: int;
+    x = 10;
+    x += 5;           // x = x + 5
+    x -= 3;           // x = x - 3
+    
+    return 0;
+}
+
+//////////////////////////////////////
+// 4. Functions
+//////////////////////////////////////
+
+// Function declaration syntax: name(params): returnType { body }
+add(x: int, y: int): int {
+    return x + y;
+}
+
+// Multiple parameters
+greet(firstName: string, lastName: string): string {
+    return firstName;
+}
+
+example_function_call(): int {
+    sum: int;
+    sum = add(5, 3);
+    
+    return 0;
+}
+
+// Function with parameter constraints
+// Use pipe | to specify constraints on parameters
+// IMPORTANT: When using constraints, you must provide a base case
+// The base case is an unconstrained version that handles all other inputs
+positive(x: int | x > 0): int {
+    return x * 2;  // Handles positive numbers
+}
+
+positive(x: int): int {
+    return 0;  // Base case: handles zero and negative numbers
+}
+
+// Multiple constrained overloads with a base case
+classify(x: int | x < 0): string {
+    return "negative";
+}
+
+classify(x: int | x == 0): string {
+    return "zero";
+}
+
+classify(x: int | x > 0): string {
+    return "positive";
+}
+
+classify(x: int): string {
+    return "unknown";  // Base case (fallback)
+}
+
+example_constrained_functions(): int {
+    result: int;
+    result = positive(5);
+    result = positive(-5);
+    
+    return 0;
+}
+
+// Parameter destructuring
+class Person {
+    FirstName: string;
+    LastName: string;
+}
+
+// Define a class for the full example
+class PersonFull {
+    FirstName: string;
+    LastName: string;
+    Age: int;
+}
+
+greetPerson(p: Person { first: FirstName, last: LastName }): string {
+    return first;
+}
+
+example_destructuring(): int {
+    p: Person;
+    p = new Person();
+    
+    return 0;
+}
+
+//////////////////////////////////////
+// 5. Control Flow
+//////////////////////////////////////
+
+// If statements
+example_if_statement(): int {
+    x: int;
+    x = 10;
+    
+    if (x > 5) {
+        x = 1;
+    }
+    
+    // If-else
+    if (x < 5) {
+        x = 0;
+    } else {
+        x = 1;
+    }
+    
+    return 0;
+}
+
+// While loops
+example_while_loop(): int {
+    i: int;
+    i = 0;
+    
+    while (i < 10) {
+        i++;
+    }
+    
+    return 0;
+}
+
+//////////////////////////////////////
+// 6. Lists and Comprehensions
+//////////////////////////////////////
+
+// List literals
+example_list_literals(): int {
+    empty: [int];
+    numbers: [int];
+    
+    empty = [];
+    numbers = [1, 2, 3, 4, 5];
+    
+    return 0;
+}
+
+// List comprehensions with filtering
+example_list_comprehension(): int {
+    xs: [int];
+    ys: [int];
+    
+    xs = [1, 2, 3, 4, 5];
+    
+    // List comprehension: [var in source # constraint]
+    ys = [x in xs # x > 2];  // [3, 4, 5]
+    
+    return 0;
+}
+
+// Accessing list elements
+example_list_access(): int {
+    numbers: [int];
+    first: int;
+    
+    numbers = [10, 20, 30];
+    first = numbers[0];      // Index access
+    
+    return 0;
+}
+
+//////////////////////////////////////
+// 7. Classes and Objects
+//////////////////////////////////////
+
+// Class definition
+class Rectangle {
+    Width: float;
+    Height: float;
+}
+
+// Class with methods
+class Calculator {
+    Value: int;
+    
+    Add(x: int): int {
+        return Value + x;
+    }
+    
+    Multiply(x: int): int {
+        return Value * x;
+    }
+}
+
+// Class instantiation
+example_class_instantiation(): int {
+    rect: Rectangle;
+    calc: Calculator;
+    
+    // Create new object (can be empty)
+    rect = new Rectangle();
+    
+    // Create with property initialization
+    rect = new Rectangle() {
+        Width = 10.0,
+        Height = 5.0
+    };
+    
+    calc = new Calculator() { Value = 100 };
+    
+    return 0;
+}
+
+// Class inheritance
+class Shape {
+    Color: string;
+}
+
+class Circle extends Shape {
+    Radius: float;
+}
+
+example_inheritance(): int {
+    c: Circle;
+    c = new Circle();
+    
+    return 0;
+}
+
+// Member access
+example_member_access(): int {
+    rect: Rectangle;
+    w: float;
+    
+    rect = new Rectangle() { Width = 10.0, Height = 5.0 };
+    w = rect.Width;          // Access member
+    rect.Width = 15.0;       // Modify member
+    
+    return 0;
+}
+
+//////////////////////////////////////
+// 9. Knowledge Graphs & Semantic Web Examples
+//////////////////////////////////////
+
+// Triple literals: <subject, predicate, object>
+example_triple_literals(): int {
+    // Triples use prefixed IRIs
+    <ex:john, foaf:name, "John Doe">;
+    <ex:john, foaf:age, 30>;
+    <ex:john, ex:knows, ex:jane>;
+    
+    return 0;
+}
+
+// Graph declaration
+example_graph_declaration(): int {
+    // Graph variable with colon syntax
+    g : graph in <ex:> = KG.CreateGraph();
+    // Add triples to the graph
+    g += <ex:subject1, ex:predicate1, ex:object1>;
+    g += <ex:subject2, ex:predicate2, 42>;
+    
+    return 0;
+}
+
+// Working with graphs
+example_graph_operations(): int {
+    g : graph = KG.CreateGraph();
+    g += <ex:s, ex:p, ex:o>;
+    
+    return 0;
+}
+
+// Working with graphs and objects
+class PersonWithGraph {
+    Name: string;
+    Age: int;
+}
+
+example_graph_with_objects(): int {
+    // Create an object
+    alice: PersonWithGraph;
+    alice = new PersonWithGraph();
+    
+    // Create a graph and add triples
+    peopleGraph : graph in <ex:> = KG.CreateGraph();
+    // Add explicit triple literals
+    peopleGraph += <ex:alice, ex:name, "Alice">;
+    peopleGraph += <ex:alice, ex:age, 30>;
+    peopleGraph += <ex:alice, ex:knows, ex:bob>;
+    
+    return 0;
+}
+
+// Assigning graphs to stores
+example_graph_to_store(): int {
+    myGraph : graph in <ex:> = KG.CreateGraph();
+    myGraph += <ex:entity, ex:property, "value">;
+    
+    // Add graph to store
+    myStore += myGraph;
+    
+    // Remove graph from store
+    myStore -= myGraph;
+    
+    return 0;
+}
+
+// Classes in semantic context
+class Entity in <http://example.org/ontology#> {
+    Name: string;
+    Value: int;
+}
+
+example_semantic_class(): int {
+    e: Entity;
+    e = new Entity() { Name = "Test", Value = 42 };
+    
+    return 0;
+}
+
+//////////////////////////////////////
+// 10. Advanced Features
+//////////////////////////////////////
+
+// Nested destructuring
+class Address {
+    Street: string;
+    City: string;
+}
+
+class Employee {
+    Name: string;
+    HomeAddress: Address;
+}
+
+processEmployee(
+    e: Employee { 
+        name: Name, 
+        addr: HomeAddress { city: City } 
+    }
+): string {
+    return City;
+}
+
+example_nested_destructuring(): int {
+    emp: Employee;
+    emp = new Employee();
+    
+    return 0;
+}
+
+// Function with multiple constraints
+// All constrained overloads require a base case
+constrained(
+    x: int | x > 0,
+    y: int | y < 100
+): int {
+    return x + y;  // Handles when x>0 AND y<100
+}
+
+constrained(x: int, y: int): int {
+    return 0;  // Base case: handles all other combinations
+}
+
+example_multiple_constraints(): int {
+    result: int;
+    result = constrained(5, 50);
+    
+    return 0;
+}
+
+// Expression statements
+example_expression_statements(): int {
+    x: int;
+    
+    // Any expression can be a statement
+    5 + 3;
+    x = 10;
+    x > 5;
+    
+    return 0;
+}
+
+// Block statements
+example_block_statements(): int {
+    x: int;
+    
+    {
+        y: int;
+        y = 5;
+    }  // y goes out of scope
+    
+    return 0;
+}
+
+//////////////////////////////////////
+// 11. Full Example: Semantic Application
+//////////////////////////////////////
+
+// Function to calculate if someone is an adult
+isAdult(age: int): bool {
+    return age >= 18;
+}
+
+// Main program
+main(): int {
+    // Create a person
+    john: PersonFull;
+    john = new PersonFull() {
+        FirstName = "John",
+        LastName = "Doe",
+        Age = 30
+    };
+    
+    // Check if adult
+    adult: bool;
+    adult = isAdult(john.Age);
+    
+    // Create knowledge graph and add triples
+    johnGraph : graph in <ex2:> = KG.CreateGraph();
+    // Add triples for John's properties
+    johnGraph += <ex2:john, foaf2:firstName, "John">;
+    johnGraph += <ex2:john, foaf2:lastName, "Doe">;
+    johnGraph += <ex2:john, foaf2:age, 30>;
+    
+    // Save to the store
+    peopleDB += johnGraph;
+    
+    return 0;
+}

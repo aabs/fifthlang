@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>learn5thInYMinutes - Fifthlang</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Fifthlang</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">Fifth Language</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Blog</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../Blog/2025-09-16-graph-assertion-block/" class="dropdown-item">Announcing Graph Assertion Blocks in Fifth</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Designs</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../Designs/5thproj-implementation-summary/" class="dropdown-item">.5thproj MSBuild Project Type Implementation Summary</a>
+</li>
+                                    
+<li>
+    <a href="../../Designs/fifth-sdk-readme/" class="dropdown-item">Fifth.Sdk</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Misc</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../Designs/misc/AST_REWRITER_DESIGN/" class="dropdown-item">AST Rewriter Design</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/debugging/" class="dropdown-item">Debugging Workflows</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/destructuring-lowering-migration/" class="dropdown-item">Destructuring Lowering Migration to Statement-Hoisting Rewriter</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/generics-implementation-summary/" class="dropdown-item">Generic Type Support Implementation Summary</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/migration-exception-handling/" class="dropdown-item">Migration Notes - Exception Handling Support</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/namespace-import-directives-research/" class="dropdown-item">Research Notes: Namespace Import Directives</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/syntax-samples-readme/" class="dropdown-item">Syntax Samples</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/syntax-testcases-bulleted/" class="dropdown-item">Fifth Syntax Unit Tests (Bulleted)</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/syntax-testplan/" class="dropdown-item">Fifth Language Syntax Test Plan</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/triple-diagnostics-refactor/" class="dropdown-item">Deferred Triple Diagnostics Refactor</a>
+</li>
+            
+<li>
+    <a href="../../Designs/misc/vscode-devkit-tests/" class="dropdown-item">VS Code Dev Kit: Running TUnit Tests</a>
+</li>
+    </ul>
+  </li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Perf</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../Designs/perf/baselines/" class="dropdown-item">Baselines</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../knowledge-graphs/" class="dropdown-item">Knowledge Graphs in Fifth</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">learn5thInYMinutes</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Planning</a>
+                                <ul class="dropdown-menu">
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Architecture review</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../Planning/architecture-review/NEXT-STEPS/" class="dropdown-item">Architectural Review - Next Steps</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/architectural-review-2025/" class="dropdown-item">Fifth Language Compiler - Architectural Review Report</a>
+</li>
+            
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Arch review issues</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/" class="dropdown-item">Architectural Review Issues</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-001-error-recovery/" class="dropdown-item">Parser Needs Error Recovery for IDE Support</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-002-lsp-implementation/" class="dropdown-item">Implement Language Server Protocol (LSP) for IDE Integration</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-003-incremental-compilation/" class="dropdown-item">Implement Incremental Compilation for Performance and IDE Support</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-004-diagnostic-system/" class="dropdown-item">Redesign Diagnostic System for Quality Error Messages and IDE Support</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-005-composable-pipeline/" class="dropdown-item">Refactor Transformation Pipeline to Composable Architecture</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-006-symbol-table/" class="dropdown-item">Enhance Symbol Table for Performance and IDE Features</a>
+</li>
+            
+<li>
+    <a href="../../Planning/architecture-review/arch-review-issues/ISSUE-007-testing-architecture/" class="dropdown-item">Restructure Testing Architecture for Better Coverage and Maintainability</a>
+</li>
+    </ul>
+  </li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../knowledge-graphs/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../../Planning/architecture-review/NEXT-STEPS/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="2"><a href="#further-reading" class="nav-link">Further Reading</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<p>Fifth is a systems programming language with first-class support for knowledge graphs and semantic web technologies. It combines imperative programming with RDF triple management.</p>
+<pre><code class="language-fifth">// This is a single-line comment
+
+/*
+   Multi-line comments
+   work like this
+*/
+
+//////////////////////////////////////
+// 1. Basic Syntax and Literals
+//////////////////////////////////////
+
+// Every Fifth program needs a main function with an int return type
+main(): int {
+    return 0;
+}
+
+// Integer literals support multiple bases
+main(): int {
+    x: int;
+    x = 42;           // Decimal
+    x = 0b101010;     // Binary (prefix 0b)
+    x = 0o52;         // Octal (prefix 0o)
+    x = 0x2A;         // Hexadecimal (prefix 0x)
+    x = 42i;          // Imaginary numbers
+
+    return 0;
+}
+
+// Floating-point literals
+main(): int {
+    pi: float;
+    pi = 3.14159;
+    pi = 3.14e0;      // Scientific notation
+    pi = 0x1.921fb54442d18p+1;  // Hex float
+
+    return 0;
+}
+
+// Boolean literals
+main(): int {
+    t: bool;
+    f: bool;
+    t = true;
+    f = false;
+
+    return 0;
+}
+
+// String literals
+main(): int {
+    plain: string;
+    raw: string;
+    interpolated: string;
+
+    plain = &quot;Hello, World!&quot;;          // Interpreted strings
+    raw = `Raw\nstring\twith\escapes`; // Raw strings (backticks)
+    interpolated = $&quot;Value is {x}&quot;;   // Interpolated strings ($ prefix)
+
+    return 0;
+}
+
+// Rune literals (single characters)
+main(): int {
+    c: rune;
+    c = 'A';
+    c = '\n';         // Escape sequences
+    c = '\u0041';     // Unicode escape
+
+    return 0;
+}
+
+// Null literal
+main(): int {
+    ptr: int;
+    ptr = null;
+
+    return 0;
+}
+
+//////////////////////////////////////
+// 2. Variables and Type Declarations
+//////////////////////////////////////
+
+// Variable declarations use colon syntax: name : type
+main(): int {
+    x: int;
+    y: float;
+    s: string;
+
+    // Declaration with initialization
+    z: int;
+    z = 100;
+
+    return 0;
+}
+
+// Type specifications for arrays and lists
+main(): int {
+    arr: int[10];          // Fixed-size array
+    dynamicArr: int[];     // Dynamic array
+    matrix: int[5][5];     // Multi-dimensional array
+
+    // List type with brackets
+    numbers: [int];
+
+    // Generic types
+    optional: Maybe&lt;int&gt;;
+
+    return 0;
+}
+
+//////////////////////////////////////
+// 3. Operators
+//////////////////////////////////////
+
+// Arithmetic operators
+main(): int {
+    x: int;
+    x = 10 + 5;       // Addition
+    x = 10 - 5;       // Subtraction
+    x = 10 * 5;       // Multiplication
+    x = 10 / 5;       // Division
+    x = 10 % 3;       // Modulo
+    x = 2 ** 8;       // Power (exponentiation with **)
+    x = 2 ^ 8;        // Bitwise XOR (use ** for power)
+
+    return 0;
+}
+
+// Comparison operators
+main(): int {
+    result: bool;
+    result = 5 == 5;  // Equality
+    result = 5 != 3;  // Inequality
+    result = 5 &lt; 10;  // Less than
+    result = 5 &lt;= 5;  // Less than or equal
+    result = 10 &gt; 5;  // Greater than
+    result = 10 &gt;= 5; // Greater than or equal
+
+    return 0;
+}
+
+// Logical operators
+main(): int {
+    result: bool;
+    result = true &amp;&amp; false;   // Logical AND
+    result = true || false;   // Logical OR
+    result = !true;           // Logical NOT
+    result = true !&amp; false;   // Logical NAND
+    result = true !| false;   // Logical NOR
+    result = true ~ false;    // Logical XOR
+
+    return 0;
+}
+
+// Bitwise operators
+main(): int {
+    x: int;
+    x = 5 | 3;        // Bitwise OR
+    x = 5 &amp; 3;        // Bitwise AND
+    x = 5 &lt;&lt; 2;       // Left shift
+    x = 20 &gt;&gt; 2;      // Right shift
+
+    return 0;
+}
+
+// Increment and decrement
+main(): int {
+    x: int;
+    x = 5;
+    x++;              // Post-increment
+    x--;              // Post-decrement
+    ++x;              // Pre-increment
+    --x;              // Pre-decrement
+
+    return 0;
+}
+
+// Compound assignment
+main(): int {
+    x: int;
+    x = 10;
+    x += 5;           // x = x + 5
+    x -= 3;           // x = x - 3
+
+    return 0;
+}
+
+//////////////////////////////////////
+// 4. Functions
+//////////////////////////////////////
+
+// Function declaration syntax: name(params): returnType { body }
+add(x: int, y: int): int {
+    return x + y;
+}
+
+// Multiple parameters
+greet(firstName: string, lastName: string): string {
+    return firstName;
+}
+
+// Functions are called before main is defined
+main(): int {
+    sum: int;
+    sum = add(5, 3);
+
+    return 0;
+}
+
+// Function with parameter constraints
+// Use pipe | to specify constraints on parameters
+// IMPORTANT: When using constraints, you must provide a base case
+// The base case is an unconstrained version that handles all other inputs
+positive(x: int | x &gt; 0): int {
+    return x * 2;  // Handles positive numbers
+}
+
+positive(x: int): int {
+    return 0;  // Base case: handles zero and negative numbers
+}
+
+// Multiple constrained overloads with a base case
+classify(x: int | x &lt; 0): string {
+    return &quot;negative&quot;;
+}
+
+classify(x: int | x == 0): string {
+    return &quot;zero&quot;;
+}
+
+classify(x: int | x &gt; 0): string {
+    return &quot;positive&quot;;
+}
+
+classify(x: int): string {
+    return &quot;unknown&quot;;  // Base case (fallback)
+}
+
+callClassify(): int {
+    return 0;
+}
+
+// Parameter destructuring
+class Person {
+    FirstName: string;
+    LastName: string;
+}
+
+greetPerson(p: Person { first: FirstName, last: LastName }): string {
+    return first;
+}
+
+testGreet(): int {
+    return 0;
+}
+
+//////////////////////////////////////
+// 5. Control Flow
+//////////////////////////////////////
+
+// If statements
+main(): int {
+    x: int;
+    x = 10;
+
+    if (x &gt; 5) {
+        x = 1;
+    }
+
+    // If-else
+    if (x &lt; 5) {
+        x = 0;
+    } else {
+        x = 1;
+    }
+
+    return 0;
+}
+
+// While loops
+main(): int {
+    i: int;
+    i = 0;
+
+    while (i &lt; 10) {
+        i++;
+    }
+
+    return 0;
+}
+
+// With statement (scoped resource management)
+main(): int {
+    with resource {
+        ;
+    }
+
+    return 0;
+}
+
+// Try/catch/finally for exception handling
+main(): int {
+    result: int;
+    result = 0;
+
+    // Try with finally - finally always executes
+    try {
+        result = 10;
+    } finally {
+        std.print(&quot;cleanup&quot;);
+    }
+
+    // Try/catch - handles exceptions
+    try {
+        result = 42;
+    } catch {
+        result = 1;  // Catch-all handler
+    }
+
+    // Try/catch/finally combined
+    try {
+        result = 10;
+    } catch {
+        result = 1;
+    } finally {
+        result = result + 5;  // Always executes
+    }
+
+    return result;
+}
+
+//////////////////////////////////////
+// 6. Lists and Comprehensions
+//////////////////////////////////////
+
+// List literals
+main(): int {
+    empty: [int];
+    numbers: [int];
+
+    empty = [];
+    numbers = [1, 2, 3, 4, 5];
+
+    return 0;
+}
+
+// List comprehensions with filtering
+main(): int {
+    xs: [int];
+    ys: [int];
+
+    xs = [1, 2, 3, 4, 5];
+
+    // List comprehension: [var in source # constraint]
+    ys = [x in xs # x &gt; 2];  // [3, 4, 5]
+
+    return 0;
+}
+
+// Accessing list elements
+main(): int {
+    numbers: [int];
+    first: int;
+
+    numbers = [10, 20, 30];
+    first = numbers[0];      // Index access
+
+    return 0;
+}
+
+//////////////////////////////////////
+// 7. Classes and Objects
+//////////////////////////////////////
+
+// Class definition
+class Rectangle {
+    Width: float;
+    Height: float;
+}
+
+// Class with methods
+class Calculator {
+    Value: int;
+
+    Add(x: int): int {
+        return Value + x;
+    }
+
+    Multiply(x: int): int {
+        return Value * x;
+    }
+}
+
+// Class instantiation
+main(): int {
+    rect: Rectangle;
+    calc: Calculator;
+
+    // Create new object (can be empty)
+    rect = new Rectangle();
+
+    // Create with property initialization
+    rect = new Rectangle() {
+        Width = 10.0,
+        Height = 5.0
+    };
+
+    calc = new Calculator() { Value = 100 };
+
+    return 0;
+}
+
+// Class inheritance
+class Shape {
+    Color: string;
+}
+
+class Circle extends Shape {
+    Radius: float;
+}
+
+main(): int {
+    c: Circle;
+    c = new Circle();
+
+    return 0;
+}
+
+// Member access
+main(): int {
+    rect: Rectangle;
+    w: float;
+
+    rect = new Rectangle() { Width = 10.0, Height = 5.0 };
+    w = rect.Width;          // Access member
+    rect.Width = 15.0;       // Modify member
+
+    return 0;
+}
+
+//////////////////////////////////////
+// 8. Generic Types
+//////////////////////////////////////
+
+// Generic classes allow type parameters for reusable data structures
+// Syntax: class Name&lt;TypeParam&gt; { ... }
+
+class Stack&lt;T&gt; {
+    items: [T];
+
+    push(item: T): int {
+        return 0;
+    }
+
+    pop(): T {
+        return items;
+    }
+}
+
+main(): int {
+    intStack: Stack&lt;int&gt;;
+    stringStack: Stack&lt;string&gt;;
+
+    // Each instantiation creates a distinct type
+    intStack = new Stack&lt;int&gt;();
+    stringStack = new Stack&lt;string&gt;();
+
+    return 0;
+}
+
+// Multiple type parameters
+class Pair&lt;T1, T2&gt; {
+    first: T1;
+    second: T2;
+}
+
+class Dictionary&lt;TKey, TValue&gt; {
+    keys: [TKey];
+    values: [TValue];
+}
+
+main(): int {
+    pair: Pair&lt;int, string&gt;;
+    dict: Dictionary&lt;string, int&gt;;
+
+    pair = new Pair&lt;int, string&gt;() {
+        first = 42,
+        second = &quot;answer&quot;
+    };
+
+    return 0;
+}
+
+// Generic functions with type inference
+// The compiler can infer type arguments from the call site
+identity&lt;T&gt;(x: T): T {
+    return x;
+}
+
+main(): int {
+    result: int;
+    text: string;
+
+    // Explicit type arguments
+    result = identity&lt;int&gt;(42);
+    text = identity&lt;string&gt;(&quot;hello&quot;);
+
+    // Type inference (types inferred from arguments)
+    result = identity(42);        // Infers T = int
+    text = identity(&quot;world&quot;);     // Infers T = string
+
+    return 0;
+}
+
+// Functions with multiple type parameters
+pair&lt;T1, T2&gt;(a: T1, b: T2): int {
+    return 0;
+}
+
+triple&lt;T1, T2, T3&gt;(a: T1, b: T2, c: T3): int {
+    return 0;
+}
+
+main(): int {
+    // Type inference works with multiple parameters
+    pair(1, &quot;one&quot;);          // Infers T1=int, T2=string
+    triple(1, 2.0, &quot;three&quot;); // Infers T1=int, T2=float, T3=string
+
+    return 0;
+}
+
+// Type constraints ensure type parameters meet requirements
+// Syntax: where TypeParam: Constraint
+
+// Interface constraint
+sort&lt;T&gt;(items: int): int where T: IComparable {
+    return 0;
+}
+
+// Base class constraint
+extend&lt;T&gt;(base: T): int where T: BaseClass {
+    return 0;
+}
+
+// Multiple constraints
+process&lt;T&gt;(item: T): int where T: IComparable, IDisposable {
+    return 0;
+}
+
+// Constraints on multiple type parameters
+class Mapper&lt;TIn, TOut&gt; where TIn: IComparable where TOut: BaseType {
+    input: TIn;
+    output: TOut;
+}
+
+main(): int {
+    mapper: Mapper&lt;int, string&gt;;
+
+    return 0;
+}
+
+// Generic methods in classes
+class Container&lt;T&gt; {
+    value: T;
+
+    // Non-generic method using class type parameter
+    getValue(): T {
+        return value;
+    }
+
+    // Methods can have their own type parameters
+    // (Note: Parser limitations exist for method-level generics)
+}
+
+class Util {
+    // Generic methods in non-generic classes
+    swap(x: int, y: int): int {
+        return 0;
+    }
+}
+
+main(): int {
+    container: Container&lt;int&gt;;
+    util: Util;
+
+    container = new Container&lt;int&gt;() { value = 42 };
+    util = new Util();
+
+    return 0;
+}
+
+// Nested generic types
+class Box&lt;T&gt; {
+    items: [T];  // List of T
+}
+
+main(): int {
+    // Box containing a list of integers
+    intBox: Box&lt;int&gt;;
+
+    // You can nest generic types
+    // (Advanced nested syntax may have parser limitations)
+
+    return 0;
+}
+
+// Key Points about Generics:
+// 1. Full type reification: Stack&lt;int&gt; and Stack&lt;string&gt; are distinct types at runtime
+// 2. Type inference works from function call arguments (local inference, C#-style)
+// 3. Type parameters can have constraints (interface, base class)
+// 4. Multiple type parameters supported: Pair&lt;T1, T2&gt;, Dictionary&lt;TKey, TValue&gt;
+// 5. Generic methods inherit functionality from class type parameters
+// 6. Backward compatible: all non-generic code works unchanged
+
+//////////////////////////////////////
+// 8. Module System
+//////////////////////////////////////
+
+// Import modules
+use Math, IO, Net;
+
+// Multiple imports
+use System, Collections;
+
+main(): int {
+    return 0;
+}
+
+//////////////////////////////////////
+// 9. Knowledge Graphs &amp; Semantic Web
+//////////////////////////////////////
+
+// Alias declarations for IRI namespaces
+alias ex as &lt;http://example.org/&gt;;
+alias foaf as &lt;http://xmlns.com/foaf/0.1/&gt;;
+
+// Store declaration (SPARQL endpoint)
+// Syntax: name : store = sparql_store(&lt;iri&gt;);
+myStore : store = sparql_store(&lt;http://localhost:8080/graphdb&gt;);
+
+// Triple literals: &lt;subject, predicate, object&gt;
+main(): int {
+    // Triples use prefixed IRIs
+    &lt;ex:john, foaf:name, &quot;John Doe&quot;&gt;;
+    &lt;ex:john, foaf:age, 30&gt;;
+    &lt;ex:john, ex:knows, ex:jane&gt;;
+
+    return 0;
+}
+
+// Graph declaration
+main(): int {
+    // Graph variable with colon syntax
+    g : graph in &lt;ex:&gt; = KG.CreateGraph();
+    // Add triples to the graph
+    g += &lt;ex:subject1, ex:predicate1, ex:object1&gt;;
+    g += &lt;ex:subject2, ex:predicate2, 42&gt;;
+
+    return 0;
+}
+
+// Working with graphs
+main(): int {
+    g : graph = KG.CreateGraph();
+    g += &lt;ex:s, ex:p, ex:o&gt;;
+
+    return 0;
+}
+
+// Working with graphs and objects
+class Person {
+    Name: string;
+    Age: int;
+}
+
+main(): int {
+    // Create an object
+    alice: Person;
+    alice = new Person();
+
+    // Create graph and add triples
+    peopleGraph : graph in &lt;ex:&gt; = KG.CreateGraph();
+    // Add explicit triple literals
+    peopleGraph += &lt;ex:alice, ex:name, &quot;Alice&quot;&gt;;
+    peopleGraph += &lt;ex:alice, ex:age, 30&gt;;
+    peopleGraph += &lt;ex:alice, ex:knows, ex:bob&gt;;
+
+    return 0;
+}
+
+// Assigning graphs to stores
+alias ex as &lt;http://example.org/&gt;;
+myStore : store = sparql_store(&lt;http://localhost:8080/graphdb&gt;);
+
+main(): int {
+    myGraph : graph in &lt;ex:&gt; = KG.CreateGraph();
+    myGraph += &lt;ex:entity, ex:property, &quot;value&quot;&gt;;
+
+    // Add graph to store
+    myStore += myGraph;
+
+    // Remove graph from store
+    myStore -= myGraph;
+
+    return 0;
+}
+
+// Classes in semantic context
+class Entity in &lt;http://example.org/ontology#&gt; {
+    Name: string;
+    Value: int;
+}
+
+main(): int {
+    e: Entity;
+    e = new Entity() { Name = &quot;Test&quot;, Value = 42 };
+
+    return 0;
+}
+
+//////////////////////////////////////
+// 10. Advanced Features
+//////////////////////////////////////
+
+// Nested destructuring
+class Address {
+    Street: string;
+    City: string;
+}
+
+class Employee {
+    Name: string;
+    HomeAddress: Address;
+}
+
+processEmployee(
+    e: Employee { 
+        name: Name, 
+        addr: HomeAddress { city: City } 
+    }
+): string {
+    return City;
+}
+
+main(): int {
+    return 0;
+}
+
+// Function with multiple constraints
+// All constrained overloads require a base case
+constrained(
+    x: int | x &gt; 0,
+    y: int | y &lt; 100
+): int {
+    return x + y;  // Handles when x&gt;0 AND y&lt;100
+}
+
+constrained(x: int, y: int): int {
+    return 0;  // Base case: handles all other combinations
+}
+
+main(): int {
+    result: int;
+    result = constrained(5, 50);
+
+    return 0;
+}
+
+// Expression statements
+main(): int {
+    x: int;
+
+    // Any expression can be a statement
+    5 + 3;
+    x = 10;
+    x &gt; 5;
+
+    return 0;
+}
+
+// Block statements
+main(): int {
+    x: int;
+
+    {
+        y: int;
+        y = 5;
+    }  // y goes out of scope
+
+    return 0;
+}
+
+//////////////////////////////////////
+// 11. Full Example: Semantic Application
+//////////////////////////////////////
+
+// Define namespace aliases
+alias foaf as &lt;http://xmlns.com/foaf/0.1/&gt;;
+alias ex as &lt;http://example.org/people/&gt;;
+
+// Connect to a SPARQL store
+peopleDB : store = sparql_store(&lt;http://localhost:8080/graphdb&gt;);
+
+// Define a class for people
+class Person {
+    FirstName: string;
+    LastName: string;
+    Age: int;
+}
+
+// Function to calculate if someone is an adult
+isAdult(age: int): bool {
+    return age &gt;= 18;
+}
+
+// Main program
+main(): int {
+    // Create a person
+    john: Person;
+    john = new Person() {
+        FirstName = &quot;John&quot;,
+        LastName = &quot;Doe&quot;,
+        Age = 30
+    };
+
+    // Check if adult
+    adult: bool;
+    adult = isAdult(john.Age);
+
+    // Create knowledge graph and add triples
+    johnGraph : graph in &lt;ex:&gt; = KG.CreateGraph();
+    // Add triples for John's properties
+    johnGraph += &lt;ex:john, foaf:firstName, &quot;John&quot;&gt;;
+    johnGraph += &lt;ex:john, foaf:lastName, &quot;Doe&quot;&gt;;
+    johnGraph += &lt;ex:john, foaf:age, 30&gt;;
+
+    // Save to the store
+    peopleDB += johnGraph;
+
+    return 0;
+}
+
+</code></pre>
+<h2 id="further-reading">Further Reading</h2>
+<ul>
+<li><a href="https://github.com/aabs/fifthlang">Fifth Language Repository</a></li>
+<li><a href="https://github.com/aabs/fifthlang/tree/master/src/parser/grammar">ANTLR Grammar Files</a></li>
+<li><a href="https://github.com/aabs/fifthlang/tree/master/test/runtime-integration-tests/TestPrograms">Example Programs</a></li>
+<li><a href="https://www.w3.org/TR/rdf11-primer/">RDF Primer</a></li>
+<li><a href="https://www.w3.org/TR/sparql11-query/">SPARQL Query Language</a></li>
+</ul></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

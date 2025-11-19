@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>Refactor Transformation Pipeline to Composable Architecture - Fifthlang</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">Fifthlang</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../../../.." class="nav-link">Fifth Language</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Blog</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../../Blog/2025-09-16-graph-assertion-block/" class="dropdown-item">Announcing Graph Assertion Blocks in Fifth</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Designs</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../../Designs/5thproj-implementation-summary/" class="dropdown-item">.5thproj MSBuild Project Type Implementation Summary</a>
+</li>
+                                    
+<li>
+    <a href="../../../../Designs/fifth-sdk-readme/" class="dropdown-item">Fifth.Sdk</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Misc</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../../../Designs/misc/AST_REWRITER_DESIGN/" class="dropdown-item">AST Rewriter Design</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/debugging/" class="dropdown-item">Debugging Workflows</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/destructuring-lowering-migration/" class="dropdown-item">Destructuring Lowering Migration to Statement-Hoisting Rewriter</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/generics-implementation-summary/" class="dropdown-item">Generic Type Support Implementation Summary</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/migration-exception-handling/" class="dropdown-item">Migration Notes - Exception Handling Support</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/namespace-import-directives-research/" class="dropdown-item">Research Notes: Namespace Import Directives</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/syntax-samples-readme/" class="dropdown-item">Syntax Samples</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/syntax-testcases-bulleted/" class="dropdown-item">Fifth Syntax Unit Tests (Bulleted)</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/syntax-testplan/" class="dropdown-item">Fifth Language Syntax Test Plan</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/triple-diagnostics-refactor/" class="dropdown-item">Deferred Triple Diagnostics Refactor</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/vscode-devkit-tests/" class="dropdown-item">VS Code Dev Kit: Running TUnit Tests</a>
+</li>
+    </ul>
+  </li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Perf</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../../../Designs/perf/baselines/" class="dropdown-item">Baselines</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../../Getting-Started/knowledge-graphs/" class="dropdown-item">Knowledge Graphs in Fifth</a>
+</li>
+                                    
+<li>
+    <a href="../../../../Getting-Started/learn5thInYMinutes/" class="dropdown-item">learn5thInYMinutes</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Planning</a>
+                                <ul class="dropdown-menu">
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Architecture review</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../NEXT-STEPS/" class="dropdown-item">Architectural Review - Next Steps</a>
+</li>
+            
+<li>
+    <a href="../../architectural-review-2025/" class="dropdown-item">Fifth Language Compiler - Architectural Review Report</a>
+</li>
+            
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Arch review issues</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../" class="dropdown-item">Architectural Review Issues</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-001-error-recovery/" class="dropdown-item">Parser Needs Error Recovery for IDE Support</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-002-lsp-implementation/" class="dropdown-item">Implement Language Server Protocol (LSP) for IDE Integration</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-003-incremental-compilation/" class="dropdown-item">Implement Incremental Compilation for Performance and IDE Support</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-004-diagnostic-system/" class="dropdown-item">Redesign Diagnostic System for Quality Error Messages and IDE Support</a>
+</li>
+            
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Refactor Transformation Pipeline to Composable Architecture</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-006-symbol-table/" class="dropdown-item">Enhance Symbol Table for Performance and IDE Features</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-007-testing-architecture/" class="dropdown-item">Restructure Testing Architecture for Better Coverage and Maintainability</a>
+</li>
+    </ul>
+  </li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../ISSUE-004-diagnostic-system/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../ISSUE-006-symbol-table/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#refactor-transformation-pipeline-to-composable-architecture" class="nav-link">Refactor Transformation Pipeline to Composable Architecture</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#problem-summary" class="nav-link">Problem Summary</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#current-issues" class="nav-link">Current Issues</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#requirements" class="nav-link">Requirements</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#benefits" class="nav-link">Benefits</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#implementation-plan" class="nav-link">Implementation Plan</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#acceptance-criteria" class="nav-link">Acceptance Criteria</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#architecture-diagram" class="nav-link">Architecture Diagram</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#example-usage" class="nav-link">Example Usage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#references" class="nav-link">References</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#estimated-effort" class="nav-link">Estimated Effort</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#dependencies" class="nav-link">Dependencies</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#enables" class="nav-link">Enables</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#success-metrics" class="nav-link">Success Metrics</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="refactor-transformation-pipeline-to-composable-architecture">Refactor Transformation Pipeline to Composable Architecture</h1>
+<p><strong>Labels:</strong> <code>arch-review</code>, <code>maintainability</code>, <code>performance</code>, <code>high</code><br />
+<strong>Priority:</strong> P1<br />
+<strong>Severity:</strong> HIGH<br />
+<strong>Epic:</strong> Architectural Improvements Q2 2026</p>
+<h2 id="problem-summary">Problem Summary</h2>
+<p>The compiler's transformation pipeline consists of 18 sequential phases hardcoded in <code>ParserManager.ApplyLanguageAnalysisPhases()</code>. This monolithic design makes the compiler rigid, hard to test, difficult to debug, and prevents optimization opportunities.</p>
+<h2 id="current-issues">Current Issues</h2>
+<h3 id="monolithic-pipeline">Monolithic Pipeline</h3>
+<ul>
+<li>18 transformation phases in fixed order (ParserManager.cs:39-170)</li>
+<li>5,236 lines of transformation code across 19 visitor files</li>
+<li>No ability to skip phases or reorder transformations</li>
+<li>No phase-level caching or optimization</li>
+<li>Complex dependencies between phases not explicit</li>
+</ul>
+<p><strong>Code Evidence:</strong></p>
+<pre><code class="language-csharp">// src/compiler/ParserManager.cs:39
+public static AstThing ApplyLanguageAnalysisPhases(...)
+{
+    if (upTo &gt;= AnalysisPhase.TreeLink)
+        ast = new TreeLinkageVisitor().Visit(ast);
+    if (upTo &gt;= AnalysisPhase.Builtins)
+        ast = new BuiltinInjectorVisitor().Visit(ast);
+    if (upTo &gt;= AnalysisPhase.ClassCtors)
+        ast = new ClassCtorInserter().Visit(ast);
+    // ... 15 more phases in rigid sequence
+}
+</code></pre>
+<h3 id="problems">Problems</h3>
+<p><strong>Maintainability:</strong>
+- Adding new phase requires modifying central orchestration
+- Phase dependencies are implicit (order-based)
+- Cannot easily disable experimental phases
+- Hard to understand phase interactions</p>
+<p><strong>Testing:</strong>
+- Cannot test phases in isolation
+- Must run earlier phases to test later ones
+- No ability to inject test data between phases
+- Integration tests expensive (full pipeline)</p>
+<p><strong>Performance:</strong>
+- Cannot parallelize independent phases
+- Must run all phases even when some are no-ops
+- Cannot cache intermediate results per phase
+- No way to skip phases for unchanged code</p>
+<p><strong>Debugging:</strong>
+- Cannot step through single phase
+- Hard to bisect which phase caused error
+- No phase-level instrumentation
+- Cannot dump AST between specific phases</p>
+<h2 id="requirements">Requirements</h2>
+<h3 id="phase-interface">Phase Interface</h3>
+<pre><code class="language-csharp">public interface ICompilerPhase
+{
+    string Name { get; }
+    IReadOnlyList&lt;string&gt; DependsOn { get; }
+    IReadOnlyList&lt;string&gt; ProvidedCapabilities { get; }
+
+    PhaseResult Transform(AstThing ast, PhaseContext context);
+}
+
+public record PhaseResult(
+    AstThing TransformedAst,
+    IReadOnlyList&lt;Diagnostic&gt; Diagnostics,
+    bool Success
+);
+
+public class PhaseContext
+{
+    public ISymbolTable SymbolTable { get; set; }
+    public ITypeRegistry TypeRegistry { get; set; }
+    public Dictionary&lt;string, object&gt; SharedData { get; }
+    public bool EnableCaching { get; set; }
+}
+</code></pre>
+<h3 id="pipeline-orchestrator">Pipeline Orchestrator</h3>
+<pre><code class="language-csharp">public class TransformationPipeline
+{
+    private readonly List&lt;ICompilerPhase&gt; _phases = new();
+    private readonly Dictionary&lt;string, AstThing&gt; _cache = new();
+
+    public void RegisterPhase(ICompilerPhase phase)
+    {
+        // Validate dependencies exist
+        foreach (var dep in phase.DependsOn)
+        {
+            if (!_phases.Any(p =&gt; p.ProvidedCapabilities.Contains(dep)))
+                throw new InvalidOperationException(
+                    $&quot;Dependency '{dep}' not satisfied&quot;);
+        }
+        _phases.Add(phase);
+    }
+
+    public PipelineResult Execute(AstThing ast, PipelineOptions options)
+    {
+        var context = new PhaseContext();
+        var allDiagnostics = new List&lt;Diagnostic&gt;();
+        var currentAst = ast;
+
+        // Topologically sort phases by dependencies
+        var sortedPhases = TopologicalSort(_phases);
+
+        foreach (var phase in sortedPhases)
+        {
+            if (options.SkipPhases.Contains(phase.Name))
+                continue;
+
+            // Check cache if enabled
+            if (options.EnableCaching &amp;&amp; TryGetCached(phase, currentAst, out var cached))
+            {
+                currentAst = cached;
+                continue;
+            }
+
+            var result = phase.Transform(currentAst, context);
+            allDiagnostics.AddRange(result.Diagnostics);
+
+            if (!result.Success &amp;&amp; options.StopOnError)
+                return new PipelineResult(currentAst, allDiagnostics, false);
+
+            currentAst = result.TransformedAst;
+
+            if (options.EnableCaching)
+                Cache(phase, ast, currentAst);
+        }
+
+        return new PipelineResult(currentAst, allDiagnostics, true);
+    }
+}
+</code></pre>
+<h3 id="phase-registration">Phase Registration</h3>
+<pre><code class="language-csharp">public class TreeLinkagePhase : ICompilerPhase
+{
+    public string Name =&gt; &quot;TreeLinkage&quot;;
+    public IReadOnlyList&lt;string&gt; DependsOn =&gt; Array.Empty&lt;string&gt;();
+    public IReadOnlyList&lt;string&gt; ProvidedCapabilities =&gt; new[] { &quot;TreeStructure&quot; };
+
+    public PhaseResult Transform(AstThing ast, PhaseContext context)
+    {
+        var visitor = new TreeLinkageVisitor();
+        var result = visitor.Visit(ast);
+        return new PhaseResult(result, visitor.Diagnostics, true);
+    }
+}
+
+public class SymbolTablePhase : ICompilerPhase
+{
+    public string Name =&gt; &quot;SymbolTable&quot;;
+    public IReadOnlyList&lt;string&gt; DependsOn =&gt; new[] { &quot;TreeStructure&quot;, &quot;Builtins&quot; };
+    public IReadOnlyList&lt;string&gt; ProvidedCapabilities =&gt; new[] { &quot;Symbols&quot; };
+
+    public PhaseResult Transform(AstThing ast, PhaseContext context)
+    {
+        var visitor = new SymbolTableBuilderVisitor();
+        var result = visitor.Visit(ast);
+        context.SymbolTable = result.SymbolTable;
+        return new PhaseResult(result.Ast, visitor.Diagnostics, true);
+    }
+}
+</code></pre>
+<h2 id="benefits">Benefits</h2>
+<h3 id="testing">Testing</h3>
+<pre><code class="language-csharp">[Test]
+public void TestTypeAnnotationPhase()
+{
+    var pipeline = new TransformationPipeline();
+    pipeline.RegisterPhase(new TreeLinkagePhase());
+    pipeline.RegisterPhase(new SymbolTablePhase());
+    pipeline.RegisterPhase(new TypeAnnotationPhase());
+
+    // Test only specific phase with dependencies
+    var result = pipeline.Execute(testAst, new PipelineOptions 
+    { 
+        StopAfter = &quot;TypeAnnotation&quot; 
+    });
+
+    Assert.Empty(result.Diagnostics);
+}
+</code></pre>
+<h3 id="debugging">Debugging</h3>
+<pre><code class="language-csharp">// Dump AST after specific phases
+var result = pipeline.Execute(ast, new PipelineOptions 
+{ 
+    DumpAfter = new[] { &quot;SymbolTable&quot;, &quot;TypeAnnotation&quot; },
+    DumpToFile = true
+});
+
+// Step through single phase
+var phase = new SymbolTablePhase();
+var phaseResult = phase.Transform(ast, context);
+// Inspect result
+</code></pre>
+<h3 id="performance">Performance</h3>
+<pre><code class="language-csharp">// Parallel execution of independent phases
+var parallelPipeline = new ParallelTransformationPipeline();
+parallelPipeline.RegisterPhase(new Phase1());
+parallelPipeline.RegisterPhase(new Phase2()); // Independent of Phase1
+parallelPipeline.Execute(ast); // Runs Phase1 and Phase2 in parallel
+
+// Phase-level caching
+var cachedPipeline = new TransformationPipeline();
+cachedPipeline.Execute(ast, new PipelineOptions { EnableCaching = true });
+// Second run uses cached results for unchanged phases
+</code></pre>
+<h3 id="extensibility">Extensibility</h3>
+<pre><code class="language-csharp">// Third-party can add custom phases
+public class CustomAnalysisPhase : ICompilerPhase
+{
+    public string Name =&gt; &quot;CustomAnalysis&quot;;
+    public IReadOnlyList&lt;string&gt; DependsOn =&gt; new[] { &quot;Symbols&quot;, &quot;Types&quot; };
+    public IReadOnlyList&lt;string&gt; ProvidedCapabilities =&gt; new[] { &quot;CustomMetadata&quot; };
+
+    public PhaseResult Transform(AstThing ast, PhaseContext context)
+    {
+        // Custom analysis logic
+    }
+}
+
+var pipeline = new TransformationPipeline();
+pipeline.RegisterPhase(new CustomAnalysisPhase());
+</code></pre>
+<h2 id="implementation-plan">Implementation Plan</h2>
+<h3 id="phase-1-design-interface-weeks-1-2">Phase 1: Design &amp; Interface (Weeks 1-2)</h3>
+<ol>
+<li>Design ICompilerPhase interface</li>
+<li>Design TransformationPipeline orchestrator</li>
+<li>Design PhaseContext for shared data</li>
+<li>Create phase dependency resolution</li>
+</ol>
+<h3 id="phase-2-wrap-existing-phases-weeks-3-6">Phase 2: Wrap Existing Phases (Weeks 3-6)</h3>
+<ol>
+<li>Create phase wrappers for existing visitors</li>
+<li>Declare explicit dependencies</li>
+<li>Migrate from ApplyLanguageAnalysisPhases</li>
+<li>Keep existing behavior (no changes yet)</li>
+</ol>
+<h3 id="phase-3-enable-features-weeks-7-8">Phase 3: Enable Features (Weeks 7-8)</h3>
+<ol>
+<li>Add phase-level caching</li>
+<li>Add skip/stop-after options</li>
+<li>Add AST dumping between phases</li>
+<li>Add phase timing instrumentation</li>
+</ol>
+<h3 id="phase-4-optimization-weeks-9-10">Phase 4: Optimization (Weeks 9-10)</h3>
+<ol>
+<li>Identify independent phases</li>
+<li>Implement parallel execution</li>
+<li>Optimize phase ordering</li>
+<li>Performance benchmarking</li>
+</ol>
+<h2 id="acceptance-criteria">Acceptance Criteria</h2>
+<ul>
+<li>[ ] All 18 phases wrapped as ICompilerPhase</li>
+<li>[ ] Dependencies explicitly declared</li>
+<li>[ ] Topological sorting works correctly</li>
+<li>[ ] Can skip arbitrary phases</li>
+<li>[ ] Can stop after specific phase</li>
+<li>[ ] Can dump AST between phases</li>
+<li>[ ] Phase-level timing available</li>
+<li>[ ] Tests for phase isolation</li>
+<li>[ ] Documentation for adding new phases</li>
+</ul>
+<h2 id="architecture-diagram">Architecture Diagram</h2>
+<pre><code>┌─────────────────────────────────────┐
+│   TransformationPipeline            │
+├─────────────────────────────────────┤
+│ • RegisterPhase(ICompilerPhase)     │
+│ • Execute(ast, options)             │
+│ • TopologicalSort()                 │
+│ • Cache management                  │
+└─────────────────────────────────────┘
+                 │
+                 ├─ phase1: TreeLinkage
+                 │     └─ depends: []
+                 ├─ phase2: Builtins
+                 │     └─ depends: [TreeLinkage]
+                 ├─ phase3: SymbolTable
+                 │     └─ depends: [TreeLinkage, Builtins]
+                 ├─ phase4: TypeAnnotation
+                 │     └─ depends: [SymbolTable]
+                 └─ ... (14 more phases)
+</code></pre>
+<h2 id="example-usage">Example Usage</h2>
+<pre><code class="language-csharp">// Configure pipeline
+var pipeline = new TransformationPipeline();
+pipeline.RegisterPhase(new TreeLinkagePhase());
+pipeline.RegisterPhase(new BuiltinInjectorPhase());
+pipeline.RegisterPhase(new SymbolTablePhase());
+// ... register all phases
+
+// Execute with options
+var result = pipeline.Execute(ast, new PipelineOptions
+{
+    EnableCaching = true,
+    StopOnError = true,
+    DumpAfter = new[] { &quot;SymbolTable&quot;, &quot;TypeAnnotation&quot; },
+    SkipPhases = new[] { &quot;ExperimentalFeature&quot; }
+});
+
+// Inspect results
+Console.WriteLine($&quot;Success: {result.Success}&quot;);
+Console.WriteLine($&quot;Diagnostics: {result.Diagnostics.Count}&quot;);
+Console.WriteLine($&quot;Phase timings: {string.Join(&quot;, &quot;, result.PhaseTimings)}&quot;);
+</code></pre>
+<h2 id="references">References</h2>
+<ul>
+<li>Architectural Review: <code>docs/architectural-review-2025.md</code> - Finding #5</li>
+<li>LLVM Pass Manager: https://llvm.org/docs/WritingAnLLVMPass.html</li>
+<li>GHC Pipeline: https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/compiler/pipeline</li>
+<li>Related Issues: Enables #ISSUE-003 (Incremental Compilation), improves testing (#ISSUE-007)</li>
+</ul>
+<h2 id="estimated-effort">Estimated Effort</h2>
+<p><strong>10 weeks</strong> (2.5 months)
+- Weeks 1-2: Design and interface
+- Weeks 3-6: Wrap existing phases
+- Weeks 7-8: Enable features
+- Weeks 9-10: Optimization</p>
+<h2 id="dependencies">Dependencies</h2>
+<ul>
+<li>None (can be done independently)</li>
+</ul>
+<h2 id="enables">Enables</h2>
+<ul>
+<li>Issue #003: Incremental Compilation (phase-level caching)</li>
+<li>Issue #007: Better Testing (phase isolation)</li>
+<li>Future: Parallel compilation</li>
+<li>Future: Plugin architecture</li>
+</ul>
+<h2 id="success-metrics">Success Metrics</h2>
+<ul>
+<li>All phases successfully wrapped</li>
+<li>Zero behavior changes from migration</li>
+<li>Phase isolation enables unit testing</li>
+<li>Pipeline configuration is flexible</li>
+<li>Performance neutral or improved</li>
+</ul></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

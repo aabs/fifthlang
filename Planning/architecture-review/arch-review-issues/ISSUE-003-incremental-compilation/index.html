@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>Implement Incremental Compilation for Performance and IDE Support - Fifthlang</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">Fifthlang</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../../../.." class="nav-link">Fifth Language</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Blog</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../../Blog/2025-09-16-graph-assertion-block/" class="dropdown-item">Announcing Graph Assertion Blocks in Fifth</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Designs</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../../Designs/5thproj-implementation-summary/" class="dropdown-item">.5thproj MSBuild Project Type Implementation Summary</a>
+</li>
+                                    
+<li>
+    <a href="../../../../Designs/fifth-sdk-readme/" class="dropdown-item">Fifth.Sdk</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Misc</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../../../Designs/misc/AST_REWRITER_DESIGN/" class="dropdown-item">AST Rewriter Design</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/debugging/" class="dropdown-item">Debugging Workflows</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/destructuring-lowering-migration/" class="dropdown-item">Destructuring Lowering Migration to Statement-Hoisting Rewriter</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/generics-implementation-summary/" class="dropdown-item">Generic Type Support Implementation Summary</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/migration-exception-handling/" class="dropdown-item">Migration Notes - Exception Handling Support</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/namespace-import-directives-research/" class="dropdown-item">Research Notes: Namespace Import Directives</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/syntax-samples-readme/" class="dropdown-item">Syntax Samples</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/syntax-testcases-bulleted/" class="dropdown-item">Fifth Syntax Unit Tests (Bulleted)</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/syntax-testplan/" class="dropdown-item">Fifth Language Syntax Test Plan</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/triple-diagnostics-refactor/" class="dropdown-item">Deferred Triple Diagnostics Refactor</a>
+</li>
+            
+<li>
+    <a href="../../../../Designs/misc/vscode-devkit-tests/" class="dropdown-item">VS Code Dev Kit: Running TUnit Tests</a>
+</li>
+    </ul>
+  </li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Perf</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../../../Designs/perf/baselines/" class="dropdown-item">Baselines</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../../Getting-Started/knowledge-graphs/" class="dropdown-item">Knowledge Graphs in Fifth</a>
+</li>
+                                    
+<li>
+    <a href="../../../../Getting-Started/learn5thInYMinutes/" class="dropdown-item">learn5thInYMinutes</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Planning</a>
+                                <ul class="dropdown-menu">
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Architecture review</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../NEXT-STEPS/" class="dropdown-item">Architectural Review - Next Steps</a>
+</li>
+            
+<li>
+    <a href="../../architectural-review-2025/" class="dropdown-item">Fifth Language Compiler - Architectural Review Report</a>
+</li>
+            
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Arch review issues</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../" class="dropdown-item">Architectural Review Issues</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-001-error-recovery/" class="dropdown-item">Parser Needs Error Recovery for IDE Support</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-002-lsp-implementation/" class="dropdown-item">Implement Language Server Protocol (LSP) for IDE Integration</a>
+</li>
+            
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Implement Incremental Compilation for Performance and IDE Support</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-004-diagnostic-system/" class="dropdown-item">Redesign Diagnostic System for Quality Error Messages and IDE Support</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-005-composable-pipeline/" class="dropdown-item">Refactor Transformation Pipeline to Composable Architecture</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-006-symbol-table/" class="dropdown-item">Enhance Symbol Table for Performance and IDE Features</a>
+</li>
+            
+<li>
+    <a href="../ISSUE-007-testing-architecture/" class="dropdown-item">Restructure Testing Architecture for Better Coverage and Maintainability</a>
+</li>
+    </ul>
+  </li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../ISSUE-002-lsp-implementation/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../ISSUE-004-diagnostic-system/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#implement-incremental-compilation-for-performance-and-ide-support" class="nav-link">Implement Incremental Compilation for Performance and IDE Support</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#problem-summary" class="nav-link">Problem Summary</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#current-behavior" class="nav-link">Current Behavior</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#impact" class="nav-link">Impact</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#requirements" class="nav-link">Requirements</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#architecture" class="nav-link">Architecture</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#implementation-plan" class="nav-link">Implementation Plan</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#acceptance-criteria" class="nav-link">Acceptance Criteria</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#performance-goals" class="nav-link">Performance Goals</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#technical-considerations" class="nav-link">Technical Considerations</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#example-usage" class="nav-link">Example Usage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#references" class="nav-link">References</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#estimated-effort" class="nav-link">Estimated Effort</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#dependencies" class="nav-link">Dependencies</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#success-metrics" class="nav-link">Success Metrics</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="implement-incremental-compilation-for-performance-and-ide-support">Implement Incremental Compilation for Performance and IDE Support</h1>
+<p><strong>Labels:</strong> <code>arch-review</code>, <code>performance</code>, <code>ide-support</code>, <code>critical</code><br />
+<strong>Priority:</strong> P0<br />
+<strong>Severity:</strong> CRITICAL<br />
+<strong>Epic:</strong> Architectural Improvements Q2-Q3 2026</p>
+<h2 id="problem-summary">Problem Summary</h2>
+<p>The compiler performs full recompilation on every build with no support for incremental compilation. This is incompatible with interactive development, scales poorly, and blocks responsive IDE integration.</p>
+<h2 id="current-behavior">Current Behavior</h2>
+<ul>
+<li>Full reparse of all source files on every compilation</li>
+<li>All transformations re-run on entire AST</li>
+<li>No caching of intermediate results</li>
+<li>No dependency tracking</li>
+<li>Build time grows linearly with codebase size</li>
+<li>IDE features too slow for real-time use</li>
+</ul>
+<p><strong>Code Evidence:</strong></p>
+<pre><code class="language-csharp">// src/compiler/Compiler.cs:233
+private (AstThing? ast, int sourceCount) ParsePhase(...)
+{
+    // Always parses from scratch - no caching
+    var ast = FifthParserManager.ParseFile(options.Source);
+    return (ast, 1);
+}
+</code></pre>
+<h2 id="impact">Impact</h2>
+<h3 id="scalability-problems">Scalability Problems</h3>
+<ul>
+<li>Build times grow linearly with project size</li>
+<li>Cannot efficiently handle projects &gt;100 files</li>
+<li>Full recompilation wastes developer time</li>
+<li>Makes large-scale projects impractical</li>
+</ul>
+<h3 id="poor-developer-experience">Poor Developer Experience</h3>
+<ul>
+<li>Slow feedback loop (wait for full rebuild)</li>
+<li>Cannot support "save-and-see" development style</li>
+<li>Makes language feel sluggish vs competitors (Rust, Go, TypeScript)</li>
+<li>Discourages experimentation and iteration</li>
+</ul>
+<h3 id="ide-integration-blocked">IDE Integration Blocked</h3>
+<ul>
+<li>LSP requires sub-second response times</li>
+<li>Real-time diagnostics need incremental updates</li>
+<li>Cannot provide responsive code completion</li>
+<li>Document synchronization too slow</li>
+</ul>
+<h3 id="resource-waste">Resource Waste</h3>
+<ul>
+<li>Re-parses unchanged files</li>
+<li>Re-runs transformations on unaffected code</li>
+<li>Regenerates unchanged IL/assemblies</li>
+<li>Wastes CPU, memory, and battery</li>
+</ul>
+<h2 id="requirements">Requirements</h2>
+<h3 id="file-level-tracking">File-Level Tracking</h3>
+<ol>
+<li>Track content hash for each source file</li>
+<li>Detect which files have changed since last build</li>
+<li>Only reparse changed files</li>
+<li>Cache parsed ASTs for unchanged files</li>
+</ol>
+<h3 id="dependency-tracking">Dependency Tracking</h3>
+<ol>
+<li>Build dependency graph of source files</li>
+<li>Identify which files depend on changed files</li>
+<li>Compute transitive closure of affected files</li>
+<li>Only reprocess affected files</li>
+</ol>
+<h3 id="ast-caching">AST Caching</h3>
+<ol>
+<li>Serialize/deserialize parsed ASTs</li>
+<li>Store ASTs in efficient format (.ast files)</li>
+<li>Invalidate cache on source changes</li>
+<li>Share cache between compiler and LSP</li>
+</ol>
+<h3 id="transformation-optimization">Transformation Optimization</h3>
+<ol>
+<li>Track which transformations affect which nodes</li>
+<li>Skip transformations on unchanged subtrees</li>
+<li>Merge incremental symbol table updates</li>
+<li>Avoid full AST traversals when possible</li>
+</ol>
+<h3 id="build-artifact-management">Build Artifact Management</h3>
+<ol>
+<li>Store intermediate representations</li>
+<li>Track source → artifact mappings</li>
+<li>Implement proper cache invalidation</li>
+<li>Support parallel compilation</li>
+</ol>
+<h2 id="architecture">Architecture</h2>
+<h3 id="dependency-graph">Dependency Graph</h3>
+<pre><code class="language-csharp">public class DependencyGraph
+{
+    // File dependencies (imports, references)
+    private readonly Dictionary&lt;string, HashSet&lt;string&gt;&gt; _dependencies = new();
+
+    // Content hashes for change detection
+    private readonly Dictionary&lt;string, string&gt; _contentHashes = new();
+
+    // Compute affected files from a change
+    public IEnumerable&lt;string&gt; GetAffectedFiles(string changedFile)
+    {
+        var affected = new HashSet&lt;string&gt; { changedFile };
+        var queue = new Queue&lt;string&gt;(new[] { changedFile });
+
+        while (queue.Count &gt; 0)
+        {
+            var file = queue.Dequeue();
+            if (_dependencies.TryGetValue(file, out var dependents))
+            {
+                foreach (var dependent in dependents)
+                {
+                    if (affected.Add(dependent))
+                        queue.Enqueue(dependent);
+                }
+            }
+        }
+
+        return affected;
+    }
+
+    public bool HasChanged(string file)
+    {
+        var currentHash = ComputeHash(File.ReadAllText(file));
+        if (!_contentHashes.TryGetValue(file, out var cachedHash))
+            return true;
+        return currentHash != cachedHash;
+    }
+
+    public void UpdateHash(string file)
+    {
+        _contentHashes[file] = ComputeHash(File.ReadAllText(file));
+    }
+}
+</code></pre>
+<h3 id="compilation-cache">Compilation Cache</h3>
+<pre><code class="language-csharp">public class CompilationCache
+{
+    private readonly string _cacheDirectory;
+
+    // Cache parsed ASTs per file
+    private readonly Dictionary&lt;string, CachedAst&gt; _astCache = new();
+
+    // Cache transformed ASTs
+    private readonly Dictionary&lt;string, AstThing&gt; _transformedCache = new();
+
+    // Cache symbol tables
+    private readonly Dictionary&lt;string, ISymbolTable&gt; _symbolCache = new();
+
+    public record CachedAst(AstThing Ast, DateTime Timestamp, string ContentHash);
+
+    public (AstThing? ast, bool cached) GetOrParse(string file)
+    {
+        // Try memory cache first
+        if (_astCache.TryGetValue(file, out var cached))
+        {
+            var currentHash = ComputeHash(File.ReadAllText(file));
+            if (cached.ContentHash == currentHash)
+                return (cached.Ast, true);
+        }
+
+        // Try disk cache
+        var cacheFile = GetCacheFilePath(file);
+        if (File.Exists(cacheFile))
+        {
+            try
+            {
+                var deserialized = DeserializeAst(cacheFile);
+                var currentHash = ComputeHash(File.ReadAllText(file));
+                if (deserialized.ContentHash == currentHash)
+                {
+                    _astCache[file] = deserialized;
+                    return (deserialized.Ast, true);
+                }
+            }
+            catch
+            {
+                // Cache corrupted, will reparse
+            }
+        }
+
+        // Parse from scratch
+        var ast = FifthParserManager.ParseFile(file);
+        var hash = ComputeHash(File.ReadAllText(file));
+        var entry = new CachedAst(ast, DateTime.Now, hash);
+
+        _astCache[file] = entry;
+        SerializeAst(cacheFile, entry);
+
+        return (ast, false);
+    }
+
+    public void Invalidate(string file)
+    {
+        _astCache.Remove(file);
+        _transformedCache.Remove(file);
+        _symbolCache.Remove(file);
+
+        var cacheFile = GetCacheFilePath(file);
+        if (File.Exists(cacheFile))
+            File.Delete(cacheFile);
+    }
+}
+</code></pre>
+<h3 id="incremental-compiler">Incremental Compiler</h3>
+<pre><code class="language-csharp">public class IncrementalCompiler
+{
+    private readonly DependencyGraph _dependencyGraph;
+    private readonly CompilationCache _cache;
+
+    public CompilationResult Compile(CompilerOptions options)
+    {
+        var changedFiles = FindChangedFiles(options.Source);
+        var affectedFiles = _dependencyGraph.GetAffectedFiles(changedFiles);
+
+        // Parse only affected files
+        var asts = new Dictionary&lt;string, AstThing&gt;();
+        foreach (var file in affectedFiles)
+        {
+            var (ast, cached) = _cache.GetOrParse(file);
+            asts[file] = ast;
+
+            if (!cached)
+                _dependencyGraph.UpdateHash(file);
+        }
+
+        // Merge with cached ASTs for unaffected files
+        var completeAst = MergeAsts(asts, GetUnaffectedFiles());
+
+        // Run transformations (optimized for incremental)
+        var transformed = TransformIncremental(completeAst, affectedFiles);
+
+        // Generate code only for affected modules
+        return GenerateCodeIncremental(transformed, affectedFiles);
+    }
+}
+</code></pre>
+<h2 id="implementation-plan">Implementation Plan</h2>
+<h3 id="phase-1-infrastructure-weeks-1-4">Phase 1: Infrastructure (Weeks 1-4)</h3>
+<ol>
+<li>Design cache format and serialization</li>
+<li>Implement content hashing</li>
+<li>Create cache management infrastructure</li>
+<li>Add cache directory configuration</li>
+</ol>
+<h3 id="phase-2-file-level-caching-weeks-5-8">Phase 2: File-Level Caching (Weeks 5-8)</h3>
+<ol>
+<li>Implement AST serialization/deserialization</li>
+<li>Add file-level cache get/set operations</li>
+<li>Integrate with ParsePhase</li>
+<li>Test cache correctness and performance</li>
+</ol>
+<h3 id="phase-3-dependency-tracking-weeks-9-12">Phase 3: Dependency Tracking (Weeks 9-12)</h3>
+<ol>
+<li>Build dependency graph from imports</li>
+<li>Implement change detection</li>
+<li>Compute affected file sets</li>
+<li>Test dependency resolution</li>
+</ol>
+<h3 id="phase-4-incremental-transformations-weeks-13-16">Phase 4: Incremental Transformations (Weeks 13-16)</h3>
+<ol>
+<li>Track transformation dependencies</li>
+<li>Skip unchanged subtrees</li>
+<li>Implement incremental symbol table updates</li>
+<li>Optimize visitor traversals</li>
+</ol>
+<h3 id="phase-5-integration-optimization-weeks-17-20">Phase 5: Integration &amp; Optimization (Weeks 17-20)</h3>
+<ol>
+<li>Integrate with LSP server</li>
+<li>Add parallel compilation support</li>
+<li>Performance benchmarking</li>
+<li>Cache tuning and optimization</li>
+</ol>
+<h2 id="acceptance-criteria">Acceptance Criteria</h2>
+<ul>
+<li>[ ] Incremental builds significantly faster than full builds (&gt;5x speedup)</li>
+<li>[ ] Cache correctly invalidated on source changes</li>
+<li>[ ] Cache correctly handles file dependencies</li>
+<li>[ ] Incremental builds produce identical output to full builds</li>
+<li>[ ] Cache survives IDE restarts</li>
+<li>[ ] LSP uses incremental compilation for real-time features</li>
+<li>[ ] Performance tests verify speedup</li>
+<li>[ ] Documentation for cache management</li>
+</ul>
+<h2 id="performance-goals">Performance Goals</h2>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Current</th>
+<th>Target</th>
+<th>Improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full build (100 files)</td>
+<td>30s</td>
+<td>30s</td>
+<td>1x (baseline)</td>
+</tr>
+<tr>
+<td>Rebuild (0 changes)</td>
+<td>30s</td>
+<td>1s</td>
+<td>30x</td>
+</tr>
+<tr>
+<td>Rebuild (1 file change)</td>
+<td>30s</td>
+<td>3s</td>
+<td>10x</td>
+</tr>
+<tr>
+<td>Rebuild (10 file changes)</td>
+<td>30s</td>
+<td>8s</td>
+<td>3.75x</td>
+</tr>
+<tr>
+<td>LSP diagnostics</td>
+<td>N/A</td>
+<td>&lt;500ms</td>
+<td>Real-time</td>
+</tr>
+</tbody>
+</table>
+<h2 id="technical-considerations">Technical Considerations</h2>
+<h3 id="ast-serialization">AST Serialization</h3>
+<ul>
+<li>Use MessagePack or Protocol Buffers for efficiency</li>
+<li>Preserve source locations</li>
+<li>Handle large ASTs (&gt;1MB)</li>
+<li>Version stamping for format changes</li>
+</ul>
+<h3 id="cache-invalidation">Cache Invalidation</h3>
+<ul>
+<li>Detect source file changes (content hash)</li>
+<li>Detect dependency changes (transitive)</li>
+<li>Detect compiler version changes</li>
+<li>Handle cache corruption gracefully</li>
+</ul>
+<h3 id="concurrency">Concurrency</h3>
+<ul>
+<li>Thread-safe cache access</li>
+<li>Parallel parsing of independent files</li>
+<li>Lock-free read path</li>
+<li>Proper synchronization on writes</li>
+</ul>
+<h3 id="disk-space-management">Disk Space Management</h3>
+<ul>
+<li>Implement cache size limits</li>
+<li>LRU eviction for old entries</li>
+<li>Option to clear cache</li>
+<li>Cache location configuration</li>
+</ul>
+<h2 id="example-usage">Example Usage</h2>
+<pre><code class="language-csharp">var compiler = new IncrementalCompiler(
+    cacheDirectory: &quot;.fifth-cache&quot;,
+    maxCacheSize: 1024 * 1024 * 100 // 100 MB
+);
+
+// First build: parses everything
+var result1 = compiler.Compile(options);
+// Time: 30s
+
+// Rebuild with no changes: uses cache
+var result2 = compiler.Compile(options);
+// Time: 1s (30x faster!)
+
+// Rebuild with 1 file changed: incremental
+var result3 = compiler.Compile(options);
+// Time: 3s (10x faster!)
+</code></pre>
+<h2 id="references">References</h2>
+<ul>
+<li>Architectural Review: <code>docs/architectural-review-2025.md</code> - Finding #3</li>
+<li>Rust incremental compilation: https://blog.rust-lang.org/2016/09/08/incremental.html</li>
+<li>Roslyn incremental compilation design</li>
+<li>Salsa framework: https://github.com/salsa-rs/salsa</li>
+<li>Related Issues: Enables #ISSUE-002 (LSP), improves #ISSUE-005 (Pipeline)</li>
+</ul>
+<h2 id="estimated-effort">Estimated Effort</h2>
+<p><strong>20 weeks</strong> (5 months)
+- Weeks 1-4: Infrastructure
+- Weeks 5-8: File-level caching
+- Weeks 9-12: Dependency tracking
+- Weeks 13-16: Incremental transformations
+- Weeks 17-20: Integration and optimization</p>
+<h2 id="dependencies">Dependencies</h2>
+<ul>
+<li>Issue #005: Composable Pipeline (helps with incremental transforms)</li>
+<li>Nice to have: #ISSUE-006 Enhanced Symbol Table (for better caching)</li>
+</ul>
+<h2 id="success-metrics">Success Metrics</h2>
+<ul>
+<li>10x speedup for single-file changes</li>
+<li>30x speedup for zero-change rebuilds</li>
+<li>LSP diagnostics &lt;500ms response time</li>
+<li>Cache hit rate &gt;90% for typical workflows</li>
+<li>Zero correctness issues (incremental == full build)</li>
+</ul></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

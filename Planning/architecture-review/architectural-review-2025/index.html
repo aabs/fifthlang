@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>Fifth Language Compiler - Architectural Review Report - Fifthlang</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">Fifthlang</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../../.." class="nav-link">Fifth Language</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Blog</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../Blog/2025-09-16-graph-assertion-block/" class="dropdown-item">Announcing Graph Assertion Blocks in Fifth</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Designs</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../Designs/5thproj-implementation-summary/" class="dropdown-item">.5thproj MSBuild Project Type Implementation Summary</a>
+</li>
+                                    
+<li>
+    <a href="../../../Designs/fifth-sdk-readme/" class="dropdown-item">Fifth.Sdk</a>
+</li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Misc</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../../Designs/misc/AST_REWRITER_DESIGN/" class="dropdown-item">AST Rewriter Design</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/debugging/" class="dropdown-item">Debugging Workflows</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/destructuring-lowering-migration/" class="dropdown-item">Destructuring Lowering Migration to Statement-Hoisting Rewriter</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/generics-implementation-summary/" class="dropdown-item">Generic Type Support Implementation Summary</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/migration-exception-handling/" class="dropdown-item">Migration Notes - Exception Handling Support</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/namespace-import-directives-research/" class="dropdown-item">Research Notes: Namespace Import Directives</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/syntax-samples-readme/" class="dropdown-item">Syntax Samples</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/syntax-testcases-bulleted/" class="dropdown-item">Fifth Syntax Unit Tests (Bulleted)</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/syntax-testplan/" class="dropdown-item">Fifth Language Syntax Test Plan</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/triple-diagnostics-refactor/" class="dropdown-item">Deferred Triple Diagnostics Refactor</a>
+</li>
+            
+<li>
+    <a href="../../../Designs/misc/vscode-devkit-tests/" class="dropdown-item">VS Code Dev Kit: Running TUnit Tests</a>
+</li>
+    </ul>
+  </li>
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Perf</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../../../Designs/perf/baselines/" class="dropdown-item">Baselines</a>
+</li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../../Getting-Started/knowledge-graphs/" class="dropdown-item">Knowledge Graphs in Fifth</a>
+</li>
+                                    
+<li>
+    <a href="../../../Getting-Started/learn5thInYMinutes/" class="dropdown-item">learn5thInYMinutes</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Planning</a>
+                                <ul class="dropdown-menu">
+                                    
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Architecture review</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../NEXT-STEPS/" class="dropdown-item">Architectural Review - Next Steps</a>
+</li>
+            
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Fifth Language Compiler - Architectural Review Report</a>
+</li>
+            
+  <li class="dropdown-submenu">
+    <a href="#" class="dropdown-item">Arch review issues</a>
+    <ul class="dropdown-menu">
+            
+<li>
+    <a href="../arch-review-issues/" class="dropdown-item">Architectural Review Issues</a>
+</li>
+            
+<li>
+    <a href="../arch-review-issues/ISSUE-001-error-recovery/" class="dropdown-item">Parser Needs Error Recovery for IDE Support</a>
+</li>
+            
+<li>
+    <a href="../arch-review-issues/ISSUE-002-lsp-implementation/" class="dropdown-item">Implement Language Server Protocol (LSP) for IDE Integration</a>
+</li>
+            
+<li>
+    <a href="../arch-review-issues/ISSUE-003-incremental-compilation/" class="dropdown-item">Implement Incremental Compilation for Performance and IDE Support</a>
+</li>
+            
+<li>
+    <a href="../arch-review-issues/ISSUE-004-diagnostic-system/" class="dropdown-item">Redesign Diagnostic System for Quality Error Messages and IDE Support</a>
+</li>
+            
+<li>
+    <a href="../arch-review-issues/ISSUE-005-composable-pipeline/" class="dropdown-item">Refactor Transformation Pipeline to Composable Architecture</a>
+</li>
+            
+<li>
+    <a href="../arch-review-issues/ISSUE-006-symbol-table/" class="dropdown-item">Enhance Symbol Table for Performance and IDE Features</a>
+</li>
+            
+<li>
+    <a href="../arch-review-issues/ISSUE-007-testing-architecture/" class="dropdown-item">Restructure Testing Architecture for Better Coverage and Maintainability</a>
+</li>
+    </ul>
+  </li>
+    </ul>
+  </li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../NEXT-STEPS/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../arch-review-issues/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#fifth-language-compiler-architectural-review-report" class="nav-link">Fifth Language Compiler - Architectural Review Report</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#executive-summary" class="nav-link">Executive Summary</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#methodology" class="nav-link">Methodology</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#critical-findings" class="nav-link">Critical Findings</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#secondary-findings" class="nav-link">Secondary Findings</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#recommendations-priority-matrix" class="nav-link">Recommendations Priority Matrix</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#implementation-roadmap" class="nav-link">Implementation Roadmap</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#conclusion" class="nav-link">Conclusion</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#appendix-a-architectural-strengths" class="nav-link">Appendix A: Architectural Strengths</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#appendix-b-references" class="nav-link">Appendix B: References</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="fifth-language-compiler-architectural-review-report">Fifth Language Compiler - Architectural Review Report</h1>
+<p><strong>Date:</strong> October 2025<br />
+<strong>Reviewer:</strong> Architectural Analysis<br />
+<strong>Scope:</strong> Complete codebase architectural analysis<br />
+<strong>Focus:</strong> Major design flaws impacting long-term compiler usefulness and IDE integration</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>This architectural review examined the Fifth language compiler codebase with a focus on identifying major design issues that could impact the compiler's long-term viability, especially in modern IDE-integrated development workflows. The review identified <strong>7 critical architectural issues</strong> that require attention to ensure the compiler can scale to production use and provide excellent developer experience.</p>
+<p>The compiler demonstrates several strong architectural decisions (visitor pattern usage, multi-phase compilation, separation of AST and IL models), but suffers from fundamental gaps in error recovery, IDE tooling support, and architectural documentation.</p>
+<p><strong>Overall Assessment:</strong> The compiler has a solid foundation but requires significant architectural investment in:
+1. Error recovery and resilient parsing
+2. IDE integration infrastructure (Language Server Protocol)
+3. Incremental compilation support
+4. Diagnostic system redesign
+5. Testing architecture improvements</p>
+<hr />
+<h2 id="methodology">Methodology</h2>
+<p>The review analyzed:
+- <strong>Codebase Structure:</strong> 51 compiler source files, 23 visitor implementations, 1,421 lines of AST definitions
+- <strong>Key Components:</strong> Parser (ANTLR-based), 18 transformation phases, IL/PE code generators
+- <strong>Test Coverage:</strong> 161 .5th test files, multiple test projects (runtime, syntax, integration)
+- <strong>Build System:</strong> .NET 8.0, ANTLR 4.8, MSBuild integration via Fifth.Sdk</p>
+<p>Review focused on architectural patterns standard in modern compiler design and IDE integration requirements.</p>
+<hr />
+<h2 id="critical-findings">Critical Findings</h2>
+<h3 id="1-absence-of-error-recovery-in-parser-critical">1. Absence of Error Recovery in Parser (CRITICAL)</h3>
+<p><strong>Severity:</strong> CRITICAL<br />
+<strong>Impact:</strong> Cannot provide IDE features; poor developer experience; compilation stops at first error<br />
+<strong>Label:</strong> <code>arch-review</code>, <code>parser</code>, <code>ide-support</code></p>
+<h4 id="problem">Problem</h4>
+<p>The parser uses ANTLR with a <code>ThrowingErrorListener</code> that immediately terminates parsing on the first syntax error. This is acceptable for batch compilation but fundamentally incompatible with modern IDE requirements.</p>
+<p><strong>Evidence:</strong>
+- <code>src/parser/ThrowingErrorListener.cs</code> throws exceptions immediately on syntax errors
+- No error recovery strategy in <code>AstBuilderVisitor.cs</code> (1,593 lines)
+- Parser fails fast with single error, cannot produce partial AST</p>
+<p><strong>Code Reference:</strong></p>
+<pre><code class="language-csharp">// src/parser/ThrowingErrorListener.cs
+public override void SyntaxError(...)
+{
+    throw new ParseException($&quot;line {line}:{charPositionInLine} {msg}&quot;);
+}
+</code></pre>
+<h4 id="impact-on-compiler-evolution">Impact on Compiler Evolution</h4>
+<ol>
+<li><strong>IDE Features Blocked:</strong> Cannot implement:</li>
+<li>Real-time syntax highlighting with errors</li>
+<li>Code completion (requires partial AST)</li>
+<li>"Go to definition" (needs AST even with errors)</li>
+<li>Inline diagnostics</li>
+<li>
+<p>Quick fixes</p>
+</li>
+<li>
+<p><strong>Developer Experience:</strong> </p>
+</li>
+<li>Must fix errors sequentially (can't see all errors at once)</li>
+<li>No incremental feedback during editing</li>
+<li>
+<p>Forces waterfall debugging approach</p>
+</li>
+<li>
+<p><strong>Language Server Protocol (LSP) Implementation:</strong></p>
+</li>
+<li>LSP requires continuous parsing with error tolerance</li>
+<li>Document synchronization needs partial results</li>
+<li>Cannot implement standard LSP features without error recovery</li>
+</ol>
+<h4 id="recommended-solution">Recommended Solution</h4>
+<p>Implement <strong>resilient parsing</strong> with error recovery:</p>
+<ol>
+<li><strong>Error Recovery Strategy:</strong></li>
+<li>Use ANTLR error recovery instead of throwing</li>
+<li>Implement "panic mode" recovery at statement boundaries</li>
+<li>Produce partial/error AST nodes for unparseable regions</li>
+<li>
+<p>Continue parsing to find all errors</p>
+</li>
+<li>
+<p><strong>Error Node Representation:</strong>
+   <code>csharp
+   // Add to AstMetamodel.cs
+   public record ErrorNode(
+       string ErrorMessage,
+       SourceLocation Location,
+       AstThing? PartialAst = null
+   ) : AstThing;</code></p>
+</li>
+<li>
+<p><strong>Visitor Pattern Support:</strong></p>
+</li>
+<li>All visitors must handle <code>ErrorNode</code></li>
+<li>Transformations should gracefully skip error regions</li>
+<li>
+<p>Code generation should not process error nodes</p>
+</li>
+<li>
+<p><strong>Diagnostic Collection:</strong></p>
+</li>
+<li>Replace exception-based errors with diagnostic collection</li>
+<li>Allow parser to accumulate multiple errors</li>
+<li>Return (AST, Diagnostics) tuple</li>
+</ol>
+<p><strong>References:</strong>
+- Roslyn's error recovery: https://github.com/dotnet/roslyn/wiki/Resilient-Syntax-Trees
+- ANTLR error recovery: https://www.antlr.org/papers/erro.pdf</p>
+<hr />
+<h3 id="2-no-language-server-protocol-lsp-implementation-critical">2. No Language Server Protocol (LSP) Implementation (CRITICAL)</h3>
+<p><strong>Severity:</strong> CRITICAL<br />
+<strong>Impact:</strong> No modern IDE integration; cannot compete with mainstream languages<br />
+<strong>Label:</strong> <code>arch-review</code>, <code>ide-support</code>, <code>lsp</code></p>
+<h4 id="problem_1">Problem</h4>
+<p>The compiler has no Language Server Protocol implementation, preventing integration with modern editors (VS Code, Neovim, Emacs, etc.). This severely limits the language's adoption potential.</p>
+<p><strong>Evidence:</strong>
+- No LSP-related code in codebase
+- No <code>*LanguageServer*.cs</code> files found
+- Only basic VS Code configuration (<code>.vscode/</code> directory)
+- No incremental compilation support (required for LSP)</p>
+<h4 id="impact-on-compiler-evolution_1">Impact on Compiler Evolution</h4>
+<ol>
+<li><strong>Adoption Barrier:</strong></li>
+<li>Developers expect IDE features (autocomplete, go-to-definition, diagnostics)</li>
+<li>Competing languages (Rust, TypeScript, Swift) all have excellent LSP support</li>
+<li>
+<p>No Fifth language support for popular editors</p>
+</li>
+<li>
+<p><strong>Development Velocity:</strong></p>
+</li>
+<li>Contributors cannot efficiently work on Fifth code</li>
+<li>No tooling to support language feature development</li>
+<li>
+<p>Testing requires full compilation cycles</p>
+</li>
+<li>
+<p><strong>Feature Gap:</strong></p>
+</li>
+<li>Cannot implement standard features:<ul>
+<li>Hover information</li>
+<li>Signature help</li>
+<li>Code actions/refactorings</li>
+<li>Semantic tokens</li>
+<li>Document symbols</li>
+<li>Workspace symbols</li>
+</ul>
+</li>
+</ol>
+<h4 id="recommended-solution_1">Recommended Solution</h4>
+<p>Implement a <strong>Fifth Language Server</strong> as a separate project:</p>
+<ol>
+<li>
+<p><strong>Project Structure:</strong>
+   <code>src/
+   ├── language-server/
+   │   ├── FifthLanguageServer.csproj
+   │   ├── LanguageServer.cs        # Main server
+   │   ├── Handlers/                 # LSP message handlers
+   │   ├── Services/                 # Workspace, document management
+   │   └── Protocol/                 # LSP protocol types</code></p>
+</li>
+<li>
+<p><strong>Required Services:</strong></p>
+</li>
+<li><strong>DocumentService:</strong> Track open documents, incremental parsing</li>
+<li><strong>DiagnosticService:</strong> Real-time error checking</li>
+<li><strong>CompletionService:</strong> Code completion using partial AST</li>
+<li><strong>SymbolService:</strong> Symbol table queries for navigation</li>
+<li>
+<p><strong>WorkspaceService:</strong> Project-wide analysis</p>
+</li>
+<li>
+<p><strong>Architecture Requirements:</strong></p>
+</li>
+<li>Must support incremental parsing (see Finding #3)</li>
+<li>Requires error recovery (see Finding #1)</li>
+<li>Needs efficient symbol table queries (see Finding #6)</li>
+<li>
+<p>Should cache parsed ASTs per document</p>
+</li>
+<li>
+<p><strong>Implementation Approach:</strong></p>
+</li>
+<li>Use OmniSharp's Language Server Protocol package</li>
+<li>Implement core features first: diagnostics, hover, completion</li>
+<li>Add advanced features iteratively</li>
+</ol>
+<p><strong>Example LSP Handler:</strong></p>
+<pre><code class="language-csharp">public class CompletionHandler : IRequestHandler&lt;CompletionParams, CompletionList&gt;
+{
+    public async Task&lt;CompletionList&gt; Handle(CompletionParams request, CancellationToken token)
+    {
+        var document = _workspace.GetDocument(request.TextDocument.Uri);
+        var position = request.Position;
+
+        // Get partial AST with error recovery
+        var (ast, _) = await _parser.ParseAsync(document.Text, resilient: true);
+
+        // Find completion context from AST
+        var completions = _completionService.GetCompletions(ast, position);
+
+        return new CompletionList(completions);
+    }
+}
+</code></pre>
+<p><strong>References:</strong>
+- LSP Specification: https://microsoft.github.io/language-server-protocol/
+- OmniSharp LSP library: https://github.com/OmniSharp/csharp-language-server-protocol
+- Example implementations: Roslyn, rust-analyzer</p>
+<hr />
+<h3 id="3-no-incremental-compilation-support-critical">3. No Incremental Compilation Support (CRITICAL)</h3>
+<p><strong>Severity:</strong> CRITICAL<br />
+<strong>Impact:</strong> Poor build performance at scale; blocks IDE integration; wasted computation<br />
+<strong>Label:</strong> <code>arch-review</code>, <code>performance</code>, <code>ide-support</code></p>
+<h4 id="problem_2">Problem</h4>
+<p>The compiler performs full recompilation on every build, with no support for incremental compilation. This is fundamentally incompatible with interactive development and IDE integration requirements.</p>
+<p><strong>Evidence:</strong>
+- No caching infrastructure in compiler
+- <code>ParsePhase()</code> always parses entire file (Compiler.cs:233-271)
+- No build artifact tracking or dependency graph
+- Every transformation re-runs on entire AST
+- Only internal PE emitter has minimal metadata caching</p>
+<p><strong>Code Reference:</strong></p>
+<pre><code class="language-csharp">// src/compiler/Compiler.cs:233
+private (AstThing? ast, int sourceCount) ParsePhase(...)
+{
+    // Always parses from scratch - no caching
+    var ast = FifthParserManager.ParseFile(options.Source);
+    return (ast, 1);
+}
+</code></pre>
+<h4 id="impact-on-compiler-evolution_2">Impact on Compiler Evolution</h4>
+<ol>
+<li><strong>Scalability:</strong></li>
+<li>Build times grow linearly with codebase size</li>
+<li>Cannot handle projects with &gt;100 source files efficiently</li>
+<li>
+<p>IDE features (diagnostics, completion) too slow for real-time use</p>
+</li>
+<li>
+<p><strong>Developer Experience:</strong></p>
+</li>
+<li>Slow feedback loop (must recompile everything)</li>
+<li>Cannot support "save-and-see" development style</li>
+<li>
+<p>Makes language feel sluggish vs competitors</p>
+</li>
+<li>
+<p><strong>IDE Integration:</strong></p>
+</li>
+<li>LSP requires sub-second response times</li>
+<li>Real-time diagnostics need incremental updates</li>
+<li>
+<p>Cannot provide responsive code completion</p>
+</li>
+<li>
+<p><strong>Resource Waste:</strong></p>
+</li>
+<li>Re-parses unchanged files</li>
+<li>Re-runs transformations on unaffected code</li>
+<li>Regenerates unchanged IL/assemblies</li>
+</ol>
+<h4 id="recommended-solution_2">Recommended Solution</h4>
+<p>Implement <strong>incremental compilation infrastructure</strong>:</p>
+<ol>
+<li>
+<p><strong>Dependency Tracking:</strong>
+   ```csharp
+   public class DependencyGraph
+   {
+       // Track which files depend on each other
+       private readonly Dictionary<string, HashSet\<string>> _dependencies = new();</p>
+<p>// Track file content hashes
+   private readonly Dictionary<string, string> _contentHashes = new();</p>
+<p>public IEnumerable<string> GetAffectedFiles(string changedFile)
+   {
+       // Return transitive closure of dependencies
+   }</p>
+<p>public bool HasChanged(string file)
+   {
+       // Compare current hash vs cached hash
+   }
+   }
+   ```</p>
+</li>
+<li>
+<p><strong>Compilation Cache:</strong>
+   ```csharp
+   public class CompilationCache
+   {
+       // Cache parsed ASTs per file
+       private readonly Dictionary<string, (AstThing ast, DateTime timestamp)> _astCache = new();</p>
+<p>// Cache transformed ASTs
+   private readonly Dictionary<string, AstThing> _transformedCache = new();</p>
+<p>// Cache symbol tables per file
+   private readonly Dictionary<string, ISymbolTable> _symbolCache = new();</p>
+<p>public (AstThing? ast, bool cached) GetOrParse(string file)
+   {
+       if (_astCache.TryGetValue(file, out var cached) &amp;&amp; 
+           !IsStale(file, cached.timestamp))
+       {
+           return (cached.ast, true);
+       }</p>
+<pre><code>   var ast = ParseFile(file);
+   _astCache[file] = (ast, DateTime.Now);
+   return (ast, false);
+</code></pre>
+<p>}
+   }
+   ```</p>
+</li>
+<li>
+<p><strong>Transformation Optimization:</strong></p>
+</li>
+<li>Track which transformations affect which AST nodes</li>
+<li>Skip transformations on unchanged subtrees</li>
+<li>
+<p>Merge incremental symbol table updates</p>
+</li>
+<li>
+<p><strong>Build Artifact Management:</strong></p>
+</li>
+<li>Store intermediate representations (.ast files, .symbols files)</li>
+<li>Track source → artifact mappings</li>
+<li>
+<p>Implement proper cache invalidation</p>
+</li>
+<li>
+<p><strong>Integration with LSP:</strong></p>
+</li>
+<li>Share cache between compiler and language server</li>
+<li>Provide incremental diagnostic updates</li>
+<li>Support document-level incremental parsing</li>
+</ol>
+<p><strong>Implementation Phases:</strong>
+1. Phase 1: File-level caching (parse results)
+2. Phase 2: Dependency tracking and selective recompilation
+3. Phase 3: Transformation-level incremental updates
+4. Phase 4: Symbol table incremental updates</p>
+<p><strong>References:</strong>
+- Rust's incremental compilation: https://blog.rust-lang.org/2016/09/08/incremental.html
+- Roslyn's incremental compilation design
+- Salsa: A Generic Framework for On-Demand, Incrementalized Computation</p>
+<hr />
+<h3 id="4-diagnostic-system-architecture-issues-high">4. Diagnostic System Architecture Issues (HIGH)</h3>
+<p><strong>Severity:</strong> HIGH<br />
+<strong>Impact:</strong> Poor error messages; difficult debugging; limits tooling quality<br />
+<strong>Label:</strong> <code>arch-review</code>, <code>diagnostics</code>, <code>developer-experience</code></p>
+<h4 id="problem_3">Problem</h4>
+<p>The diagnostic system is fragmented across multiple mechanisms with inconsistent error reporting, no source location tracking, and poor diagnostic quality. This makes debugging difficult and prevents high-quality error messages.</p>
+<p><strong>Evidence:</strong>
+- <strong>Multiple diagnostic mechanisms:</strong>
+  - <code>compiler.Diagnostic</code> record (CompilationResult.cs)
+  - <code>ast_model.CompilationException</code> and 5 other exception types (Exceptions.cs)
+  - String-based error messages throughout visitors
+  - Debug logging in various places</p>
+<ul>
+<li><strong>Missing critical features:</strong></li>
+<li>No consistent source location (line/column) tracking</li>
+<li>No diagnostic codes for stable error references</li>
+<li>No severity levels beyond Error/Warning/Info</li>
+<li>No structured diagnostic data (e.g., for quick fixes)</li>
+<li>
+<p>No diagnostic rendering/formatting infrastructure</p>
+</li>
+<li>
+<p><strong>Inconsistent error reporting:</strong></p>
+</li>
+<li>Some phases throw exceptions (TypeCheckingException, CompilationException)</li>
+<li>Some phases return null with diagnostics list</li>
+<li>Some phases log errors without failing</li>
+<li>Guard validation has its own DiagnosticEmitter</li>
+</ul>
+<p><strong>Code Examples:</strong></p>
+<pre><code class="language-csharp">// Compiler.cs:290 - Catches exception, converts to diagnostic
+catch (ast_model.CompilationException cex)
+{
+    diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, cex.Message));
+    return null;
+}
+
+// DiagnosticEmitter.cs - Separate diagnostic system for guard validation
+internal class DiagnosticEmitter
+{
+    private readonly List&lt;Diagnostic&gt; _diagnostics = new();
+    // Custom error codes like E1001, W1101
+}
+
+// Various visitors - Direct string errors
+throw new TypeCheckingException($&quot;Type mismatch: {expected} vs {actual}&quot;);
+</code></pre>
+<h4 id="impact-on-compiler-evolution_3">Impact on Compiler Evolution</h4>
+<ol>
+<li><strong>Poor Error Messages:</strong></li>
+<li>Cannot point to exact error location in source</li>
+<li>No multi-line diagnostics or related information</li>
+<li>Cannot provide "did you mean?" suggestions</li>
+<li>
+<p>Hard to understand complex errors</p>
+</li>
+<li>
+<p><strong>Tooling Limitations:</strong></p>
+</li>
+<li>IDE cannot show inline errors at correct location</li>
+<li>Cannot implement quick fixes (need structured diagnostics)</li>
+<li>No way to suppress or filter specific errors</li>
+<li>
+<p>Cannot generate documentation from error codes</p>
+</li>
+<li>
+<p><strong>Debugging Difficulty:</strong></p>
+</li>
+<li>Inconsistent error reporting makes bugs hard to track</li>
+<li>No way to trace through diagnostic emission</li>
+<li>
+<p>Cannot replay or test specific error scenarios</p>
+</li>
+<li>
+<p><strong>Maintenance Burden:</strong></p>
+</li>
+<li>Adding new diagnostics requires changes in multiple places</li>
+<li>No central registry of all possible errors</li>
+<li>Diagnostic quality varies across compiler phases</li>
+</ol>
+<h4 id="recommended-solution_3">Recommended Solution</h4>
+<p>Implement <strong>unified diagnostic infrastructure</strong>:</p>
+<ol>
+<li><strong>Diagnostic Model:</strong>
+   ```csharp
+   // Unified diagnostic with all necessary information
+   public record Diagnostic
+   {
+       public required DiagnosticId Id { get; init; }
+       public required DiagnosticSeverity Severity { get; init; }
+       public required string Message { get; init; }
+       public required SourceSpan PrimarySpan { get; init; }
+       public ImmutableArray<SourceSpan> SecondarySpans { get; init; } = ImmutableArray<SourceSpan>.Empty;
+       public ImmutableArray<Label> Labels { get; init; } = ImmutableArray<Label>.Empty;
+       public ImmutableArray<string> Notes { get; init; } = ImmutableArray<string>.Empty;
+       public DiagnosticData? Data { get; init; } // Structured data for quick fixes
+   }</li>
+</ol>
+<p>public record SourceSpan(string FilePath, int StartLine, int StartCol, int EndLine, int EndCol);</p>
+<p>public record DiagnosticId(string Code) // e.g., "E0001", "W2005"
+   {
+       public static DiagnosticId ParseError(int n) =&gt; new($"E{n:D4}");
+       public static DiagnosticId WarningError(int n) =&gt; new($"W{n:D4}");
+   }
+   ```</p>
+<ol>
+<li>
+<p><strong>Diagnostic Registry:</strong>
+   ```csharp
+   public static class DiagnosticRegistry
+   {
+       // All possible diagnostics defined in one place
+       public static readonly DiagnosticTemplate UndefinedVariable = new(
+           Id: DiagnosticId.Error(1001),
+           Severity: DiagnosticSeverity.Error,
+           MessageTemplate: "Undefined variable '{0}'",
+           Category: "Resolution"
+       );</p>
+<p>public static readonly DiagnosticTemplate TypeMismatch = new(
+       Id: DiagnosticId.Error(1002),
+       Severity: DiagnosticSeverity.Error,
+       MessageTemplate: "Type mismatch: expected '{0}', found '{1}'",
+       Category: "Type Checking"
+   );</p>
+<p>// ... all other diagnostics
+   }
+   ```</p>
+</li>
+<li>
+<p><strong>Diagnostic Builder:</strong>
+   ```csharp
+   public class DiagnosticBuilder
+   {
+       public static Diagnostic Build(
+           DiagnosticTemplate template,
+           SourceSpan primarySpan,
+           params object[] args)
+       {
+           return new Diagnostic
+           {
+               Id = template.Id,
+               Severity = template.Severity,
+               Message = string.Format(template.MessageTemplate, args),
+               PrimarySpan = primarySpan
+           };
+       }</p>
+<p>// Fluent API for complex diagnostics
+   public DiagnosticBuilder WithLabel(SourceSpan span, string label);
+   public DiagnosticBuilder WithNote(string note);
+   public DiagnosticBuilder WithHelp(string help);
+   }
+   ```</p>
+</li>
+<li>
+<p><strong>Source Location Tracking:</strong></p>
+</li>
+<li>Add source location to all AST nodes (currently missing)</li>
+<li>Parser must track locations during AST building</li>
+<li>
+<p>Transformations must preserve locations</p>
+</li>
+<li>
+<p><strong>Diagnostic Rendering:</strong>
+   ```csharp
+   public interface IDiagnosticRenderer
+   {
+       string Render(Diagnostic diagnostic);
+       string RenderWithSource(Diagnostic diagnostic, string sourceCode);
+   }</p>
+</li>
+</ol>
+<p>// Implement renderers for:
+   // - Console output (with colors)
+   // - LSP protocol format
+   // - HTML/markdown for documentation
+   ```</p>
+<ol>
+<li><strong>Migration Strategy:</strong></li>
+<li>Phase 1: Create new diagnostic system alongside old</li>
+<li>Phase 2: Migrate parser and core transformations</li>
+<li>Phase 3: Migrate code generation</li>
+<li>Phase 4: Remove old exception-based errors</li>
+<li>Phase 5: Add source locations throughout</li>
+</ol>
+<p><strong>Benefits:</strong>
+- Consistent error reporting across all phases
+- High-quality error messages (like Rust/TypeScript)
+- Enables IDE features (inline errors, quick fixes)
+- Testable diagnostics
+- Documentation-ready error codes</p>
+<p><strong>References:</strong>
+- Rust's diagnostic system: https://rustc-dev-guide.rust-lang.org/diagnostics.html
+- TypeScript diagnostics: https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API#using-the-type-checker</p>
+<hr />
+<h3 id="5-monolithic-transformation-pipeline-high">5. Monolithic Transformation Pipeline (HIGH)</h3>
+<p><strong>Severity:</strong> HIGH<br />
+<strong>Impact:</strong> Hard to maintain; difficult to debug; performance bottlenecks; testing complexity<br />
+<strong>Label:</strong> <code>arch-review</code>, <code>maintainability</code>, <code>performance</code></p>
+<h4 id="problem_4">Problem</h4>
+<p>The compiler's transformation pipeline consists of 18 sequential phases hardcoded in <code>ParserManager.ApplyLanguageAnalysisPhases()</code>. This monolithic design makes the compiler rigid, hard to test, and difficult to optimize.</p>
+<p><strong>Evidence:</strong>
+- 18 transformation phases in fixed order (ParserManager.cs:39-170)
+- 5,236 lines of transformation code across 19 visitor files
+- No ability to skip phases or reorder transformations
+- No phase-level caching or optimization
+- Complex dependencies between phases not explicit
+- Short-circuit logic embedded in phase enum checks</p>
+<p><strong>Code Reference:</strong></p>
+<pre><code class="language-csharp">// src/compiler/ParserManager.cs:39
+public static AstThing ApplyLanguageAnalysisPhases(
+    AstThing ast, 
+    List&lt;compiler.Diagnostic&gt;? diagnostics = null, 
+    AnalysisPhase upTo = AnalysisPhase.All)
+{
+    if (upTo &gt;= AnalysisPhase.TreeLink)
+        ast = new TreeLinkageVisitor().Visit(ast);
+    if (upTo &gt;= AnalysisPhase.Builtins)
+        ast = new BuiltinInjectorVisitor().Visit(ast);
+    if (upTo &gt;= AnalysisPhase.ClassCtors)
+        ast = new ClassCtorInserter().Visit(ast);
+    // ... 15 more phases in fixed sequence
+}
+</code></pre>
+<h4 id="impact-on-compiler-evolution_4">Impact on Compiler Evolution</h4>
+<ol>
+<li><strong>Maintainability Problems:</strong></li>
+<li>Adding new phase requires modifying central orchestration</li>
+<li>Phase dependencies are implicit (order-based)</li>
+<li>Cannot easily disable experimental phases</li>
+<li>
+<p>Hard to understand phase interactions</p>
+</li>
+<li>
+<p><strong>Testing Difficulty:</strong></p>
+</li>
+<li>Cannot test phases in isolation (always run in pipeline)</li>
+<li>Must run earlier phases to test later ones</li>
+<li>No ability to inject test data between phases</li>
+<li>
+<p>Integration tests expensive (run entire pipeline)</p>
+</li>
+<li>
+<p><strong>Performance Issues:</strong></p>
+</li>
+<li>Cannot parallelize independent phases</li>
+<li>Must run all phases even when some are no-ops</li>
+<li>Cannot cache intermediate results per phase</li>
+<li>
+<p>No way to skip phases for unchanged code</p>
+</li>
+<li>
+<p><strong>Debugging Challenges:</strong></p>
+</li>
+<li>Cannot step through single phase</li>
+<li>Hard to bisect which phase caused error</li>
+<li>No phase-level instrumentation</li>
+<li>
+<p>Cannot dump AST between specific phases</p>
+</li>
+<li>
+<p><strong>Extensibility:</strong></p>
+</li>
+<li>Third-party cannot add custom phases</li>
+<li>Language features tightly coupled to phase order</li>
+<li>Cannot have conditional phases (e.g., for language experiments)</li>
+</ol>
+<h4 id="recommended-solution_4">Recommended Solution</h4>
+<p>Implement <strong>composable transformation pipeline</strong>:</p>
+<ol>
+<li>
+<p><strong>Phase Interface:</strong>
+   ```csharp
+   public interface ICompilerPhase
+   {
+       string Name { get; }
+       IReadOnlyList<string> DependsOn { get; } // Explicit dependencies
+       IReadOnlyList<string> ProvidedCapabilities { get; }</p>
+<p>PhaseResult Transform(AstThing ast, PhaseContext context);
+   }</p>
+</li>
+</ol>
+<p>public record PhaseResult(
+       AstThing TransformedAst,
+       IReadOnlyList<Diagnostic> Diagnostics,
+       bool Success
+   );</p>
+<p>public class PhaseContext
+   {
+       public ISymbolTable SymbolTable { get; set; }
+       public ITypeRegistry TypeRegistry { get; set; }
+       public Dictionary<string, object> SharedData { get; } // For phase communication
+       public bool EnableCaching { get; set; }
+   }
+   ```</p>
+<ol>
+<li>
+<p><strong>Pipeline Orchestrator:</strong>
+   ```csharp
+   public class TransformationPipeline
+   {
+       private readonly List<ICompilerPhase> _phases = new();
+       private readonly Dictionary<string, AstThing> _cache = new();</p>
+<p>public void RegisterPhase(ICompilerPhase phase)
+   {
+       // Validate dependencies exist
+       foreach (var dep in phase.DependsOn)
+       {
+           if (!_phases.Any(p =&gt; p.ProvidedCapabilities.Contains(dep)))
+               throw new InvalidOperationException($"Dependency '{dep}' not satisfied");
+       }
+       _phases.Add(phase);
+   }</p>
+<p>public PipelineResult Execute(AstThing ast, PipelineOptions options)
+   {
+       var context = new PhaseContext();
+       var allDiagnostics = new List<Diagnostic>();
+       var currentAst = ast;</p>
+<pre><code>   // Topologically sort phases by dependencies
+   var sortedPhases = TopologicalSort(_phases);
+
+   foreach (var phase in sortedPhases)
+   {
+       if (options.SkipPhases.Contains(phase.Name))
+           continue;
+
+       // Check cache if enabled
+       if (options.EnableCaching &amp;&amp; TryGetCached(phase, currentAst, out var cached))
+       {
+           currentAst = cached;
+           continue;
+       }
+
+       var result = phase.Transform(currentAst, context);
+       allDiagnostics.AddRange(result.Diagnostics);
+
+       if (!result.Success &amp;&amp; options.StopOnError)
+           return new PipelineResult(currentAst, allDiagnostics, false);
+
+       currentAst = result.TransformedAst;
+
+       if (options.EnableCaching)
+           Cache(phase, ast, currentAst);
+   }
+
+   return new PipelineResult(currentAst, allDiagnostics, true);
+</code></pre>
+<p>}
+   }
+   ```</p>
+</li>
+<li>
+<p><strong>Phase Registration:</strong>
+   ```csharp
+   // Each phase declares itself
+   public class TreeLinkagePhase : ICompilerPhase
+   {
+       public string Name =&gt; "TreeLinkage";
+       public IReadOnlyList<string> DependsOn =&gt; Array.Empty<string>();
+       public IReadOnlyList<string> ProvidedCapabilities =&gt; new[] { "TreeStructure" };</p>
+<p>public PhaseResult Transform(AstThing ast, PhaseContext context)
+   {
+       var visitor = new TreeLinkageVisitor();
+       var result = visitor.Visit(ast);
+       return new PhaseResult(result, visitor.Diagnostics, true);
+   }
+   }</p>
+</li>
+</ol>
+<p>public class SymbolTablePhase : ICompilerPhase
+   {
+       public string Name =&gt; "SymbolTable";
+       public IReadOnlyList<string> DependsOn =&gt; new[] { "TreeStructure", "Builtins" };
+       public IReadOnlyList<string> ProvidedCapabilities =&gt; new[] { "Symbols" };</p>
+<pre><code>   public PhaseResult Transform(AstThing ast, PhaseContext context)
+   {
+       var visitor = new SymbolTableBuilderVisitor();
+       var result = visitor.Visit(ast);
+       context.SymbolTable = result.SymbolTable; // Share between phases
+       return new PhaseResult(result.Ast, visitor.Diagnostics, true);
+   }
+</code></pre>
+<p>}
+   ```</p>
+<ol>
+<li><strong>Benefits:</strong></li>
+</ol>
+<p><strong>Testing:</strong>
+   ```csharp
+   [Test]
+   public void TestTypeAnnotationPhase()
+   {
+       var pipeline = new TransformationPipeline();
+       pipeline.RegisterPhase(new TreeLinkagePhase());
+       pipeline.RegisterPhase(new SymbolTablePhase());
+       pipeline.RegisterPhase(new TypeAnnotationPhase());</p>
+<pre><code>   // Test only specific phase
+   var result = pipeline.Execute(testAst, new PipelineOptions 
+   { 
+       StopAfter = "TypeAnnotation" 
+   });
+</code></pre>
+<p>}
+   ```</p>
+<p><strong>Performance:</strong>
+   <code>csharp
+   // Parallel execution of independent phases
+   var parallelPipeline = new ParallelTransformationPipeline();
+   parallelPipeline.Execute(ast); // Automatically parallelizes</code></p>
+<p><strong>Debugging:</strong>
+   <code>csharp
+   // Dump AST after specific phase
+   var result = pipeline.Execute(ast, new PipelineOptions 
+   { 
+       DumpAfter = new[] { "SymbolTable", "TypeAnnotation" }
+   });</code></p>
+<ol>
+<li><strong>Migration Strategy:</strong></li>
+<li>Phase 1: Create ICompilerPhase interface and pipeline</li>
+<li>Phase 2: Wrap existing visitors as phases (keep behavior)</li>
+<li>Phase 3: Explicit dependency declarations</li>
+<li>Phase 4: Enable phase-level caching</li>
+<li>Phase 5: Investigate parallel execution</li>
+</ol>
+<p><strong>References:</strong>
+- LLVM's pass manager: https://llvm.org/docs/WritingAnLLVMPass.html
+- GHC's compilation pipeline: https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/compiler/pipeline</p>
+<hr />
+<h3 id="6-weak-symbol-table-architecture-medium">6. Weak Symbol Table Architecture (MEDIUM)</h3>
+<p><strong>Severity:</strong> MEDIUM<br />
+<strong>Impact:</strong> Slow lookups; no scoping queries; limits type checking; IDE features difficult<br />
+<strong>Label:</strong> <code>arch-review</code>, <code>symbol-table</code>, <code>performance</code></p>
+<h4 id="problem_5">Problem</h4>
+<p>The symbol table implementation is a simple <code>Dictionary&lt;Symbol, ISymbolTableEntry&gt;</code> with no support for efficient scope-based queries, hierarchical lookups, or the rich queries needed for IDE features and advanced type checking.</p>
+<p><strong>Evidence:</strong>
+- Symbol table is basic dictionary (SymbolTable.cs: 32 lines)
+- Linear search for name-based lookup (<code>ResolveByName()</code>)
+- No scope hierarchy traversal support
+- No "find all references" capability
+- No "find symbols in scope" query
+- Symbol table stored per-scope but no global index</p>
+<p><strong>Code Reference:</strong></p>
+<pre><code class="language-csharp">// src/ast-model/Symbols/SymbolTable.cs
+public class SymbolTable : Dictionary&lt;Symbol, ISymbolTableEntry&gt;, ISymbolTable
+{
+    public ISymbolTableEntry ResolveByName(string symbolName)
+    {
+        // Linear search - O(n) lookup!
+        foreach (var k in Keys)
+        {
+            if (k.Name == symbolName)
+                return this[k];
+        }
+        return null;
+    }
+}
+</code></pre>
+<h4 id="impact-on-compiler-evolution_5">Impact on Compiler Evolution</h4>
+<ol>
+<li><strong>Performance:</strong></li>
+<li>O(n) lookup for symbol resolution</li>
+<li>No indexing for fast queries</li>
+<li>Cannot efficiently answer "what's in scope?" queries</li>
+<li>
+<p>Scales poorly with large codebases</p>
+</li>
+<li>
+<p><strong>IDE Features Blocked:</strong></p>
+</li>
+<li>"Find all references" requires full AST scan</li>
+<li>"Find symbols" completion has no index</li>
+<li>"Rename symbol" cannot find all uses</li>
+<li>
+<p>Hover info requires re-resolution</p>
+</li>
+<li>
+<p><strong>Type Checking Limitations:</strong></p>
+</li>
+<li>Cannot efficiently query overloaded functions</li>
+<li>Hard to implement generic type resolution</li>
+<li>
+<p>Trait/interface resolution inefficient</p>
+</li>
+<li>
+<p><strong>Scope Queries:</strong></p>
+</li>
+<li>Cannot ask "what names are visible here?"</li>
+<li>Cannot find symbols by kind (types, functions, variables)</li>
+<li>No support for qualified name resolution</li>
+</ol>
+<h4 id="recommended-solution_5">Recommended Solution</h4>
+<p>Implement <strong>hierarchical indexed symbol table</strong>:</p>
+<ol>
+<li>
+<p><strong>Enhanced Symbol Table:</strong>
+   ```csharp
+   public class SymbolTable : ISymbolTable
+   {
+       // Fast lookups
+       private readonly Dictionary<string, List\<ISymbolTableEntry>> _nameIndex = new();
+       private readonly Dictionary<Symbol, ISymbolTableEntry> _symbolIndex = new();
+       private readonly Dictionary<SymbolKind, List\<ISymbolTableEntry>> _kindIndex = new();</p>
+<p>// Scope hierarchy
+   private readonly SymbolTable? _parent;
+   private readonly List<SymbolTable> _children = new();
+   private readonly IScope _scope;</p>
+<p>// Efficient queries
+   public IEnumerable<ISymbolTableEntry> ResolveByName(string name)
+   {
+       // O(1) lookup in current scope
+       if (_nameIndex.TryGetValue(name, out var entries))
+           return entries;</p>
+<pre><code>   // Walk up scope chain
+   return _parent?.ResolveByName(name) ?? Enumerable.Empty&lt;ISymbolTableEntry&gt;();
+</code></pre>
+<p>}</p>
+<p>public IEnumerable<ISymbolTableEntry> GetVisibleSymbols(SourceLocation location)
+   {
+       // Return all symbols visible at location
+       // Includes current scope + parent scopes
+   }</p>
+<p>public IEnumerable<ISymbolTableEntry> FindByKind(SymbolKind kind)
+   {
+       // O(1) lookup by symbol kind
+       return _kindIndex.TryGetValue(kind, out var entries) 
+           ? entries 
+           : Enumerable.Empty<ISymbolTableEntry>();
+   }
+   }
+   ```</p>
+</li>
+<li>
+<p><strong>Global Symbol Index:</strong>
+   ```csharp
+   public class GlobalSymbolIndex
+   {
+       // Fast global queries for IDE features
+       private readonly Dictionary<string, List\<SymbolDefinition>> _definitions = new();
+       private readonly Dictionary<Symbol, List\<SourceLocation>> _references = new();</p>
+<p>public void IndexAssembly(AssemblyDef assembly)
+   {
+       // Build indices from AST
+       var visitor = new SymbolIndexingVisitor(this);
+       visitor.Visit(assembly);
+   }</p>
+<p>public IEnumerable<SourceLocation> FindReferences(Symbol symbol)
+   {
+       return _references.TryGetValue(symbol, out var locs) 
+           ? locs 
+           : Enumerable.Empty<SourceLocation>();
+   }</p>
+<p>public IEnumerable<SymbolDefinition> FindDefinitions(string name)
+   {
+       return _definitions.TryGetValue(name, out var defs)
+           ? defs
+           : Enumerable.Empty<SymbolDefinition>();
+   }
+   }
+   ```</p>
+</li>
+<li>
+<p><strong>Scope-Aware Resolution:</strong>
+   ```csharp
+   public class ScopeResolver
+   {
+       private readonly GlobalSymbolIndex _index;</p>
+<p>public ResolvedSymbol? Resolve(string name, IScope scope)
+   {
+       // Try local scope first
+       var local = scope.SymbolTable.ResolveByName(name);
+       if (local.Any())
+           return new ResolvedSymbol(local.First(), ResolutionKind.Local);</p>
+<pre><code>   // Try parent scopes
+   var parent = scope.EnclosingScope;
+   while (parent != null)
+   {
+       var parentResult = parent.SymbolTable.ResolveByName(name);
+       if (parentResult.Any())
+           return new ResolvedSymbol(parentResult.First(), ResolutionKind.Outer);
+       parent = parent.EnclosingScope;
+   }
+
+   // Try imported modules
+   foreach (var import in scope.Imports)
+   {
+       var imported = _index.FindDefinitions($"{import}.{name}");
+       if (imported.Any())
+           return new ResolvedSymbol(imported.First(), ResolutionKind.Imported);
+   }
+
+   return null;
+</code></pre>
+<p>}
+   }
+   ```</p>
+</li>
+</ol>
+<p><strong>Benefits:</strong>
+- O(1) symbol lookups (instead of O(n))
+- Efficient scope-based queries for IDE
+- Supports "find all references"
+- Enables semantic highlighting
+- Fast code completion</p>
+<hr />
+<h3 id="7-inadequate-testing-architecture-medium">7. Inadequate Testing Architecture (MEDIUM)</h3>
+<p><strong>Severity:</strong> MEDIUM<br />
+<strong>Impact:</strong> Low confidence in changes; hard to prevent regressions; slow test execution<br />
+<strong>Label:</strong> <code>arch-review</code>, <code>testing</code>, <code>quality</code></p>
+<h4 id="problem_6">Problem</h4>
+<p>The testing architecture lacks proper separation between unit and integration tests, has no property-based testing for core algorithms, and makes it difficult to test individual compiler phases in isolation.</p>
+<p><strong>Evidence:</strong>
+- Most tests are end-to-end integration tests (compile + run)
+- 161 .5th test files but unclear test organization
+- No unit tests for individual transformation visitors
+- Parser tests mix syntax checking with semantic validation
+- No property-based tests for critical algorithms
+- Test execution relatively slow (need to compile IL → assembly → run)</p>
+<p><strong>Test Structure Issues:</strong></p>
+<pre><code>test/
+├── ast-tests/              # Mix of unit and integration
+├── runtime-integration-tests/  # All end-to-end
+├── syntax-parser-tests/    # Parser tests
+├── fifth-runtime-tests/    # Runtime tests
+├── perf/                   # Performance benchmarks
+└── kg-smoke-tests/         # Knowledge graph tests
+</code></pre>
+<h4 id="impact-on-compiler-evolution_6">Impact on Compiler Evolution</h4>
+<ol>
+<li><strong>Development Velocity:</strong></li>
+<li>Slow test feedback (must compile → assemble → run)</li>
+<li>Cannot quickly verify transformation logic</li>
+<li>
+<p>Hard to test edge cases in isolation</p>
+</li>
+<li>
+<p><strong>Confidence:</strong></p>
+</li>
+<li>Changes might break distant code</li>
+<li>No property-based invariant checking</li>
+<li>
+<p>Regressions hard to catch early</p>
+</li>
+<li>
+<p><strong>Maintainability:</strong></p>
+</li>
+<li>Test setup complex (need full compilation pipeline)</li>
+<li>Hard to isolate failures</li>
+<li>
+<p>Difficult to add focused tests</p>
+</li>
+<li>
+<p><strong>Coverage Gaps:</strong></p>
+</li>
+<li>Core algorithms not thoroughly tested</li>
+<li>Visitor pattern implementations under-tested</li>
+<li>Symbol table operations not unit tested</li>
+<li>Type inference not property-tested</li>
+</ol>
+<h4 id="recommended-solution_6">Recommended Solution</h4>
+<p>Implement <strong>layered testing architecture</strong>:</p>
+<ol>
+<li>
+<p><strong>Testing Pyramid:</strong>
+   <code>test/
+   ├── unit/                      # Fast, focused unit tests
+   │   ├── Parser/
+   │   │   ├── LexerTests.cs      # Token generation
+   │   │   ├── ParserTests.cs     # Grammar rules
+   │   │   └── AstBuilderTests.cs # Parse tree → AST
+   │   ├── Transformations/
+   │   │   ├── TreeLinkageTests.cs
+   │   │   ├── SymbolTableTests.cs
+   │   │   └── TypeAnnotationTests.cs
+   │   ├── CodeGeneration/
+   │   │   ├── ILTransformTests.cs
+   │   │   └── ILEmissionTests.cs
+   │   └── SymbolTable/
+   │       ├── SymbolResolutionTests.cs
+   │       └── ScopeTests.cs
+   │
+   ├── integration/               # Component integration
+   │   ├── ParserPipelineTests.cs
+   │   ├── TransformationPipelineTests.cs
+   │   └── CodeGenerationPipelineTests.cs
+   │
+   ├── e2e/                       # End-to-end compilation
+   │   ├── BasicSyntax/
+   │   ├── Functions/
+   │   ├── Classes/
+   │   └── KnowledgeGraphs/
+   │
+   ├── property/                  # Property-based tests
+   │   ├── ParserProperties.cs
+   │   ├── TypeInferenceProperties.cs
+   │   └── SymbolTableProperties.cs
+   │
+   └── performance/               # Benchmarks
+       └── CompilationBenchmarks.cs</code></p>
+</li>
+<li>
+<p><strong>Unit Test Infrastructure:</strong>
+   ```csharp
+   // Test helpers for isolated phase testing
+   public class PhaseTestHarness
+   {
+       public static (AstThing result, List<Diagnostic> diagnostics) 
+           TestPhase<TPhase>(AstThing input, PhaseOptions? options = null)
+           where TPhase : ICompilerPhase, new()
+       {
+           var phase = new TPhase();
+           var context = new PhaseContext();
+           var result = phase.Transform(input, context);
+           return (result.TransformedAst, result.Diagnostics.ToList());
+       }
+   }</p>
+</li>
+</ol>
+<p>[Test]
+   public void SymbolTable_ResolvesLocalVariable()
+   {
+       // Arrange: Create minimal AST
+       var ast = AstBuilder.FunctionDef("test")
+           .WithLocalVar("x", TypeRegistry.Int32)
+           .WithBody(AstBuilder.VarRef("x"))
+           .Build();</p>
+<pre><code>   // Act: Run only SymbolTable phase
+   var (result, diags) = PhaseTestHarness.TestPhase&lt;SymbolTablePhase&gt;(ast);
+
+   // Assert: Verify symbol resolution
+   Assert.Empty(diags);
+   var varRef = result.FindNode&lt;VarRefExp&gt;(v =&gt; v.VarName == "x");
+   Assert.NotNull(varRef.ResolvedSymbol);
+</code></pre>
+<p>}
+   ```</p>
+<ol>
+<li><strong>Property-Based Testing:</strong>
+   ```csharp
+   // Use FsCheck or CsCheck for property testing
+   [Property]
+   public Property Parser_RoundTrip_Preserves_Semantics()
+   {
+       return Prop.ForAll(
+           AstGenerators.ValidProgram(),
+           program =&gt;
+           {
+               // Parse → Pretty Print → Parse should be equivalent
+               var ast1 = FifthParserManager.Parse(program);
+               var printed = PrettyPrinter.Print(ast1);
+               var ast2 = FifthParserManager.Parse(printed);<pre><code>       return AstEquals(ast1, ast2);
+   });
+</code></pre>
+<p>}</p>
+</li>
+</ol>
+<p>[Property]
+   public Property TypeInference_Respects_Subtyping()
+   {
+       return Prop.ForAll(
+           TypeGenerators.Type(),
+           TypeGenerators.Type(),
+           (t1, t2) =&gt;
+           {
+               if (TypeSystem.IsSubtypeOf(t1, t2))
+               {
+                   // If t1 &lt;: t2, then expressions of type t1 should be assignable to t2
+                   var expr = ExpressionGenerators.OfType(t1);
+                   var inferredType = TypeInference.Infer(expr);
+                   return TypeSystem.IsAssignableTo(inferredType, t2);
+               }
+               return true;
+           });
+   }
+   ```</p>
+<ol>
+<li><strong>Fast Feedback Loop:</strong>
+   ```csharp
+   // Mock heavy dependencies for fast testing
+   public interface IILAssembler
+   {
+       AssemblyResult Assemble(string ilCode);
+   }</li>
+</ol>
+<p>public class MockILAssembler : IILAssembler
+   {
+       public AssemblyResult Assemble(string ilCode)
+       {
+           // Validate IL syntax without actually assembling
+           return new AssemblyResult { Success = ValidateILSyntax(ilCode) };
+       }
+   }</p>
+<p>[Test]
+   public void CodeGeneration_EmitsValidIL()
+   {
+       var ast = TestAsts.SimpleAddition();
+       var generator = new ILCodeGenerator();</p>
+<pre><code>   var ilCode = generator.GenerateCode(ast);
+
+   // Fast validation without ilasm
+   var mockAssembler = new MockILAssembler();
+   var result = mockAssembler.Assemble(ilCode);
+   Assert.True(result.Success);
+</code></pre>
+<p>}
+   ```</p>
+<ol>
+<li><strong>Test Organization Guidelines:</strong></li>
+<li>Unit tests should run in &lt;1s total</li>
+<li>Integration tests should run in &lt;10s total</li>
+<li>E2E tests can be slower but should be parallelizable</li>
+<li>Property tests should generate 100s of test cases</li>
+<li>Performance tests run separately (not in CI)</li>
+</ol>
+<p><strong>Benefits:</strong>
+- Fast feedback (unit tests in seconds)
+- High confidence (property-based testing finds edge cases)
+- Easy debugging (isolated failures)
+- Better coverage (all layers tested)
+- Easier maintenance (clear test structure)</p>
+<hr />
+<h2 id="secondary-findings">Secondary Findings</h2>
+<h3 id="8-multiple-file-compilation-not-implemented">8. Multiple File Compilation Not Implemented</h3>
+<p><strong>Severity:</strong> LOW (but blocks production use)<br />
+<strong>Impact:</strong> Cannot compile real projects<br />
+<strong>Label:</strong> <code>arch-review</code>, <code>feature-gap</code></p>
+<p>The compiler currently only compiles single files, even when given a directory:</p>
+<pre><code class="language-csharp">// src/compiler/Compiler.cs:256
+// For now, parse the first file (multiple file support can be added later)
+var ast = FifthParserManager.ParseFile(files[0]);
+return (ast, files.Length);
+</code></pre>
+<p><strong>Recommendation:</strong> Implement proper module system with:
+- Module resolution and import handling
+- Cross-file symbol resolution
+- Module-level compilation units
+- Separate compilation support</p>
+<hr />
+<h3 id="9-no-source-location-tracking-in-ast">9. No Source Location Tracking in AST</h3>
+<p><strong>Severity:</strong> LOW (but blocks error quality improvements)<br />
+<strong>Impact:</strong> Cannot provide precise error locations<br />
+<strong>Label:</strong> <code>arch-review</code>, <code>diagnostics</code></p>
+<p>AST nodes don't track their source locations (line/column), making it impossible to provide precise error messages or implement IDE features like "go to definition".</p>
+<p><strong>Recommendation:</strong> Add <code>SourceLocation</code> to all AST nodes (see Finding #4).</p>
+<hr />
+<h3 id="10-il-generation-architecture-unclear">10. IL Generation Architecture Unclear</h3>
+<p><strong>Severity:</strong> LOW<br />
+<strong>Impact:</strong> Hard to understand code generation phase<br />
+<strong>Label:</strong> <code>arch-review</code>, <code>documentation</code></p>
+<p>The code generator has two paths (ILCodeGenerator and PEEmitter) with unclear responsibilities and an incomplete refactoring (see <code>REFACTORING_SUMMARY.md</code>).</p>
+<p><strong>Recommendation:</strong> 
+- Document the two-phase IL generation architecture
+- Complete the PEEmitter refactoring
+- Consider unifying IL metamodel and emission</p>
+<hr />
+<h2 id="recommendations-priority-matrix">Recommendations Priority Matrix</h2>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Severity</th>
+<th>Effort</th>
+<th>Priority</th>
+<th>Timeline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Error Recovery</td>
+<td>CRITICAL</td>
+<td>High</td>
+<td>P0</td>
+<td>Q1 2026</td>
+</tr>
+<tr>
+<td>2. LSP Implementation</td>
+<td>CRITICAL</td>
+<td>Very High</td>
+<td>P0</td>
+<td>Q2 2026</td>
+</tr>
+<tr>
+<td>3. Incremental Compilation</td>
+<td>CRITICAL</td>
+<td>Very High</td>
+<td>P0</td>
+<td>Q2-Q3 2026</td>
+</tr>
+<tr>
+<td>4. Diagnostic System</td>
+<td>HIGH</td>
+<td>Medium</td>
+<td>P1</td>
+<td>Q1 2026</td>
+</tr>
+<tr>
+<td>5. Pipeline Architecture</td>
+<td>HIGH</td>
+<td>Medium</td>
+<td>P1</td>
+<td>Q2 2026</td>
+</tr>
+<tr>
+<td>6. Symbol Table</td>
+<td>MEDIUM</td>
+<td>Medium</td>
+<td>P2</td>
+<td>Q2 2026</td>
+</tr>
+<tr>
+<td>7. Testing Architecture</td>
+<td>MEDIUM</td>
+<td>Medium</td>
+<td>P2</td>
+<td>Q1-Q2 2026</td>
+</tr>
+<tr>
+<td>8. Multi-File Compilation</td>
+<td>LOW</td>
+<td>Low</td>
+<td>P3</td>
+<td>Q2 2026</td>
+</tr>
+<tr>
+<td>9. Source Location</td>
+<td>LOW</td>
+<td>Low</td>
+<td>P3</td>
+<td>Q1 2026</td>
+</tr>
+<tr>
+<td>10. IL Architecture</td>
+<td>LOW</td>
+<td>Low</td>
+<td>P4</td>
+<td>Q3 2026</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="implementation-roadmap">Implementation Roadmap</h2>
+<h3 id="phase-1-foundation-q1-2026">Phase 1: Foundation (Q1 2026)</h3>
+<p><strong>Goal:</strong> Enable IDE integration basics</p>
+<ol>
+<li><strong>Error Recovery (Finding #1)</strong></li>
+<li>Week 1-2: Design error node representation</li>
+<li>Week 3-4: Implement ANTLR error recovery</li>
+<li>Week 5-6: Update visitors to handle error nodes</li>
+<li>
+<p>Week 7-8: Testing and validation</p>
+</li>
+<li>
+<p><strong>Diagnostic System (Finding #4)</strong></p>
+</li>
+<li>Week 1-2: Design unified diagnostic model</li>
+<li>Week 3-4: Create diagnostic registry and builders</li>
+<li>
+<p>Week 5-8: Migrate parser and core transformations</p>
+</li>
+<li>
+<p><strong>Source Location Tracking (Finding #9)</strong></p>
+</li>
+<li>Week 1-2: Add location tracking to AST nodes</li>
+<li>Week 3-4: Update parser to capture locations</li>
+<li>Week 5-6: Preserve locations in transformations</li>
+</ol>
+<h3 id="phase-2-ide-support-q2-2026">Phase 2: IDE Support (Q2 2026)</h3>
+<p><strong>Goal:</strong> Ship working Language Server</p>
+<ol>
+<li><strong>LSP Implementation (Finding #2)</strong></li>
+<li>Week 1-4: Core LSP infrastructure</li>
+<li>Week 5-8: Basic features (diagnostics, hover, completion)</li>
+<li>Week 9-12: Advanced features (go-to-definition, references)</li>
+<li>
+<p>Week 13-16: Testing and polish</p>
+</li>
+<li>
+<p><strong>Symbol Table Enhancement (Finding #6)</strong></p>
+</li>
+<li>Week 1-2: Design indexed symbol table</li>
+<li>Week 3-4: Implement hierarchical queries</li>
+<li>Week 5-6: Build global symbol index</li>
+<li>
+<p>Week 7-8: Integration with LSP</p>
+</li>
+<li>
+<p><strong>Pipeline Architecture (Finding #5)</strong></p>
+</li>
+<li>Week 1-2: Design composable pipeline</li>
+<li>Week 3-6: Migrate existing phases</li>
+<li>Week 7-8: Phase-level testing and optimization</li>
+</ol>
+<h3 id="phase-3-performance-q3-2026">Phase 3: Performance (Q3 2026)</h3>
+<p><strong>Goal:</strong> Scale to large projects</p>
+<ol>
+<li><strong>Incremental Compilation (Finding #3)</strong></li>
+<li>Week 1-4: Dependency tracking infrastructure</li>
+<li>Week 5-8: File-level caching</li>
+<li>Week 9-12: Transformation-level caching</li>
+<li>
+<p>Week 13-16: LSP integration and optimization</p>
+</li>
+<li>
+<p><strong>Testing Architecture (Finding #7)</strong></p>
+</li>
+<li>Week 1-4: Restructure test organization</li>
+<li>Week 5-8: Add unit tests for core components</li>
+<li>Week 9-12: Property-based testing</li>
+<li>Week 13-16: Performance test suite</li>
+</ol>
+<hr />
+<h2 id="conclusion">Conclusion</h2>
+<p>The Fifth language compiler has a solid foundation but requires significant architectural investment to become competitive with modern language tooling. The critical path is:</p>
+<ol>
+<li><strong>Error Recovery</strong> → Enables partial compilation</li>
+<li><strong>LSP Implementation</strong> → Enables IDE integration</li>
+<li><strong>Incremental Compilation</strong> → Enables scale</li>
+</ol>
+<p>These three foundational improvements will unlock the compiler's potential and make Fifth a viable alternative to mainstream languages. The estimated effort is 6-9 months for a small team (2-3 developers).</p>
+<p>Without these improvements, Fifth will struggle to gain adoption due to poor developer experience compared to languages with mature tooling (Rust, TypeScript, Go, Swift).</p>
+<hr />
+<h2 id="appendix-a-architectural-strengths">Appendix A: Architectural Strengths</h2>
+<p>The compiler demonstrates several excellent design decisions:</p>
+<ol>
+<li><strong>Visitor Pattern:</strong> Consistent use of visitor pattern for AST traversal</li>
+<li><strong>Multi-Phase Compilation:</strong> Clean separation of parsing, analysis, and code generation</li>
+<li><strong>AST/IL Separation:</strong> Separate high-level AST and low-level IL metamodels</li>
+<li><strong>Code Generation:</strong> Dual IL text and direct PE emission paths</li>
+<li><strong>Type System:</strong> Well-structured type system with generic types and type inference</li>
+<li><strong>Testing Coverage:</strong> Good coverage of language features (161 test files)</li>
+</ol>
+<hr />
+<h2 id="appendix-b-references">Appendix B: References</h2>
+<h3 id="compiler-design">Compiler Design</h3>
+<ul>
+<li>"Engineering a Compiler" by Cooper &amp; Torczon</li>
+<li>"Modern Compiler Implementation in ML" by Appel</li>
+<li>Rust compiler development guide: https://rustc-dev-guide.rust-lang.org/</li>
+</ul>
+<h3 id="lsp-resources">LSP Resources</h3>
+<ul>
+<li>LSP Specification: https://microsoft.github.io/language-server-protocol/</li>
+<li>Example implementations: rust-analyzer, TypeScript, Roslyn</li>
+</ul>
+<h3 id="incremental-compilation">Incremental Compilation</h3>
+<ul>
+<li>Salsa framework: https://github.com/salsa-rs/salsa</li>
+<li>Rust incremental compilation: https://blog.rust-lang.org/2016/09/08/incremental.html</li>
+</ul>
+<h3 id="testing">Testing</h3>
+<ul>
+<li>Property-Based Testing: "PropEr Testing" by Fred Hebert</li>
+<li>Compiler testing: LLVM LIT, Rust compiler test suite</li>
+</ul>
+<hr />
+<p><strong>End of Report</strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
