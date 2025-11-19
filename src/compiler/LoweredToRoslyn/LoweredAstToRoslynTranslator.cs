@@ -1180,14 +1180,27 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             typeName2 = "object";
         }
 
-        // If there are no property initializers, create simple object creation: new TypeName()
+        // Build constructor argument list if present
+        var ctorArgs = new List<ArgumentSyntax>();
+        if (objInit.ConstructorArguments != null && objInit.ConstructorArguments.Count > 0)
+        {
+            foreach (var arg in objInit.ConstructorArguments)
+            {
+                var argExpr = TranslateExpression(arg);
+                ctorArgs.Add(Argument(argExpr));
+            }
+        }
+
+        var argList = ArgumentList(SeparatedList(ctorArgs));
+
+        // If there are no property initializers, create simple object creation: new TypeName(args)
         if (objInit.PropertyInitialisers == null || objInit.PropertyInitialisers.Count == 0)
         {
             return ObjectCreationExpression(IdentifierName(typeName2))
-                .WithArgumentList(ArgumentList());
+                .WithArgumentList(argList);
         }
 
-        // Create object creation with initializers: new TypeName { Prop = Value, ... }
+        // Create object creation with initializers: new TypeName(args) { Prop = Value, ... }
         var initializers = new List<ExpressionSyntax>();
         foreach (var propInit in objInit.PropertyInitialisers)
         {
@@ -1221,6 +1234,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         }
 
         return ObjectCreationExpression(IdentifierName(typeName2))
+            .WithArgumentList(argList)
             .WithInitializer(
                 InitializerExpression(
                     SyntaxKind.ObjectInitializerExpression,
