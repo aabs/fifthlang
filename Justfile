@@ -69,6 +69,11 @@ clean:
 	dotnet clean fifthlang.sln
 
 # Granular build targets
+
+# Build and Deploy Documentation Site
+build-docs:
+	mkdocs gh-deploy
+
 # Build the AST model project
 build-ast-model:
 	dotnet build src/ast-model/ast_model.csproj
