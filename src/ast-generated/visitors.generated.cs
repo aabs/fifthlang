@@ -1092,10 +1092,14 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     }
     public virtual ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx)
     {
+        List<ast.Expression> tmpConstructorArguments = [];
+        tmpConstructorArguments.AddRange(ctx.ConstructorArguments.Select(x => (ast.Expression)Visit(x)));
         List<ast.PropertyInitializerExp> tmpPropertyInitialisers = [];
         tmpPropertyInitialisers.AddRange(ctx.PropertyInitialisers.Select(x => (ast.PropertyInitializerExp)Visit(x)));
      return ctx with {
-         PropertyInitialisers = tmpPropertyInitialisers
+         ConstructorArguments = tmpConstructorArguments
+        ,PropertyInitialisers = tmpPropertyInitialisers
+        ,ResolvedConstructor = (ast.FunctionDef)Visit((AstThing)ctx.ResolvedConstructor)
         };
     }
     public virtual PropertyInitializerExp VisitPropertyInitializerExp(PropertyInitializerExp ctx)

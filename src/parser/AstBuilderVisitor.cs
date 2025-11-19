@@ -1662,6 +1662,27 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         // Create the type reference with collection type support
         FifthType typeToInitialize = CreateTypeFromSpec(typeName, collectionType);
 
+        // Extract constructor arguments if present
+        var constructorArgs = new List<Expression>();
+        var argExpressions = context.expression();
+        if (argExpressions != null && argExpressions.Length > 0)
+        {
+            DebugLog($"DEBUG: Found {argExpressions.Length} constructor arguments");
+            foreach (var argExpr in argExpressions)
+            {
+                var argResult = Visit(argExpr);
+                if (argResult is Expression expr)
+                {
+                    constructorArgs.Add(expr);
+                    DebugLog($"DEBUG: Added constructor argument of type: {expr.GetType().Name}");
+                }
+                else
+                {
+                    DebugLog($"DEBUG: Argument visit did not return Expression: {argResult?.GetType().Name ?? "null"}");
+                }
+            }
+        }
+
         // For array types, extract the size if present
         Expression? arraySizeExpr = null;
         if (typeSpec is FifthParser.Array_type_specContext arrayTypeContext)
@@ -1744,13 +1765,14 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var result = new ObjectInitializerExp
         {
             TypeToInitialize = typeToInitialize,
+            ConstructorArguments = constructorArgs,
             PropertyInitialisers = propertyInitializers,
             Annotations = annotations,
             Location = GetLocationDetails(context),
             Type = typeToInitialize // The result type is the same as the type being initialized
         };
 
-        DebugLog($"DEBUG: Created ObjectInitializerExp with {propertyInitializers.Count} property initializers");
+        DebugLog($"DEBUG: Created ObjectInitializerExp with {constructorArgs.Count} constructor arguments and {propertyInitializers.Count} property initializers");
         return result;
     }
 

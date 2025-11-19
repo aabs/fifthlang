@@ -1112,6 +1112,13 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitObjectInitializerExp(ObjectInitializerExp ctx)
     {
         var prologue = new List<Statement>();
+        List<ast.Expression> tmpConstructorArguments = [];
+        foreach (var item in ctx.ConstructorArguments)
+        {
+            var rr = Rewrite(item);
+            tmpConstructorArguments.Add((ast.Expression)rr.Node);
+            prologue.AddRange(rr.Prologue);
+        }
         List<ast.PropertyInitializerExp> tmpPropertyInitialisers = [];
         foreach (var item in ctx.PropertyInitialisers)
         {
@@ -1119,8 +1126,12 @@ public class DefaultAstRewriter : IAstRewriter
             tmpPropertyInitialisers.Add((ast.PropertyInitializerExp)rr.Node);
             prologue.AddRange(rr.Prologue);
         }
+        var rrResolvedConstructor = Rewrite((AstThing)ctx.ResolvedConstructor);
+        prologue.AddRange(rrResolvedConstructor.Prologue);
         var rebuilt = ctx with {
-         PropertyInitialisers = tmpPropertyInitialisers
+         ConstructorArguments = tmpConstructorArguments
+        ,PropertyInitialisers = tmpPropertyInitialisers
+        ,ResolvedConstructor = (ast.FunctionDef)rrResolvedConstructor.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }

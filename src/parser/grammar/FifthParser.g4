@@ -221,7 +221,7 @@ tripleExpression:
 
 object_instantiation_expression:
 	NEW type_spec (
-		L_PAREN (args += paramdecl (COMMA args += paramdecl)*)? R_PAREN
+		L_PAREN (args += expression (COMMA args += expression)*)? R_PAREN
 	)? (
 		L_CURLY properties += initialiser_property_assignment (
 			COMMA properties += initialiser_property_assignment

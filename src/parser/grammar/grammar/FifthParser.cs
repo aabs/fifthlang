@@ -4555,8 +4555,8 @@ public partial class FifthParser : FifthParserBase {
 	}
 
 	public partial class Object_instantiation_expressionContext : ParserRuleContext {
-		public ParamdeclContext _paramdecl;
-		public IList<ParamdeclContext> _args = new List<ParamdeclContext>();
+		public ExpressionContext _expression;
+		public IList<ExpressionContext> _args = new List<ExpressionContext>();
 		public Initialiser_property_assignmentContext _initialiser_property_assignment;
 		public IList<Initialiser_property_assignmentContext> _properties = new List<Initialiser_property_assignmentContext>();
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NEW() { return GetToken(FifthParser.NEW, 0); }
@@ -4577,11 +4577,11 @@ public partial class FifthParser : FifthParserBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode COMMA(int i) {
 			return GetToken(FifthParser.COMMA, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ParamdeclContext[] paramdecl() {
-			return GetRuleContexts<ParamdeclContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public ExpressionContext[] expression() {
+			return GetRuleContexts<ExpressionContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ParamdeclContext paramdecl(int i) {
-			return GetRuleContext<ParamdeclContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public ExpressionContext expression(int i) {
+			return GetRuleContext<ExpressionContext>(i);
 		}
 		public Object_instantiation_expressionContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -4627,12 +4627,12 @@ public partial class FifthParser : FifthParserBase {
 				Match(L_PAREN);
 				State = 594;
 				ErrorHandler.Sync(this);
-				_la = TokenStream.LA(1);
-				if (_la==IDENTIFIER) {
+				switch ( Interpreter.AdaptivePredict(TokenStream,52,Context) ) {
+				case 1:
 					{
 					State = 586;
-					_localctx._paramdecl = paramdecl();
-					_localctx._args.Add(_localctx._paramdecl);
+					_localctx._expression = expression(0);
+					_localctx._args.Add(_localctx._expression);
 					State = 591;
 					ErrorHandler.Sync(this);
 					_la = TokenStream.LA(1);
@@ -4642,8 +4642,8 @@ public partial class FifthParser : FifthParserBase {
 						State = 587;
 						Match(COMMA);
 						State = 588;
-						_localctx._paramdecl = paramdecl();
-						_localctx._args.Add(_localctx._paramdecl);
+						_localctx._expression = expression(0);
+						_localctx._args.Add(_localctx._expression);
 						}
 						}
 						State = 593;
@@ -4651,8 +4651,8 @@ public partial class FifthParser : FifthParserBase {
 						_la = TokenStream.LA(1);
 					}
 					}
+					break;
 				}
-
 				State = 596;
 				Match(R_PAREN);
 				}
@@ -7141,9 +7141,9 @@ public partial class FifthParser : FifthParserBase {
 		0,0,0,576,568,1,0,0,0,576,569,1,0,0,0,576,570,1,0,0,0,576,571,1,0,0,0,
 		576,575,1,0,0,0,577,91,1,0,0,0,578,581,4,46,11,0,579,582,3,102,51,0,580,
 		582,3,104,52,0,581,579,1,0,0,0,581,580,1,0,0,0,582,93,1,0,0,0,583,584,
-		5,26,0,0,584,597,3,82,41,0,585,594,5,48,0,0,586,591,3,18,9,0,587,588,5,
-		56,0,0,588,590,3,18,9,0,589,587,1,0,0,0,590,593,1,0,0,0,591,589,1,0,0,
-		0,591,592,1,0,0,0,592,595,1,0,0,0,593,591,1,0,0,0,594,586,1,0,0,0,594,
+		5,26,0,0,584,597,3,82,41,0,585,594,5,48,0,0,586,591,3,86,43,0,587,588,
+		5,56,0,0,588,590,3,86,43,0,589,587,1,0,0,0,590,593,1,0,0,0,591,589,1,0,
+		0,0,591,592,1,0,0,0,592,595,1,0,0,0,593,591,1,0,0,0,594,586,1,0,0,0,594,
 		595,1,0,0,0,595,596,1,0,0,0,596,598,5,49,0,0,597,585,1,0,0,0,597,598,1,
 		0,0,0,598,610,1,0,0,0,599,600,5,50,0,0,600,605,3,96,48,0,601,602,5,56,
 		0,0,602,604,3,96,48,0,603,601,1,0,0,0,604,607,1,0,0,0,605,603,1,0,0,0,

@@ -1075,7 +1075,9 @@ public record IndexerExpression : Expression
 public record ObjectInitializerExp : Expression
 {
     public FifthType TypeToInitialize { get; set; }
+    public List<Expression> ConstructorArguments { get; set; } = [];
     public List<PropertyInitializerExp> PropertyInitialisers { get; set; }
+    public FunctionDef? ResolvedConstructor { get; set; } // Set during constructor resolution
 }
 
 /// <summary>A part of the expression supplying a value for a specific property of an object being created</summary>
