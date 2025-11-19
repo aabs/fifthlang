@@ -76,6 +76,10 @@ public static class FifthParserManager
         if (upTo >= AnalysisPhase.ConstructorValidation)
             ast = new SemanticAnalysis.ConstructorValidator(diagnostics).Visit(ast);
 
+        // TODO: Add ConstructorResolution phase after SymbolTable is built
+        // Constructor resolution requires symbol table lookup to find class declarations
+        // and match constructor signatures. Will be implemented in Phase 5.
+
         if (upTo >= AnalysisPhase.SymbolTableInitial)
             ast = new SymbolTableBuilderVisitor().Visit(ast);
 
