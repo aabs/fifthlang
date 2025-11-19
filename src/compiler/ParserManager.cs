@@ -20,25 +20,26 @@ public static class FifthParserManager
         ClassCtors = 3,
         ConstructorValidation = 4,
         SymbolTableInitial = 5,
-        PropertyToField = 6,
-        DestructurePatternFlatten = 7,
-        OverloadGroup = 8,
-        GuardValidation = 9,
-        OverloadTransform = 10,
-        DestructuringLowering = 11,
-        UnaryOperatorLowering = 12,
-        SparqlLiteralLowering = 13,
-        TriGLiteralLowering = 14,
-        AugmentedAssignmentLowering = 15,
-        TreeRelink = 16,
-        TripleDiagnostics = 17,
-        TripleExpansion = 18,
-        GraphTripleOperatorLowering = 19,
-        SymbolTableFinal = 20,
-        VarRefResolver = 21,
-        TypeAnnotation = 22,
-        QueryApplicationTypeCheck = 23,
-        QueryApplicationLowering = 24,
+        ConstructorResolution = 6,
+        PropertyToField = 7,
+        DestructurePatternFlatten = 8,
+        OverloadGroup = 9,
+        GuardValidation = 10,
+        OverloadTransform = 11,
+        DestructuringLowering = 12,
+        UnaryOperatorLowering = 13,
+        SparqlLiteralLowering = 14,
+        TriGLiteralLowering = 15,
+        AugmentedAssignmentLowering = 16,
+        TreeRelink = 17,
+        TripleDiagnostics = 18,
+        TripleExpansion = 19,
+        GraphTripleOperatorLowering = 20,
+        SymbolTableFinal = 21,
+        VarRefResolver = 22,
+        TypeAnnotation = 23,
+        QueryApplicationTypeCheck = 24,
+        QueryApplicationLowering = 25,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
@@ -76,12 +77,12 @@ public static class FifthParserManager
         if (upTo >= AnalysisPhase.ConstructorValidation)
             ast = new SemanticAnalysis.ConstructorValidator(diagnostics).Visit(ast);
 
-        // TODO: Add ConstructorResolution phase after SymbolTable is built
-        // Constructor resolution requires symbol table lookup to find class declarations
-        // and match constructor signatures. Will be implemented in Phase 5.
-
         if (upTo >= AnalysisPhase.SymbolTableInitial)
             ast = new SymbolTableBuilderVisitor().Visit(ast);
+
+        // Constructor resolution happens AFTER symbol table is built so we can look up class definitions
+        if (upTo >= AnalysisPhase.ConstructorResolution)
+            ast = new SemanticAnalysis.ConstructorResolver(diagnostics).Visit(ast);
 
         // Register type parameters in scope after symbol table building (T030)
         if (upTo >= AnalysisPhase.SymbolTableInitial)
