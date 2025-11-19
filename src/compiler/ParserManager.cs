@@ -18,26 +18,27 @@ public static class FifthParserManager
         TreeLink = 1,
         Builtins = 2,
         ClassCtors = 3,
-        SymbolTableInitial = 4,
-        PropertyToField = 5,
-        DestructurePatternFlatten = 6,
-        OverloadGroup = 7,
-        GuardValidation = 8,
-        OverloadTransform = 9,
-        DestructuringLowering = 10,
-        UnaryOperatorLowering = 11,
-        SparqlLiteralLowering = 12,
-        TriGLiteralLowering = 13,
-        AugmentedAssignmentLowering = 14,
-        TreeRelink = 15,
-        TripleDiagnostics = 16,
-        TripleExpansion = 17,
-        GraphTripleOperatorLowering = 18,
-        SymbolTableFinal = 19,
-        VarRefResolver = 20,
-        TypeAnnotation = 21,
-        QueryApplicationTypeCheck = 22,
-        QueryApplicationLowering = 23,
+        ConstructorValidation = 4,
+        SymbolTableInitial = 5,
+        PropertyToField = 6,
+        DestructurePatternFlatten = 7,
+        OverloadGroup = 8,
+        GuardValidation = 9,
+        OverloadTransform = 10,
+        DestructuringLowering = 11,
+        UnaryOperatorLowering = 12,
+        SparqlLiteralLowering = 13,
+        TriGLiteralLowering = 14,
+        AugmentedAssignmentLowering = 15,
+        TreeRelink = 16,
+        TripleDiagnostics = 17,
+        TripleExpansion = 18,
+        GraphTripleOperatorLowering = 19,
+        SymbolTableFinal = 20,
+        VarRefResolver = 21,
+        TypeAnnotation = 22,
+        QueryApplicationTypeCheck = 23,
+        QueryApplicationLowering = 24,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
@@ -71,6 +72,9 @@ public static class FifthParserManager
 
         if (upTo >= AnalysisPhase.ClassCtors)
             ast = new ClassCtorInserter(diagnostics).Visit(ast);
+
+        if (upTo >= AnalysisPhase.ConstructorValidation)
+            ast = new SemanticAnalysis.ConstructorValidator(diagnostics).Visit(ast);
 
         if (upTo >= AnalysisPhase.SymbolTableInitial)
             ast = new SymbolTableBuilderVisitor().Visit(ast);

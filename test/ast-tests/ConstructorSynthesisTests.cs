@@ -161,4 +161,136 @@ public class ConstructorSynthesisTests
         diagnostics[0].Message.Should().Contain("Person");
         diagnostics[0].Message.Should().Contain("Name");
     }
+
+    [Test]
+    public void StaticConstructor_ShouldEmitCTOR010Diagnostic()
+    {
+        // Arrange - Constructor marked as static (forbidden)
+        var staticConstructor = new FunctionDefBuilder()
+            .WithName(MemberName.From("Person"))
+            .WithIsStatic(true)  // Static is forbidden for constructors
+            .WithIsConstructor(true)
+            .WithParams([])
+            .WithReturnType(new FifthType.TVoidType { Name = TypeName.From("void") })
+            .WithBody(new BlockStatement 
+            { 
+                Statements = [],
+                Annotations = [],
+                Location = new SourceLocationMetadata(0, "test.5th", 0, ""),
+                Type = new FifthType.TVoidType { Name = TypeName.From("void") }
+            })
+            .WithAnnotations([])
+            .WithVisibility(Visibility.Public)
+            .WithTypeParameters([])
+            .Build();
+
+        var methodDef = new MethodDef
+        {
+            Name = MemberName.From("Person"),
+            TypeName = TypeName.From("void"),
+            CollectionType = CollectionType.SingleInstance,
+            IsReadOnly = false,
+            Visibility = Visibility.Public,
+            Annotations = [],
+            FunctionDef = staticConstructor,
+            Location = new SourceLocationMetadata(0, "test.5th", 0, ""),
+            Type = new FifthType.TVoidType { Name = TypeName.From("void") }
+        };
+
+        var classDef = new ClassDef
+        {
+            Name = TypeName.From("Person"),
+            TypeParameters = [],
+            MemberDefs = [methodDef],
+            BaseClasses = [],
+            AliasScope = null,
+            Annotations = [],
+            Location = new SourceLocationMetadata(0, "test.5th", 0, ""),
+            Type = new FifthType.TType { Name = TypeName.From("Person") },
+            Visibility = Visibility.Public
+        };
+
+        var diagnostics = new List<Diagnostic>();
+        var validator = new compiler.SemanticAnalysis.ConstructorValidator(diagnostics);
+
+        // Act
+        var result = validator.VisitClassDef(classDef);
+
+        // Assert - Should emit CTOR010 diagnostic for static modifier
+        diagnostics.Should().HaveCount(1, "Should emit CTOR010 diagnostic for static constructor");
+        diagnostics[0].Code.Should().Be("CTOR010");
+        diagnostics[0].Level.Should().Be(DiagnosticLevel.Error);
+        diagnostics[0].Message.Should().Contain("Person");
+        diagnostics[0].Message.Should().Contain("static");
+    }
+
+    [Test]
+    public void ConstructorWithValueReturn_ShouldEmitCTOR009Diagnostic()
+    {
+        // Arrange - Constructor with return value (forbidden)
+        var returnStmt = new ReturnStatement
+        {
+            ReturnValue = new Int32LiteralExp { Value = 42 },
+            Annotations = [],
+            Location = new SourceLocationMetadata(0, "test.5th", 0, ""),
+            Type = new FifthType.TType { Name = TypeName.From("int") }
+        };
+
+        var constructorWithReturn = new FunctionDefBuilder()
+            .WithName(MemberName.From("Person"))
+            .WithIsStatic(false)
+            .WithIsConstructor(true)
+            .WithParams([])
+            .WithReturnType(new FifthType.TVoidType { Name = TypeName.From("void") })
+            .WithBody(new BlockStatement 
+            { 
+                Statements = [returnStmt],
+                Annotations = [],
+                Location = new SourceLocationMetadata(0, "test.5th", 0, ""),
+                Type = new FifthType.TVoidType { Name = TypeName.From("void") }
+            })
+            .WithAnnotations([])
+            .WithVisibility(Visibility.Public)
+            .WithTypeParameters([])
+            .Build();
+
+        var methodDef = new MethodDef
+        {
+            Name = MemberName.From("Person"),
+            TypeName = TypeName.From("void"),
+            CollectionType = CollectionType.SingleInstance,
+            IsReadOnly = false,
+            Visibility = Visibility.Public,
+            Annotations = [],
+            FunctionDef = constructorWithReturn,
+            Location = new SourceLocationMetadata(0, "test.5th", 0, ""),
+            Type = new FifthType.TVoidType { Name = TypeName.From("void") }
+        };
+
+        var classDef = new ClassDef
+        {
+            Name = TypeName.From("Person"),
+            TypeParameters = [],
+            MemberDefs = [methodDef],
+            BaseClasses = [],
+            AliasScope = null,
+            Annotations = [],
+            Location = new SourceLocationMetadata(0, "test.5th", 0, ""),
+            Type = new FifthType.TType { Name = TypeName.From("Person") },
+            Visibility = Visibility.Public
+        };
+
+        var diagnostics = new List<Diagnostic>();
+        var validator = new compiler.SemanticAnalysis.ConstructorValidator(diagnostics);
+
+        // Act
+        var result = validator.VisitClassDef(classDef);
+
+        // Assert - Should emit CTOR009 diagnostic for value return
+        diagnostics.Should().HaveCount(1, "Should emit CTOR009 diagnostic for value return in constructor");
+        diagnostics[0].Code.Should().Be("CTOR009");
+        diagnostics[0].Level.Should().Be(DiagnosticLevel.Error);
+        diagnostics[0].Message.Should().Contain("Person");
+        diagnostics[0].Message.Should().Contain("return");
+    }
 }
