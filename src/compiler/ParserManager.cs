@@ -22,25 +22,26 @@ public static class FifthParserManager
         SymbolTableInitial = 5,
         ConstructorResolution = 6,
         DefiniteAssignment = 7,
-        PropertyToField = 8,
-        DestructurePatternFlatten = 9,
-        OverloadGroup = 10,
-        GuardValidation = 11,
-        OverloadTransform = 12,
-        DestructuringLowering = 13,
-        UnaryOperatorLowering = 14,
-        SparqlLiteralLowering = 15,
-        TriGLiteralLowering = 16,
-        AugmentedAssignmentLowering = 17,
-        TreeRelink = 18,
-        TripleDiagnostics = 19,
-        TripleExpansion = 20,
-        GraphTripleOperatorLowering = 21,
-        SymbolTableFinal = 22,
-        VarRefResolver = 23,
-        TypeAnnotation = 24,
-        QueryApplicationTypeCheck = 25,
-        QueryApplicationLowering = 26,
+        BaseConstructorValidation = 8,
+        PropertyToField = 9,
+        DestructurePatternFlatten = 10,
+        OverloadGroup = 11,
+        GuardValidation = 12,
+        OverloadTransform = 13,
+        DestructuringLowering = 14,
+        UnaryOperatorLowering = 15,
+        SparqlLiteralLowering = 16,
+        TriGLiteralLowering = 17,
+        AugmentedAssignmentLowering = 18,
+        TreeRelink = 19,
+        TripleDiagnostics = 20,
+        TripleExpansion = 21,
+        GraphTripleOperatorLowering = 22,
+        SymbolTableFinal = 23,
+        VarRefResolver = 24,
+        TypeAnnotation = 25,
+        QueryApplicationTypeCheck = 26,
+        QueryApplicationLowering = 27,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
@@ -93,6 +94,20 @@ public static class FifthParserManager
             if (diagnostics != null)
             {
                 foreach (var diag in analyzer.Diagnostics)
+                {
+                    diagnostics.Add(diag);
+                }
+            }
+        }
+        
+        // Base constructor validation (CTOR004, CTOR008) happens AFTER definite assignment
+        if (upTo >= AnalysisPhase.BaseConstructorValidation)
+        {
+            var baseValidator = new SemanticAnalysis.BaseConstructorValidator();
+            ast = baseValidator.Visit(ast);
+            if (diagnostics != null)
+            {
+                foreach (var diag in baseValidator.Diagnostics)
                 {
                     diagnostics.Add(diag);
                 }

@@ -95,11 +95,11 @@ public static class ConstructorDiagnostics
     /// <summary>
     /// CTOR008: Cyclic base constructor dependency detected
     /// </summary>
-    public static Diagnostic CyclicBaseConstructor(string cyclePath, string? source = null)
+    public static Diagnostic CyclicBaseConstructor(string className, string cyclePath, string? source = null)
     {
         return new Diagnostic(
             DiagnosticLevel.Error,
-            $"Cyclic base constructor dependency detected: {cyclePath}",
+            $"Cyclic base constructor dependency detected in '{className}': {cyclePath}",
             source,
             "CTOR008");
     }
