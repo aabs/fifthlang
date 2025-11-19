@@ -21,25 +21,26 @@ public static class FifthParserManager
         ConstructorValidation = 4,
         SymbolTableInitial = 5,
         ConstructorResolution = 6,
-        PropertyToField = 7,
-        DestructurePatternFlatten = 8,
-        OverloadGroup = 9,
-        GuardValidation = 10,
-        OverloadTransform = 11,
-        DestructuringLowering = 12,
-        UnaryOperatorLowering = 13,
-        SparqlLiteralLowering = 14,
-        TriGLiteralLowering = 15,
-        AugmentedAssignmentLowering = 16,
-        TreeRelink = 17,
-        TripleDiagnostics = 18,
-        TripleExpansion = 19,
-        GraphTripleOperatorLowering = 20,
-        SymbolTableFinal = 21,
-        VarRefResolver = 22,
-        TypeAnnotation = 23,
-        QueryApplicationTypeCheck = 24,
-        QueryApplicationLowering = 25,
+        DefiniteAssignment = 7,
+        PropertyToField = 8,
+        DestructurePatternFlatten = 9,
+        OverloadGroup = 10,
+        GuardValidation = 11,
+        OverloadTransform = 12,
+        DestructuringLowering = 13,
+        UnaryOperatorLowering = 14,
+        SparqlLiteralLowering = 15,
+        TriGLiteralLowering = 16,
+        AugmentedAssignmentLowering = 17,
+        TreeRelink = 18,
+        TripleDiagnostics = 19,
+        TripleExpansion = 20,
+        GraphTripleOperatorLowering = 21,
+        SymbolTableFinal = 22,
+        VarRefResolver = 23,
+        TypeAnnotation = 24,
+        QueryApplicationTypeCheck = 25,
+        QueryApplicationLowering = 26,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
@@ -83,6 +84,20 @@ public static class FifthParserManager
         // Constructor resolution happens AFTER symbol table is built so we can look up class definitions
         if (upTo >= AnalysisPhase.ConstructorResolution)
             ast = new SemanticAnalysis.ConstructorResolver(diagnostics).Visit(ast);
+
+        // Definite assignment analysis happens AFTER constructor resolution
+        if (upTo >= AnalysisPhase.DefiniteAssignment)
+        {
+            var analyzer = new SemanticAnalysis.DefiniteAssignmentAnalyzer();
+            ast = analyzer.Visit(ast);
+            if (diagnostics != null)
+            {
+                foreach (var diag in analyzer.Diagnostics)
+                {
+                    diagnostics.Add(diag);
+                }
+            }
+        }
 
         // Register type parameters in scope after symbol table building (T030)
         if (upTo >= AnalysisPhase.SymbolTableInitial)
