@@ -1,7 +1,14 @@
-class Person { Name: string; Age: int; }
+class Person { 
+    Name: string; 
+    Age: int; 
+    Person(name: string, age: int) {
+        this.Name = name;
+        this.Age = age;
+    }
+}
 
 make(): int {
-    p: Person = new Person(Name: string, Age: int) { Name = "A", Age = 1 };
+    p: Person = new Person("A", 1);
     return 0;
 }
 

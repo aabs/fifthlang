@@ -43,10 +43,11 @@ public class ConstructorResolver : DefaultRecursiveDescentVisitor
             CheckForDuplicateSignatures(classDef);
         }
 
-        // Find all constructors in the class (constructors are FunctionDef members with IsConstructor=true)
+        // Find all constructors in the class (constructors are MethodDef members with FunctionDef.IsConstructor=true)
         var constructors = classDef.MemberDefs
-            .OfType<FunctionDef>()
-            .Where(f => f.IsConstructor)
+            .OfType<MethodDef>()
+            .Where(m => m.FunctionDef?.IsConstructor == true)
+            .Select(m => m.FunctionDef)
             .ToList();
 
         if (constructors.Count == 0)
@@ -114,8 +115,9 @@ public class ConstructorResolver : DefaultRecursiveDescentVisitor
     private void CheckForDuplicateSignatures(ClassDef classDef)
     {
         var constructors = classDef.MemberDefs
-            .OfType<FunctionDef>()
-            .Where(f => f.IsConstructor)
+            .OfType<MethodDef>()
+            .Where(m => m.FunctionDef?.IsConstructor == true)
+            .Select(m => m.FunctionDef)
             .ToList();
 
         var signatureMap = new Dictionary<string, List<FunctionDef>>();

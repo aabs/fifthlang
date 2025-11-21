@@ -72,7 +72,8 @@ public abstract class RuntimeTestBase : IDisposable
     {
         fileName ??= $"test_{Guid.NewGuid():N}";
         var sourceFile = Path.Combine(TempDirectory, $"{fileName}.5th");
-        var outputFile = Path.Combine(TempDirectory, $"{fileName}.exe");
+        // Compiler always outputs .dll files regardless of requested extension
+        var outputFile = Path.Combine(TempDirectory, $"{fileName}.dll");
 
         await File.WriteAllTextAsync(sourceFile, sourceCode);
         GeneratedFiles.Add(sourceFile);
@@ -112,7 +113,8 @@ public abstract class RuntimeTestBase : IDisposable
         File.Exists(sourceFilePath).Should().BeTrue($"Source file should exist: {sourceFilePath}");
 
         outputFileName ??= Path.GetFileNameWithoutExtension(sourceFilePath);
-        var outputFile = Path.Combine(TempDirectory, $"{outputFileName}.exe");
+        // Compiler always outputs .dll files regardless of requested extension
+        var outputFile = Path.Combine(TempDirectory, $"{outputFileName}.dll");
         GeneratedFiles.Add(outputFile);
 
         var compiler = new Compiler();

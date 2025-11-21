@@ -229,11 +229,13 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             }
             else if (member is MethodDef method)
             {
-                var methodDecl = BuildMethodDeclarationFromMethodDef(method, mapping);
+                var memberDecl = BuildMemberFromMethodDef(method, mapping);
 
-                // If the method redeclares generic parameters that are already declared at the class level (same names),
-                // strip the method-level generic parameter list so C# treats them as the class's type parameters.
-                if (methodDecl.TypeParameterList != null && classDef.TypeParameters.Count > 0)
+                // If the member is a method (not constructor) and redeclares generic parameters at the class level,
+                // strip the method-level generic parameter list
+                if (memberDecl is MethodDeclarationSyntax methodDecl && 
+                    methodDecl.TypeParameterList != null && 
+                    classDef.TypeParameters.Count > 0)
                 {
                     var classTypeParamNames = classDef.TypeParameters.Select(tp => SanitizeIdentifier(tp.Name.Value)).ToHashSet();
                     var methodTypeParamNames = methodDecl.TypeParameterList.Parameters.Select(p => p.Identifier.Text).ToList();
@@ -241,11 +243,11 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                     if (methodTypeParamNames.All(n => classTypeParamNames.Contains(n)))
                     {
                         // Remove generic parameter list & any constraint clauses tied to them
-                        methodDecl = methodDecl.WithTypeParameterList(null)
+                        memberDecl = methodDecl.WithTypeParameterList(null)
                                                .WithConstraintClauses(new SyntaxList<TypeParameterConstraintClauseSyntax>());
                     }
                 }
-                classDecl = classDecl.AddMembers(methodDecl);
+                classDecl = classDecl.AddMembers(memberDecl);
             }
             else if (member is FieldDef field)
             {
@@ -330,11 +332,17 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                     .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)));
     }
 
-    private MethodDeclarationSyntax BuildMethodDeclarationFromMethodDef(MethodDef methodDef, MappingTable mapping)
+    private MemberDeclarationSyntax BuildMemberFromMethodDef(MethodDef methodDef, MappingTable mapping)
     {
         // MethodDef wraps a FunctionDef, so delegate to it
         if (methodDef.FunctionDef != null)
         {
+            // Check if this is a constructor
+            if (methodDef.FunctionDef.IsConstructor)
+            {
+                return BuildConstructorDeclaration(methodDef.FunctionDef, mapping);
+            }
+
             var funcMethod = BuildMethodDeclaration(methodDef.FunctionDef, mapping);
 
             // Methods in classes are typically instance methods unless marked static in the FunctionDef
@@ -1611,6 +1619,77 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             lines.LastOrDefault()?.Length ?? 1)); // End column (approximate)
 
         return methodDecl;
+    }
+
+    private MemberDeclarationSyntax BuildConstructorDeclaration(FunctionDef funcDef, MappingTable mapping)
+    {
+        var constructorName = SanitizeIdentifier(funcDef.Name.ToString());
+
+        // Build parameters
+        var parameters = new List<ParameterSyntax>();
+        foreach (var param in funcDef.Params)
+        {
+            var paramName = SanitizeIdentifier(param.Name.ToString());
+            var paramTypeName = param.TypeName != null
+                ? MapTypeName(param.TypeName.ToString())
+                : "object";
+            parameters.Add(
+                Parameter(Identifier(paramName))
+                    .WithType(ParseTypeName(paramTypeName)));
+        }
+
+        // Build constructor body
+        _declaredVariables.Clear();
+        foreach (var param in funcDef.Params)
+        {
+            _declaredVariables.Add(SanitizeIdentifier(param.Name.ToString()));
+        }
+
+        var body = BuildBlockStatement(funcDef.Body);
+
+        // Build base constructor initializer if present
+        ConstructorInitializerSyntax? initializer = null;
+        if (funcDef.BaseCall != null && funcDef.BaseCall.Arguments != null)
+        {
+            var baseArgs = new List<ArgumentSyntax>();
+            foreach (var arg in funcDef.BaseCall.Arguments)
+            {
+                var argExpr = TranslateExpression(arg);
+                if (argExpr != null)
+                {
+                    baseArgs.Add(Argument(argExpr));
+                }
+            }
+            initializer = ConstructorInitializer(
+                SyntaxKind.BaseConstructorInitializer,
+                ArgumentList(SeparatedList(baseArgs)));
+        }
+
+        // Create constructor declaration
+        var constructorDecl = ConstructorDeclaration(Identifier(constructorName))
+            .AddModifiers(Token(SyntaxKind.PublicKeyword))
+            .WithParameterList(ParameterList(SeparatedList(parameters)))
+            .WithBody(body);
+
+        if (initializer != null)
+        {
+            constructorDecl = constructorDecl.WithInitializer(initializer);
+        }
+
+        // Add mapping entry
+        var nodeId = $"ctor_{constructorName}_{Guid.NewGuid().ToString("N")[..8]}";
+        var syntaxText = constructorDecl.NormalizeWhitespace().ToFullString();
+        var lines = syntaxText.Split('\n');
+
+        mapping.Add(new MappingEntry(
+            nodeId,
+            0,
+            1,
+            1,
+            lines.Length,
+            lines.LastOrDefault()?.Length ?? 1));
+
+        return constructorDecl;
     }
 
     /// <summary>
