@@ -106,6 +106,8 @@ public interface IAstVisitor
     public void LeaveLambdaExp(LambdaExp ctx);
     public void EnterFuncCallExp(FuncCallExp ctx);
     public void LeaveFuncCallExp(FuncCallExp ctx);
+    public void EnterBaseConstructorCall(BaseConstructorCall ctx);
+    public void LeaveBaseConstructorCall(BaseConstructorCall ctx);
     public void EnterInt8LiteralExp(Int8LiteralExp ctx);
     public void LeaveInt8LiteralExp(Int8LiteralExp ctx);
     public void EnterInt16LiteralExp(Int16LiteralExp ctx);
@@ -290,6 +292,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveLambdaExp(LambdaExp ctx){}
     public virtual void EnterFuncCallExp(FuncCallExp ctx){}
     public virtual void LeaveFuncCallExp(FuncCallExp ctx){}
+    public virtual void EnterBaseConstructorCall(BaseConstructorCall ctx){}
+    public virtual void LeaveBaseConstructorCall(BaseConstructorCall ctx){}
     public virtual void EnterInt8LiteralExp(Int8LiteralExp ctx){}
     public virtual void LeaveInt8LiteralExp(Int8LiteralExp ctx){}
     public virtual void EnterInt16LiteralExp(Int16LiteralExp ctx){}
@@ -425,6 +429,7 @@ public interface IAstRecursiveDescentVisitor
     public CastExp VisitCastExp(CastExp ctx);
     public LambdaExp VisitLambdaExp(LambdaExp ctx);
     public FuncCallExp VisitFuncCallExp(FuncCallExp ctx);
+    public BaseConstructorCall VisitBaseConstructorCall(BaseConstructorCall ctx);
     public Int8LiteralExp VisitInt8LiteralExp(Int8LiteralExp ctx);
     public Int16LiteralExp VisitInt16LiteralExp(Int16LiteralExp ctx);
     public Int32LiteralExp VisitInt32LiteralExp(Int32LiteralExp ctx);
@@ -523,6 +528,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              CastExp node => VisitCastExp(node),
              LambdaExp node => VisitLambdaExp(node),
              FuncCallExp node => VisitFuncCallExp(node),
+             BaseConstructorCall node => VisitBaseConstructorCall(node),
              Int8LiteralExp node => VisitInt8LiteralExp(node),
              Int16LiteralExp node => VisitInt16LiteralExp(node),
              Int32LiteralExp node => VisitInt32LiteralExp(node),
@@ -622,6 +628,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
          TypeParameters = tmpTypeParameters
         ,Params = tmpParams
         ,Body = (ast.BlockStatement)Visit((AstThing)ctx.Body)
+        ,BaseCall = (ast.BaseConstructorCall)Visit((AstThing)ctx.BaseCall)
         };
     }
     public virtual FunctorDef VisitFunctorDef(FunctorDef ctx)
@@ -916,6 +923,15 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         ,InvocationArguments = tmpInvocationArguments
         };
     }
+    public virtual BaseConstructorCall VisitBaseConstructorCall(BaseConstructorCall ctx)
+    {
+        List<ast.Expression> tmpArguments = [];
+        tmpArguments.AddRange(ctx.Arguments.Select(x => (ast.Expression)Visit(x)));
+     return ctx with {
+         Arguments = tmpArguments
+        ,ResolvedConstructor = (ast.FunctionDef)Visit((AstThing)ctx.ResolvedConstructor)
+        };
+    }
     public virtual Int8LiteralExp VisitInt8LiteralExp(Int8LiteralExp ctx)
     {
      return ctx with {
@@ -1076,10 +1092,14 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     }
     public virtual ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx)
     {
+        List<ast.Expression> tmpConstructorArguments = [];
+        tmpConstructorArguments.AddRange(ctx.ConstructorArguments.Select(x => (ast.Expression)Visit(x)));
         List<ast.PropertyInitializerExp> tmpPropertyInitialisers = [];
         tmpPropertyInitialisers.AddRange(ctx.PropertyInitialisers.Select(x => (ast.PropertyInitializerExp)Visit(x)));
      return ctx with {
-         PropertyInitialisers = tmpPropertyInitialisers
+         ConstructorArguments = tmpConstructorArguments
+        ,PropertyInitialisers = tmpPropertyInitialisers
+        ,ResolvedConstructor = (ast.FunctionDef)Visit((AstThing)ctx.ResolvedConstructor)
         };
     }
     public virtual PropertyInitializerExp VisitPropertyInitializerExp(PropertyInitializerExp ctx)

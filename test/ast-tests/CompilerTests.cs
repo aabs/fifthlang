@@ -102,7 +102,8 @@ public class CompilerIntegrationTests
         {
             // Create a simple Fifth file
             var sourceFile = Path.Combine(tempDir, "hello.5th");
-            var outputFile = Path.Combine(tempDir, "hello.exe");
+            // Compiler always outputs .dll files (cross-platform)
+            var outputFile = Path.Combine(tempDir, "hello.dll");
             File.WriteAllText(sourceFile, "main():int{return 42;}");
             
             var compiler = new Compiler();

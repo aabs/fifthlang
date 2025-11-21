@@ -56,6 +56,7 @@ public interface ITypeChecker
     public FifthType Infer(ScopeAstThing scope, CastExp node);
     public FifthType Infer(ScopeAstThing scope, LambdaExp node);
     public FifthType Infer(ScopeAstThing scope, FuncCallExp node);
+    public FifthType Infer(ScopeAstThing scope, BaseConstructorCall node);
     public FifthType Infer(ScopeAstThing scope, Int8LiteralExp node);
     public FifthType Infer(ScopeAstThing scope, Int16LiteralExp node);
     public FifthType Infer(ScopeAstThing scope, Int32LiteralExp node);
@@ -157,6 +158,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
             CastExp node => Infer(scope, node),
             LambdaExp node => Infer(scope, node),
             FuncCallExp node => Infer(scope, node),
+            BaseConstructorCall node => Infer(scope, node),
             Int8LiteralExp node => Infer(scope, node),
             Int16LiteralExp node => Infer(scope, node),
             Int32LiteralExp node => Infer(scope, node),
@@ -252,6 +254,7 @@ public abstract class FunctionalTypeChecker : ITypeChecker
     public abstract FifthType Infer(ScopeAstThing scope, CastExp node);
     public abstract FifthType Infer(ScopeAstThing scope, LambdaExp node);
     public abstract FifthType Infer(ScopeAstThing scope, FuncCallExp node);
+    public abstract FifthType Infer(ScopeAstThing scope, BaseConstructorCall node);
     public abstract FifthType Infer(ScopeAstThing scope, Int8LiteralExp node);
     public abstract FifthType Infer(ScopeAstThing scope, Int16LiteralExp node);
     public abstract FifthType Infer(ScopeAstThing scope, Int32LiteralExp node);

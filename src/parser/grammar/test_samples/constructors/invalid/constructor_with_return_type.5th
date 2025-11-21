@@ -1,0 +1,12 @@
+// INVALID: Constructor with return type
+class Person {
+    Name: string;
+    
+    Person(name: string): void {
+        this.Name = name;
+    }
+}
+
+main(): int {
+    return 0;
+}

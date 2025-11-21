@@ -31,6 +31,7 @@ import IriLexerFragments;
 
 ALIAS       : 'alias';
 AS          : 'as';
+BASE        : 'base';
 BREAK       : 'break' /*-> mode(NLSEMI)*/;
 CASE        : 'case';
 CATCH       : 'catch';

@@ -110,6 +110,18 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitClass_definition([NotNull] FifthParser.Class_definitionContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.constructor_declaration"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitConstructor_declaration([NotNull] FifthParser.Constructor_declarationContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.base_constructor_call"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitBase_constructor_call([NotNull] FifthParser.Base_constructor_callContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.property_declaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
