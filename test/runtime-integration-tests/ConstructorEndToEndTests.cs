@@ -13,7 +13,7 @@ public class ConstructorEndToEndTests : RuntimeTestBase
     [Test]
     public async Task BasicConstructor_InstantiatesObject_WithFieldsInitialized()
     {
-        // Arrange - Test basic constructor with field initialization
+        // Arrange - Test that constructor actually initializes fields and object can be used
         var fifthCode = """
             class Person {
                 Name: string;
@@ -26,53 +26,50 @@ public class ConstructorEndToEndTests : RuntimeTestBase
             }
 
             main(): int {
-                return 0;
+                p: Person = new Person("Alice", 30);
+                return p.Age;
             }
             """;
 
         // Act
         var executablePath = await CompileSourceAsync(fifthCode);
-
-        // Assert
-        File.Exists(executablePath).Should().BeTrue("Constructor code should compile to executable");
-        
-        // Execute to verify it runs
         var result = await ExecuteAsync(executablePath);
-        result.ExitCode.Should().Be(0, "Constructor-based code should execute successfully");
+
+        // Assert - Exit code should be 30 (the age we set)
+        result.ExitCode.Should().Be(30, "Constructor should initialize Age field to 30");
     }
 
     [Test]
     public async Task ParameterlessConstructor_WithDefaultInitialization()
     {
-        // Arrange - Test parameterless constructor
+        // Arrange - Test that parameterless constructor initializes field and object can be used
         var fifthCode = """
             class Counter {
                 Value: int;
                 
                 Counter() {
-                    this.Value = 0;
+                    this.Value = 42;
                 }
             }
 
             main(): int {
-                return 0;
+                c: Counter = new Counter();
+                return c.Value;
             }
             """;
 
         // Act
         var executablePath = await CompileSourceAsync(fifthCode);
-
-        // Assert
-        File.Exists(executablePath).Should().BeTrue("Parameterless constructor should compile");
-        
         var result = await ExecuteAsync(executablePath);
-        result.ExitCode.Should().Be(0, "Parameterless constructor should execute");
+
+        // Assert - Exit code should be 42 (the value set by constructor)
+        result.ExitCode.Should().Be(42, "Parameterless constructor should initialize Value field to 42");
     }
 
     [Test]
-    public async Task MultipleConstructorOverloads_CompileAndExecute()
+    public async Task MultipleConstructorOverloads_SelectCorrectOverload()
     {
-        // Arrange - Test constructor overloading
+        // Arrange - Test that correct overload is called based on argument count
         var fifthCode = """
             class Rectangle {
                 Width: int;
@@ -90,60 +87,59 @@ public class ConstructorEndToEndTests : RuntimeTestBase
             }
 
             main(): int {
-                return 0;
+                r1: Rectangle = new Rectangle(5);
+                r2: Rectangle = new Rectangle(3, 7);
+                return (r1.Width * r1.Height) + (r2.Width * r2.Height);
             }
             """;
 
         // Act
         var executablePath = await CompileSourceAsync(fifthCode);
-
-        // Assert
-        File.Exists(executablePath).Should().BeTrue("Multiple constructor overloads should compile");
-        
         var result = await ExecuteAsync(executablePath);
-        result.ExitCode.Should().Be(0, "Overloaded constructors should execute");
+
+        // Assert - (5*5) + (3*7) = 25 + 21 = 46
+        result.ExitCode.Should().Be(46, "Should call correct overload: square(5*5=25) + rect(3*7=21) = 46");
     }
 
     [Test]
-    public async Task ConstructorWithBaseCall_CompilesSuccessfully()
+    public async Task ConstructorWithBaseCall_InitializesBaseFields()
     {
-        // Arrange - Test base constructor chaining
+        // Arrange - Test that base constructor actually initializes base class fields
         var fifthCode = """
             class Animal {
-                Species: string;
+                Legs: int;
                 
-                Animal(species: string) {
-                    this.Species = species;
+                Animal(legs: int) {
+                    this.Legs = legs;
                 }
             }
             
             class Dog {
                 Name: string;
                 
-                Dog(name: string) : base("Canine") {
+                Dog(name: string) : base(4) {
                     this.Name = name;
                 }
             }
 
             main(): int {
-                return 0;
+                d: Dog = new Dog("Buddy");
+                return d.Legs;
             }
             """;
 
         // Act
         var executablePath = await CompileSourceAsync(fifthCode);
-
-        // Assert
-        File.Exists(executablePath).Should().BeTrue("Constructor with base call should compile");
-        
         var result = await ExecuteAsync(executablePath);
-        result.ExitCode.Should().Be(0, "Base constructor chaining should execute");
+
+        // Assert - Should return 4 (legs set by base constructor)
+        result.ExitCode.Should().Be(4, "Base constructor should initialize Legs field to 4");
     }
 
     [Test]
-    public async Task GenericClassConstructor_WithTypeParameters()
+    public async Task GenericClassConstructor_StoresTypedValue()
     {
-        // Arrange - Test generic class with constructor
+        // Arrange - Test that generic constructor works with type parameter
         var fifthCode = """
             class Box<T> {
                 Value: T;
@@ -154,24 +150,23 @@ public class ConstructorEndToEndTests : RuntimeTestBase
             }
 
             main(): int {
-                return 0;
+                b: Box<int> = new Box<int>(99);
+                return b.Value;
             }
             """;
 
         // Act
         var executablePath = await CompileSourceAsync(fifthCode);
-
-        // Assert
-        File.Exists(executablePath).Should().BeTrue("Generic class constructor should compile");
-        
         var result = await ExecuteAsync(executablePath);
-        result.ExitCode.Should().Be(0, "Generic constructor should execute");
+
+        // Assert - Should return 99 (the value stored in generic box)
+        result.ExitCode.Should().Be(99, "Generic constructor should store and retrieve value 99");
     }
 
     [Test]
-    public async Task ConstructorWithComplexFieldInitialization()
+    public async Task ConstructorWithComplexFieldInitialization_ComputesValues()
     {
-        // Arrange - Test constructor with expressions and method calls
+        // Arrange - Test that constructor can perform computations during initialization
         var fifthCode = """
             class Calculator {
                 Initial: int;
@@ -184,24 +179,23 @@ public class ConstructorEndToEndTests : RuntimeTestBase
             }
 
             main(): int {
-                return 0;
+                c: Calculator = new Calculator(7);
+                return c.Initial + c.Doubled;
             }
             """;
 
         // Act
         var executablePath = await CompileSourceAsync(fifthCode);
-
-        // Assert
-        File.Exists(executablePath).Should().BeTrue("Constructor with complex initialization should compile");
-        
         var result = await ExecuteAsync(executablePath);
-        result.ExitCode.Should().Be(0, "Complex field initialization should execute");
+
+        // Assert - Initial=7, Doubled=14, sum=21
+        result.ExitCode.Should().Be(21, "Constructor should compute: initial(7) + doubled(14) = 21");
     }
 
     [Test]
-    public async Task MultipleClassesWithConstructors_AllCompile()
+    public async Task MultipleClassesWithConstructors_WorkTogether()
     {
-        // Arrange - Test multiple classes each with constructors
+        // Arrange - Test that objects from multiple classes with constructors interact correctly
         var fifthCode = """
             class Point {
                 X: int;
@@ -214,34 +208,35 @@ public class ConstructorEndToEndTests : RuntimeTestBase
             }
             
             class Line {
-                Start: Point;
-                End: Point;
+                StartX: int;
+                EndX: int;
                 
                 Line(start: Point, end: Point) {
-                    this.Start = start;
-                    this.End = end;
+                    this.StartX = start.X;
+                    this.EndX = end.X;
                 }
             }
 
             main(): int {
-                return 0;
+                p1: Point = new Point(3, 5);
+                p2: Point = new Point(8, 10);
+                line: Line = new Line(p1, p2);
+                return line.StartX + line.EndX;
             }
             """;
 
         // Act
         var executablePath = await CompileSourceAsync(fifthCode);
-
-        // Assert
-        File.Exists(executablePath).Should().BeTrue("Multiple classes with constructors should compile");
-        
         var result = await ExecuteAsync(executablePath);
-        result.ExitCode.Should().Be(0, "Multiple constructors should execute");
+
+        // Assert - StartX=3, EndX=8, sum=11
+        result.ExitCode.Should().Be(11, "Multiple constructors should work together: 3 + 8 = 11");
     }
 
     [Test]
-    public async Task ConstructorWithMixedMemberTypes_CompilesSuccessfully()
+    public async Task ConstructorWithMixedMemberTypes_MethodsUseConstructorInitializedFields()
     {
-        // Arrange - Test class with constructor, fields, and methods
+        // Arrange - Test that methods can use fields initialized by constructor
         var fifthCode = """
             class Employee {
                 Name: string;
@@ -258,75 +253,72 @@ public class ConstructorEndToEndTests : RuntimeTestBase
             }
 
             main(): int {
-                return 0;
+                e: Employee = new Employee("Alice", 50000);
+                return e.GetBonus();
             }
             """;
 
         // Act
         var executablePath = await CompileSourceAsync(fifthCode);
-
-        // Assert
-        File.Exists(executablePath).Should().BeTrue("Constructor with mixed members should compile");
-        
         var result = await ExecuteAsync(executablePath);
-        result.ExitCode.Should().Be(0, "Mixed member class should execute");
+
+        // Assert - Salary=50000, bonus=5000
+        result.ExitCode.Should().Be(5000, "Method should use constructor-initialized field: 50000/10 = 5000");
     }
 
     [Test]
-    public async Task SynthesizedParameterlessConstructor_ForSimpleClass()
+    public async Task SynthesizedParameterlessConstructor_CreatesUsableObject()
     {
-        // Arrange - Test that classes without explicit constructors get synthesized ones
+        // Arrange - Test that synthesized constructor actually creates usable objects
         var fifthCode = """
             class Simple {
-                Value: int;
             }
 
             main(): int {
-                return 0;
+                s: Simple = new Simple();
+                return 123;
             }
             """;
 
         // Act
         var executablePath = await CompileSourceAsync(fifthCode);
-
-        // Assert
-        File.Exists(executablePath).Should().BeTrue("Class without constructor should synthesize one and compile");
-        
         var result = await ExecuteAsync(executablePath);
-        result.ExitCode.Should().Be(0, "Synthesized constructor should execute");
+
+        // Assert - Should successfully create object with synthesized constructor
+        result.ExitCode.Should().Be(123, "Synthesized constructor should create usable object");
     }
 
     [Test]
-    public async Task ConstructorWithControlFlow_IfStatements()
+    public async Task ConstructorWithControlFlow_ConditionalInitialization()
     {
-        // Arrange - Test constructor with conditional logic
+        // Arrange - Test that constructor control flow actually executes correctly
         var fifthCode = """
             class Validator {
                 Value: int;
-                IsValid: bool;
+                Status: int;
                 
                 Validator(value: int) {
                     this.Value = value;
-                    if (value > 0) {
-                        this.IsValid = true;
+                    if (value > 10) {
+                        this.Status = 1;
                     } else {
-                        this.IsValid = false;
+                        this.Status = 0;
                     }
                 }
             }
 
             main(): int {
-                return 0;
+                v1: Validator = new Validator(5);
+                v2: Validator = new Validator(15);
+                return (v1.Status * 100) + v2.Status;
             }
             """;
 
         // Act
         var executablePath = await CompileSourceAsync(fifthCode);
-
-        // Assert
-        File.Exists(executablePath).Should().BeTrue("Constructor with if statements should compile");
-        
         var result = await ExecuteAsync(executablePath);
-        result.ExitCode.Should().Be(0, "Constructor with control flow should execute");
+
+        // Assert - v1.Status=0 (5<=10), v2.Status=1 (15>10), result = 0*100 + 1 = 1
+        result.ExitCode.Should().Be(1, "Control flow in constructor should execute: (0*100) + 1 = 1");
     }
 }
