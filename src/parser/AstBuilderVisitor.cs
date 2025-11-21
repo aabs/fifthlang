@@ -168,6 +168,26 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     public override IAstThing VisitClass_definition(FifthParser.Class_definitionContext context)
     {
         var b = new ClassDefBuilder();
+        var className = context.name.Text;
+        
+        // Process constructors
+        foreach (var cctx in context._constructors)
+        {
+            var ctor = (FunctionDef)VisitConstructor_declaration(cctx, className);
+            // Wrap the constructor as a MethodDef member
+            var methodMember = new MethodDef
+            {
+                Name = ctor.Name,
+                TypeName = TypeName.From("void"),  // Constructors have no return type
+                CollectionType = CollectionType.SingleInstance,
+                IsReadOnly = false,
+                Visibility = Visibility.Public,
+                Annotations = [],
+                FunctionDef = ctor
+            };
+            b.AddingItemToMemberDefs(methodMember);
+        }
+        
         foreach (var fctx in context._functions)
         {
             var f = (FunctionDef)Visit(fctx);
@@ -756,6 +776,62 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
+    }
+
+    // Constructor declaration visitor - handles class constructors
+    public IAstThing VisitConstructor_declaration(FifthParser.Constructor_declarationContext context, string className)
+    {
+        var b = new FunctionDefBuilder();
+        b.WithName(MemberName.From(className))  // Constructor name must match class name
+            .WithBody((BlockStatement)VisitBlock(context.function_body().block()))
+            .WithReturnType(Void)  // Constructors have no return type
+            .WithAnnotations([])
+            .WithVisibility(Visibility.Public)
+            .WithIsStatic(false)
+            .WithIsConstructor(true);  // Mark as constructor
+        
+        // Constructors do not have type parameters (per spec FR-CTOR-003)
+        // They can only reference class-level type parameters
+        
+        foreach (var paramdeclContext in context.paramdecl())
+        {
+            b.AddingItemToParams((ParamDef)VisitParamdecl(paramdeclContext));
+        }
+
+        var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
+        
+        // Handle base constructor call if present
+        if (context.base_constructor_call() != null)
+        {
+            var baseCall = (BaseConstructorCall)VisitBase_constructor_call(context.base_constructor_call());
+            result = result with { BaseCall = baseCall };
+        }
+        
+        return result;
+    }
+
+    // Base constructor call visitor - handles : base(...) syntax
+    public override IAstThing VisitBase_constructor_call(FifthParser.Base_constructor_callContext context)
+    {
+        var baseCall = new BaseConstructorCall
+        {
+            Arguments = [],
+            ResolvedConstructor = null,  // Will be resolved during semantic analysis
+            Annotations = [],
+            Location = GetLocationDetails(context),
+            Type = Void
+        };
+        
+        // Parse base constructor arguments
+        if (context.expression() != null)
+        {
+            foreach (var exprContext in context.expression())
+            {
+                baseCall.Arguments.Add((Expression)Visit(exprContext));
+            }
+        }
+        
+        return baseCall;
     }
 
     public override IAstThing VisitIf_statement([NotNull] FifthParser.If_statementContext context)
@@ -1586,6 +1662,27 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         // Create the type reference with collection type support
         FifthType typeToInitialize = CreateTypeFromSpec(typeName, collectionType);
 
+        // Extract constructor arguments if present
+        var constructorArgs = new List<Expression>();
+        var argExpressions = context.expression();
+        if (argExpressions != null && argExpressions.Length > 0)
+        {
+            DebugLog($"DEBUG: Found {argExpressions.Length} constructor arguments");
+            foreach (var argExpr in argExpressions)
+            {
+                var argResult = Visit(argExpr);
+                if (argResult is Expression expr)
+                {
+                    constructorArgs.Add(expr);
+                    DebugLog($"DEBUG: Added constructor argument of type: {expr.GetType().Name}");
+                }
+                else
+                {
+                    DebugLog($"DEBUG: Argument visit did not return Expression: {argResult?.GetType().Name ?? "null"}");
+                }
+            }
+        }
+
         // For array types, extract the size if present
         Expression? arraySizeExpr = null;
         if (typeSpec is FifthParser.Array_type_specContext arrayTypeContext)
@@ -1668,13 +1765,14 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var result = new ObjectInitializerExp
         {
             TypeToInitialize = typeToInitialize,
+            ConstructorArguments = constructorArgs,
             PropertyInitialisers = propertyInitializers,
             Annotations = annotations,
             Location = GetLocationDetails(context),
             Type = typeToInitialize // The result type is the same as the type being initialized
         };
 
-        DebugLog($"DEBUG: Created ObjectInitializerExp with {propertyInitializers.Count} property initializers");
+        DebugLog($"DEBUG: Created ObjectInitializerExp with {constructorArgs.Count} constructor arguments and {propertyInitializers.Count} property initializers");
         return result;
     }
 

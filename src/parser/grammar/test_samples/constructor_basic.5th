@@ -1,0 +1,14 @@
+// Basic constructor test
+class Person {
+    Name: string;
+    Age: int;
+    
+    Person(name: string, age: int) {
+        this.Name = name;
+        this.Age = age;
+    }
+}
+
+main(): int {
+    return 0;
+}

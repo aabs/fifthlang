@@ -1,0 +1,12 @@
+// INVALID: Constructor name doesn't match class name
+class Person {
+    Name: string;
+    
+    PersonConstructor(name: string) {
+        this.Name = name;
+    }
+}
+
+main(): int {
+    return 0;
+}

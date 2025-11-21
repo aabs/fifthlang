@@ -1,2 +1,2 @@
-class P { A: int; }
-main(): int { p: P = new P(x: int) { A = 1 }; return 0; }
+class P { A: int; P(x: int) { this.A = x; } }
+main(): int { p: P = new P(1) { A = 2 }; return 0; }

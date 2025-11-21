@@ -192,6 +192,30 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitClass_definition([NotNull] FifthParser.Class_definitionContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.constructor_declaration"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterConstructor_declaration([NotNull] FifthParser.Constructor_declarationContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.constructor_declaration"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitConstructor_declaration([NotNull] FifthParser.Constructor_declarationContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.base_constructor_call"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterBase_constructor_call([NotNull] FifthParser.Base_constructor_callContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.base_constructor_call"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitBase_constructor_call([NotNull] FifthParser.Base_constructor_callContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.property_declaration"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>

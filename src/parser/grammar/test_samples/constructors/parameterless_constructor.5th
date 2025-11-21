@@ -1,0 +1,12 @@
+// Parameterless constructor
+class Counter {
+    Count: int;
+    
+    Counter() {
+        this.Count = 0;
+    }
+}
+
+main(): int {
+    return 0;
+}

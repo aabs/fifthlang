@@ -71,6 +71,7 @@ public interface IAstRewriter
     RewriteResult VisitCastExp(CastExp ctx);
     RewriteResult VisitLambdaExp(LambdaExp ctx);
     RewriteResult VisitFuncCallExp(FuncCallExp ctx);
+    RewriteResult VisitBaseConstructorCall(BaseConstructorCall ctx);
     RewriteResult VisitInt8LiteralExp(Int8LiteralExp ctx);
     RewriteResult VisitInt16LiteralExp(Int16LiteralExp ctx);
     RewriteResult VisitInt32LiteralExp(Int32LiteralExp ctx);
@@ -174,6 +175,7 @@ public class DefaultAstRewriter : IAstRewriter
              CastExp node => VisitCastExp(node),
              LambdaExp node => VisitLambdaExp(node),
              FuncCallExp node => VisitFuncCallExp(node),
+             BaseConstructorCall node => VisitBaseConstructorCall(node),
              Int8LiteralExp node => VisitInt8LiteralExp(node),
              Int16LiteralExp node => VisitInt16LiteralExp(node),
              Int32LiteralExp node => VisitInt32LiteralExp(node),
@@ -319,10 +321,13 @@ public class DefaultAstRewriter : IAstRewriter
         }
         var rrBody = Rewrite((AstThing)ctx.Body);
         prologue.AddRange(rrBody.Prologue);
+        var rrBaseCall = Rewrite((AstThing)ctx.BaseCall);
+        prologue.AddRange(rrBaseCall.Prologue);
         var rebuilt = ctx with {
          TypeParameters = tmpTypeParameters
         ,Params = tmpParams
         ,Body = (ast.BlockStatement)rrBody.Node
+        ,BaseCall = (ast.BaseConstructorCall)rrBaseCall.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -839,6 +844,24 @@ public class DefaultAstRewriter : IAstRewriter
         };
         return new RewriteResult(rebuilt, prologue);
     }
+    public virtual RewriteResult VisitBaseConstructorCall(BaseConstructorCall ctx)
+    {
+        var prologue = new List<Statement>();
+        List<ast.Expression> tmpArguments = [];
+        foreach (var item in ctx.Arguments)
+        {
+            var rr = Rewrite(item);
+            tmpArguments.Add((ast.Expression)rr.Node);
+            prologue.AddRange(rr.Prologue);
+        }
+        var rrResolvedConstructor = Rewrite((AstThing)ctx.ResolvedConstructor);
+        prologue.AddRange(rrResolvedConstructor.Prologue);
+        var rebuilt = ctx with {
+         Arguments = tmpArguments
+        ,ResolvedConstructor = (ast.FunctionDef)rrResolvedConstructor.Node
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
     public virtual RewriteResult VisitInt8LiteralExp(Int8LiteralExp ctx)
     {
         var prologue = new List<Statement>();
@@ -1089,6 +1112,13 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitObjectInitializerExp(ObjectInitializerExp ctx)
     {
         var prologue = new List<Statement>();
+        List<ast.Expression> tmpConstructorArguments = [];
+        foreach (var item in ctx.ConstructorArguments)
+        {
+            var rr = Rewrite(item);
+            tmpConstructorArguments.Add((ast.Expression)rr.Node);
+            prologue.AddRange(rr.Prologue);
+        }
         List<ast.PropertyInitializerExp> tmpPropertyInitialisers = [];
         foreach (var item in ctx.PropertyInitialisers)
         {
@@ -1096,8 +1126,12 @@ public class DefaultAstRewriter : IAstRewriter
             tmpPropertyInitialisers.Add((ast.PropertyInitializerExp)rr.Node);
             prologue.AddRange(rr.Prologue);
         }
+        var rrResolvedConstructor = Rewrite((AstThing)ctx.ResolvedConstructor);
+        prologue.AddRange(rrResolvedConstructor.Prologue);
         var rebuilt = ctx with {
-         PropertyInitialisers = tmpPropertyInitialisers
+         ConstructorArguments = tmpConstructorArguments
+        ,PropertyInitialisers = tmpPropertyInitialisers
+        ,ResolvedConstructor = (ast.FunctionDef)rrResolvedConstructor.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }

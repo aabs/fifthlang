@@ -18,26 +18,30 @@ public static class FifthParserManager
         TreeLink = 1,
         Builtins = 2,
         ClassCtors = 3,
-        SymbolTableInitial = 4,
-        PropertyToField = 5,
-        DestructurePatternFlatten = 6,
-        OverloadGroup = 7,
-        GuardValidation = 8,
-        OverloadTransform = 9,
-        DestructuringLowering = 10,
-        UnaryOperatorLowering = 11,
-        SparqlLiteralLowering = 12,
-        TriGLiteralLowering = 13,
-        AugmentedAssignmentLowering = 14,
-        TreeRelink = 15,
-        TripleDiagnostics = 16,
-        TripleExpansion = 17,
-        GraphTripleOperatorLowering = 18,
-        SymbolTableFinal = 19,
-        VarRefResolver = 20,
-        TypeAnnotation = 21,
-        QueryApplicationTypeCheck = 22,
-        QueryApplicationLowering = 23,
+        ConstructorValidation = 4,
+        SymbolTableInitial = 5,
+        ConstructorResolution = 6,
+        DefiniteAssignment = 7,
+        BaseConstructorValidation = 8,
+        PropertyToField = 9,
+        DestructurePatternFlatten = 10,
+        OverloadGroup = 11,
+        GuardValidation = 12,
+        OverloadTransform = 13,
+        DestructuringLowering = 14,
+        UnaryOperatorLowering = 15,
+        SparqlLiteralLowering = 16,
+        TriGLiteralLowering = 17,
+        AugmentedAssignmentLowering = 18,
+        TreeRelink = 19,
+        TripleDiagnostics = 20,
+        TripleExpansion = 21,
+        GraphTripleOperatorLowering = 22,
+        SymbolTableFinal = 23,
+        VarRefResolver = 24,
+        TypeAnnotation = 25,
+        QueryApplicationTypeCheck = 26,
+        QueryApplicationLowering = 27,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
@@ -70,10 +74,45 @@ public static class FifthParserManager
             ast = new BuiltinInjectorVisitor().Visit(ast);
 
         if (upTo >= AnalysisPhase.ClassCtors)
-            ast = new ClassCtorInserter().Visit(ast);
+            ast = new ClassCtorInserter(diagnostics).Visit(ast);
+
+        if (upTo >= AnalysisPhase.ConstructorValidation)
+            ast = new SemanticAnalysis.ConstructorValidator(diagnostics).Visit(ast);
 
         if (upTo >= AnalysisPhase.SymbolTableInitial)
             ast = new SymbolTableBuilderVisitor().Visit(ast);
+
+        // Constructor resolution happens AFTER symbol table is built so we can look up class definitions
+        if (upTo >= AnalysisPhase.ConstructorResolution)
+            ast = new SemanticAnalysis.ConstructorResolver(diagnostics).Visit(ast);
+
+        // Definite assignment analysis happens AFTER constructor resolution
+        if (upTo >= AnalysisPhase.DefiniteAssignment)
+        {
+            var analyzer = new SemanticAnalysis.DefiniteAssignmentAnalyzer();
+            ast = analyzer.Visit(ast);
+            if (diagnostics != null)
+            {
+                foreach (var diag in analyzer.Diagnostics)
+                {
+                    diagnostics.Add(diag);
+                }
+            }
+        }
+        
+        // Base constructor validation (CTOR004, CTOR008) happens AFTER definite assignment
+        if (upTo >= AnalysisPhase.BaseConstructorValidation)
+        {
+            var baseValidator = new SemanticAnalysis.BaseConstructorValidator();
+            ast = baseValidator.Visit(ast);
+            if (diagnostics != null)
+            {
+                foreach (var diag in baseValidator.Diagnostics)
+                {
+                    diagnostics.Add(diag);
+                }
+            }
+        }
 
         // Register type parameters in scope after symbol table building (T030)
         if (upTo >= AnalysisPhase.SymbolTableInitial)

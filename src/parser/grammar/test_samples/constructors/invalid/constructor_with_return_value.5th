@@ -1,0 +1,13 @@
+// INVALID: Constructor returning a value
+class Person {
+    Name: string;
+    
+    Person(name: string) {
+        this.Name = name;
+        return name;
+    }
+}
+
+main(): int {
+    return 0;
+}
