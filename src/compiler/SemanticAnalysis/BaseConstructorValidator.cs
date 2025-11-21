@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ast;
+using ast_model.Symbols;
 using compiler;
 using compiler.LanguageTransformations;
 
@@ -26,8 +27,10 @@ namespace compiler.SemanticAnalysis
         public override ClassDef VisitClassDef(ClassDef ctx)
         {
             // Check each constructor in this class
-            var constructors = ctx.MemberDefs.OfType<FunctionDef>()
-                .Where(f => f.IsConstructor)
+            var constructors = ctx.MemberDefs
+                .OfType<MethodDef>()
+                .Where(m => m.FunctionDef?.IsConstructor == true)
+                .Select(m => m.FunctionDef)
                 .ToList();
 
             foreach (var constructor in constructors)
@@ -41,14 +44,15 @@ namespace compiler.SemanticAnalysis
         private void ValidateBaseConstructorRequirement(ClassDef classDef, FunctionDef constructor)
         {
             // Skip if class has no base class
-            if (classDef.BaseClassName == null)
+            if (classDef.BaseClasses == null || classDef.BaseClasses.Count == 0)
             {
                 return;
             }
 
-            // Look up base class via symbol table through AST node's scope
+            // Look up first base class via symbol table through AST node's scope
+            var baseClassName = classDef.BaseClasses[0];
             var scope = classDef.NearestScopeAbove();
-            var baseClassSymbol = scope?.ResolveByName(classDef.BaseClassName);
+            var baseClassSymbol = scope?.ResolveByName(baseClassName);
             if (baseClassSymbol == null || baseClassSymbol.OriginatingAstThing is not ClassDef baseClass)
             {
                 // Base class not found - this should be caught by type checker
@@ -62,8 +66,10 @@ namespace compiler.SemanticAnalysis
             }
 
             // Check if base class has a parameterless constructor
-            var baseConstructors = baseClass.MemberDefs.OfType<FunctionDef>()
-                .Where(f => f.IsConstructor)
+            var baseConstructors = baseClass.MemberDefs
+                .OfType<MethodDef>()
+                .Where(m => m.FunctionDef?.IsConstructor == true)
+                .Select(m => m.FunctionDef)
                 .ToList();
 
             bool hasParameterlessBaseConstructor = false;
@@ -86,9 +92,9 @@ namespace compiler.SemanticAnalysis
                 {
                     // Emit CTOR004: Missing base constructor call
                     var diagnostic = ConstructorDiagnostics.MissingBaseConstructorCall(
-                        classDef.Name.Name,
-                        baseClass.Name.Name,
-                        constructor
+                        classDef.Name.Value,
+                        baseClass.Name.Value,
+                        constructor.Location?.Filename
                     );
                     _diagnostics.Add(diagnostic);
                 }
@@ -112,7 +118,7 @@ namespace compiler.SemanticAnalysis
 
         private bool CheckCycleRecursive(ClassDef currentClass, HashSet<string> visited, List<string> path)
         {
-            var className = currentClass.Name.Name;
+            var className = currentClass.Name.Value;
             
             // If we've seen this class in the current path, we have a cycle
             if (path.Contains(className))
@@ -124,7 +130,7 @@ namespace compiler.SemanticAnalysis
                 var diagnostic = ConstructorDiagnostics.CyclicBaseConstructor(
                     className,
                     cyclePath,
-                    currentClass
+                    currentClass.Location?.Filename
                 );
                 _diagnostics.Add(diagnostic);
                 return false; // Cycle detected
@@ -140,10 +146,11 @@ namespace compiler.SemanticAnalysis
             path.Add(className);
 
             // Check base class if it exists
-            if (currentClass.BaseClassName != null)
+            if (currentClass.BaseClasses != null && currentClass.BaseClasses.Count > 0)
             {
+                var baseClassName = currentClass.BaseClasses[0];
                 var scope = currentClass.NearestScopeAbove();
-                var baseClassSymbol = scope?.ResolveByName(currentClass.BaseClassName);
+                var baseClassSymbol = scope?.ResolveByName(baseClassName);
                 if (baseClassSymbol?.OriginatingAstThing is ClassDef baseClass)
                 {
                     if (!CheckCycleRecursive(baseClass, visited, path))
@@ -163,12 +170,14 @@ namespace compiler.SemanticAnalysis
         private void ValidateBaseCall(ClassDef derivedClass, ClassDef baseClass, FunctionDef constructor)
         {
             // Get base call arguments
-            var baseCallArgs = constructor.BaseCall?.Arguments ?? new List<FifthAstExpression>();
+            var baseCallArgs = constructor.BaseCall?.Arguments ?? new List<Expression>();
             int argCount = baseCallArgs.Count;
 
             // Find matching base constructors
-            var baseConstructors = baseClass.MemberDefs.OfType<FunctionDef>()
-                .Where(f => f.IsConstructor)
+            var baseConstructors = baseClass.MemberDefs
+                .OfType<MethodDef>()
+                .Where(m => m.FunctionDef?.IsConstructor == true)
+                .Select(m => m.FunctionDef)
                 .ToList();
 
             // Check if any base constructor matches the argument count
