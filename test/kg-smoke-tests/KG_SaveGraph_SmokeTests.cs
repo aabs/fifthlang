@@ -33,7 +33,7 @@ public class KG_SaveGraph_SmokeTests
         var result = await compiler.CompileAsync(options);
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
 
-        File.Exists(outPath).Should().BeTrue();
+        AssertEmittedDll(result, outPath);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class KG_SaveGraph_SmokeTests
         var result = await compiler.CompileAsync(options);
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
 
-        File.Exists(outPath).Should().BeTrue();
+        AssertEmittedDll(result, outPath);
     }
 
     [Fact]
@@ -93,6 +93,13 @@ public class KG_SaveGraph_SmokeTests
         var result = await compiler.CompileAsync(options);
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
 
-        File.Exists(outPath).Should().BeTrue();
+        AssertEmittedDll(result, outPath);
+    }
+
+    private static void AssertEmittedDll(CompilationResult result, string requestedOutput)
+    {
+        var dllPath = Path.ChangeExtension(requestedOutput, ".dll");
+        result.OutputPath.Should().Be(dllPath);
+        File.Exists(dllPath).Should().BeTrue();
     }
 }

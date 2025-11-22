@@ -200,9 +200,9 @@ public class KGTests
         var s = g.CreateUriNode(new Uri("http://ex/s"));
         var p = g.CreateUriNode(new Uri("http://ex/p"));
         // dotNetRDF Triple ctor may throw different exception types when given nulls; accept any exception
-        Assert.Throws<Exception>(() => KG.CreateTriple(null!, p, s));
-        Assert.Throws<Exception>(() => KG.CreateTriple(s, null!, s));
-        Assert.Throws<Exception>(() => KG.CreateTriple(s, p, null!));
+        Assert.ThrowsAny<Exception>(() => KG.CreateTriple(null!, p, s));
+        Assert.ThrowsAny<Exception>(() => KG.CreateTriple(s, null!, s));
+        Assert.ThrowsAny<Exception>(() => KG.CreateTriple(s, p, null!));
     }
 
     [Fact]
@@ -282,15 +282,15 @@ public class KGTests
         g1.Assert(t);
 
         var g2 = KG.CopyGraph(g1);
-        
+
         g2.Triples.Count.Should().Be(1);
         ReferenceEquals(g1, g2).Should().BeFalse();
-        
+
         // Modify g1 and verify g2 is not affected
         var s2 = g1.CreateUriNode(new Uri("http://ex/s2"));
         var t2 = KG.CreateTriple(s2, p, o);
         g1.Assert(t2);
-        
+
         g1.Triples.Count.Should().Be(2);
         g2.Triples.Count.Should().Be(1);
     }
@@ -300,7 +300,7 @@ public class KGTests
     {
         var g1 = KG.CreateGraph();
         var g2 = KG.CopyGraph(g1);
-        
+
         g2.Triples.Count.Should().Be(0);
         ReferenceEquals(g1, g2).Should().BeFalse();
     }
