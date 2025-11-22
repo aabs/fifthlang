@@ -6,13 +6,13 @@ namespace compiler.LanguageTransformations;
 public class PropertyToFieldExpander : DefaultRecursiveDescentVisitor
 {
     private bool _isVisitingPropertyInitializer = false;
-    
+
     public override PropertyInitializerExp VisitPropertyInitializerExp(PropertyInitializerExp ctx)
     {
         // Set flag to indicate we're visiting a PropertyInitializerExp
         var wasVisitingPropertyInitializer = _isVisitingPropertyInitializer;
         _isVisitingPropertyInitializer = true;
-        
+
         try
         {
             return base.VisitPropertyInitializerExp(ctx);
@@ -22,11 +22,11 @@ public class PropertyToFieldExpander : DefaultRecursiveDescentVisitor
             _isVisitingPropertyInitializer = wasVisitingPropertyInitializer;
         }
     }
-    
+
     public override PropertyDef VisitPropertyDef(PropertyDef ctx)
     {
         ArgumentNullException.ThrowIfNull(ctx);
-        
+
         // If we're visiting a PropertyInitializerExp, skip expansion of placeholder PropertyDefs
         if (_isVisitingPropertyInitializer && (ctx.Parent == null || ctx.Parent is not ClassDef))
         {
@@ -34,17 +34,18 @@ public class PropertyToFieldExpander : DefaultRecursiveDescentVisitor
             // Return it unchanged without expansion
             return ctx;
         }
-        
+
         // For regular PropertyDef objects that don't have a parent class, throw exception
         if (ctx.Parent == null || ctx.Parent is not ClassDef)
         {
             throw new InvalidOperationException("PropertyDef must have a ClassDef parent to be expanded into backing fields and accessors.");
         }
-        
+
         // Create a backing field using FieldDefBuilder
         var field = new FieldDefBuilder()
             .WithName(MemberName.From($"{ctx.Name}__BackingField"))
             .WithTypeName(ctx.TypeName)
+            .WithCollectionType(ctx.CollectionType)
             .WithIsReadOnly(false)
             .WithVisibility(ctx.Visibility)
             .Build();
@@ -102,6 +103,7 @@ public class PropertyToFieldExpander : DefaultRecursiveDescentVisitor
                 new() {
                     Name = "value",
                     TypeName = ctx.TypeName,
+                    CollectionType = ctx.CollectionType,
                     Type = ctx.Type,
                     Annotations = ctx.Annotations,
                     Location = ctx.Location,

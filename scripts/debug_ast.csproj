@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <StartupObject>DebugAst</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\compiler\compiler.csproj" />
+    <ProjectReference Include="..\src\ast-model\ast_model.csproj" />
+    <ProjectReference Include="..\src\ast-generated\ast_generated.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -23,13 +23,26 @@ public class ConstructorResolver : DefaultRecursiveDescentVisitor
 
     public override ObjectInitializerExp VisitObjectInitializerExp(ObjectInitializerExp ctx)
     {
+        // Skip array and list types - they don't have user-defined constructors to resolve
+        if (ctx.Type is ast_model.TypeSystem.FifthType.TArrayOf || ctx.Type is ast_model.TypeSystem.FifthType.TListOf)
+        {
+            return base.VisitObjectInitializerExp(ctx);
+        }
+
         // Get the class name from the type being instantiated
         var className = ctx.Type.Name.Value;
-        
+
+        // Handle generic types: extract base name from "Box<int>" -> "Box"
+        var lookupName = className;
+        if (className.Contains('<'))
+        {
+            lookupName = className.Substring(0, className.IndexOf('<'));
+        }
+
         // Look up the class definition from symbol table
         var classScope = ctx.NearestScopeAbove();
-        var classSymbolEntry = classScope?.ResolveByName(className);
-        
+        var classSymbolEntry = classScope?.ResolveByName(lookupName);
+
         if (classSymbolEntry == null || classSymbolEntry.OriginatingAstThing is not ClassDef classDef)
         {
             // Class not found - this will be caught by type checking, so we skip it here
@@ -153,15 +166,15 @@ public class ConstructorResolver : DefaultRecursiveDescentVisitor
     /// checks are deferred pending full type system integration (TODO: Phase 5 enhancement).
     /// </summary>
     private List<FunctionDef> RankConstructorsByTypeCompatibility(
-        ObjectInitializerExp ctx, 
+        ObjectInitializerExp ctx,
         List<FunctionDef> candidates)
     {
         // For now, we implement exact type matching only
         // Full type compatibility checking (convertible/widening) requires
         // type inference to be complete and is deferred as Phase 5 enhancement
-        
+
         var exactMatches = new List<FunctionDef>();
-        
+
         foreach (var ctor in candidates)
         {
             bool isExactMatch = true;
@@ -169,7 +182,7 @@ public class ConstructorResolver : DefaultRecursiveDescentVisitor
             {
                 var paramType = ctor.Params[i].Type.Name.Value;
                 var argType = GetArgumentTypeName(ctx.ConstructorArguments[i]);
-                
+
                 if (paramType != argType && argType != "unknown")
                 {
                     // Not an exact match
@@ -177,7 +190,7 @@ public class ConstructorResolver : DefaultRecursiveDescentVisitor
                     break;
                 }
             }
-            
+
             if (isExactMatch)
             {
                 exactMatches.Add(ctor);
@@ -229,13 +242,13 @@ public class ConstructorResolver : DefaultRecursiveDescentVisitor
     private bool SignaturesMatch(List<ParamDef> params1, List<ParamDef> params2)
     {
         if (params1.Count != params2.Count) return false;
-        
+
         for (int i = 0; i < params1.Count; i++)
         {
             if (params1[i].Type.Name.Value != params2[i].Type.Name.Value)
                 return false;
         }
-        
+
         return true;
     }
 
@@ -248,7 +261,7 @@ public class ConstructorResolver : DefaultRecursiveDescentVisitor
 
     private void EmitCTOR002(ObjectInitializerExp ctx, string className, List<FunctionDef> candidates)
     {
-        var signatures = string.Join("; ", candidates.Select(c => 
+        var signatures = string.Join("; ", candidates.Select(c =>
             $"{className}({string.Join(", ", c.Params.Select(p => $"{p.Type.Name.Value}"))})"));
         _diagnostics?.Add(ConstructorDiagnostics.AmbiguousConstructor(
             className, signatures));

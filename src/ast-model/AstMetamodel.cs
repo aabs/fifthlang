@@ -503,6 +503,7 @@ public record InferenceRuleDef : Definition
 public record ParamDef : Definition
 {
     public required TypeName TypeName { get; init; }
+    public required CollectionType CollectionType { get; init; }
     public required string Name { get; init; }
     public required Expression? ParameterConstraint { get; set; }
     public required ParamDestructureDef? DestructureDef { get; set; }
@@ -860,7 +861,7 @@ public record TriGLiteralExpression : Expression
     /// Whitespace and newlines are preserved as-is.
     /// </summary>
     public required string Content { get; set; }
-    
+
     /// <summary>
     /// List of interpolated expressions found in the literal.
     /// Each entry maps a placeholder position to the expression to be evaluated.
@@ -877,13 +878,13 @@ public record InterpolatedExpression : AstThing
     /// The expression to be evaluated and serialized into the TriG content.
     /// </summary>
     public required Expression Expression { get; set; }
-    
+
     /// <summary>
     /// Position in the Content string where this interpolation starts.
     /// Used for diagnostic reporting.
     /// </summary>
     public int Position { get; set; }
-    
+
     /// <summary>
     /// Length of the interpolation placeholder in the original source.
     /// </summary>
@@ -907,13 +908,13 @@ public record SparqlLiteralExpression : Expression
     /// Includes variable placeholders and interpolation markers.
     /// </summary>
     public required string SparqlText { get; init; }
-    
+
     /// <summary>
     /// Variable bindings discovered during resolution.
     /// Populated by SparqlVariableBindingVisitor.
     /// </summary>
     public List<VariableBinding> Bindings { get; init; } = new();
-    
+
     /// <summary>
     /// Interpolation sites ({{expr}}) for computed value injection.
     /// Populated during parsing if interpolation syntax is present.
@@ -931,26 +932,26 @@ public record VariableBinding : AstThing
     /// Variable name as it appears in SPARQL text.
     /// </summary>
     public required string Name { get; init; }
-    
+
     /// <summary>
     /// Resolved Fifth variable reference.
     /// Set by SparqlVariableBindingVisitor after symbol table lookup.
     /// Null if resolution failed (diagnostic emitted).
     /// </summary>
     public Expression? ResolvedExpression { get; set; }
-    
+
     /// <summary>
     /// Inferred Fifth type.
     /// Set by TypeAnnotationVisitor.
     /// Used to determine RDF node type during lowering.
     /// </summary>
     public FifthType? Type { get; set; }
-    
+
     /// <summary>
     /// Position within SPARQL text for diagnostics (character offset).
     /// </summary>
     public int PositionInLiteral { get; init; }
-    
+
     /// <summary>
     /// Length of the variable name in SPARQL text.
     /// </summary>
@@ -968,19 +969,19 @@ public record Interpolation : AstThing
     /// Index of the first '{' in '{{'...'}'.
     /// </summary>
     public required int Position { get; init; }
-    
+
     /// <summary>
     /// Length of interpolation region (including {{ }}).
     /// Used to replace placeholder during lowering.
     /// </summary>
     public required int Length { get; init; }
-    
+
     /// <summary>
     /// Fifth expression to evaluate and inject.
     /// Must be constant or simple variable reference (enforced during type checking).
     /// </summary>
     public required Expression Expression { get; init; }
-    
+
     /// <summary>
     /// Result type after evaluation.
     /// Set by TypeAnnotationVisitor.
@@ -1015,13 +1016,13 @@ public record QueryApplicationExp : Expression
     /// Typically a SparqlLiteralExpression (?&lt;...>) or variable reference.
     /// </summary>
     public required Expression Query { get; init; }
-    
+
     /// <summary>
     /// Store expression (right-hand side). Must evaluate to a SPARQL-queryable Store type.
     /// Typically a variable reference, member access, or function call returning Store.
     /// </summary>
     public required Expression Store { get; init; }
-    
+
     /// <summary>
     /// Inferred Result type. Set by QueryApplicationTypeCheckVisitor.
     /// Result is a discriminated union (TabularResult | GraphResult | BooleanResult).

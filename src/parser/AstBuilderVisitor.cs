@@ -169,7 +169,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var b = new ClassDefBuilder();
         var className = context.name.Text;
-        
+
         // Process constructors
         foreach (var cctx in context._constructors)
         {
@@ -187,7 +187,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             };
             b.AddingItemToMemberDefs(methodMember);
         }
-        
+
         foreach (var fctx in context._functions)
         {
             var f = (FunctionDef)Visit(fctx);
@@ -214,7 +214,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         b.WithVisibility(Visibility.Public);
         b.WithName(TypeName.From(context.name.Text));
         b.WithAnnotations([]);
-        
+
         // Parse type parameters if present (T020)
         if (context.type_parameter_list() != null)
         {
@@ -224,7 +224,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 b.AddingItemToTypeParameters(tp);
             }
         }
-        
+
         // Set optional features prior to building so they appear in the result
         if (context.superClass is not null)
         {
@@ -244,7 +244,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         };
         return result;
     }
-    
+
     // Helper method to parse type parameters from grammar context (T021-T022)
     private List<TypeParameterDef> ParseTypeParameterList(FifthParser.Type_parameter_listContext context)
     {
@@ -506,7 +506,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var queryExpr = (Expression)Visit(context.query);
         var storeExpr = (Expression)Visit(context.store);
-        
+
         var result = new QueryApplicationExp
         {
             Query = queryExpr,
@@ -517,7 +517,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             Annotations = [],
             Parent = null
         };
-        
+
         return result;
     }
 
@@ -561,7 +561,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     private (Operator op, Dictionary<string, object> annotations) GetUnaryOperatorAndAnnotations(int tokenType, bool isPostfix)
     {
         var annotations = new Dictionary<string, object>();
-        
+
         var op = tokenType switch
         {
             FifthParser.PLUS => Operator.ArithmeticAdd,
@@ -590,8 +590,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     /// <summary>
     /// Helper method to build a UnaryExp from operator, annotations, and operand.
     /// </summary>
-    private UnaryExp BuildUnaryExpression(Operator op, Dictionary<string, object> annotations, 
-                                          FifthParser.ExpressionContext operandContext, 
+    private UnaryExp BuildUnaryExpression(Operator op, Dictionary<string, object> annotations,
+                                          FifthParser.ExpressionContext operandContext,
                                           ParserRuleContext locationContext)
     {
         var b = new UnaryExpBuilder()
@@ -758,7 +758,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             .WithAnnotations([])
             .WithVisibility(Visibility.Public) // todo: grammar needs support for member visibility
             ;
-        
+
         // Parse type parameters if present (T038)
         if (context.type_parameter_list() != null)
         {
@@ -768,7 +768,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 b.AddingItemToTypeParameters(tp);
             }
         }
-        
+
         foreach (var paramdeclContext in context.paramdecl())
         {
             b.AddingItemToParams((ParamDef)VisitParamdecl(paramdeclContext));
@@ -789,24 +789,24 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             .WithVisibility(Visibility.Public)
             .WithIsStatic(false)
             .WithIsConstructor(true);  // Mark as constructor
-        
+
         // Constructors do not have type parameters (per spec FR-CTOR-003)
         // They can only reference class-level type parameters
-        
+
         foreach (var paramdeclContext in context.paramdecl())
         {
             b.AddingItemToParams((ParamDef)VisitParamdecl(paramdeclContext));
         }
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
-        
+
         // Handle base constructor call if present
         if (context.base_constructor_call() != null)
         {
             var baseCall = (BaseConstructorCall)VisitBase_constructor_call(context.base_constructor_call());
             result = result with { BaseCall = baseCall };
         }
-        
+
         return result;
     }
 
@@ -821,7 +821,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             Location = GetLocationDetails(context),
             Type = Void
         };
-        
+
         // Parse base constructor arguments
         if (context.expression() != null)
         {
@@ -830,7 +830,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 baseCall.Arguments.Add((Expression)Visit(exprContext));
             }
         }
-        
+
         return baseCall;
     }
 
@@ -975,9 +975,9 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var contentBuilder = new StringBuilder();
         var interpolations = new List<InterpolatedExpression>();
         int contentPosition = 0;
-        
+
         var contentTokens = context.trigLiteralContent();
-        
+
         foreach (var contentCtx in contentTokens)
         {
             // Check if this is an interpolation
@@ -992,7 +992,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                     // We'll use a special marker that the lowering pass will replace
                     var placeholder = $"{{{{__INTERP_{interpolations.Count}__}}}}";
                     contentBuilder.Append(placeholder);
-                    
+
                     // Record the interpolation
                     interpolations.Add(new InterpolatedExpression
                     {
@@ -1003,12 +1003,12 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                         Parent = null,
                         Annotations = []
                     });
-                    
+
                     contentPosition += placeholder.Length;
                 }
                 continue;
             }
-            
+
             // Check for escaped braces
             var escapedOpen = contentCtx.TRIG_ESCAPED_OPEN();
             if (escapedOpen != null)
@@ -1018,7 +1018,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 contentPosition += 2;
                 continue;
             }
-            
+
             var escapedClose = contentCtx.TRIG_ESCAPED_CLOSE();
             if (escapedClose != null)
             {
@@ -1027,15 +1027,15 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 contentPosition += 2;
                 continue;
             }
-            
+
             // Regular content - append as-is
             var text = contentCtx.GetText();
             contentBuilder.Append(text);
             contentPosition += text.Length;
         }
-        
+
         var trigContent = contentBuilder.ToString();
-        
+
         // Create the TriGLiteralExpression AST node
         return new TriGLiteralExpression
         {
@@ -1061,9 +1061,9 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var textBuilder = new StringBuilder();
         var interpolations = new List<Interpolation>();
         int currentPosition = 0;
-        
+
         var contentTokens = context.sparqlLiteralContent();
-        
+
         foreach (var contentCtx in contentTokens)
         {
             // Check if this is an interpolation
@@ -1078,7 +1078,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                     // We'll use a special marker that the lowering pass will replace
                     var placeholder = $"{{{{__SPARQL_INTERP_{interpolations.Count}__}}}}";
                     textBuilder.Append(placeholder);
-                    
+
                     // Record the interpolation
                     interpolations.Add(new Interpolation
                     {
@@ -1089,20 +1089,20 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                         Parent = null,
                         Annotations = []
                     });
-                    
+
                     currentPosition += placeholder.Length;
                 }
                 continue;
             }
-            
+
             // Regular content - append as-is
             var text = contentCtx.GetText();
             textBuilder.Append(text);
             currentPosition += text.Length;
         }
-        
+
         var sparqlText = textBuilder.ToString();
-        
+
         // Check size limit: 1MB
         const int MaxSizeBytes = 1024 * 1024; // 1MB
         var sizeBytes = System.Text.Encoding.UTF8.GetByteCount(sparqlText);
@@ -1111,7 +1111,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             // Emit diagnostic SPARQL006 - oversized literal
             System.Console.Error.WriteLine($"Warning: SPARQL006: SPARQL literal exceeds 1MB size limit ({sizeBytes} bytes); consider using external file at {GetLocationDetails(context)}");
         }
-        
+
         // Create the SparqlLiteralExpression AST node
         return new SparqlLiteralExpression
         {
@@ -1245,6 +1245,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 .WithAnnotations([])
                 .WithName(context.var_name().GetText())
                 .WithTypeName(TypeName.From(context.type_name().GetText()))
+                .WithCollectionType(CollectionType.SingleInstance)
             ;
         if (context.destructuring_decl() is not null)
         {
@@ -1867,7 +1868,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             var finallyBlockAst = (BlockStatement)Visit(context.finallyBlock);
             result = result with { FinallyBlock = finallyBlockAst };
         }
-        
+
         return result;
     }
 

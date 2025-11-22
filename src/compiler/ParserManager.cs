@@ -74,7 +74,11 @@ public static class FifthParserManager
             ast = new BuiltinInjectorVisitor().Visit(ast);
 
         if (upTo >= AnalysisPhase.ClassCtors)
+        {
             ast = new ClassCtorInserter(diagnostics).Visit(ast);
+            // Re-link tree after inserting constructors as they are new nodes with null parents
+            ast = new TreeLinkageVisitor().Visit(ast);
+        }
 
         if (upTo >= AnalysisPhase.ConstructorValidation)
             ast = new SemanticAnalysis.ConstructorValidator(diagnostics).Visit(ast);
@@ -99,7 +103,7 @@ public static class FifthParserManager
                 }
             }
         }
-        
+
         // Base constructor validation (CTOR004, CTOR008) happens AFTER definite assignment
         if (upTo >= AnalysisPhase.BaseConstructorValidation)
         {
@@ -324,7 +328,7 @@ public static class FifthParserManager
                 // Early exit - return null to indicate transform failure
                 return null;
             }
-            
+
             // Validate try/catch/finally constructs
             ast = new compiler.LanguageTransformations.TryCatchFinallyValidationVisitor(diagnostics).Visit(ast);
             if (diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
@@ -340,7 +344,7 @@ public static class FifthParserManager
             var rewriter = new QueryApplicationTypeCheckRewriter(diagnostics);
             var result = rewriter.Rewrite(ast);
             ast = result.Node;
-            
+
             if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
             {
                 return null;

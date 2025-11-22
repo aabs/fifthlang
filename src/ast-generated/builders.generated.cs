@@ -820,6 +820,7 @@ public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
 public class ParamDefBuilder : IBuilder<ast.ParamDef>
 {
     private ast_model.TypeSystem.TypeName _TypeName;
+    private ast.CollectionType _CollectionType;
     private System.String _Name;
     private ast.Expression _ParameterConstraint;
     private ast.ParamDestructureDef _DestructureDef;
@@ -830,6 +831,7 @@ public class ParamDefBuilder : IBuilder<ast.ParamDef>
     {
         return new ast.ParamDef(){
              TypeName = this._TypeName // from ParamDef
+           , CollectionType = this._CollectionType // from ParamDef
            , Name = this._Name // from ParamDef
            , ParameterConstraint = this._ParameterConstraint // from ParamDef
            , DestructureDef = this._DestructureDef // from ParamDef
@@ -839,6 +841,11 @@ public class ParamDefBuilder : IBuilder<ast.ParamDef>
     }
     public ParamDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
         _TypeName = value;
+        return this;
+    }
+
+    public ParamDefBuilder WithCollectionType(ast.CollectionType value){
+        _CollectionType = value;
         return this;
     }
 

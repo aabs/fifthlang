@@ -13,7 +13,7 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
         WrapType(typeof(Fifth.System.Math));
         // Register knowledge graph helpers so lowering/codegen can reference them later
         WrapType(typeof(Fifth.System.KG));
-        
+
         // Register KG wrapper types as globally available predeclared types
         // Per FR-002: graph, triple, and store are globally available (no imports required)
         RegisterKGTypes();
@@ -24,7 +24,7 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
         // ("value", "string")));
         return base.VisitAssemblyDef(ctx);
     }
-    
+
     /// <summary>
     /// Registers the Fifth.System KG wrapper types as globally available predeclared types.
     /// These types (graph, triple, store) can be used without importing Fifth.System.
@@ -33,33 +33,33 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
     {
         // Register Graph type - both "Graph" (C# name) and "graph" (Fifth name)
         var graphType = typeof(Fifth.System.Graph);
-        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(graphType) 
-            { Name = TypeName.From(graphType.FullName) });
-        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(graphType) 
-            { Name = TypeName.From(graphType.Name) });
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(graphType)
+        { Name = TypeName.From(graphType.FullName) });
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(graphType)
+        { Name = TypeName.From(graphType.Name) });
         // Lowercase binding for Fifth source code
-        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(graphType) 
-            { Name = TypeName.From("graph") });
-            
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(graphType)
+        { Name = TypeName.From("graph") });
+
         // Register Triple type - both "Triple" (C# name) and "triple" (Fifth name)
         var tripleType = typeof(Fifth.System.Triple);
-        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(tripleType) 
-            { Name = TypeName.From(tripleType.FullName) });
-        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(tripleType) 
-            { Name = TypeName.From(tripleType.Name) });
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(tripleType)
+        { Name = TypeName.From(tripleType.FullName) });
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(tripleType)
+        { Name = TypeName.From(tripleType.Name) });
         // Lowercase binding for Fifth source code
-        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(tripleType) 
-            { Name = TypeName.From("triple") });
-            
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(tripleType)
+        { Name = TypeName.From("triple") });
+
         // Register Store type - both "Store" (C# name) and "store" (Fifth name)
         var storeType = typeof(Fifth.System.Store);
-        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(storeType) 
-            { Name = TypeName.From(storeType.FullName) });
-        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(storeType) 
-            { Name = TypeName.From(storeType.Name) });
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(storeType)
+        { Name = TypeName.From(storeType.FullName) });
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(storeType)
+        { Name = TypeName.From(storeType.Name) });
         // Lowercase binding for Fifth source code
-        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(storeType) 
-            { Name = TypeName.From("store") });
+        TypeRegistry.DefaultRegistry.Register(new FifthType.TDotnetType(storeType)
+        { Name = TypeName.From("store") });
     }
 
     public FieldDef WrapField(FieldReflector fi)
@@ -106,6 +106,7 @@ public class BuiltinInjectorVisitor : DefaultRecursiveDescentVisitor
                 builder.AddingItemToParams(new ParamDefBuilder()
                                                .WithName(pi.Name)
                                                .WithTypeName(TypeName.From(nt.TheType.Name))
+                                               .WithCollectionType(CollectionType.SingleInstance) // Default to single instance for now
                                                .Build()
                 );
             }

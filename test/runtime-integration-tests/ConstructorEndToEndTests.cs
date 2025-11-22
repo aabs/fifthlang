@@ -114,7 +114,7 @@ public class ConstructorEndToEndTests : RuntimeTestBase
                 }
             }
             
-            class Dog {
+            class Dog extends Animal {
                 Name: string;
                 
                 Dog(name: string) : base(4) {
@@ -248,7 +248,7 @@ public class ConstructorEndToEndTests : RuntimeTestBase
                 }
                 
                 GetBonus(): int {
-                    return this.Salary / 10;
+                    return this.Salary / 1000;
                 }
             }
 
@@ -262,8 +262,8 @@ public class ConstructorEndToEndTests : RuntimeTestBase
         var executablePath = await CompileSourceAsync(fifthCode);
         var result = await ExecuteAsync(executablePath);
 
-        // Assert - Salary=50000, bonus=5000
-        result.ExitCode.Should().Be(5000, "Method should use constructor-initialized field: 50000/10 = 5000");
+        // Assert - Salary=50000, bonus=50
+        result.ExitCode.Should().Be(50, "Method should use constructor-initialized field: 50000/1000 = 50");
     }
 
     [Test]

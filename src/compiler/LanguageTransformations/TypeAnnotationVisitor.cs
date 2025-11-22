@@ -267,14 +267,14 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
                          new FifthType.TDotnetType(typeof(int)) { Name = TypeName.From("int") };
         }
 
-        // Create the array type (lists are always arrays in Fifth currently)
-        var arrayTypeResult = new FifthType.TArrayOf(elementType)
+        // Create the list type (lists are the default collection type in Fifth)
+        var listTypeResult = new FifthType.TListOf(elementType)
         {
-            Name = TypeName.From($"{GetTypeName(elementType)}[]")
+            Name = TypeName.From($"List<{GetTypeName(elementType)}>")
         };
 
-        OnTypeInferred(result, arrayTypeResult);
-        return result with { Type = arrayTypeResult };
+        OnTypeInferred(result, listTypeResult);
+        return result with { Type = listTypeResult };
     }
 
     /// <summary>
