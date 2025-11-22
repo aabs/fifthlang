@@ -18,9 +18,9 @@ Remove the Graph Assertion Block (GAB) language construct entirely while preserv
 -->
 
 **Language/Version**: C# 14 (per constitution)  
-**Primary Dependencies**: ANTLR 4.8 runtime; internal AST generator; TUnit + FluentAssertions  
+**Primary Dependencies**: ANTLR 4.8 runtime; internal AST generator; xUnit + FluentAssertions  
 **Storage**: N/A  
-**Testing**: TUnit test projects (`test/syntax-parser-tests`, `test/runtime-integration-tests`, `test/kg-smoke-tests`)  
+**Testing**: xUnit test projects (`test/syntax-parser-tests`, `test/runtime-integration-tests`, `test/kg-smoke-tests`)  
 **Target Platform**: .NET 8 CLI tools on macOS/Linux  
 **Project Type**: Multi-project .NET solution (compiler, parser, generator, tests)  
 **Performance Goals**: No change from baseline; parse/build times remain within documented guidance  

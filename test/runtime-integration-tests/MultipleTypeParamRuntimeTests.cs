@@ -8,7 +8,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class MultipleTypeParamRuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task Class_With_Two_Type_Parameters_Compiles()
     {
         // Arrange
@@ -34,7 +34,7 @@ public class MultipleTypeParamRuntimeTests : RuntimeTestBase
         result.ExitCode.Should().Be(0);
     }
 
-    [Test]
+    [Fact]
     public async Task Function_With_Three_Type_Parameters_Compiles()
     {
         // Arrange
@@ -58,7 +58,7 @@ public class MultipleTypeParamRuntimeTests : RuntimeTestBase
         result.ExitCode.Should().Be(0);
     }
 
-    [Test]
+    [Fact]
     public async Task Dictionary_With_Key_Value_Type_Parameters_Compiles()
     {
         // Arrange

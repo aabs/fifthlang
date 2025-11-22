@@ -3,13 +3,13 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using TUnit;
+using FluentAssertions;
 
 namespace Validation.Guards.Traceability
 {
     public class TraceabilityCoverageTests
     {
-        [Test]
+        [Fact]
         public async Task TraceabilityJson_ShouldContainAllFRandACKeys_AndReferenceExistingTests()
         {
             var repoRoot = Directory.GetCurrentDirectory();
@@ -25,7 +25,7 @@ namespace Validation.Guards.Traceability
             var primary = Path.Combine(dir.FullName, "specs", "002-guard-clause-overload-completeness", "traceability.json");
             var fallback = Path.Combine(dir.FullName, "specs", "completed-002-guard-clause-overload-completeness", "traceability.json");
             var tracePath = File.Exists(primary) ? primary : fallback;
-            await Assert.That(File.Exists(tracePath)).IsTrue();
+            File.Exists(tracePath).Should().BeTrue();
 
             using var fs = File.OpenRead(tracePath);
             var doc = JsonDocument.Parse(fs);
@@ -38,17 +38,17 @@ namespace Validation.Guards.Traceability
             for (int i = 1; i <= frTotal; ++i)
             {
                 var key = $"FR-{i:D3}";
-                await Assert.That(frRoot.TryGetProperty(key, out var entry)).IsTrue();
+                frRoot.TryGetProperty(key, out var entry).Should().BeTrue();
                 // Ensure 'tests' property exists and is an array
-                await Assert.That(entry.TryGetProperty("tests", out var testsProp) && testsProp.ValueKind == JsonValueKind.Array).IsTrue();
+                (entry.TryGetProperty("tests", out var testsProp) && testsProp.ValueKind == JsonValueKind.Array).Should().BeTrue();
 
                 bool anyMapped = false;
                 foreach (var t in testsProp.EnumerateArray())
                 {
                     var testName = t.GetString();
-                    await Assert.That(string.IsNullOrWhiteSpace(testName)).IsFalse();
+                    string.IsNullOrWhiteSpace(testName).Should().BeFalse();
                     bool found = SearchForTestInRepo(dir.FullName, testName!);
-                    await Assert.That(found).IsTrue();
+                    found.Should().BeTrue();
                     anyMapped = true;
                 }
 
@@ -62,16 +62,16 @@ namespace Validation.Guards.Traceability
             for (int i = 1; i <= acTotal; ++i)
             {
                 var key = $"AC-{i:D3}";
-                await Assert.That(acRoot.TryGetProperty(key, out var entry)).IsTrue();
-                await Assert.That(entry.TryGetProperty("tests", out var testsProp) && testsProp.ValueKind == JsonValueKind.Array).IsTrue();
+                acRoot.TryGetProperty(key, out var entry).Should().BeTrue();
+                (entry.TryGetProperty("tests", out var testsProp) && testsProp.ValueKind == JsonValueKind.Array).Should().BeTrue();
 
                 bool anyMapped = false;
                 foreach (var t in testsProp.EnumerateArray())
                 {
                     var testName = t.GetString();
-                    await Assert.That(string.IsNullOrWhiteSpace(testName)).IsFalse();
+                    string.IsNullOrWhiteSpace(testName).Should().BeFalse();
                     bool found = SearchForTestInRepo(dir.FullName, testName!);
-                    await Assert.That(found).IsTrue();
+                    found.Should().BeTrue();
                     anyMapped = true;
                 }
 
@@ -90,8 +90,8 @@ namespace Validation.Guards.Traceability
             double acThreshold = GetThreshold("TRACEABILITY_AC_THRESHOLD", 0.30);
             int frRequired = (int)Math.Ceiling(frThreshold * frTotal);
             int acRequired = (int)Math.Ceiling(acThreshold * acTotal);
-            await Assert.That(frMappedCount).IsGreaterThanOrEqualTo(frRequired);
-            await Assert.That(acMappedCount).IsGreaterThanOrEqualTo(acRequired);
+            frMappedCount.Should().BeGreaterThanOrEqualTo(frRequired);
+            acMappedCount.Should().BeGreaterThanOrEqualTo(acRequired);
         }
 
         static double GetThreshold(string envVar, double fallback)

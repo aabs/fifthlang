@@ -1,4 +1,4 @@
-using TUnit.Core;
+using Xunit;
 using FluentAssertions;
 using ast;
 using ast_model.TypeSystem;
@@ -9,7 +9,7 @@ namespace ast_tests.Validation.Guards.Determinism;
 
 public class DeterminismHashTests
 {
-    [Test]
+    [Fact]
     public void DiagnosticsSignature_ShouldBeDeterministicAcrossTwoRuns()
     {
         // Create a function with multiple diagnostic scenarios to test deterministic ordering

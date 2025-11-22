@@ -2,10 +2,10 @@ using FluentAssertions;
 
 namespace runtime_integration_tests;
 
-[Category("KG")]
+[Trait("Category", "KG")]
 public class KG_Builtins_RuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task KG_CreateGraph_And_ConnectToRemoteStore_ShouldCompileAndRun()
     {
         var src = """

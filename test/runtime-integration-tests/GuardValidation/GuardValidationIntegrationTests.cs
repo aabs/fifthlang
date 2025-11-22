@@ -1,5 +1,5 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 using compiler;
 
 namespace runtime_integration_tests.GuardValidation;
@@ -43,7 +43,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
         return result;
     }
 
-    [Test]
+    [Fact]
     public async Task CompleteGuards_ShouldCompileWithoutErrors()
     {
         // Arrange
@@ -60,7 +60,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task IncompleteGuards_ShouldFailCompilation()
     {
         // Arrange
@@ -72,7 +72,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
             .Where(ex => ex.Message.Contains("Compilation failed") && ex.Message.Contains("GUARD_INCOMPLETE (E1001)"));
     }
 
-    [Test]
+    [Fact]
     public async Task UnreachableGuards_ShouldCompileWithWarnings()
     {
         // Arrange - Use direct compiler to access diagnostics
@@ -99,7 +99,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
         warnings[0].Message.Should().Contain("GUARD_UNREACHABLE (W1002)");
     }
 
-    [Test]
+    [Fact]
     public async Task ValidatedFunction_ShouldHaveValidationMetrics()
     {
         // Arrange
@@ -117,7 +117,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
         // which may need to be added as part of the implementation
     }
 
-    [Test]
+    [Fact]
     public async Task MissingBase_ShouldFailWithE1001()
     {
         var src = LoadSourceFromRepo("missing_base.5th");
@@ -126,7 +126,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
             .Where(ex => ex.Message.Contains("GUARD_INCOMPLETE (E1001)"));
     }
 
-    [Test]
+    [Fact]
     public async Task BooleanExhaustive_ShouldCompileSuccessfully()
     {
         var src = LoadSourceFromRepo("boolean_exhaustive.5th");
@@ -134,7 +134,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
         File.Exists(executablePath).Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public async Task MultipleBase_ShouldFailWithE1005()
     {
         var src = LoadSourceFromRepo("multiple_base.5th");
@@ -143,7 +143,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
             .Where(ex => ex.Message.Contains("GUARD_MULTIPLE_BASE (E1005)"));
     }
 
-    [Test]
+    [Fact]
     public async Task BaseNotLast_ShouldReportE1004AndE1001()
     {
         var src = LoadSourceFromRepo("base_not_last.5th");
@@ -152,7 +152,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
             .Where(ex => ex.Message.Contains("GUARD_BASE_NOT_LAST (E1004)") && ex.Message.Contains("GUARD_INCOMPLETE (E1001)"));
     }
 
-    [Test]
+    [Fact]
     public async Task DuplicateUnreachable_ShouldWarnW1002()
     {
         var src = LoadSourceFromRepo("duplicate_unreachable.5th");
@@ -163,7 +163,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
         result.Diagnostics.Should().Contain(d => d.Message.Contains("GUARD_UNREACHABLE (W1002)"));
     }
 
-    [Test]
+    [Fact]
     public async Task IntervalSubsumed_ShouldWarnW1002()
     {
         var src = LoadSourceFromRepo("interval_subsumed.5th");
@@ -173,7 +173,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
         result.Diagnostics.Should().Contain(d => d.Message.Contains("GUARD_UNREACHABLE (W1002)"));
     }
 
-    [Test]
+    [Fact]
     public async Task ExplosionIncomplete_ShouldReportW1102AndE1001()
     {
         var src = LoadSourceFromRepo("explosion_incomplete.5th");
@@ -183,7 +183,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
         // Unknown explosion may be reported as a warning alongside the error; we validate E1001 at minimum
     }
 
-    [Test]
+    [Fact]
     public async Task OverloadCount_ShouldWarnW1101()
     {
         var src = LoadSourceFromRepo("overload_count.5th");
@@ -193,7 +193,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
         result.Diagnostics.Should().Contain(d => d.Message.Contains("GUARD_OVERLOAD_COUNT (W1101)"));
     }
 
-    [Test]
+    [Fact]
     public async Task TautologyBaseEquivalence_ShouldFailWithE1005()
     {
         var src = LoadSourceFromRepo("tautology_base_equivalence.5th");
@@ -204,7 +204,7 @@ public class GuardValidationIntegrationTests : RuntimeTestBase
             .Where(ex => ex.Message.Contains("GUARD_MULTIPLE_BASE (E1005)"));
     }
 
-    [Test]
+    [Fact]
     public async Task EmptyVsDuplicate_ShouldReportEmptyPrecedence()
     {
         var src = LoadSourceFromRepo("empty_vs_duplicate.5th");

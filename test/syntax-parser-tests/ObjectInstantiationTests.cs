@@ -4,7 +4,7 @@ namespace syntax_parser_tests;
 
 public class ObjectInstantiationTests
 {
-    [Test]
+    [Fact]
     public void NewKeyword_WithNoArguments_ShouldParse()
     {
         var input = @"
@@ -16,7 +16,7 @@ CreatePerson(): Person {
             "new keyword with no arguments should parse");
     }
 
-    [Test]
+    [Fact]
     public void NewKeyword_WithArguments_ShouldParse()
     {
         var input = @"
@@ -28,7 +28,7 @@ CreatePerson(): Person {
             "new keyword with arguments should parse");
     }
 
-    [Test]
+    [Fact]
     public void NewKeyword_WithPropertyInitializers_ShouldParse()
     {
         var input = @"
@@ -43,7 +43,7 @@ CreatePerson(): Person {
             "new keyword with property initializers should parse");
     }
 
-    [Test]
+    [Fact]
     public void NewKeyword_WithArgumentsAndProperties_ShouldParse()
     {
         var input = @"
@@ -57,7 +57,7 @@ CreatePerson(): Person {
             "new keyword with both arguments and property initializers should parse");
     }
 
-    [Test]
+    [Fact]
     public void NewKeyword_InReturnStatement_ShouldParse()
     {
         var input = @"
@@ -69,7 +69,7 @@ CreatePerson(): Person {
             "new keyword in return statement should parse");
     }
 
-    [Test]
+    [Fact]
     public void NewKeyword_NestedInstantiation_ShouldParse()
     {
         var input = @"

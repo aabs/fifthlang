@@ -6,7 +6,7 @@ namespace kg_smoke_tests;
 
 public class KG_Negative_SmokeTests
 {
-    [Test]
+    [Fact]
     public async Task SaveGraph_NoArguments_ShouldFailToCompile()
     {
         var src = """
@@ -35,7 +35,7 @@ public class KG_Negative_SmokeTests
         result.Success.Should().BeFalse("Calling SaveGraph with no args should not resolve an overload");
     }
 
-    [Test]
+    [Fact]
     public async Task SaveGraph_WrongSecondArgType_ShouldFailToCompile()
     {
         var src = """
@@ -64,7 +64,7 @@ public class KG_Negative_SmokeTests
         result.Success.Should().BeFalse("Second argument must be an IGraph; int should fail");
     }
 
-    [Test]
+    [Fact]
     public async Task CreateTriple_WithStrings_ShouldFailToCompile()
     {
         var src = """
@@ -93,7 +93,7 @@ public class KG_Negative_SmokeTests
         result.Success.Should().BeFalse("CreateTriple requires INode arguments; strings should fail");
     }
 
-    [Test]
+    [Fact]
     public async Task SyntaxError_MissingParen_ShouldFailToCompile()
     {
         var src = """

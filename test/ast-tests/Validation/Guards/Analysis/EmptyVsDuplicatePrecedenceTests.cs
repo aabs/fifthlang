@@ -1,4 +1,4 @@
-using TUnit.Core;
+using Xunit;
 using FluentAssertions;
 using ast;
 using compiler.Validation.GuardValidation;
@@ -9,7 +9,7 @@ namespace ast_tests.Validation.Guards.Analysis;
 
 public class EmptyVsDuplicatePrecedenceTests
 {
-    [Test]
+    [Fact]
     public void EmptyInterval_ShouldTakePrecedenceOverDuplicate()
     {
         // First overload has an empty interval: x > 5 && x <= 5

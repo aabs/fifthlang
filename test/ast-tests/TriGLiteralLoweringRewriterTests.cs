@@ -11,12 +11,12 @@ namespace ast_tests;
 /// Tests validate that TriG literals are correctly lowered to Store.LoadFromTriG() calls
 /// with proper string concatenation for interpolations.
 /// </summary>
-[Category("KG")]
-[Category("TriG")]
-[Category("Unit")]
+[Trait("Category", "KG")]
+[Trait("Category", "TriG")]
+[Trait("Category", "Unit")]
 public class TriGLiteralLoweringRewriterTests
 {
-    [Test]
+    [Fact]
     public void VisitTriGLiteralExpression_WithNoInterpolations_ShouldCreateStringLiteral()
     {
         // Arrange
@@ -45,7 +45,7 @@ public class TriGLiteralLoweringRewriterTests
         stringArg.Value.Should().Contain("ex:graph1", "Should contain the original TriG content");
     }
 
-    [Test]
+    [Fact]
     public void VisitTriGLiteralExpression_WithSingleInterpolation_ShouldCreateConcatenation()
     {
         // Arrange
@@ -89,7 +89,7 @@ public class TriGLiteralLoweringRewriterTests
         funcCall.InvocationArguments[0].Should().BeOfType<BinaryExp>("Should use string concatenation for interpolation");
     }
 
-    [Test]
+    [Fact]
     public void VisitTriGLiteralExpression_WithMultipleInterpolations_ShouldCreateChainedConcatenation()
     {
         // Arrange
@@ -147,7 +147,7 @@ public class TriGLiteralLoweringRewriterTests
         funcCall.InvocationArguments[0].Should().BeOfType<BinaryExp>("Should create chained concatenation");
     }
 
-    [Test]
+    [Fact]
     public void VisitTriGLiteralExpression_WithNumericInterpolation_ShouldNotQuote()
     {
         // Arrange - Numbers should not be wrapped in quotes
@@ -189,7 +189,7 @@ public class TriGLiteralLoweringRewriterTests
         funcCall.InvocationArguments[0].Should().BeOfType<BinaryExp>("Should concatenate number directly");
     }
 
-    [Test]
+    [Fact]
     public void VisitTriGLiteralExpression_WithStringInterpolation_ShouldAddQuotes()
     {
         // Arrange - Strings should be wrapped in RDF quotes
@@ -239,7 +239,7 @@ public class TriGLiteralLoweringRewriterTests
         binary.Operator.Should().Be(Operator.ArithmeticAdd, "Should use + for concatenation");
     }
 
-    [Test]
+    [Fact]
     public void VisitTriGLiteralExpression_ShouldPreservePrologue()
     {
         // Arrange
@@ -261,7 +261,7 @@ public class TriGLiteralLoweringRewriterTests
         result.Prologue.Should().BeEmpty("Simple literals shouldn't need prologue statements");
     }
 
-    [Test]
+    [Fact]
     public void VisitTriGLiteralExpression_ShouldSetStoreType()
     {
         // Arrange
@@ -284,7 +284,7 @@ public class TriGLiteralLoweringRewriterTests
         result.Node.Should().BeOfType<FuncCallExp>("Result should be a function call expression");
     }
 
-    [Test]
+    [Fact]
     public void VisitTriGLiteralExpression_ShouldPreserveLocationInfo()
     {
         // Arrange

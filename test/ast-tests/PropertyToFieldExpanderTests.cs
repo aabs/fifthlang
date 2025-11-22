@@ -8,7 +8,7 @@ namespace ast_tests;
 
 public class PropertyToFieldExpanderTests
 {
-    [Test]
+    [Fact]
         public void VisitPropertyDef_ShouldAddBackingField()
         {
             // Arrange
@@ -31,7 +31,7 @@ public class PropertyToFieldExpanderTests
             classDef!.MemberDefs.Should().Contain(m => m is FieldDef && ((FieldDef)m).Name == "TestProperty__BackingField");
         }
 
-        [Test]
+        [Fact]
         public void VisitPropertyDef_ShouldAddGetterMethod()
         {
             // Arrange
@@ -54,7 +54,7 @@ public class PropertyToFieldExpanderTests
             classDef!.MemberDefs.Should().Contain(m => m is MethodDef && ((MethodDef)m).Name == "get_TestProperty");
         }
 
-        [Test]
+        [Fact]
         public void VisitPropertyDef_ShouldAddSetterMethod()
         {
             // Arrange
@@ -77,7 +77,7 @@ public class PropertyToFieldExpanderTests
             classDef!.MemberDefs.Should().Contain(m => m is MethodDef && ((MethodDef)m).Name == "set_TestProperty");
         }
 
-        [Test]
+        [Fact]
         public void VisitPropertyDef_ShouldHandleNullPropertyDef()
         {
             // Arrange
@@ -87,7 +87,7 @@ public class PropertyToFieldExpanderTests
             FluentActions.Invoking(() => expander.VisitPropertyDef(null!)).Should().Throw<ArgumentNullException>();
         }
 
-        [Test]
+        [Fact]
         public void VisitPropertyDef_ShouldHandlePrivateProperty()
         {
             // Arrange
@@ -112,7 +112,7 @@ public class PropertyToFieldExpanderTests
             classDef.MemberDefs.Should().Contain(m => m is MethodDef && ((MethodDef)m).Name == "set_PrivateProperty");
         }
 
-        [Test]
+        [Fact]
         public void VisitPropertyDef_ShouldHandlePropertyWithoutParentClass()
         {
             // Arrange
@@ -128,7 +128,7 @@ public class PropertyToFieldExpanderTests
             FluentActions.Invoking(() => expander.VisitPropertyDef(propertyDef)).Should().Throw<InvalidOperationException>();
         }
 
-        [Test]
+        [Fact]
         public void VisitPropertyDef_ShouldHandleReadOnlyProperty()
         {
             // Arrange

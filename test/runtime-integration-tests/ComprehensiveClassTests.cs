@@ -8,7 +8,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class ComprehensiveClassTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task simple_class_ShouldReturn30()
     {
         // Arrange
@@ -25,7 +25,7 @@ public class ComprehensiveClassTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task class_with_function_ShouldReturn25()
     {
         // Arrange
@@ -42,7 +42,7 @@ public class ComprehensiveClassTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task destructuring_example_ShouldReturn112()
     {
         // Arrange

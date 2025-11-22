@@ -9,7 +9,7 @@ namespace ast_tests;
 
 public class OverloadGatheringVisitorTests : VisitorTestsBase
 {
-    [Test]
+    [Fact]
     public void Gather_ShouldGroupOverloadedFunctionsAndSubstituteThem()
     {
         // Arrange
@@ -29,7 +29,7 @@ public class OverloadGatheringVisitorTests : VisitorTestsBase
         classDef.MemberDefs.First().Should().BeOfType<OverloadedFunctionDefinition>();
     }
 
-    [Test]
+    [Fact]
     public void GatherOverloads_ShouldReturnGroupedMethodsByFunctionSignature()
     {
         // Arrange
@@ -47,7 +47,7 @@ public class OverloadGatheringVisitorTests : VisitorTestsBase
         result.First().Value.Count.Should().Be(2);
     }
 
-    [Test]
+    [Fact]
     public void SubstituteFunctionDefinitions_ShouldReplaceOldMethodsWithCombinedFunction()
     {
         // Arrange
@@ -70,7 +70,7 @@ public class OverloadGatheringVisitorTests : VisitorTestsBase
         classDef.MemberDefs.First().Should().BeSameAs(combinedFunction);
     }
 
-    [Test]
+    [Fact]
     public void VisitClassDef_ShouldCallGatherAndReturnBaseVisitClassDef()
     {
         // Arrange

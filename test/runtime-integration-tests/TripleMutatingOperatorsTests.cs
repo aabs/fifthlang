@@ -2,11 +2,11 @@ using FluentAssertions;
 
 namespace runtime_integration_tests;
 
-[Category("Triple")]
-[Category("Mutating")]
+[Trait("Category", "Triple")]
+[Trait("Category", "Mutating")]
 public class TripleMutatingOperatorsTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task Graph_PlusAssign_Triple_ShouldAddTripleToGraph()
     {
         var src = """
@@ -30,7 +30,7 @@ public class TripleMutatingOperatorsTests : RuntimeTestBase
         result.ExitCode.Should().Be(0, "g += triple should add the triple to the graph");
     }
 
-    [Test]
+    [Fact]
     public async Task Graph_MinusAssign_Triple_ShouldRemoveTripleFromGraph()
     {
         var src = """
@@ -61,7 +61,7 @@ public class TripleMutatingOperatorsTests : RuntimeTestBase
         result.ExitCode.Should().Be(0, "g -= triple should remove the triple from the graph");
     }
 
-    [Test]
+    [Fact]
     public async Task Graph_PlusAssign_MultipleTimes_ShouldAccumulateTriples()
     {
         var src = """
@@ -93,7 +93,7 @@ public class TripleMutatingOperatorsTests : RuntimeTestBase
         result.ExitCode.Should().Be(0, "g += triple (multiple times) should accumulate triples");
     }
 
-    [Test]
+    [Fact]
     public async Task Graph_MinusAssign_NonExistentTriple_ShouldBeIdempotent()
     {
         var src = """

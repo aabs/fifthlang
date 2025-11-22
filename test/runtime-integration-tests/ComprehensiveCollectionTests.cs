@@ -8,7 +8,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class ComprehensiveCollectionTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task list_access_ShouldReturn20()
     {
         // Arrange
@@ -25,7 +25,7 @@ public class ComprehensiveCollectionTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task array_sum_ShouldReturn15()
     {
         // Arrange

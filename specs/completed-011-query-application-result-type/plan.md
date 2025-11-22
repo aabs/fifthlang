@@ -14,9 +14,9 @@ Technical approach: Add `<-` token to lexer grammar, create Result discriminated
 ## Technical Context
 
 **Language/Version**: C# 14, .NET SDK 8.0.118 (per global.json)  
-**Primary Dependencies**: ANTLR 4.8 runtime (`Antlr4.Runtime.Standard`), dotNetRDF (`VDS.RDF.*`), RazorLight (code generation), TUnit + FluentAssertions (testing)  
+**Primary Dependencies**: ANTLR 4.8 runtime (`Antlr4.Runtime.Standard`), dotNetRDF (`VDS.RDF.*`), RazorLight (code generation), xUnit + FluentAssertions (testing)  
 **Storage**: In-memory RDF triple stores via dotNetRDF (`ITripleStore`, `TripleStore`)  
-**Testing**: TUnit with FluentAssertions; test projects: `test/syntax-parser-tests/`, `test/ast-tests/`, `test/runtime-integration-tests/`  
+**Testing**: xUnit with FluentAssertions; test projects: `test/syntax-parser-tests/`, `test/ast-tests/`, `test/runtime-integration-tests/`  
 **Target Platform**: Cross-platform .NET 8.0 (Linux, macOS, Windows)  
 **Project Type**: Single project (compiler + runtime library)  
 **Performance Goals**: 
@@ -108,7 +108,7 @@ Technical approach: Add `<-` token to lexer grammar, create Result discriminated
 ### Summary
 **Overall Status**: ✅ ALL GATES PASS
 
-No constitution violations. Feature aligns with Library-First principle (extends Fifth.System), follows AST transformation strategy (multi-pass lowering), maintains test discipline (TDD with TUnit), and adheres to grammar integrity (split lexer/parser with samples). Complexity justified by user value and semantic web domain requirements.
+No constitution violations. Feature aligns with Library-First principle (extends Fifth.System), follows AST transformation strategy (multi-pass lowering), maintains test discipline (TDD with xUnit), and adheres to grammar integrity (split lexer/parser with samples). Complexity justified by user value and semantic web domain requirements.
 
 ## Project Structure
 

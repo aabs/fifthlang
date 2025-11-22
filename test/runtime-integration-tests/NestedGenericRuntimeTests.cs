@@ -10,7 +10,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class NestedGenericRuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task Class_With_Generic_Field_Compiles()
     {
         // Arrange - Basic generic class with list field
@@ -35,7 +35,7 @@ public class NestedGenericRuntimeTests : RuntimeTestBase
         result.ExitCode.Should().Be(0);
     }
 
-    [Test]
+    [Fact]
     public async Task Multiple_Generic_Classes_Compile()
     {
         // Arrange - Demonstrates multiple generic types can coexist

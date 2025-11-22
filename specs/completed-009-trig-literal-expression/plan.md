@@ -12,7 +12,7 @@ Introduce a new surface syntax literal, the TriG Literal Expression, delimited b
 **Language/Version**: C# 14 on .NET 8.0 SDK (global.json pins 8.0.118)  
 **Primary Dependencies**: Antlr4 runtime; existing compiler/AST generator; dotNetRDF types for runtime store parsing (via Fifth.System integration)  
 **Storage**: In-memory RDF dataset (`Store`)  
-**Testing**: TUnit + FluentAssertions across parser, AST, and runtime integration test projects  
+**Testing**: xUnit + FluentAssertions across parser, AST, and runtime integration test projects  
 **Target Platform**: Cross-platform .NET 8 (macOS/Linux/Windows)
 **Project Type**: Multi-project .NET solution with generator and compiler pipeline  
 **Performance Goals**: Accept TriG literals up to ~100KB; full solution build time delta ≤ 5% versus baseline without the literal  

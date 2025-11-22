@@ -11,7 +11,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageReference Include="TUnit" Version="0.57.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
   </ItemGroup>
 
@@ -29,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="TUnit" />
+    <Using Include="Xunit" />
   </ItemGroup>
 
   <!-- Link shared test infrastructure (ParseHarness) from ast-tests -->

@@ -233,7 +233,7 @@ Only `BlockStatement` can introduce new statements into the AST. By having it co
 ### Testing
 
 Two test files demonstrate functionality:
-- `test/ast-tests/AstRewriterTests.cs` - TUnit tests
+- `test/ast-tests/AstRewriterTests.cs` - xUnit tests
 - `test/ast-tests/AstRewriterManualTest.cs` - Standalone executable test
 
 Tests cover:

@@ -9,7 +9,7 @@ namespace ast_tests;
 
 public class OverloadTransformingVisitorTests : VisitorTestsBase
 {
-    [Test]
+    [Fact]
     public void GenerateGuardFunction_ShouldCreateGuardFunction()
     {
         // Arrange
@@ -36,7 +36,7 @@ public class OverloadTransformingVisitorTests : VisitorTestsBase
     guardFunction!.Name.Value.Should().Be("Test1");
     }
 
-    [Test]
+    [Fact]
     public void GetPrecondition_ShouldReturnCombinedPreconditions()
     {
         // Arrange
@@ -52,7 +52,7 @@ public class OverloadTransformingVisitorTests : VisitorTestsBase
     precondition!.Should().BeOfType<BinaryExp>();
     }
 
-    [Test]
+    [Fact]
     public void ProcessOverloadedFunctionDefinition_ShouldTransformFunction()
     {
         // Arrange

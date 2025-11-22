@@ -20,7 +20,7 @@ public class GenericMethodAstTests
         return new FifthParser(tokens);
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Generic_Method_In_NonGeneric_Class()
     {
         // Arrange - static generic method in non-generic class
@@ -58,7 +58,7 @@ public class GenericMethodAstTests
         methodDef.FunctionDef.TypeParameters[0].Name.Value.Should().Be("T");
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Generic_Method_In_Generic_Class()
     {
         // Arrange - generic method in generic class
@@ -95,7 +95,7 @@ public class GenericMethodAstTests
         classDef.MemberDefs.Should().NotBeEmpty("Class should have members");
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Method_With_Same_Type_Parameter_Name_As_Class()
     {
         // Arrange - test that we can at least parse classes with methods
@@ -129,7 +129,7 @@ public class GenericMethodAstTests
         classDef.MemberDefs.Should().NotBeEmpty("Class should have methods");
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Multiple_Generic_Methods_In_Class()
     {
         // Arrange
@@ -166,7 +166,7 @@ public class GenericMethodAstTests
         methods.Should().HaveCount(2);
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Method_With_Multiple_Type_Parameters()
     {
         // Arrange

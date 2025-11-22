@@ -1,5 +1,5 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 using compiler;
 using compiler.Validation.GuardValidation.Diagnostics;
 using compiler.Validation.GuardValidation.Infrastructure;
@@ -9,7 +9,7 @@ namespace ast_tests.Validation.Guards.Diagnostics;
 
 public class DiagnosticEmitterTests
 {
-    [Test]
+    [Fact]
     public void Reset_ShouldClearAllDiagnostics()
     {
         // Arrange
@@ -24,7 +24,7 @@ public class DiagnosticEmitterTests
         emitter.Diagnostics.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void EmitIncompleteError_ShouldEmitE1001Error()
     {
         // Arrange
@@ -42,7 +42,7 @@ public class DiagnosticEmitterTests
         diagnostic.Message.Should().Contain("testFunc/2");
     }
 
-    [Test]
+    [Fact]
     public void EmitUnreachableWarning_ShouldEmitW1002WarningWithNote()
     {
         // Arrange
@@ -68,7 +68,7 @@ public class DiagnosticEmitterTests
         note.Message.Should().Contain("overload #2 unreachable due to earlier coverage by overload #1");
     }
 
-    [Test]
+    [Fact]
     public void EmitBaseNotLastError_ShouldEmitE1004ErrorWithNote()
     {
         // Arrange
@@ -92,7 +92,7 @@ public class DiagnosticEmitterTests
         note.Message.Should().Contain("overload #2 invalid because base overload terminates overloading at #1");
     }
 
-    [Test]
+    [Fact]
     public void EmitMultipleBaseError_ShouldEmitE1005ErrorWithNotes()
     {
         // Arrange
@@ -123,7 +123,7 @@ public class DiagnosticEmitterTests
         });
     }
 
-    [Test]
+    [Fact]
     public void EmitOverloadCountWarning_ShouldEmitW1101Warning()
     {
         // Arrange
@@ -146,7 +146,7 @@ public class DiagnosticEmitterTests
         warning.Message.Should().Contain("(found 35)");
     }
 
-    [Test]
+    [Fact]
     public void EmitUnknownExplosionWarning_ShouldEmitW1102Warning()
     {
         // Arrange

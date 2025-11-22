@@ -12,7 +12,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
 {
     private readonly VarRefResolverVisitor _visitor = new();
 
-    [Test]
+    [Fact]
     public void TryResolve_WithValidVariableInScope_ReturnsTrue()
     {
         // Arrange
@@ -49,7 +49,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         resolvedDecl.Should().Be(variableDecl);
     }
 
-    [Test]
+    [Fact]
     public void TryResolve_WithNullVarName_ReturnsFalse()
     {
         // Arrange
@@ -63,7 +63,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         resolvedDecl.Should().BeNull();
     }
 
-    [Test]
+    [Fact]
     public void TryResolve_WithEmptyVarName_ReturnsFalse()
     {
         // Arrange
@@ -77,7 +77,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         resolvedDecl.Should().BeNull();
     }
 
-    [Test]
+    [Fact]
     public void TryResolve_WithNullScope_ReturnsFalse()
     {
         // Act
@@ -88,7 +88,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         resolvedDecl.Should().BeNull();
     }
 
-    [Test]
+    [Fact]
     public void TryResolve_WithVariableNotInScope_ReturnsFalse()
     {
         // Arrange
@@ -102,7 +102,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         resolvedDecl.Should().BeNull();
     }
 
-    [Test]
+    [Fact]
     public void TryResolve_WithNonVariableDeclInSymbolTable_ReturnsFalse()
     {
         // Arrange
@@ -128,7 +128,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         resolvedDecl.Should().BeNull();
     }
 
-    [Test]
+    [Fact]
     public void VisitVarRefExp_WithAlreadyResolvedVariableDecl_ReturnsUnchanged()
     {
         // Arrange
@@ -161,7 +161,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         result.VariableDecl.Should().Be(existingVariableDecl);
     }
 
-    [Test]
+    [Fact]
     public void VisitVarRefExp_WithNoNearestScope_ReturnsUnchanged()
     {
         // Arrange
@@ -183,7 +183,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         result.VariableDecl.Should().BeNull();
     }
 
-    [Test]
+    [Fact]
     public void VisitVarRefExp_WithValidScope_ResolvesVariableDecl()
     {
         // Arrange
@@ -230,7 +230,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         result.VariableDecl.Should().Be(variableDecl);
     }
 
-    [Test]
+    [Fact]
     public void VisitVarRefExp_WithVariableNotInScope_ReturnsUnresolved()
     {
         // Arrange
@@ -254,7 +254,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         result.VariableDecl.Should().BeNull();
     }
 
-    [Test]
+    [Fact]
     public void VisitVarRefExp_WithHierarchicalScopes_ResolvesFromNearestScope()
     {
         // Arrange
@@ -324,7 +324,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         result.VariableDecl.TypeName.Value.Should().Be("string");
     }
 
-    [Test]
+    [Fact]
     public void VisitVarRefExp_ProcessesCompleteAstTree()
     {
         // Arrange - create a simple function with a variable declaration and reference
@@ -411,7 +411,7 @@ public class VarRefResolverVisitorTests : VisitorTestsBase
         resolvedVarRefExp.VariableDecl.Name.Should().Be("localVar");
     }
 
-    [Test]
+    [Fact]
     public void VarRefResolverVisitor_WorksWithParsedCode()
     {
         // Arrange - parse actual Fifth language code that contains variable references

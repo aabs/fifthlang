@@ -32,7 +32,7 @@ public class TripleTypeInferenceTests
             ;
     }
 
-    [Test]
+    [Fact]
     public void triple_literal_should_have_triple_type()
     {
         // T032: TripleLiteralExp should map to primitive triple type
@@ -41,7 +41,7 @@ public class TripleTypeInferenceTests
         typeSystem.Types.Should().Contain(tripleType);
     }
 
-    [Test]
+    [Fact]
     public void graph_plus_triple_yields_graph()
     {
         // T033: graph + triple → graph (FR-008)
@@ -50,7 +50,7 @@ public class TripleTypeInferenceTests
         result.Should().Be(graphType);
     }
 
-    [Test]
+    [Fact]
     public void triple_plus_triple_yields_graph()
     {
         // T033: triple + triple → graph (FR-009)
@@ -59,7 +59,7 @@ public class TripleTypeInferenceTests
         result.Should().Be(graphType);
     }
 
-    [Test]
+    [Fact]
     public void graph_plus_graph_yields_graph()
     {
         // T033: graph + graph → graph (union operation)
@@ -68,7 +68,7 @@ public class TripleTypeInferenceTests
         result.Should().Be(graphType);
     }
 
-    [Test]
+    [Fact]
     public void graph_minus_triple_yields_graph()
     {
         // T033: graph - triple → graph (FR-010, retraction)

@@ -1,4 +1,4 @@
-using TUnit.Core;
+using Xunit;
 using FluentAssertions;
 using ast;
 using compiler.Validation.GuardValidation;
@@ -9,7 +9,7 @@ namespace ast_tests.Validation.Guards.Analysis;
 
 public class DuplicateDetectionTests
 {
-    [Test]
+    [Fact]
     public void DuplicateGuards_ShouldBeDetectedAsUnreachable()
     {
         var o1 = new MockOverloadableFunction(hasConstraints: true).WithConstraint(new BinaryExp

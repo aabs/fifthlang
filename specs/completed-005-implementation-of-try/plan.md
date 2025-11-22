@@ -10,9 +10,9 @@ Implement C#-equivalent exception handling in Fifth: try/catch/finally with filt
 ## Technical Context
 
 **Language/Version**: C# (compiler implementation), Fifth language surface; .NET SDK 8.0.x (global.json pins 8.0.118)
-**Primary Dependencies**: Antlr4.Runtime.Standard, RazorLight, System.CommandLine, TUnit, FluentAssertions, dunet, Vogen; Roslyn (for IL or backend equivalence tests)
+**Primary Dependencies**: Antlr4.Runtime.Standard, RazorLight, System.CommandLine, xUnit, FluentAssertions, dunet, Vogen; Roslyn (for IL or backend equivalence tests)
 **Storage**: N/A
-**Testing**: TUnit + FluentAssertions; solution tests under `test/*` per constitution
+**Testing**: xUnit + FluentAssertions; solution tests under `test/*` per constitution
 **Target Platform**: .NET runtime on macOS/Linux/Windows; CLR exception model
 **Project Type**: Single multi-project .NET solution (compiler, parser, generator, tests)
 **Performance Goals**: No measurable regression on macrobenchmarks (p ≥ 0.05)

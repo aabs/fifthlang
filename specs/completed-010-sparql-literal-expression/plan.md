@@ -12,9 +12,9 @@ Implement a new AST type `SparqlLiteralExpression` for inline SPARQL queries usi
 ## Technical Context
 
 **Language/Version**: C# 14, .NET 8.0 SDK (global.json pins 8.0.118)  
-**Primary Dependencies**: ANTLR 4.8 runtime (`Antlr4.Runtime.Standard`), dotNetRDF (`VDS.RDF.*`), RazorLight (code generation), TUnit + FluentAssertions (testing)  
+**Primary Dependencies**: ANTLR 4.8 runtime (`Antlr4.Runtime.Standard`), dotNetRDF (`VDS.RDF.*`), RazorLight (code generation), xUnit + FluentAssertions (testing)  
 **Storage**: N/A (in-memory AST and query objects)  
-**Testing**: TUnit (unit tests under `test/ast-tests/`, `test/syntax-parser-tests/`), FluentAssertions for assertions, integration tests under `test/runtime-integration-tests/`  
+**Testing**: xUnit (unit tests under `test/ast-tests/`, `test/syntax-parser-tests/`), FluentAssertions for assertions, integration tests under `test/runtime-integration-tests/`  
 **Target Platform**: .NET 8.0 cross-platform (macOS, Linux, Windows)  
 **Project Type**: Compiler/language infrastructure (single solution with multiple projects)  
 **Performance Goals**: Parse/compile SPARQL literals with <50ms overhead per literal for typical queries (<5KB), validate syntax at compile-time  

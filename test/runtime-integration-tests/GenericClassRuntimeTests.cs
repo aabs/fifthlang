@@ -10,7 +10,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class GenericClassRuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task Generic_Stack_Class_Parses_Successfully()
     {
         // Arrange
@@ -36,7 +36,7 @@ public class GenericClassRuntimeTests : RuntimeTestBase
         result.ExitCode.Should().Be(0, "Should return 0 as specified");
     }
 
-    [Test]
+    [Fact]
     public async Task Generic_Class_With_Multiple_Type_Parameters_Parses()
     {
         // Arrange
@@ -62,7 +62,7 @@ public class GenericClassRuntimeTests : RuntimeTestBase
         result.ExitCode.Should().Be(0);
     }
 
-    [Test]
+    [Fact]
     public async Task Generic_Function_With_Type_Parameter_Parses()
     {
         // Arrange
@@ -86,7 +86,7 @@ public class GenericClassRuntimeTests : RuntimeTestBase
         result.ExitCode.Should().Be(0);
     }
 
-    [Test]
+    [Fact]
     public async Task Non_Generic_Class_Still_Works()
     {
         // Arrange

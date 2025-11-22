@@ -6,7 +6,7 @@ namespace ast_tests;
 
 public class ProcessRunnerTests
 {
-    [Test]
+    [Fact]
     public async Task RunAsync_WithSuccessfulCommand_ShouldReturnSuccess()
     {
         var runner = new ProcessRunner();
@@ -29,7 +29,7 @@ public class ProcessRunnerTests
         result.ElapsedTime.Should().BeGreaterThan(TimeSpan.Zero);
     }
 
-    [Test]
+    [Fact]
     public async Task RunAsync_WithFailingCommand_ShouldReturnFailure()
     {
         var runner = new ProcessRunner();
@@ -58,7 +58,7 @@ public class ProcessRunnerTests
         }
     }
 
-    [Test]
+    [Fact]
     public async Task RunAsync_WithWorkingDirectory_ShouldUseSpecifiedDirectory()
     {
         var runner = new ProcessRunner();
@@ -115,7 +115,7 @@ public class MockProcessRunner : IProcessRunner
 
 public class MockProcessRunnerTests
 {
-    [Test]
+    [Fact]
     public async Task MockProcessRunner_ShouldReturnConfiguredResults()
     {
         var mock = new MockProcessRunner();
@@ -127,7 +127,7 @@ public class MockProcessRunnerTests
         result.Should().Be(expectedResult);
     }
 
-    [Test]
+    [Fact]
     public async Task MockProcessRunner_WithNoResults_ShouldThrow()
     {
         var mock = new MockProcessRunner();

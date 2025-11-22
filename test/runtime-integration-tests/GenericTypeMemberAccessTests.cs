@@ -10,7 +10,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class GenericTypeMemberAccessTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task GenericClass_MemberAccess_ShouldCompileAndRun()
     {
         // Arrange - This previously failed with "Cannot access member on primitive type 'Int32'"
@@ -34,7 +34,7 @@ public class GenericTypeMemberAccessTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("Should not have any errors");
     }
 
-    [Test]
+    [Fact]
     public async Task GenericClass_MultipleInstances_ShouldWork()
     {
         // Arrange
@@ -64,7 +64,7 @@ public class GenericTypeMemberAccessTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("Should not have any errors");
     }
 
-    [Test]
+    [Fact]
     public async Task GenericClass_WithDifferentTypes_ShouldWork()
     {
         // Arrange - Test that different generic instantiations work

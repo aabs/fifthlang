@@ -1,4 +1,4 @@
-using TUnit.Core;
+using Xunit;
 using FluentAssertions;
 using ast;
 using ast_model.TypeSystem;
@@ -10,7 +10,7 @@ namespace ast_tests.Validation.Guards.Diagnostics;
 
 public class ExplosionThresholdTests
 {
-    [Test]
+    [Fact]
     public void UnknownPercent_JustBelowThreshold_ShouldNotWarn()
     {
         // Build 12 overloads, 6 UNKNOWN (50%), no base => should not warn (strict >50 required)
@@ -76,7 +76,7 @@ public class ExplosionThresholdTests
         validator.Diagnostics.Should().NotContain(d => d.Message.Contains("GUARD_UNKNOWN_EXPLOSION (W1102)"));
     }
 
-    [Test]
+    [Fact]
     public void UnknownPercent_JustAboveThreshold_ShouldWarn()
     {
         // 12 overloads, 7 UNKNOWN (~58%), no base => should warn

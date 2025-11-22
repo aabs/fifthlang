@@ -9,7 +9,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class GenericConstraintRuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task Function_With_Constraint_Clause_Compiles()
     {
         // Arrange - Test basic where clause parsing
@@ -33,7 +33,7 @@ public class GenericConstraintRuntimeTests : RuntimeTestBase
         result.ExitCode.Should().Be(0);
     }
 
-    [Test]
+    [Fact]
     public async Task Class_With_Constraint_Clause_Compiles()
     {
         // Arrange
@@ -58,7 +58,7 @@ public class GenericConstraintRuntimeTests : RuntimeTestBase
         result.ExitCode.Should().Be(0);
     }
 
-    [Test]
+    [Fact]
     public async Task Function_With_Multiple_Constraints_Compiles()
     {
         // Arrange

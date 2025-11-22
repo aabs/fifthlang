@@ -8,7 +8,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class ComprehensiveBuiltInTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task string_output_ShouldReturnZeroAndPrintHelloWorld()
     {
         // Arrange

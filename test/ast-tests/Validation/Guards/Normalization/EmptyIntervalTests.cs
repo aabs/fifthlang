@@ -1,12 +1,12 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 using compiler.Validation.GuardValidation.Analysis;
 
 namespace ast_tests.Validation.Guards.Normalization;
 
 public class EmptyIntervalTests
 {
-    [Test]
+    [Fact]
     public void IsEmpty_InvertedBounds_ShouldBeTrue()
     {
         var eng = new IntervalEngine();
@@ -14,7 +14,7 @@ public class EmptyIntervalTests
         eng.IsEmpty(inv).Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public void IsEmpty_OpenTouching_ShouldBeTrue()
     {
         var eng = new IntervalEngine();

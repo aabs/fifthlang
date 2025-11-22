@@ -1,12 +1,12 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 using compiler.Validation.GuardValidation.Analysis;
 
 namespace ast_tests.Validation.Guards.Analysis;
 
 public class IntervalSubsumptionTests
 {
-    [Test]
+    [Fact]
     public void Subsumes_ClosedWithinClosed_ShouldBeTrue()
     {
         var eng = new IntervalEngine();
@@ -15,7 +15,7 @@ public class IntervalSubsumptionTests
         eng.Subsumes(outer, inner).Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public void Subsumes_PartialOverlap_ShouldBeFalse()
     {
         var eng = new IntervalEngine();

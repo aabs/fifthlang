@@ -9,7 +9,7 @@ namespace ast_tests;
 
 public class ModuleOverloadTests : VisitorTestsBase
 {
-    [Test]
+    [Fact]
     public void GatherModule_ShouldGroupOverloadedFunctionsAndSubstituteThem()
     {
         // Arrange
@@ -33,7 +33,7 @@ public class ModuleOverloadTests : VisitorTestsBase
         moduleDef.Functions.First().Should().BeOfType<OverloadedFunctionDef>();
     }
 
-    [Test]
+    [Fact]
     public void GatherModuleOverloads_ShouldReturnGroupedFunctionsByFunctionSignature()
     {
         // Arrange
@@ -56,7 +56,7 @@ public class ModuleOverloadTests : VisitorTestsBase
         result.First().Value.Count.Should().Be(2);
     }
 
-    [Test]
+    [Fact]
     public void SubstituteModuleFunctionDefinitions_ShouldReplaceOldFunctionsWithCombinedFunction()
     {
         // Arrange
@@ -90,7 +90,7 @@ public class ModuleOverloadTests : VisitorTestsBase
         moduleDef.Functions.First().Should().BeSameAs(combinedFunction);
     }
 
-    [Test]
+    [Fact]
     public void VisitModuleDef_ShouldCallGatherModuleAndReturnBaseVisitModuleDef()
     {
         // Arrange

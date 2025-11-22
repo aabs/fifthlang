@@ -8,7 +8,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class DebugRuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task Debug_SimpleProgram_ShowCurrentBehavior()
     {
         // Arrange - Note: Current PE emission generates hardcoded "Hello from Fifth!" program
@@ -55,7 +55,7 @@ public class DebugRuntimeTests : RuntimeTestBase
         }
     }
 
-    [Test]
+    [Fact]
     public async Task Debug_CheckCompilerOutput_ShowDiagnostics()
     {
         // Arrange

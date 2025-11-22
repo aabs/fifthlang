@@ -1,5 +1,5 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 using ast;
 using ast_generated;
 using ast_model.TypeSystem;
@@ -10,7 +10,7 @@ namespace ast_tests.Validation.Guards.Collection;
 
 public class OverloadCollectorTests
 {
-    [Test]
+    [Fact]
     public void Reset_ShouldClearAllFunctionGroups()
     {
         // Arrange
@@ -26,7 +26,7 @@ public class OverloadCollectorTests
         collector.FunctionGroups.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void CollectFromModule_WithOverloadedFunction_ShouldCreateFunctionGroup()
     {
         // Arrange
@@ -45,7 +45,7 @@ public class OverloadCollectorTests
         group.Name.Should().Be("testFunc");
     }
 
-    [Test]
+    [Fact]
     public void CollectFromClass_WithOverloadedFunction_ShouldCreateFunctionGroup()
     {
         // Arrange
@@ -64,7 +64,7 @@ public class OverloadCollectorTests
         group.Name.Should().Be("testFunc");
     }
 
-    [Test]
+    [Fact]
     public void CollectFromModule_WithoutOverloadedFunctions_ShouldNotCreateGroups()
     {
         // Arrange

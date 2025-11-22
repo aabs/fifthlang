@@ -10,7 +10,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class GenericMethodRuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task Generic_Method_In_NonGeneric_Class_Compiles()
     {
         // Arrange - For now, test non-generic methods in non-generic classes
@@ -36,7 +36,7 @@ public class GenericMethodRuntimeTests : RuntimeTestBase
         result.ExitCode.Should().Be(0);
     }
 
-    [Test]
+    [Fact]
     public async Task Method_In_Generic_Class_Compiles()
     {
         // Arrange - Method in generic class (method not generic)
@@ -62,7 +62,7 @@ public class GenericMethodRuntimeTests : RuntimeTestBase
         result.ExitCode.Should().Be(0);
     }
 
-    [Test]
+    [Fact]
     public async Task Multiple_Methods_In_Generic_Class_Compile()
     {
         // Arrange

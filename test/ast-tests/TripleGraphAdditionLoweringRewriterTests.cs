@@ -41,7 +41,7 @@ public class TripleGraphAdditionLoweringRewriterTests
         };
     }
 
-    [Test]
+    [Fact]
     public void TriplePlusTriple_ShouldHoistGraphCreationAndTwoAsserts()
     {
         // Arrange
@@ -87,7 +87,7 @@ public class TripleGraphAdditionLoweringRewriterTests
         varRef.VarName.Should().StartWith("__graph");
     }
 
-    [Test]
+    [Fact]
     public void GraphPlusTriple_ShouldHoistSingleAssert()
     {
         // Arrange
@@ -124,7 +124,7 @@ public class TripleGraphAdditionLoweringRewriterTests
         varRef.VarName.Should().Be("myGraph");
     }
 
-    [Test]
+    [Fact]
     public void TriplePlusGraph_ShouldHoistGraphCreationAssertAndMerge()
     {
         // Arrange
@@ -169,7 +169,7 @@ public class TripleGraphAdditionLoweringRewriterTests
         varRef.VarName.Should().StartWith("__graph");
     }
 
-    [Test]
+    [Fact]
     public void GraphPlusGraph_ShouldHoistMerge()
     {
         // Arrange
@@ -208,7 +208,7 @@ public class TripleGraphAdditionLoweringRewriterTests
         varRef.VarName.Should().Be("graph1");
     }
 
-    [Test]
+    [Fact]
     public void ChainedTripleAddition_ShouldPreserveLeftToRightOrder()
     {
         // Arrange: (t1 + t2) + t3
@@ -252,7 +252,7 @@ public class TripleGraphAdditionLoweringRewriterTests
         result.Prologue[2].Should().BeOfType<ExpStatement>();
     }
 
-    [Test]
+    [Fact]
     public void GraphLiteral_ShouldExpandToPerTripleAsserts()
     {
         // Arrange
@@ -292,7 +292,7 @@ public class TripleGraphAdditionLoweringRewriterTests
         ((VarRefExp)result.Node).VarName.Should().Be("existingGraph");
     }
 
-    [Test]
+    [Fact]
     public void NonGraphAddition_ShouldNotBeLowered()
     {
         // Arrange: 5 + 3 (simple integer addition)
@@ -322,7 +322,7 @@ public class TripleGraphAdditionLoweringRewriterTests
         resultBin.RHS.Should().BeOfType<Int32LiteralExp>();
     }
 
-    [Test]
+    [Fact]
     public void BlockStatement_ShouldConsumeChildPrologues()
     {
         // Arrange: Block with return statement that contains triple + triple

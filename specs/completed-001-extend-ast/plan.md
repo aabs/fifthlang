@@ -29,9 +29,9 @@ Introduce a new Graph Assertion Block delimited by `<{` and `}>` that behaves li
 
 ## Technical Context
 - Language/Version: C#/.NET 8.0 (per `global.json`), ANTLR 4 (C# runtime)
-- Primary Dependencies: Antlr4.Runtime.Standard, dotNetRdf 3.4.0, RazorLight (AST gen), TUnit + FluentAssertions
+- Primary Dependencies: Antlr4.Runtime.Standard, dotNetRdf 3.4.0, RazorLight (AST gen), xUnit + FluentAssertions
 - Storage: dotNetRdf `IUpdateableStorage` via `SparqlHttpProtocolConnector` and `InMemoryManager`
-- Testing: TUnit suites in `test/ast-tests`, `test/syntax-parser-tests`, `test/runtime-integration-tests`
+- Testing: xUnit suites in `test/ast-tests`, `test/syntax-parser-tests`, `test/runtime-integration-tests`
 - Target Platform: .NET 8 (macOS dev verified); CLI compiler
 - Project Type: Single solution with multiple libraries (use Option 1 structure)
 - Performance Goals: Linear with number of assertions; no extra passes beyond existing pipeline

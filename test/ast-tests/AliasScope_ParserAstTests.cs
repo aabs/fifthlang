@@ -8,7 +8,7 @@ namespace ast_tests;
 
 public class AliasScope_ParserAstTests
 {
-    [Test]
+    [Fact]
     public void ClassWithAliasScope_ShouldParseAndRecordAliasScope()
     {
         var src = "class Person in x { Name: string; }";

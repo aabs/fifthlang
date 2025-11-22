@@ -6,7 +6,7 @@ namespace kg_smoke_tests;
 
 public class KG_Quickstart_SmokeTests
 {
-    [Test]
+    [Fact]
     public async Task Quickstart_Connect_Assert_Save_ShouldCompile()
     {
         var src = """
@@ -44,6 +44,8 @@ public class KG_Quickstart_SmokeTests
         var result = await compiler.CompileAsync(options);
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
 
-        File.Exists(outPath).Should().BeTrue();
+        var dllPath = Path.ChangeExtension(outPath, ".dll");
+        result.OutputPath.Should().Be(dllPath);
+        File.Exists(dllPath).Should().BeTrue();
     }
 }

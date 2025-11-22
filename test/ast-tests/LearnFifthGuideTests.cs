@@ -18,7 +18,7 @@ public class LearnFifthGuideTests
         return Path.Combine(repoRoot, "docs", "Getting-Started", "examples", "learnfifth.5th");
     }
 
-    [Test]
+    [Fact]
     public void LearnFifth_SourceFile_ParsesSuccessfully()
     {
         // Arrange
@@ -50,7 +50,7 @@ public class LearnFifthGuideTests
         allFunctions.Should().HaveCountGreaterThan(30, "Assembly should contain many example functions");
     }
 
-    [Test]
+    [Fact]
     public void LearnFifth_SourceFile_AppliesLanguageAnalysisPhasesSuccessfully()
     {
         // Arrange
@@ -68,7 +68,7 @@ public class LearnFifthGuideTests
         assembly.Should().NotBeNull("Processed result should be an AssemblyDef");
     }
 
-    [Test]
+    [Fact]
     public void LearnFifth_SourceFile_ContainsExpectedExamples()
     {
         // Arrange
@@ -106,7 +106,7 @@ public class LearnFifthGuideTests
         allClasses.Should().Contain("Circle", "Should contain Circle class for inheritance example");
     }
 
-    [Test]
+    [Fact]
     public void LearnFifth_SourceFile_ContainsConstrainedFunctionsWithBaseCases()
     {
         // Arrange

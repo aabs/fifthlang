@@ -3,7 +3,7 @@
 using System;
 using System.Linq;
 using FluentAssertions;
-using TUnit;
+using Xunit;
 using ast;
 using test_infra;
 using compiler;
@@ -17,7 +17,7 @@ namespace ast_tests;
 /// </summary>
 public class TripleSerializationRoundTripTests
 {
-    [Test]
+    [Fact]
     public void SimpleTriple_ParsesSuccessfully()
     {
         // Basic test: a simple triple can be parsed
@@ -34,7 +34,7 @@ public class TripleSerializationRoundTripTests
         triples[0].ObjectExp.Should().BeOfType<UriLiteralExp>();
     }
 
-    [Test]
+    [Fact]
     public void TripleWithStringObject_ParsesSuccessfully()
     {
         // Test with string object (common case)
@@ -49,7 +49,7 @@ public class TripleSerializationRoundTripTests
         triples[0].ObjectExp.Should().BeOfType<StringLiteralExp>();
     }
 
-    [Test]
+    [Fact]
     public void FR_018A_CommaInStringObject_ParsesCorrectly()
     {
         // FR-018A: String objects containing ',' should not break parsing
@@ -67,7 +67,7 @@ public class TripleSerializationRoundTripTests
         // String literals may include surrounding quotes in the value
     }
 
-    [Test]
+    [Fact]
     public void MultipleTriples_ParseCorrectly()
     {
         // Test with multiple triples to ensure no cross-contamination

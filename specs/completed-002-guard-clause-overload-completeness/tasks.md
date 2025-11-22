@@ -203,7 +203,7 @@ Generated per tasks.prompt with TDD-first ordering, deterministic diagnostic man
   - `test/runtime-integration-tests/GuardValidation/incomplete_guards.5th`
   - `test/runtime-integration-tests/GuardValidation/unreachable_guards.5th`
   - `test/runtime-integration-tests/GuardValidation/GuardValidationIntegrationTests.cs`
-- [x] **Test Coverage**: All modular components have corresponding unit tests using TUnit + FluentAssertions
+- [x] **Test Coverage**: All modular components have corresponding unit tests using xUnit + FluentAssertions
 
 **What's Missing (Next Priorities):**
 - ❌ Full synthetic benchmark scenarios and automated CI benchmark job (nightly harness exists; consider adding PR-level lighter checks)

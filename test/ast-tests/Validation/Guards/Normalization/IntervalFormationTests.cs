@@ -1,12 +1,12 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 using compiler.Validation.GuardValidation.Analysis;
 
 namespace ast_tests.Validation.Guards.Normalization;
 
 public class IntervalFormationTests
 {
-    [Test]
+    [Fact]
     public void Intersect_ClosedIntervals_ShouldReturnOverlap()
     {
         var eng = new IntervalEngine();

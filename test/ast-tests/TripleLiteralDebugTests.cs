@@ -1,6 +1,6 @@
 using System;
 using FluentAssertions;
-using TUnit;
+using Xunit;
 using ast;
 using test_infra;
 
@@ -11,7 +11,7 @@ public class TripleLiteralDebugTests
 {
     private ParseResult ParseHarnessed(string code) => ParseHarness.ParseString(code, new ParseOptions(Phase: compiler.FifthParserManager.AnalysisPhase.TreeLink));
 
-    [Test]
+    [Fact]
     public void DBG_TripleLiteral_Minimal()
     {
         // Minimal program with a triple literal assignment

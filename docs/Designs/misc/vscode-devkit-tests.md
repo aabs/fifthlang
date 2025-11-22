@@ -1,6 +1,6 @@
-# VS Code Dev Kit: Running TUnit Tests
+# VS Code Dev Kit: Running xUnit Tests
 
-This repo uses TUnit for tests. The C# Dev Kit Testing UI can discover and run these tests with a small setup.
+This repo uses xUnit for tests. The C# Dev Kit Testing UI can discover and run these tests with a small setup.
 
 ## One-time setup
 - Install extensions:
@@ -32,7 +32,7 @@ This repo uses TUnit for tests. The C# Dev Kit Testing UI can discover and run t
  dotnet test fifthlang.sln --list-tests
 ```
 
-If tests still do not appear in the Testing panel, ensure the above extensions are enabled and up to date. TUnit is fully supported via Dev Kit's Testing Platform Protocol; Dotnet Test Explorer bridges results into VS Code's unified Testing UI when needed.
+If tests still do not appear in the Testing panel, ensure the above extensions are enabled and up to date. xUnit is fully supported via Dev Kit's Testing Platform Protocol; Dotnet Test Explorer bridges results into VS Code's unified Testing UI when needed.
 
 ## Coverage (optional)
 - The repo includes `test/fifth.runsettings` so both CLI/Dev Kit runs can emit Cobertura coverage files.

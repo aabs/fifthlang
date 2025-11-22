@@ -11,7 +11,7 @@ namespace syntax_parser_tests;
 /// </summary>
 public class IRITests
 {
-    [Test]
+    [Fact]
     public void Iri_WithAngleBrackets_ShouldParse()
     {
         // Arrange
@@ -22,7 +22,7 @@ public class IRITests
             "Angle-bracketed IRI should parse successfully");
     }
 
-    [Test]
+    [Fact]
     public void Alias_WithAngleBracketedIri_ShouldParse()
     {
         // Arrange
@@ -33,7 +33,7 @@ public class IRITests
             "Alias with angle-bracketed IRI should parse successfully");
     }
 
-    [Test]
+    [Fact]
     public void ClassDefinition_WithPropertyDeclarations_ShouldParse()
     {
         // Arrange
@@ -49,7 +49,7 @@ public class IRITests
             "Class with property declarations should parse successfully");
     }
 
-    [Test]
+    [Fact]
     public void PropertyDeclarations_ShouldNotContainPrefixedNameTokens()
     {
         // Arrange
@@ -60,7 +60,7 @@ public class IRITests
         ParserTestUtils.AssertContainsTokens(input, "IDENTIFIER", "COLON");
     }
 
-    [Test]
+    [Fact]
     public void GraphDeclaration_WithAngleBracketedIri_ShouldParse()
     {
         // Arrange
@@ -71,7 +71,7 @@ public class IRITests
             "Graph declaration with angle-bracketed IRI should parse successfully");
     }
 
-    [Test]
+    [Fact]
     public void ColonStoreDeclaration_WithAngleBracketedIri_ShouldParse()
     {
         // Arrange
@@ -82,7 +82,7 @@ public class IRITests
             "Colon-form store declaration with angle-bracketed IRI should parse successfully");
     }
 
-    [Test]
+    [Fact]
     public void Alias_WithUnbracketedPrefixedName_ShouldFail()
     {
         // Arrange - This should fail because x:Person is not in angle brackets
@@ -93,7 +93,7 @@ public class IRITests
             "Alias with unbracketed prefixed name should fail parsing");
     }
 
-    [Test]
+    [Fact]
     public void TokenStream_ComparisonOperator_ShouldNotFormIriref()
     {
         // Arrange - This should tokenize as separate IDENTIFIER, LESS, IDENTIFIER tokens
@@ -109,7 +109,7 @@ public class IRITests
         tokenNames.Should().NotContain("IRIREF", "a < b should not form an IRIREF token");
     }
 
-    [Test]
+    [Fact]
     public void TokenStream_GeneratorOperator_ShouldTokenizeCorrectly()
     {
         // Arrange
@@ -120,7 +120,7 @@ public class IRITests
         ParserTestUtils.AssertDoesNotContainTokens(input, "IRIREF");
     }
 
-    [Test]
+    [Fact]
     public void TokenStream_ConcatOperator_ShouldTokenizeCorrectly()
     {
         // Arrange
@@ -131,7 +131,7 @@ public class IRITests
         ParserTestUtils.AssertDoesNotContainTokens(input, "IRIREF");
     }
 
-    [Test]
+    [Fact]
     public void TokenStream_EmptyAngleBrackets_ShouldNotFormIriref()
     {
         // Arrange - Empty angle brackets should tokenize as LESS + GREATER, not IRIREF
@@ -146,7 +146,7 @@ public class IRITests
         tokenNames.Should().NotContain("IRIREF", "Empty angle brackets should be CONCAT token, not IRIREF");
     }
 
-    [Test]
+    [Fact]
     public void Iri_WithValidContent_ShouldFormIrirefToken()
     {
         // Arrange
@@ -156,7 +156,7 @@ public class IRITests
         ParserTestUtils.AssertContainsTokens(input, "IRIREF");
     }
 
-    [Test]
+    [Fact]
     public void ClassWithPropertiesAndIRI_ShouldBothParseCorrectly()
     {
         // Arrange - Test both property declarations and IRI in same context
@@ -172,7 +172,7 @@ public class IRITests
             "Class with both IRI and property declarations should parse correctly");
     }
 
-    [Test]
+    [Fact]
     public void ComplexPropertyDeclarations_WithColons_ShouldNotInterfereWithIRIs()
     {
         // Arrange - Multiple properties that could potentially be confused with prefixed names
@@ -196,7 +196,7 @@ public class IRITests
             "Property declarations should not be tokenized as prefixed names");
     }
 
-    [Test]
+    [Fact]
     public void DebugTokenization_PropertyVsIRI()
     {
         // Tokenization debug removed; no-op assertion retained

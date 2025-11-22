@@ -9,7 +9,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class DestructuringRuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task SimpleDestructuring_ShouldCompile()
     {
         // Arrange
@@ -40,7 +40,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task ConditionalDestructuring_ShouldCompile()
     {
         // Arrange
@@ -71,7 +71,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task NestedDestructuring_ShouldCompile()
     {
         // Arrange
@@ -128,7 +128,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task ArrayDestructuring_ShouldCompile()
     {
         // Arrange
@@ -161,7 +161,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         }
     }
 
-    [Test]
+    [Fact]
     public async Task GuardedDestructuring_ShouldCompile()
     {
         // Arrange

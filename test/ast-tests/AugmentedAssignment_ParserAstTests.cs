@@ -8,7 +8,7 @@ namespace ast_tests;
 
 public class AugmentedAssignment_ParserAstTests
 {
-    [Test]
+    [Fact]
     public void PlusAssign_ShouldLowerInto_MergeCall()
     {
         var src = "main():int { g: graph = KG.CreateGraph(); home: graph = KG.CreateGraph(); home += g; return 0; }";

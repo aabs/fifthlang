@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Fifth.System;
 using VDS.RDF;
 using VDS.RDF.Query;
+using FluentAssertions;
 
 namespace fifth_runtime_tests;
 
@@ -30,7 +31,7 @@ public class KGTests
         Uri IAssertable.GetTypeUri() => RelType;
     }
 
-    [Test]
+    [Fact]
     public async Task CreateStore_ReturnsInMemoryAndRoundTripsGraph()
     {
         var store = KG.CreateStore();
@@ -44,10 +45,10 @@ public class KGTests
         store.SaveGraph(g);
         var g2 = new VDS.RDF.Graph();
         store.LoadGraph(g2, g.BaseUri);
-        await Assert.That(g2.Triples.Count).IsGreaterThan(0);
+        g2.Triples.Count.Should().BeGreaterThan(0);
     }
 
-    [Test]
+    [Fact]
     public async Task CreateStore_NamedGraph_SaveAndLoadByUri()
     {
         var store = KG.CreateStore();
@@ -64,18 +65,18 @@ public class KGTests
         var loaded = new VDS.RDF.Graph();
         // Some storage providers treat SaveGraph without explicit graph parameter as default graph
         store.LoadGraph(loaded, (string)null!);
-        await Assert.That(loaded.Triples.Count).IsGreaterThan(0);
+        loaded.Triples.Count.Should().BeGreaterThan(0);
     }
 
-    [Test]
+    [Fact]
     public async Task CreateGraph_IsEmptyWithNoBaseUri()
     {
         var g = KG.CreateGraph();
-        await Assert.That(g.Triples.Count).IsEqualTo(0);
-        await Assert.That(g.BaseUri).IsNull();
+        g.Triples.Count.Should().Be(0);
+        g.BaseUri.Should().BeNull();
     }
 
-    [Test]
+    [Fact]
     public async Task CreateUriForType_And_Instance_FromAssertable()
     {
         var g = KG.CreateGraph();
@@ -84,11 +85,11 @@ public class KGTests
         var typeNode = KG.CreateUriForType(g, a);
         var instNode = KG.CreateUriForInstance(g, a);
 
-        await Assert.That(typeNode.Uri.AbsoluteUri).IsEqualTo("http://example.org/Type");
-        await Assert.That(instNode.Uri.AbsoluteUri).IsEqualTo("http://example.org/i/1");
+        typeNode.Uri.AbsoluteUri.Should().Be("http://example.org/Type");
+        instNode.Uri.AbsoluteUri.Should().Be("http://example.org/i/1");
     }
 
-    [Test]
+    [Fact]
     public void CreateUri_ForTypeAndInstance_NullAndRelativeValidation()
     {
         var g = KG.CreateGraph();
@@ -101,7 +102,7 @@ public class KGTests
         Assert.Throws<InvalidOperationException>(() => KG.CreateUriForInstance(g, relativeAssertable));
     }
 
-    [Test]
+    [Fact]
     public async Task CreateLiteral_String_NullAndEmptyHandled()
     {
         var g = KG.CreateGraph();
@@ -109,21 +110,21 @@ public class KGTests
         var n2 = KG.CreateLiteral(g, "");
         var n3 = KG.CreateLiteral(g, "hello", "en");
 
-        await Assert.That(n1.Value).IsEqualTo("");
-        await Assert.That(n2.Value).IsEqualTo("");
-        await Assert.That(n3.Value).IsEqualTo("hello");
+        n1.Value.Should().Be("");
+        n2.Value.Should().Be("");
+        n3.Value.Should().Be("hello");
     }
 
-    [Test]
+    [Fact]
     public async Task CreateLiteral_Typed_NullValue_DefaultsToEmptyString()
     {
         var g = KG.CreateGraph();
         var lit = KG.CreateLiteral<string>(g, null!, XsdDataTypes.String);
-        await Assert.That(lit.Value).IsEqualTo("");
-        await Assert.That(lit.DataType!.AbsoluteUri).Contains("#string");
+        lit.Value.Should().Be("");
+        lit.DataType!.AbsoluteUri.Should().Contain("#string");
     }
 
-    [Test]
+    [Fact]
     public async Task CreateLiteral_Typed_VariousDotNetTypes()
     {
         var g = KG.CreateGraph();
@@ -132,14 +133,14 @@ public class KGTests
         var d = KG.CreateLiteral(g, 12.34m, XsdDataTypes.Decimal);
         var dt = KG.CreateLiteral(g, new DateTime(2020, 1, 2, 3, 4, 5, DateTimeKind.Utc), XsdDataTypes.DateTime);
 
-        await Assert.That(i.DataType).IsNotNull();
-        await Assert.That(i.DataType!.AbsoluteUri).Contains("#int");
-        await Assert.That(b.DataType!.AbsoluteUri).Contains("#boolean");
-        await Assert.That(d.DataType!.AbsoluteUri).Contains("#decimal");
-        await Assert.That(dt.DataType!.AbsoluteUri).Contains("#dateTime");
+        i.DataType.Should().NotBeNull();
+        i.DataType!.AbsoluteUri.Should().Contain("#int");
+        b.DataType!.AbsoluteUri.Should().Contain("#boolean");
+        d.DataType!.AbsoluteUri.Should().Contain("#decimal");
+        dt.DataType!.AbsoluteUri.Should().Contain("#dateTime");
     }
 
-    [Test]
+    [Fact]
     public async Task CreateTriple_And_Assert_Retract_Merge()
     {
         var g1 = KG.CreateGraph();
@@ -150,17 +151,17 @@ public class KGTests
 
         var t = KG.CreateTriple(s, p, o);
         g1.Assert(t);
-        await Assert.That(g1.Triples.Count).IsEqualTo(1);
+        g1.Triples.Count.Should().Be(1);
 
         g1.Retract(t);
-        await Assert.That(g1.Triples.Count).IsEqualTo(0);
+        g1.Triples.Count.Should().Be(0);
 
         g1.Assert(t);
         g2.Merge(g1);
-        await Assert.That(g2.Triples.Count).IsEqualTo(1);
+        g2.Triples.Count.Should().Be(1);
     }
 
-    [Test]
+    [Fact]
     public async Task FluentExtensions_ReturnSelf_And_Idempotency()
     {
         var g1 = KG.CreateGraph();
@@ -170,26 +171,26 @@ public class KGTests
         var t = KG.CreateTriple(s, p, o);
 
         var ret1 = KG.Assert(g1, t);
-        await Assert.That(object.ReferenceEquals(ret1, g1)).IsTrue();
+        object.ReferenceEquals(ret1, g1).Should().BeTrue();
 
         KG.Assert(g1, t); // idempotent
-        await Assert.That(g1.Triples.Count).IsEqualTo(1);
+        g1.Triples.Count.Should().Be(1);
 
         var t2 = KG.CreateTriple(s, p, g1.CreateLiteralNode("y"));
         var ret2 = KG.Retract(g1, t2); // retract non-existent
-        await Assert.That(object.ReferenceEquals(ret2, g1)).IsTrue();
-        await Assert.That(g1.Triples.Count).IsEqualTo(1);
+        object.ReferenceEquals(ret2, g1).Should().BeTrue();
+        g1.Triples.Count.Should().Be(1);
 
         var g2 = KG.CreateGraph();
         var ret3 = KG.Merge(g2, g1);
-        await Assert.That(object.ReferenceEquals(ret3, g2)).IsTrue();
-        await Assert.That(g2.Triples.Count).IsEqualTo(1);
+        object.ReferenceEquals(ret3, g2).Should().BeTrue();
+        g2.Triples.Count.Should().Be(1);
 
         KG.Merge(g2, g1); // merging again should not duplicate
-        await Assert.That(g2.Triples.Count).IsEqualTo(1);
+        g2.Triples.Count.Should().Be(1);
     }
 
-    [Test]
+    [Fact]
     public void FaultTolerance_BadUrisAndNulls()
     {
         var g = KG.CreateGraph();
@@ -199,12 +200,12 @@ public class KGTests
         var s = g.CreateUriNode(new Uri("http://ex/s"));
         var p = g.CreateUriNode(new Uri("http://ex/p"));
         // dotNetRDF Triple ctor may throw different exception types when given nulls; accept any exception
-        Assert.Throws<Exception>(() => KG.CreateTriple(null!, p, s));
-        Assert.Throws<Exception>(() => KG.CreateTriple(s, null!, s));
-        Assert.Throws<Exception>(() => KG.CreateTriple(s, p, null!));
+        Assert.ThrowsAny<Exception>(() => KG.CreateTriple(null!, p, s));
+        Assert.ThrowsAny<Exception>(() => KG.CreateTriple(s, null!, s));
+        Assert.ThrowsAny<Exception>(() => KG.CreateTriple(s, p, null!));
     }
 
-    [Test]
+    [Fact]
     public async Task GraphConstruction_WithDifferentDataTypes()
     {
         var g = KG.CreateGraph();
@@ -225,14 +226,14 @@ public class KGTests
         g.Assert(KG.CreateTriple(s, pVal, litDouble));
         g.Assert(KG.CreateTriple(s, pVal, litLong));
 
-        await Assert.That(g.Triples.Count).IsEqualTo(6);
+        g.Triples.Count.Should().Be(6);
 
         var q = "ASK WHERE { <http://ex/item/1> <http://ex/val> 'abc' }";
         var r = (SparqlResultSet)g.ExecuteQuery(q);
-        await Assert.That(r.Result).IsTrue();
+        r.Result.Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public async Task CreateTriple_WiresSubjectPredicateObjectCorrectly()
     {
         var g = KG.CreateGraph();
@@ -241,12 +242,12 @@ public class KGTests
         var o = g.CreateLiteralNode("x");
         var t = KG.CreateTriple(s, p, o);
 
-        await Assert.That(ReferenceEquals(t.Subject, s)).IsTrue();
-        await Assert.That(ReferenceEquals(t.Predicate, p)).IsTrue();
-        await Assert.That(ReferenceEquals(t.Object, o)).IsTrue();
+        ReferenceEquals(t.Subject, s).Should().BeTrue();
+        ReferenceEquals(t.Predicate, p).Should().BeTrue();
+        ReferenceEquals(t.Object, o).Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public async Task XsdDataTypes_AllUris_AreAbsoluteAndWellKnown()
     {
         var known = new[]
@@ -257,20 +258,20 @@ public class KGTests
             XsdDataTypes.UnsignedShort
         };
 
-        await Assert.That(known.All(u => u.IsAbsoluteUri)).IsTrue();
-        await Assert.That(known.All(u => u.AbsoluteUri.StartsWith("http://www.w3.org/2001/XMLSchema#"))).IsTrue();
+        known.All(u => u.IsAbsoluteUri).Should().BeTrue();
+        known.All(u => u.AbsoluteUri.StartsWith("http://www.w3.org/2001/XMLSchema#")).Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public async Task CreateLiteral_String_LanguageParameter_IsCurrentlyIgnored()
     {
         var g = KG.CreateGraph();
         var lit = KG.CreateLiteral(g, "hello", "fr");
-        await Assert.That(lit.Value).IsEqualTo("hello");
-        await Assert.That(string.IsNullOrEmpty(lit.Language)).IsTrue();
+        lit.Value.Should().Be("hello");
+        string.IsNullOrEmpty(lit.Language).Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public async Task CopyGraph_CreatesIndependentCopy()
     {
         var g1 = KG.CreateGraph();
@@ -281,26 +282,26 @@ public class KGTests
         g1.Assert(t);
 
         var g2 = KG.CopyGraph(g1);
-        
-        await Assert.That(g2.Triples.Count).IsEqualTo(1);
-        await Assert.That(ReferenceEquals(g1, g2)).IsFalse();
-        
+
+        g2.Triples.Count.Should().Be(1);
+        ReferenceEquals(g1, g2).Should().BeFalse();
+
         // Modify g1 and verify g2 is not affected
         var s2 = g1.CreateUriNode(new Uri("http://ex/s2"));
         var t2 = KG.CreateTriple(s2, p, o);
         g1.Assert(t2);
-        
-        await Assert.That(g1.Triples.Count).IsEqualTo(2);
-        await Assert.That(g2.Triples.Count).IsEqualTo(1);
+
+        g1.Triples.Count.Should().Be(2);
+        g2.Triples.Count.Should().Be(1);
     }
 
-    [Test]
+    [Fact]
     public async Task CopyGraph_EmptyGraph_ReturnsEmptyGraph()
     {
         var g1 = KG.CreateGraph();
         var g2 = KG.CopyGraph(g1);
-        
-        await Assert.That(g2.Triples.Count).IsEqualTo(0);
-        await Assert.That(ReferenceEquals(g1, g2)).IsFalse();
+
+        g2.Triples.Count.Should().Be(0);
+        ReferenceEquals(g1, g2).Should().BeFalse();
     }
 }

@@ -9,12 +9,12 @@ namespace ast_tests;
 /// and Store content validation. Tests validate that TriG content is correctly
 /// parsed and stored RDF data matches expectations.
 /// </summary>
-[Category("KG")]
-[Category("TriG")]
-[Category("Unit")]
+[Trait("Category", "KG")]
+[Trait("Category", "TriG")]
+[Trait("Category", "Unit")]
 public class StoreLoadFromTriGTests
 {
-    [Test]
+    [Fact]
     public void LoadFromTriG_WithBasicTriples_ShouldParseCorrectly()
     {
         // Arrange
@@ -57,7 +57,7 @@ public class StoreLoadFromTriGTests
         ((LiteralNode)ageTriple.Object).Value.Should().Be("42");
     }
 
-    [Test]
+    [Fact]
     public void LoadFromTriG_WithMultipleGraphs_ShouldParseCorrectly()
     {
         // Arrange
@@ -88,7 +88,7 @@ public class StoreLoadFromTriGTests
         graph2.ToVds().Triples.Count.Should().Be(1, "Graph2 should have 1 triple");
     }
 
-    [Test]
+    [Fact]
     public void LoadFromTriG_WithNumericLiterals_ShouldParseCorrectly()
     {
         // Arrange
@@ -124,7 +124,7 @@ public class StoreLoadFromTriGTests
         ((LiteralNode)priceTriple.Object).Value.Should().Be("19.99");
     }
 
-    [Test]
+    [Fact]
     public void LoadFromTriG_WithNestedIRIs_ShouldParseCorrectly()
     {
         // Arrange
@@ -153,7 +153,7 @@ public class StoreLoadFromTriGTests
         ((UriNode)iriObjectTriple.Object).Uri.ToString().Should().Be("http://example.org/object1");
     }
 
-    [Test]
+    [Fact]
     public void LoadFromTriG_WithEmptyContent_ShouldCreateEmptyStore()
     {
         // Arrange
@@ -166,7 +166,7 @@ public class StoreLoadFromTriGTests
         store.Should().NotBeNull("Store should be created even with empty content");
     }
 
-    [Test]
+    [Fact]
     public void LoadFromTriG_WithNullContent_ShouldThrowArgumentNullException()
     {
         // Arrange
@@ -179,7 +179,7 @@ public class StoreLoadFromTriGTests
         act.Should().Throw<ArgumentNullException>("Null content should throw");
     }
 
-    [Test]
+    [Fact]
     public void LoadFromTriG_WithInvalidTriG_ShouldThrowException()
     {
         // Arrange - Invalid TriG syntax (missing closing brace)
@@ -197,7 +197,7 @@ public class StoreLoadFromTriGTests
         act.Should().Throw<Exception>("Invalid TriG should throw during parsing");
     }
 
-    [Test]
+    [Fact]
     public void LoadFromTriG_WithBooleanLiterals_ShouldParseCorrectly()
     {
         // Arrange
@@ -228,7 +228,7 @@ public class StoreLoadFromTriGTests
         ((LiteralNode)activeTriple.Object).Value.Should().Be("true");
     }
 
-    [Test]
+    [Fact]
     public void LoadFromTriG_WithWhitespaceAndNewlines_ShouldParseCorrectly()
     {
         // Arrange - Content with varying whitespace
