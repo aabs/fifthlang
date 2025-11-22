@@ -49,7 +49,7 @@ public class TrigBasicSyntaxTests
             => _errors.Add($"line {line}:{charPositionInLine} {msg} token='{offendingSymbol?.Text}'");
     }
 
-    [Test]
+    [Fact]
     public void TriGBasicSamples_ShouldParseWithoutErrors()
     {
         GetTrigSampleFiles().Should().NotBeEmpty("TriG sample files were downloaded");

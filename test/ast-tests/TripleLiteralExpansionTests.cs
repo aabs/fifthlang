@@ -1,7 +1,7 @@
 // T010: List expansion AST tests (expected to fail before expansion visitor implemented)
 using System.Linq;
 using FluentAssertions;
-using TUnit;
+using Xunit;
 using test_infra;
 using ast;
 
@@ -11,7 +11,7 @@ public class TripleLiteralExpansionTests
 {
     private ParseResult ParseHarnessed(string code) => ParseHarness.ParseString(code, new ParseOptions(Phase: compiler.FifthParserManager.AnalysisPhase.TripleExpansion));
 
-    [Test]
+    [Fact]
     public void T010_01_List_Object_Expands_To_Multiple_Triples()
     {
         // NOTE: Using string literals inside the list for now because PrefixedName tokens are not yet valid standalone expressions
@@ -24,7 +24,7 @@ public class TripleLiteralExpansionTests
         triples.Count.Should().Be(2);
     }
 
-    [Test]
+    [Fact]
     public void T010_02_Empty_List_Object_Produces_TRPL004_And_No_Triples()
     {
         const string code = "alias ex as <http://example.org/>;\nmain(): int { <ex:s, ex:p, []>; return 0; }";

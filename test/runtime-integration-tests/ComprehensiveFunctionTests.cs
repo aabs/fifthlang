@@ -8,7 +8,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class ComprehensiveFunctionTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task simple_function_ShouldReturn25()
     {
         // Arrange
@@ -25,7 +25,7 @@ public class ComprehensiveFunctionTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task recursive_function_ShouldReturn120()
     {
         // Arrange
@@ -42,7 +42,7 @@ public class ComprehensiveFunctionTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task overloaded_function_ShouldReturn3()
     {
         // Arrange

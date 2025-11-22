@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
-using TUnit;
+using Xunit;
 using ast;
 using compiler.LanguageTransformations;
 
@@ -14,7 +14,7 @@ namespace ast_tests;
 /// </summary>
 public class TripleDiagnosticsCoverageTests
 {
-    [Test]
+    [Fact]
     public void TRPL001_MissingObject_EmitsDiagnostic()
     {
         // Malformed triple with missing object component
@@ -36,7 +36,7 @@ public class TripleDiagnosticsCoverageTests
         diags.First(d => d.Code == "TRPL001").Message.Should().Contain("3 components");
     }
 
-    [Test]
+    [Fact]
     public void TRPL001_TrailingComma_EmitsDiagnostic()
     {
         // Malformed triple with trailing comma
@@ -59,7 +59,7 @@ public class TripleDiagnosticsCoverageTests
         diags.First(d => d.Code == "TRPL001").Message.Should().Contain("Trailing comma");
     }
 
-    [Test]
+    [Fact]
     public void TRPL001_TooManyComponents_EmitsDiagnostic()
     {
         // Malformed triple with too many components
@@ -83,7 +83,7 @@ public class TripleDiagnosticsCoverageTests
         diags.First(d => d.Code == "TRPL001").Message.Should().Contain("too many");
     }
 
-    [Test]
+    [Fact]
     public void TRPL004_EmptyList_EmitsWarning()
     {
         // Triple with empty list in object position
@@ -104,7 +104,7 @@ public class TripleDiagnosticsCoverageTests
         diagnostic.Message.Should().Contain("Empty list");
     }
 
-    [Test]
+    [Fact]
     public void TRPL006_NestedList_EmitsError()
     {
         // Triple with nested list in object position
@@ -131,7 +131,7 @@ public class TripleDiagnosticsCoverageTests
         diagnostic.Message.Should().Contain("Nested lists not allowed");
     }
 
-    [Test]
+    [Fact]
     public void TRPL012_TripleMinusOperator_EmitsError()
     {
         // Triple on left of minus operator (not supported)
@@ -160,7 +160,7 @@ public class TripleDiagnosticsCoverageTests
         diags.First(d => d.Code == "TRPL012").Message.Should().Contain("left of '-'");
     }
 
-    [Test]
+    [Fact]
     public void TRPL013_UnsupportedOperator_EmitsError()
     {
         // Triple with unsupported operator (e.g., multiplication)
@@ -184,7 +184,7 @@ public class TripleDiagnosticsCoverageTests
         diags.First(d => d.Code == "TRPL013").Message.Should().Contain("Unsupported operator");
     }
 
-    [Test]
+    [Fact]
     public void TRPL013_LogicalNotOnTriple_EmitsError()
     {
         // Logical NOT on triple (not supported)
@@ -207,7 +207,7 @@ public class TripleDiagnosticsCoverageTests
         diags.First(d => d.Code == "TRPL013").Message.Should().Contain("Unsupported operator");
     }
 
-    [Test]
+    [Fact]
     public void SupportedOperators_NoErrors()
     {
         // Triple + Triple should not emit any errors (supported operator)

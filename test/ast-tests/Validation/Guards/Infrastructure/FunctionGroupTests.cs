@@ -1,12 +1,12 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 using compiler.Validation.GuardValidation.Infrastructure;
 
 namespace ast_tests.Validation.Guards.Infrastructure;
 
 public class FunctionGroupTests
 {
-    [Test]
+    [Fact]
     public void Constructor_ShouldSetNameAndArity()
     {
         // Arrange & Act
@@ -18,7 +18,7 @@ public class FunctionGroupTests
         group.Overloads.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void HasAnyGuards_WithNoOverloads_ShouldReturnFalse()
     {
         // Arrange
@@ -28,7 +28,7 @@ public class FunctionGroupTests
         group.HasAnyGuards().Should().BeFalse();
     }
 
-    [Test]
+    [Fact]
     public void HasAnyGuards_WithUnguardedOverloads_ShouldReturnFalse()
     {
         // Arrange
@@ -40,7 +40,7 @@ public class FunctionGroupTests
         group.HasAnyGuards().Should().BeFalse();
     }
 
-    [Test]
+    [Fact]
     public void HasAnyGuards_WithGuardedOverloads_ShouldReturnTrue()
     {
         // Arrange
@@ -52,7 +52,7 @@ public class FunctionGroupTests
         group.HasAnyGuards().Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public void GetBaseOverloads_ShouldReturnOnlyUnguardedOverloads()
     {
         // Arrange

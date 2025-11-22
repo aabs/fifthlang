@@ -1,13 +1,13 @@
 using System;
 using compiler;
 using FluentAssertions;
-using TUnit;
+using Xunit;
 
 namespace ast_tests;
 
 public class LoweredToRoslynMappingTests
 {
-    [Test]
+    [Fact]
     public void MappingTable_AddAndRetrieveEntries()
     {
         var table = new MappingTable();
@@ -18,7 +18,7 @@ public class LoweredToRoslynMappingTests
         table.Entries[0].NodeId.Should().Be("node1");
     }
 
-    [Test]
+    [Fact]
     public void MappingTable_FindByNodeId_Returns_CorrectEntry()
     {
         var table = new MappingTable();

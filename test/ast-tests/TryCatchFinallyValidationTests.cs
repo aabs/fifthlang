@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
-using TUnit;
+using Xunit;
 using ast;
 using ast_model.TypeSystem;
 using compiler.LanguageTransformations;
@@ -13,7 +13,7 @@ namespace ast_tests;
 /// </summary>
 public class TryCatchFinallyValidationTests
 {
-    [Test]
+    [Fact]
     public void CatchNonExceptionType_Error()
     {
         // T023: Catch type must derive from System.Exception
@@ -36,7 +36,7 @@ public class TryCatchFinallyValidationTests
         diags.Should().Contain(d => d.Code == "TRY001", "catch type must be an exception type");
     }
     
-    [Test]
+    [Fact]
     public void CatchValidExceptionType_NoError()
     {
         // T023: System.Exception is valid
@@ -59,7 +59,7 @@ public class TryCatchFinallyValidationTests
         diags.Should().NotContain(d => d.Code == "TRY001", "System.Exception is a valid exception type");
     }
     
-    [Test]
+    [Fact]
     public void FilterMustBeBoolean_Error()
     {
         // T024: Filter expression must be boolean-convertible
@@ -86,7 +86,7 @@ public class TryCatchFinallyValidationTests
         diags.Should().Contain(d => d.Code == "TRY002", "filter expression must be boolean-convertible");
     }
     
-    [Test]
+    [Fact]
     public void FilterBooleanType_NoError()
     {
         // T024: Boolean filter is valid
@@ -113,7 +113,7 @@ public class TryCatchFinallyValidationTests
         diags.Should().NotContain(d => d.Code == "TRY002", "boolean filter is valid");
     }
     
-    [Test]
+    [Fact]
     public void UnreachableCatch_CatchAll_Error()
     {
         // T025: Catch-all makes later catches unreachable
@@ -141,7 +141,7 @@ public class TryCatchFinallyValidationTests
         diags.Should().Contain(d => d.Code == "TRY003", "catch-all makes later catches unreachable");
     }
     
-    [Test]
+    [Fact]
     public void UnreachableCatch_BroaderType_Error()
     {
         // T025: Earlier broader type makes later catch unreachable
@@ -170,7 +170,7 @@ public class TryCatchFinallyValidationTests
         diags.Should().Contain(d => d.Code == "TRY003", "System.Exception is broader than System.IOException");
     }
     
-    [Test]
+    [Fact]
     public void ReachableCatch_SpecificToGeneral_NoError()
     {
         // T025: Specific before general is allowed
@@ -199,7 +199,7 @@ public class TryCatchFinallyValidationTests
         diags.Should().NotContain(d => d.Code == "TRY003", "specific to general ordering is valid");
     }
     
-    [Test]
+    [Fact]
     public void ThrowExpression_OperandType_Error()
     {
         // T026: Throw expression operand must be exception type
@@ -218,7 +218,7 @@ public class TryCatchFinallyValidationTests
         diags.Should().Contain(d => d.Code == "TRY004", "throw expression operand must be exception type");
     }
     
-    [Test]
+    [Fact]
     public void ThrowStatement_OperandType_Error()
     {
         // T026: Throw statement operand must be exception type
@@ -237,7 +237,7 @@ public class TryCatchFinallyValidationTests
         diags.Should().Contain(d => d.Code == "TRY004", "throw statement operand must be exception type");
     }
     
-    [Test]
+    [Fact]
     public void ThrowStatement_ValidException_NoError()
     {
         // T026: Valid exception type should not produce error

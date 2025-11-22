@@ -20,7 +20,7 @@ public class GenericClassAstBuilderTests
         return new FifthParser(tokens);
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Generic_Class_With_Single_Type_Parameter()
     {
         // Arrange
@@ -46,7 +46,7 @@ public class GenericClassAstBuilderTests
         classDef.TypeParameters[0].Name.Value.Should().Be("T");
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Generic_Class_Without_Type_Parameters()
     {
         // Arrange
@@ -69,7 +69,7 @@ public class GenericClassAstBuilderTests
         classDef.TypeParameters.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Generic_Function_With_Single_Type_Parameter()
     {
         // Arrange
@@ -93,7 +93,7 @@ public class GenericClassAstBuilderTests
         funcDef.TypeParameters[0].Name.Value.Should().Be("T");
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Generic_Class_With_Multiple_Type_Parameters()
     {
         // Arrange
@@ -118,7 +118,7 @@ public class GenericClassAstBuilderTests
         classDef.TypeParameters[1].Name.Value.Should().Be("TValue");
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Generic_Function_With_Multiple_Type_Parameters()
     {
         // Arrange

@@ -13,7 +13,7 @@ namespace ast_tests;
 /// </summary>
 public class ConstructorSynthesisTests
 {
-    [Test]
+    [Fact]
     public void ClassWithoutConstructorsAndNoRequiredFields_ShouldSynthesizeConstructor()
     {
         // Arrange - Class with no fields (all synthesizable)
@@ -47,7 +47,7 @@ public class ConstructorSynthesisTests
         diagnostics.Should().BeEmpty("No diagnostics should be emitted for successful synthesis");
     }
 
-    [Test]
+    [Fact]
     public void ClassWithExplicitConstructor_ShouldNotSynthesize()
     {
         // Arrange - Class with an explicit constructor
@@ -111,7 +111,7 @@ public class ConstructorSynthesisTests
         diagnostics.Should().BeEmpty("No diagnostics for class with explicit constructor");
     }
 
-    [Test]
+    [Fact]
     public void ClassWithRequiredFields_ShouldEmitCTOR005Diagnostic()
     {
         // Arrange - Class with required fields (non-nullable)
@@ -162,7 +162,7 @@ public class ConstructorSynthesisTests
         diagnostics[0].Message.Should().Contain("Name");
     }
 
-    [Test]
+    [Fact]
     public void StaticConstructor_ShouldEmitCTOR010Diagnostic()
     {
         // Arrange - Constructor marked as static (forbidden)
@@ -224,7 +224,7 @@ public class ConstructorSynthesisTests
         diagnostics[0].Message.Should().Contain("static");
     }
 
-    [Test]
+    [Fact]
     public void ConstructorWithValueReturn_ShouldEmitCTOR009Diagnostic()
     {
         // Arrange - Constructor with return value (forbidden)
@@ -294,7 +294,7 @@ public class ConstructorSynthesisTests
         diagnostics[0].Message.Should().Contain("return");
     }
 
-    [Test]
+    [Fact]
     public void ConstructorWithUnassignedFields_ShouldEmitCTOR003Diagnostic()
     {
         // Arrange - Constructor that doesn't assign required fields

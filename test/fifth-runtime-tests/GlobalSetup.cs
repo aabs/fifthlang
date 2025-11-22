@@ -1,22 +1,17 @@
 // Here you could define global logic that would affect all tests
 
-// You can use attributes at the assembly level to apply to all tests in the assembly
-[assembly: Retry(3)]
+// Assembly-level attributes for code coverage
 [assembly: System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 
 namespace fifth_runtime_tests;
 
+// xUnit uses ICollectionFixture for shared setup/teardown across tests
+// For now, we'll keep the console output logic but convert to xUnit patterns
+// Individual tests can implement IAsyncLifetime if they need per-test setup/teardown
 public class GlobalHooks
 {
-    [Before(TestSession)]
-    public static void SetUp()
+    static GlobalHooks()
     {
         Console.WriteLine(@"Or you can define methods that do stuff before...");
-    }
-
-    [After(TestSession)]
-    public static void CleanUp()
-    {
-        Console.WriteLine(@"...and after!");
     }
 }

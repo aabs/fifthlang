@@ -7,7 +7,7 @@ namespace kg_smoke_tests;
 
 public class KG_TypeInference_SmokeTests
 {
-    [Test]
+    [Fact]
     public async Task NumericPromotion_IntPlusDouble_ShouldPreferDoubleOverload()
     {
         var src = """
@@ -35,7 +35,7 @@ public class KG_TypeInference_SmokeTests
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
     }
 
-    [Test]
+    [Fact]
     public async Task StringConcat_Plus_ShouldPreferStringOverload()
     {
         var src = """
@@ -63,7 +63,7 @@ public class KG_TypeInference_SmokeTests
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
     }
 
-    [Test]
+    [Fact]
     public async Task ParamTyped_Var_To_Extcall_ShouldResolveByParamType()
     {
         var src = """
@@ -92,7 +92,7 @@ public class KG_TypeInference_SmokeTests
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
     }
 
-    [Test]
+    [Fact]
     public async Task NumericPromotion_Chain_IntAndDouble_ShouldPreferDoubleOverload()
     {
         var src = """
@@ -120,7 +120,7 @@ public class KG_TypeInference_SmokeTests
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
     }
 
-    [Test]
+    [Fact]
     public async Task UnaryNegation_ShouldPreserveDoubleType()
     {
         var src = """
@@ -148,7 +148,7 @@ public class KG_TypeInference_SmokeTests
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
     }
 
-    [Test]
+    [Fact]
     public async Task StringConcat_Chain_ShouldPreferStringOverload()
     {
         var src = """
@@ -176,7 +176,7 @@ public class KG_TypeInference_SmokeTests
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
     }
 
-    [Test]
+    [Fact]
     public async Task BoolEquality_ShouldInferBoolType_ForOverloadResolution()
     {
         var src = """
@@ -204,7 +204,7 @@ public class KG_TypeInference_SmokeTests
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
     }
 
-    [Test]
+    [Fact]
     public async Task LogicalNot_OnComparison_ShouldCompile()
     {
         var src = """
@@ -232,7 +232,7 @@ public class KG_TypeInference_SmokeTests
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
     }
 
-    [Test]
+    [Fact]
     public async Task ParamTyped_Float_AddInt_ShouldPreferFloatOverload()
     {
         var src = """
@@ -261,7 +261,7 @@ public class KG_TypeInference_SmokeTests
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
     }
 
-    [Test]
+    [Fact]
     public async Task StringConcat_WithParam_ShouldPreferStringOverload()
     {
         var src = """
@@ -290,7 +290,7 @@ public class KG_TypeInference_SmokeTests
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
     }
 
-    [Test]
+    [Fact]
     public async Task NestedFuncCall_IntAddition_FlowsTypeToCallee()
     {
         var src = """

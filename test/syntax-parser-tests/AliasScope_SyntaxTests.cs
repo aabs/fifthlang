@@ -6,7 +6,7 @@ namespace syntax_parser_tests;
 
 public class AliasScope_SyntaxTests
 {
-    [Test]
+    [Fact]
     public void ClassWithAliasScope_ShouldParse()
     {
         var src = "class Person in x { Name: string; }";

@@ -4,7 +4,7 @@ namespace syntax_parser_tests;
 
 public class ValidDeclaration_SyntaxTests
 {
-    [Test]
+    [Fact]
     public void VariableDeclaration_ShouldSucceed()
     {
         var input = "x : int = 1;";
@@ -12,7 +12,7 @@ public class ValidDeclaration_SyntaxTests
             "Colon-form variable declaration should parse");
     }
 
-    [Test]
+    [Fact]
     public void StoreDeclaration_ShouldSucceed()
     {
         var input = "home : store = sparql_store(<http://example.com/>);";
@@ -20,7 +20,7 @@ public class ValidDeclaration_SyntaxTests
             "Colon-form store declaration should parse");
     }
 
-    [Test]
+    [Fact]
     public void GraphDeclaration_ShouldSucceed()
     {
         var input = "g : graph = KG.CreateGraph();";

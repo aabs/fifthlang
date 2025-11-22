@@ -2,11 +2,11 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using TUnit;
+using Xunit;
 
 public class PerfAssertions
 {
-    [Test]
+    [Fact]
     public async Task GuardValidationPerformance_ShouldNotRegressBeyondThreshold()
     {
         var repoRoot = Directory.GetCurrentDirectory();
@@ -29,7 +29,7 @@ public class PerfAssertions
             return;
         }
 
-        await Assert.That(File.Exists(baseline)).IsTrue();
+        File.Exists(baseline.Should().BeTrue();
 
         var psi = new ProcessStartInfo()
         {
@@ -51,6 +51,6 @@ public class PerfAssertions
         if (!string.IsNullOrWhiteSpace(stderr))
             Console.WriteLine(stderr);
 
-        await Assert.That(proc.ExitCode).IsEqualTo(0);
+        proc.ExitCode.Should().Be(0;
     }
 }

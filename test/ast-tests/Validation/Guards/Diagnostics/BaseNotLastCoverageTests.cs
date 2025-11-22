@@ -1,4 +1,4 @@
-using TUnit.Core;
+using Xunit;
 using FluentAssertions;
 using ast;
 using ast_model.TypeSystem;
@@ -9,7 +9,7 @@ namespace ast_tests.Validation.Guards.Diagnostics;
 
 public class BaseNotLastCoverageTests
 {
-    [Test]
+    [Fact]
     public void BaseNotLast_ShouldStillAllowE1001()
     {
         // Create function where guarded overloads come BEFORE base (creating incomplete coverage scenario)

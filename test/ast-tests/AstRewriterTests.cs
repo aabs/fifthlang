@@ -10,7 +10,7 @@ namespace ast_tests;
 /// </summary>
 public class AstRewriterTests : VisitorTestsBase
 {
-    [Test]
+    [Fact]
     public void DefaultAstRewriter_ShouldPreserveStructure_WithNoPrologue()
     {
         // Arrange: Create a simple AST with a binary expression
@@ -35,7 +35,7 @@ public class AstRewriterTests : VisitorTestsBase
         rewrittenBinary.Operator.Should().Be(Operator.ArithmeticAdd);
     }
 
-    [Test]
+    [Fact]
     public void BlockStatement_ShouldConsumePrologueFromChildStatements()
     {
         // Arrange: Create a custom rewriter that hoists statements
@@ -70,7 +70,7 @@ public class AstRewriterTests : VisitorTestsBase
         rewrittenBlock.Statements[1].Should().BeOfType<ExpStatement>();
     }
 
-    [Test]
+    [Fact]
     public void RewriteResult_From_ShouldCreateResultWithEmptyPrologue()
     {
         // Arrange

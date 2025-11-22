@@ -1,7 +1,7 @@
 // T009: AST tests for triple literal
 using System.Linq;
 using FluentAssertions;
-using TUnit; // Test framework
+using Xunit; // Test framework
 using ast;    // core AST model
 using test_infra;
 using compiler; // FifthParserManager
@@ -11,7 +11,7 @@ namespace ast_tests;
 
 public class TripleLiteralAstTests
 {
-    [Test]
+    [Fact]
     public void valid_triple_literal_ast_shape()
     {
         var src = @"alias ex as <http://example.org/>;\nmain(): int { <ex:s, ex:p, ex:o>; return 0; }";
@@ -28,7 +28,7 @@ public class TripleLiteralAstTests
         // Subject/predicate/object already typed as UriLiteralExp; deeper content validation deferred.
     }
 
-    [Test]
+    [Fact]
     public void malformed_triple_too_few_components_captured()
     {
         var src = @"alias ex as <http://example.org/>;\nmain(): int { <ex:s, ex:p>; return 0; }";
@@ -43,7 +43,7 @@ public class TripleLiteralAstTests
         m.MalformedKind.Should().NotBeNullOrEmpty();
     }
 
-    [Test]
+    [Fact]
     public void malformed_triple_trailing_comma_captured()
     {
         var src = @"alias ex as <http://example.org/>;\nmain(): int { <ex:s, ex:p, ex:o,>; return 0; }";
@@ -54,7 +54,7 @@ public class TripleLiteralAstTests
         malformed[0].Components.Should().HaveCount(3); // subject,predicate,object captured prior to dangling comma
     }
 
-    [Test]
+    [Fact]
     public void malformed_triple_too_many_components_captured()
     {
         var src = @"alias ex as <http://example.org/>;\nmain(): int { <ex:s, ex:p, ex:o, ex:x>; return 0; }";

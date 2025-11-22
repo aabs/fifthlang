@@ -14,7 +14,7 @@ namespace ast_tests;
 /// </summary>
 public class ConstructorFunctionalityTests
 {
-    [Test]
+    [Fact]
     public void BasicConstructor_ParsesAndBuildsCorrectAST()
     {
         // Arrange
@@ -61,7 +61,7 @@ public class ConstructorFunctionalityTests
         ctor.Params[1].Name.Should().Be("age", "Second parameter should be age");
     }
 
-    [Test]
+    [Fact]
     public void ConstructorSynthesis_CreatesParameterlessConstructor()
     {
         // Arrange - Class with no required fields should get synthesized constructor
@@ -95,7 +95,7 @@ public class ConstructorFunctionalityTests
         constructors[0].FunctionDef.Params.Should().BeEmpty("Synthesized constructor should be parameterless");
     }
 
-    [Test]
+    [Fact]
     public void MultipleConstructorOverloads_AllParsedCorrectly()
     {
         // Arrange
@@ -140,7 +140,7 @@ public class ConstructorFunctionalityTests
         constructors[1].FunctionDef.Params.Should().HaveCount(2, "Second overload has 2 parameters");
     }
 
-    [Test]
+    [Fact]
     public void ConstructorWithBaseCall_ParsesCorrectly()
     {
         // Arrange
@@ -185,7 +185,7 @@ public class ConstructorFunctionalityTests
         constructor.BaseCall!.Arguments.Should().HaveCount(1, "Base call should have 1 argument");
     }
 
-    [Test]
+    [Fact]
     public void GenericClassConstructor_HandlesTypeParameters()
     {
         // Arrange
@@ -224,15 +224,14 @@ public class ConstructorFunctionalityTests
         constructor.Params.Should().HaveCount(1, "Constructor should accept T parameter");
     }
 
-    [Test]
-    [Skip("CTOR003 diagnostic testing is covered by ConstructorSynthesisTests.ConstructorWithUnassignedFields_ShouldEmitCTOR003Diagnostic")]
+    [Fact(Skip = "CTOR003 diagnostic testing is covered by ConstructorSynthesisTests.ConstructorWithUnassignedFields_ShouldEmitCTOR003Diagnostic")]
     public void DefiniteAssignmentValidation_DetectsUnassignedFields()
     {
         // NOTE: This test is redundant with existing ConstructorSynthesisTests
         // Definite assignment validation is already tested at the component level
     }
 
-    [Test]
+    [Fact]
     public void ConstructorValidation_DetectsValueReturn()
     {
         // Arrange - Constructor with return value (forbidden)
@@ -261,8 +260,7 @@ public class ConstructorFunctionalityTests
             "Should emit CTOR009 for value return in constructor");
     }
 
-    [Test]
-    [Skip("Static constructor syntax not yet supported by parser")]
+    [Fact(Skip = "Static constructor syntax not yet supported by parser")]
     public void ConstructorValidation_DetectsStaticModifier()
     {
         // Arrange - Constructor marked as static (forbidden)
@@ -290,16 +288,14 @@ public class ConstructorFunctionalityTests
             "Should emit CTOR010 for static constructor");
     }
 
-    [Test]
-    [Skip("CTOR005 diagnostic testing is covered by ConstructorSynthesisTests.ClassWithRequiredFields_ShouldEmitCTOR005Diagnostic")]
+    [Fact(Skip = "CTOR005 diagnostic testing is covered by ConstructorSynthesisTests.ClassWithRequiredFields_ShouldEmitCTOR005Diagnostic")]
     public void ConstructorSynthesis_EmitsCTOR005_ForRequiredFieldsWithoutDefaults()
     {
         // NOTE: This test is redundant with existing ConstructorSynthesisTests
         // Constructor synthesis diagnostic is already tested at the component level
     }
 
-    [Test]
-    [Skip("Causes stack overflow when accessing AST nodes - needs investigation")]
+    [Fact(Skip = "Causes stack overflow when accessing AST nodes - needs investigation")]
     public void ConstructorWithControlFlow_ParsesIfStatements()
     {
         // NOTE: This test causes stack overflow when accessing constructor.Body.Statements
@@ -352,7 +348,7 @@ public class ConstructorFunctionalityTests
         //     "Constructor body should contain assignments and if statement");
     }
 
-    [Test]
+    [Fact]
     public void MultipleClassesWithConstructors_AllParseProperly()
     {
         // Arrange

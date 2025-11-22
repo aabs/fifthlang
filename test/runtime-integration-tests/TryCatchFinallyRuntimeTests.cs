@@ -9,7 +9,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class TryCatchFinallyRuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task TryFinally_Basic_ShouldReturn25()
     {
         // Arrange
@@ -26,7 +26,7 @@ public class TryCatchFinallyRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task TryCatch_Basic_ShouldReturn42()
     {
         // Arrange
@@ -43,7 +43,7 @@ public class TryCatchFinallyRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task TryCatchFinally_Combined_ShouldReturn15()
     {
         // Arrange
@@ -60,7 +60,7 @@ public class TryCatchFinallyRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task CatchClause_StructuralTest()
     {
         // Arrange

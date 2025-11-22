@@ -1,7 +1,8 @@
 using System;
 using System.Linq;
 using Fifth.System;
-using TUnit.Core;
+using Xunit;
+using FluentAssertions;
 
 namespace ast_tests;
 
@@ -16,8 +17,8 @@ public class SystemKGTypesTests
     
     #region Triple Tests
     
-    [Test]
-    public async Task Triple_Create_ReturnsValidTriple()
+    [Fact]
+    public void Triple_Create_ReturnsValidTriple()
     {
         var s = CreateUri("http://example.org/s");
         var p = CreateUri("http://example.org/p");
@@ -25,14 +26,14 @@ public class SystemKGTypesTests
         
         var triple = Triple.Create(s, p, o);
         
-        await Assert.That(triple).IsNotNull();
-        await Assert.That(triple.Subject).IsEqualTo(s);
-        await Assert.That(triple.Predicate).IsEqualTo(p);
-        await Assert.That(triple.Object).IsEqualTo(o);
+        triple.Should().NotBeNull();
+        triple.Subject.Should().Be(s);
+        triple.Predicate.Should().Be(p);
+        triple.Object.Should().Be(o);
     }
     
-    [Test]
-    public async Task Triple_ToVdsTriple_ReturnsValidVdsTriple()
+    [Fact]
+    public void Triple_ToVdsTriple_ReturnsValidVdsTriple()
     {
         var s = CreateUri("http://example.org/s");
         var p = CreateUri("http://example.org/p");
@@ -41,14 +42,14 @@ public class SystemKGTypesTests
         var triple = Triple.Create(s, p, o);
         var vdsTriple = triple.ToVdsTriple();
         
-        await Assert.That(vdsTriple).IsNotNull();
-        await Assert.That(vdsTriple.Subject).IsEqualTo(s);
-        await Assert.That(vdsTriple.Predicate).IsEqualTo(p);
-        await Assert.That(vdsTriple.Object).IsEqualTo(o);
+        vdsTriple.Should().NotBeNull();
+        vdsTriple.Subject.Should().Be(s);
+        vdsTriple.Predicate.Should().Be(p);
+        vdsTriple.Object.Should().Be(o);
     }
     
-    [Test]
-    public async Task Triple_FromVds_ReturnsValidWrapper()
+    [Fact]
+    public void Triple_FromVds_ReturnsValidWrapper()
     {
         var s = CreateUri("http://example.org/s");
         var p = CreateUri("http://example.org/p");
@@ -57,14 +58,14 @@ public class SystemKGTypesTests
         
         var triple = Triple.FromVds(vdsTriple);
         
-        await Assert.That(triple).IsNotNull();
-        await Assert.That(triple.Subject).IsEqualTo(s);
-        await Assert.That(triple.Predicate).IsEqualTo(p);
-        await Assert.That(triple.Object).IsEqualTo(o);
+        triple.Should().NotBeNull();
+        triple.Subject.Should().Be(s);
+        triple.Predicate.Should().Be(p);
+        triple.Object.Should().Be(o);
     }
     
-    [Test]
-    public async Task Triple_PlusTriple_ReturnsGraphWithBothTriples()
+    [Fact]
+    public void Triple_PlusTriple_ReturnsGraphWithBothTriples()
     {
         // FR-011: triple + triple -> graph (non-mutating)
         var t1 = Triple.Create(CreateUri("http://ex/s1"), CreateUri("http://ex/p"), CreateLiteral("v1"));
@@ -72,37 +73,37 @@ public class SystemKGTypesTests
         
         var graph = t1 + t2;
         
-        await Assert.That(graph).IsNotNull();
-        await Assert.That(graph.Count).IsEqualTo(2);
-        await Assert.That(graph.Triples.Count()).IsEqualTo(2);
+        graph.Should().NotBeNull();
+        graph.Count.Should().Be(2);
+        graph.Triples.Count().Should().Be(2);
     }
     
     #endregion
     
     #region Graph Tests
     
-    [Test]
-    public async Task Graph_Create_ReturnsEmptyGraph()
+    [Fact]
+    public void Graph_Create_ReturnsEmptyGraph()
     {
         var graph = Graph.Create();
         
-        await Assert.That(graph).IsNotNull();
-        await Assert.That(graph.Count).IsEqualTo(0);
+        graph.Should().NotBeNull();
+        graph.Count.Should().Be(0);
     }
     
-    [Test]
-    public async Task Graph_Add_IncreasesCount()
+    [Fact]
+    public void Graph_Add_IncreasesCount()
     {
         var graph = Graph.Create();
         var triple = Triple.Create(CreateUri("http://ex/s"), CreateUri("http://ex/p"), CreateLiteral("v"));
         
         graph.Add(triple);
         
-        await Assert.That(graph.Count).IsEqualTo(1);
+        graph.Count.Should().Be(1);
     }
     
-    [Test]
-    public async Task Graph_Add_Idempotent_SetSemantics()
+    [Fact]
+    public void Graph_Add_Idempotent_SetSemantics()
     {
         // Per FR-011: Graphs use set semantics: duplicate triples are suppressed
         var graph = Graph.Create();
@@ -111,11 +112,11 @@ public class SystemKGTypesTests
         graph.Add(triple);
         graph.Add(triple); // Add same triple again
         
-        await Assert.That(graph.Count).IsEqualTo(1); // Should still be 1
+        graph.Count.Should().Be(1); // Should still be 1
     }
     
-    [Test]
-    public async Task Graph_Remove_DecreasesCount()
+    [Fact]
+    public void Graph_Remove_DecreasesCount()
     {
         var graph = Graph.Create();
         var triple = Triple.Create(CreateUri("http://ex/s"), CreateUri("http://ex/p"), CreateLiteral("v"));
@@ -123,11 +124,11 @@ public class SystemKGTypesTests
         
         graph.Remove(triple);
         
-        await Assert.That(graph.Count).IsEqualTo(0);
+        graph.Count.Should().Be(0);
     }
     
-    [Test]
-    public async Task Graph_PlusTriple_ReturnsNewGraphWithTriple()
+    [Fact]
+    public void Graph_PlusTriple_ReturnsNewGraphWithTriple()
     {
         // FR-011: graph + triple -> graph (non-mutating)
         var g1 = Graph.Create();
@@ -137,13 +138,13 @@ public class SystemKGTypesTests
         var t2 = Triple.Create(CreateUri("http://ex/s2"), CreateUri("http://ex/p"), CreateLiteral("v2"));
         var g2 = g1 + t2;
         
-        await Assert.That(g1.Count).IsEqualTo(1); // Original unchanged
-        await Assert.That(g2.Count).IsEqualTo(2); // Result has both
-        await Assert.That(object.ReferenceEquals(g1, g2)).IsFalse(); // Different instances
+        g1.Count.Should().Be(1); // Original unchanged
+        g2.Count.Should().Be(2); // Result has both
+        object.ReferenceEquals(g1, g2).Should().BeFalse(); // Different instances
     }
     
-    [Test]
-    public async Task Graph_MinusTriple_ReturnsNewGraphWithoutTriple()
+    [Fact]
+    public void Graph_MinusTriple_ReturnsNewGraphWithoutTriple()
     {
         // FR-011: graph - triple -> graph (non-mutating)
         var g1 = Graph.Create();
@@ -154,13 +155,13 @@ public class SystemKGTypesTests
         
         var g2 = g1 - t1;
         
-        await Assert.That(g1.Count).IsEqualTo(2); // Original unchanged
-        await Assert.That(g2.Count).IsEqualTo(1); // Result has one less
-        await Assert.That(object.ReferenceEquals(g1, g2)).IsFalse(); // Different instances
+        g1.Count.Should().Be(2); // Original unchanged
+        g2.Count.Should().Be(1); // Result has one less
+        object.ReferenceEquals(g1, g2).Should().BeFalse(); // Different instances
     }
     
-    [Test]
-    public async Task Graph_PlusGraph_ReturnsNewMergedGraph()
+    [Fact]
+    public void Graph_PlusGraph_ReturnsNewMergedGraph()
     {
         // FR-011: graph + graph -> graph (non-mutating)
         var g1 = Graph.Create();
@@ -173,15 +174,15 @@ public class SystemKGTypesTests
         
         var g3 = g1 + g2;
         
-        await Assert.That(g1.Count).IsEqualTo(1); // Originals unchanged
-        await Assert.That(g2.Count).IsEqualTo(1);
-        await Assert.That(g3.Count).IsEqualTo(2); // Result has both
-        await Assert.That(object.ReferenceEquals(g1, g3)).IsFalse();
-        await Assert.That(object.ReferenceEquals(g2, g3)).IsFalse();
+        g1.Count.Should().Be(1); // Originals unchanged
+        g2.Count.Should().Be(1);
+        g3.Count.Should().Be(2); // Result has both
+        object.ReferenceEquals(g1, g3).Should().BeFalse();
+        object.ReferenceEquals(g2, g3).Should().BeFalse();
     }
     
-    [Test]
-    public async Task Graph_MinusGraph_ReturnsNewDifferenceGraph()
+    [Fact]
+    public void Graph_MinusGraph_ReturnsNewDifferenceGraph()
     {
         // FR-011: graph - graph -> graph (non-mutating)
         var g1 = Graph.Create();
@@ -195,13 +196,13 @@ public class SystemKGTypesTests
         
         var g3 = g1 - g2;
         
-        await Assert.That(g1.Count).IsEqualTo(2); // Originals unchanged
-        await Assert.That(g2.Count).IsEqualTo(1);
-        await Assert.That(g3.Count).IsEqualTo(1); // Result has only t2
+        g1.Count.Should().Be(2); // Originals unchanged
+        g2.Count.Should().Be(1);
+        g3.Count.Should().Be(1); // Result has only t2
     }
     
-    [Test]
-    public async Task Graph_AddInPlace_ModifiesOriginalGraph()
+    [Fact]
+    public void Graph_AddInPlace_ModifiesOriginalGraph()
     {
         // FR-011: graph += triple -> graph (mutating)
         var g = Graph.Create();
@@ -209,12 +210,12 @@ public class SystemKGTypesTests
         
         var result = g.AddInPlace(t);
         
-        await Assert.That(g.Count).IsEqualTo(1); // Original modified
-        await Assert.That(object.ReferenceEquals(g, result)).IsTrue(); // Same instance returned
+        g.Count.Should().Be(1); // Original modified
+        object.ReferenceEquals(g, result).Should().BeTrue(); // Same instance returned
     }
     
-    [Test]
-    public async Task Graph_RemoveInPlace_ModifiesOriginalGraph()
+    [Fact]
+    public void Graph_RemoveInPlace_ModifiesOriginalGraph()
     {
         // FR-011: graph -= triple -> graph (mutating)
         var g = Graph.Create();
@@ -223,12 +224,12 @@ public class SystemKGTypesTests
         
         var result = g.RemoveInPlace(t);
         
-        await Assert.That(g.Count).IsEqualTo(0); // Original modified
-        await Assert.That(object.ReferenceEquals(g, result)).IsTrue(); // Same instance returned
+        g.Count.Should().Be(0); // Original modified
+        object.ReferenceEquals(g, result).Should().BeTrue(); // Same instance returned
     }
     
-    [Test]
-    public async Task Graph_MergeInPlace_ModifiesOriginalGraph()
+    [Fact]
+    public void Graph_MergeInPlace_ModifiesOriginalGraph()
     {
         // FR-011: graph += graph -> graph (mutating)
         var g1 = Graph.Create();
@@ -241,13 +242,13 @@ public class SystemKGTypesTests
         
         var result = g1.MergeInPlace(g2);
         
-        await Assert.That(g1.Count).IsEqualTo(2); // Original modified
-        await Assert.That(g2.Count).IsEqualTo(1); // g2 unchanged
-        await Assert.That(object.ReferenceEquals(g1, result)).IsTrue(); // Same instance returned
+        g1.Count.Should().Be(2); // Original modified
+        g2.Count.Should().Be(1); // g2 unchanged
+        object.ReferenceEquals(g1, result).Should().BeTrue(); // Same instance returned
     }
     
-    [Test]
-    public async Task Graph_DifferenceInPlace_ModifiesOriginalGraph()
+    [Fact]
+    public void Graph_DifferenceInPlace_ModifiesOriginalGraph()
     {
         // FR-011: graph -= graph -> graph (mutating)
         var g1 = Graph.Create();
@@ -261,13 +262,13 @@ public class SystemKGTypesTests
         
         var result = g1.DifferenceInPlace(g2);
         
-        await Assert.That(g1.Count).IsEqualTo(1); // Original modified
-        await Assert.That(g2.Count).IsEqualTo(1); // g2 unchanged
-        await Assert.That(object.ReferenceEquals(g1, result)).IsTrue(); // Same instance returned
+        g1.Count.Should().Be(1); // Original modified
+        g2.Count.Should().Be(1); // g2 unchanged
+        object.ReferenceEquals(g1, result).Should().BeTrue(); // Same instance returned
     }
     
-    [Test]
-    public async Task Graph_ToVds_ReturnsUnderlyingIGraph()
+    [Fact]
+    public void Graph_ToVds_ReturnsUnderlyingIGraph()
     {
         var graph = Graph.Create();
         var triple = Triple.Create(CreateUri("http://ex/s"), CreateUri("http://ex/p"), CreateLiteral("v"));
@@ -275,12 +276,12 @@ public class SystemKGTypesTests
         
         var vdsGraph = graph.ToVds();
         
-        await Assert.That(vdsGraph).IsNotNull();
-        await Assert.That(vdsGraph.Triples.Count).IsEqualTo(1);
+        vdsGraph.Should().NotBeNull();
+        vdsGraph.Triples.Count.Should().Be(1);
     }
     
-    [Test]
-    public async Task Graph_FromVds_ReturnsValidWrapper()
+    [Fact]
+    public void Graph_FromVds_ReturnsValidWrapper()
     {
         var vdsGraph = new VDS.RDF.Graph();
         var vdsTriple = new VDS.RDF.Triple(CreateUri("http://ex/s"), CreateUri("http://ex/p"), CreateLiteral("v"));
@@ -288,35 +289,35 @@ public class SystemKGTypesTests
         
         var graph = Graph.FromVds(vdsGraph);
         
-        await Assert.That(graph).IsNotNull();
-        await Assert.That(graph.Count).IsEqualTo(1);
+        graph.Should().NotBeNull();
+        graph.Count.Should().Be(1);
     }
     
     #endregion
     
     #region Store Tests
     
-    [Test]
-    public async Task Store_CreateInMemory_ReturnsValidStore()
+    [Fact]
+    public void Store_CreateInMemory_ReturnsValidStore()
     {
         var store = Store.CreateInMemory();
         
-        await Assert.That(store).IsNotNull();
+        store.Should().NotBeNull();
     }
     
-    [Test]
-    public async Task Store_CreateGraph_ReturnsEmptyGraph()
+    [Fact]
+    public void Store_CreateGraph_ReturnsEmptyGraph()
     {
         var store = Store.CreateInMemory();
         
         var graph = store.CreateGraph();
         
-        await Assert.That(graph).IsNotNull();
-        await Assert.That(graph.Count).IsEqualTo(0);
+        graph.Should().NotBeNull();
+        graph.Count.Should().Be(0);
     }
     
-    [Test]
-    public async Task Store_SaveGraph_SavesSuccessfully()
+    [Fact]
+    public void Store_SaveGraph_SavesSuccessfully()
     {
         var store = Store.CreateInMemory();
         var graph = Graph.Create(new Uri("http://example.org/graph"));
@@ -326,11 +327,11 @@ public class SystemKGTypesTests
         // Just verify no exception is thrown
         store.SaveGraph(graph);
         
-        await Assert.That(graph.Count).IsEqualTo(1);
+        graph.Count.Should().Be(1);
     }
     
-    [Test]
-    public async Task Store_LoadGraph_ReturnsGraphWithTriples()
+    [Fact]
+    public void Store_LoadGraph_ReturnsGraphWithTriples()
     {
         var store = Store.CreateInMemory();
         var graphUri = new Uri("http://example.org/graph");
@@ -341,12 +342,12 @@ public class SystemKGTypesTests
         
         var loaded = store.LoadGraph(graphUri);
         
-        await Assert.That(loaded).IsNotNull();
-        await Assert.That(loaded.Count).IsEqualTo(1);
+        loaded.Should().NotBeNull();
+        loaded.Count.Should().Be(1);
     }
     
-    [Test]
-    public async Task Store_AddGraphInPlace_SavesGraph()
+    [Fact]
+    public void Store_AddGraphInPlace_SavesGraph()
     {
         // FR-011: store += graph -> store (mutating)
         var store = Store.CreateInMemory();
@@ -356,17 +357,17 @@ public class SystemKGTypesTests
         
         var result = store.AddGraphInPlace(graph);
         
-        await Assert.That(object.ReferenceEquals(store, result)).IsTrue(); // Same instance returned
+        object.ReferenceEquals(store, result).Should().BeTrue(); // Same instance returned
     }
     
-    [Test]
-    public async Task Store_ToVds_ReturnsUnderlyingStorage()
+    [Fact]
+    public void Store_ToVds_ReturnsUnderlyingStorage()
     {
         var store = Store.CreateInMemory();
         
         var vdsStore = store.ToVds();
         
-        await Assert.That(vdsStore).IsNotNull();
+        vdsStore.Should().NotBeNull();
     }
     
     #endregion

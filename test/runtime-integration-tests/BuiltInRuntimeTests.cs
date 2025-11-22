@@ -9,7 +9,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class BuiltInRuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task StringOutput_ShouldCompile()
     {
         var sourceCode = """
@@ -26,7 +26,7 @@ public class BuiltInRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Test]
+    [Fact]
     public async Task StringConcatenation_ShouldCompile()
     {
         var sourceCode = """
@@ -43,7 +43,7 @@ public class BuiltInRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Test]
+    [Fact]
     public async Task StringComparison_ShouldCompile()
     {
         var sourceCode = """
@@ -62,7 +62,7 @@ public class BuiltInRuntimeTests : RuntimeTestBase
         File.Exists(executablePath).Should().BeTrue("String comparison should compile");
     }
 
-    [Test]
+    [Fact]
     public async Task MathFunctions_ShouldCompile()
     {
         var sourceCode = """
@@ -77,7 +77,7 @@ public class BuiltInRuntimeTests : RuntimeTestBase
         File.Exists(executablePath).Should().BeTrue("Math functions should compile");
     }
 
-    [Test]
+    [Fact]
     public async Task InputOutput_ShouldCompile()
     {
         var sourceCode = """
@@ -94,7 +94,7 @@ public class BuiltInRuntimeTests : RuntimeTestBase
         File.Exists(executablePath).Should().BeTrue("Input/output operations should compile");
     }
 
-    [Test]
+    [Fact]
     public async Task ArrayUtilities_ShouldCompile()
     {
         var sourceCode = """
@@ -109,7 +109,7 @@ public class BuiltInRuntimeTests : RuntimeTestBase
         File.Exists(executablePath).Should().BeTrue("Array utilities should compile");
     }
 
-    [Test, Skip("Error handling not yet implemented")]
+    [Fact(Skip = "Error handling not yet implemented")]
     public async Task ErrorHandling_ShouldCompile()
     {
         var sourceCode = """

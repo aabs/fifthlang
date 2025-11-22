@@ -9,7 +9,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class BasicRuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task SimpleReturnInt_ShouldGenerateExecutable()
     {
         // Arrange
@@ -33,7 +33,7 @@ public class BasicRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task ArithmeticOperations_ShouldCompileSuccessfully()
     {
         // Arrange - Test simple arithmetic without variables (which currently works)
@@ -55,7 +55,7 @@ public class BasicRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task ComplexArithmeticExpressions_ShouldCompile()
     {
         // Test simple arithmetic operations (without variables)
@@ -96,7 +96,7 @@ main(): int {{
         }
     }
 
-    [Test]
+    [Fact]
     public async Task NestedExpressions_ShouldCompile()
     {
         // Arrange - Test simpler nested expressions first
@@ -126,7 +126,7 @@ main(): int {{
         }
     }
 
-    [Test]
+    [Fact]
     public async Task BooleanExpressions_ShouldCompile()
     {
         // Arrange - Simplified boolean expression test (complex control flow not yet working)
@@ -150,7 +150,7 @@ main(): int {{
         // TODO: Update when control flow (if statements) and variable declarations are working in IL generation
     }
 
-    [Test]
+    [Fact]
     public async Task VariableDeclarationAndAssignment_ShouldCompile()
     {
         // Arrange - Test compilation success (execution may fail due to IL generation limitations)
@@ -174,7 +174,7 @@ main(): int {{
         // Expected result would be 15 (5 * 2 + 5) when IL generation is complete
     }
 
-    [Test]
+    [Fact]
     public async Task MultipleVariableTypes_ShouldCompile()
     {
         // Arrange - Test different variable types if supported

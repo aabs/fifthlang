@@ -26,7 +26,7 @@ public class TriGLiteralExpression_SyntaxTests
         }
     }
 
-    [Test]
+    [Fact]
     public void BasicTriGLiteral_ShouldParse()
     {
         // Arrange - basic TriG literal without interpolation
@@ -49,7 +49,7 @@ main(): int {
         act.Should().NotThrow("Valid TriG literal should parse successfully");
     }
 
-    [Test]
+    [Fact]
     public void TriGLiteralWithNestedIRIs_ShouldNotTerminatePrematurely()
     {
         // Arrange - TriG literal with multiple nested <...> IRIs
@@ -70,7 +70,7 @@ main(): int {
         act.Should().NotThrow("Nested IRIs should not prematurely terminate the literal");
     }
 
-    [Test]
+    [Fact]
     public void TriGLiteralWithInterpolation_ShouldParse()
     {
         // Arrange - TriG literal with expression interpolation
@@ -94,7 +94,7 @@ main(): int {
         act.Should().NotThrow("TriG literal with interpolation should parse successfully");
     }
 
-    [Test]
+    [Fact]
     public void TriGLiteralWithMultipleInterpolations_ShouldParse()
     {
         // Arrange - Multiple interpolations in one literal
@@ -122,7 +122,7 @@ main(): int {
         act.Should().NotThrow("TriG literal with multiple interpolations should parse");
     }
 
-    [Test]
+    [Fact]
     public void TriGLiteralWithBraceEscaping_ShouldParse()
     {
         // Arrange - Escaped braces using triple braces
@@ -145,7 +145,7 @@ main(): int {
         act.Should().NotThrow("Escaped braces should parse correctly");
     }
 
-    [Test]
+    [Fact]
     public void EmptyTriGLiteral_ShouldParse()
     {
         // Arrange - Empty TriG literal (edge case)
@@ -162,7 +162,7 @@ main(): int {
         act.Should().NotThrow("Empty TriG literal should be valid");
     }
 
-    [Test]
+    [Fact]
     public void TriGLiteralPreservesWhitespace_ShouldParse()
     {
         // Arrange - Check that whitespace is preserved
@@ -185,7 +185,7 @@ main(): int {
         act.Should().NotThrow("Whitespace preservation should not affect parsing");
     }
 
-    [Test]
+    [Fact]
     public void UnbalancedTriGLiteral_ShouldFailParsing()
     {
         // Arrange - Missing closing >

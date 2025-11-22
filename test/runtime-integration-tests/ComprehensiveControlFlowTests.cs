@@ -8,7 +8,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class ComprehensiveControlFlowTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task if_statement_ShouldReturn1()
     {
         // Arrange
@@ -25,7 +25,7 @@ public class ComprehensiveControlFlowTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task if_else_statement_ShouldReturn2()
     {
         // Arrange
@@ -42,7 +42,7 @@ public class ComprehensiveControlFlowTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task while_loop_ShouldReturn5()
     {
         // Arrange

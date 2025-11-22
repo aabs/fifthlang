@@ -7,11 +7,11 @@ namespace runtime_integration_tests;
 /// Following TDD - these tests will initially fail until the feature is implemented.
 /// Tests validate that TriG literals compile and produce expected Store objects.
 /// </summary>
-[Category("KG")]
-[Category("TriG")]
+[Trait("Category", "KG")]
+[Trait("Category", "TriG")]
 public class TriGLiteralExpression_RuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task BasicTriGLiteral_ShouldCompileAndInitializeStore()
     {
         // Arrange - User Story 1: Basic TriG literal without interpolation
@@ -44,7 +44,7 @@ public class TriGLiteralExpression_RuntimeTests : RuntimeTestBase
         // full dotNetRDF integration which may not be available in test environment.
     }
 
-    [Test]
+    [Fact]
     public async Task TriGLiteralWithNestedIRIs_ShouldCompile()
     {
         // Arrange - User Story 3: Nested angle brackets should not prematurely terminate
@@ -69,7 +69,7 @@ public class TriGLiteralExpression_RuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("Executable with nested IRIs should compile");
     }
 
-    [Test]
+    [Fact]
     public async Task TriGLiteralWithInterpolation_ShouldCompileAndSerializeValues()
     {
         // Arrange - User Story 2: Expression interpolation
@@ -103,7 +103,7 @@ public class TriGLiteralExpression_RuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("Executable with interpolation should compile");
     }
 
-    [Test]
+    [Fact]
     public async Task TriGLiteralWithBraceEscaping_ShouldCompile()
     {
         // Arrange - Triple braces for literal {{ and }}
@@ -129,7 +129,7 @@ public class TriGLiteralExpression_RuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("Executable with brace escaping should compile");
     }
 
-    [Test]
+    [Fact]
     public async Task TriGLiteralPreservesWhitespace_ShouldCompile()
     {
         // Arrange - Whitespace preservation (no trimming/indentation normalization)
@@ -157,7 +157,7 @@ public class TriGLiteralExpression_RuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("Executable with preserved whitespace should compile");
     }
 
-    [Test]
+    [Fact]
     public async Task EmptyTriGLiteral_ShouldCompile()
     {
         // Arrange - Edge case: empty TriG literal
@@ -177,7 +177,7 @@ public class TriGLiteralExpression_RuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("Executable with empty TriG literal should compile");
     }
 
-    [Test]
+    [Fact]
     public async Task TriGLiteralWithRuntimeExpressionEvaluation_ShouldCompile()
     {
         // Arrange - Interpolation evaluates at runtime in lexical scope
@@ -207,7 +207,7 @@ public class TriGLiteralExpression_RuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("Runtime evaluation should work correctly");
     }
 
-    [Test]
+    [Fact]
     public async Task MultipleTriGLiterals_ShouldCompile()
     {
         // Arrange - Multiple TriG literals in same function
@@ -235,7 +235,7 @@ public class TriGLiteralExpression_RuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("Multiple TriG literals should compile");
     }
 
-    [Test]
+    [Fact]
     public async Task TriGLiteralAssignedToVariousTypes_ShouldOnlyAcceptStore()
     {
         // Arrange - TriG literal should only be assignable to Store type

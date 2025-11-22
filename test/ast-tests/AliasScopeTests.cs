@@ -7,7 +7,7 @@ namespace ast_tests;
 
 public class AliasScopeTests
 {
-    [Test]
+    [Fact]
     public void Class_With_Identifier_AliasScope_Parses_And_Is_Recorded()
     {
         var code = """

@@ -10,7 +10,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
 {
     private readonly TypeAnnotationVisitor _visitor = new();
 
-    [Test]
+    [Fact]
     public void VisitAssemblyDef_ShouldSetVoidType()
     {
         // Arrange
@@ -32,7 +32,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("void");
     }
 
-    [Test]
+    [Fact]
     public void VisitInt32LiteralExp_ShouldSetIntType()
     {
         // Arrange
@@ -50,7 +50,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("int");
     }
 
-    [Test]
+    [Fact]
     public void VisitInt64LiteralExp_ShouldSetLongType()
     {
         // Arrange
@@ -68,7 +68,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("long");
     }
 
-    [Test]
+    [Fact]
     public void VisitFloat4LiteralExp_ShouldSetFloatType()
     {
         // Arrange
@@ -86,7 +86,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("float");
     }
 
-    [Test]
+    [Fact]
     public void VisitFloat8LiteralExp_ShouldSetDoubleType()
     {
         // Arrange
@@ -104,7 +104,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("double");
     }
 
-    [Test]
+    [Fact]
     public void VisitBooleanLiteralExp_ShouldSetBoolType()
     {
         // Arrange
@@ -122,7 +122,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("bool");
     }
 
-    [Test]
+    [Fact]
     public void VisitStringLiteralExp_ShouldSetStringType()
     {
         // Arrange
@@ -140,10 +140,10 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("string");
     }
 
-    [Test]
-    [Arguments(Operator.ArithmeticAdd)]
-    [Arguments(Operator.ArithmeticSubtract)]
-    [Arguments(Operator.ArithmeticMultiply)]
+    [Theory]
+    [InlineData(Operator.ArithmeticAdd)]
+    [InlineData(Operator.ArithmeticSubtract)]
+    [InlineData(Operator.ArithmeticMultiply)]
     public void VisitBinaryExp_IntArithmetic_ShouldReturnIntType(Operator op)
     {
         // Arrange
@@ -168,7 +168,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("int");
     }
 
-    [Test]
+    [Fact]
     public void VisitBinaryExp_IntDivision_ShouldReturnFloatType()
     {
         // Arrange
@@ -193,7 +193,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("float");
     }
 
-    [Test]
+    [Fact]
     public void VisitBinaryExp_FloatArithmetic_ShouldReturnFloatType()
     {
         // Arrange
@@ -218,13 +218,13 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("float");
     }
 
-    [Test]
-    [Arguments(Operator.Equal)]
-    [Arguments(Operator.NotEqual)]
-    [Arguments(Operator.LessThan)]
-    [Arguments(Operator.LessThanOrEqual)]
-    [Arguments(Operator.GreaterThan)]
-    [Arguments(Operator.GreaterThanOrEqual)]
+    [Theory]
+    [InlineData(Operator.Equal)]
+    [InlineData(Operator.NotEqual)]
+    [InlineData(Operator.LessThan)]
+    [InlineData(Operator.LessThanOrEqual)]
+    [InlineData(Operator.GreaterThan)]
+    [InlineData(Operator.GreaterThanOrEqual)]
     public void VisitBinaryExp_ComparisonOperators_ShouldReturnBoolType(Operator op)
     {
         // Arrange
@@ -249,9 +249,9 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("bool");
     }
 
-    [Test]
-    [Arguments(Operator.LogicalAnd)]
-    [Arguments(Operator.LogicalOr)]
+    [Theory]
+    [InlineData(Operator.LogicalAnd)]
+    [InlineData(Operator.LogicalOr)]
     public void VisitBinaryExp_LogicalOperators_ShouldReturnBoolType(Operator op)
     {
         // Arrange
@@ -276,7 +276,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("bool");
     }
 
-    [Test]
+    [Fact]
     public void VisitBinaryExp_WithUnsupportedOperator_ShouldSetUnknownType()
     {
         // Arrange - using an operator that our simple type inference doesn't handle
@@ -299,7 +299,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("unknown");
     }
 
-    [Test]
+    [Fact]
     public void VisitFunctionDef_ShouldSetReturnType()
     {
         // Arrange
@@ -323,7 +323,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         result.Type.Name.Value.Should().Be("int");
     }
 
-    [Test]
+    [Fact]
     public void OnTypeInferred_ShouldNotThrow()
     {
         // Arrange
@@ -335,7 +335,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         act.Should().NotThrow();
     }
 
-    [Test]
+    [Fact]
     public void OnTypeMismatch_ShouldAddError()
     {
         // Arrange
@@ -357,7 +357,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         error.Types.Should().Contain(type2);
     }
 
-    [Test]
+    [Fact]
     public void OnTypeNotFound_ShouldAddError()
     {
         // Arrange
@@ -373,7 +373,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         error.Types.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void OnTypeNotRelevant_ShouldNotThrow()
     {
         // Arrange
@@ -384,7 +384,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         act.Should().NotThrow();
     }
 
-    [Test]
+    [Fact]
     public void Errors_InitiallyEmpty()
     {
         // Arrange
@@ -394,7 +394,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         visitor.Errors.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void TypeCheckingError_ShouldInitializeCorrectly()
     {
         // Arrange
@@ -419,7 +419,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         error.Types.Should().Contain(type2);
     }
 
-    [Test]
+    [Fact]
     public void ComplexExpression_ShouldAnnotateAllNodes()
     {
         // Arrange - Create a complex expression: (5 + 3) * 2
@@ -460,7 +460,7 @@ public class TypeAnnotationVisitorTests : VisitorTestsBase
         dotnetType.TheType.Should().Be(typeof(int));
     }
 
-    [Test]
+    [Fact]
     public void IntegrationTest_ShouldAnnotateNestedAstStructure()
     {
         // Arrange - Create a more realistic AST structure with a function containing expressions

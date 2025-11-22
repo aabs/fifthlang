@@ -6,7 +6,7 @@ namespace kg_smoke_tests;
 
 public class KG_SmokeTests
 {
-    [Test]
+    [Fact]
     public async Task KG_CreateGraph_And_Run_ShouldExitZero()
     {
         var src = """
@@ -97,7 +97,7 @@ public class KG_SmokeTests
         await p.WaitForExitAsync();
         p.ExitCode.Should().Be(0, $"stdout: {stdOut}\nstderr: {stdErr}");
     }
-    [Test]
+    [Fact]
     public async Task KG_CreateGraph_And_ConnectToRemoteStore_ShouldCompileAndRun()
     {
         var src = """
@@ -128,7 +128,7 @@ public class KG_SmokeTests
         File.Exists(outPath).Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public async Task KG_Merge_Graphs_ShouldCompileWithIGraphParams()
     {
         var src = """
@@ -158,7 +158,7 @@ public class KG_SmokeTests
         File.Exists(outPath).Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public async Task KG_CreateLiteral_WithOptionalLanguage_ShouldCompile()
     {
         var src = """
@@ -188,7 +188,7 @@ public class KG_SmokeTests
         File.Exists(outPath).Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public async Task KG_CreateLiteral_WithExplicitLanguage_ShouldPreferStringOverload()
     {
         var src = """
@@ -218,7 +218,7 @@ public class KG_SmokeTests
         File.Exists(outPath).Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public async Task KG_CreateTriple_And_Assert_ShouldCompile()
     {
         var src = """

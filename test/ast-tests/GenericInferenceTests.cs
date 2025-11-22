@@ -20,7 +20,7 @@ public class GenericInferenceTests
         return new FifthParser(tokens);
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Generic_Function_Without_Type_Arguments_In_Call()
     {
         // Arrange - This tests the parser's ability to handle calls without explicit type args
@@ -47,7 +47,7 @@ public class GenericInferenceTests
         // The actual type inference will happen in the semantic analysis phase
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Generic_Function_With_Explicit_Type_Arguments()
     {
         // Arrange
@@ -72,7 +72,7 @@ public class GenericInferenceTests
         // With explicit type arguments, parsing should succeed
     }
 
-    [Test]
+    [Fact]
     public void Generic_Function_With_Multiple_Parameters_Can_Parse()
     {
         // Arrange
@@ -97,7 +97,7 @@ public class GenericInferenceTests
         // Multiple type parameters should parse correctly
     }
 
-    [Test]
+    [Fact]
     public void Generic_Function_In_Generic_Class_Can_Parse()
     {
         // Arrange
@@ -126,7 +126,7 @@ public class GenericInferenceTests
         // Generic method in generic class should parse
     }
 
-    [Test]
+    [Fact]
     public void Generic_Function_Can_Use_Type_Parameter_In_Return_Type()
     {
         // Arrange

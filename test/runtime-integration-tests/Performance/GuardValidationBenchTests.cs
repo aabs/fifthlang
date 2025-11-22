@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 using compiler;
 
 namespace runtime_integration_tests.Performance;
@@ -38,7 +38,7 @@ public class GuardValidationBenchTests : RuntimeTestBase
         return sb.ToString();
     }
 
-    [Test]
+    [Fact]
     public async Task BenchPoolingImpact_ShouldReportTimesWhenEnabled()
     {
         var benchEnabled = (Environment.GetEnvironmentVariable("FIFTH_GUARD_VALIDATION_BENCH") ?? string.Empty) == "1";

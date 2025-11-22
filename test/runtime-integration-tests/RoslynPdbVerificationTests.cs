@@ -9,13 +9,13 @@ using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
-using TUnit;
+using Xunit;
 
 namespace runtime_integration_tests;
 
 public class RoslynPdbVerificationTests
 {
-    [Test]
+    [Fact]
     public void Translator_Should_Emit_MappingEntry_For_Known_Node_In_POC()
     {
         // Construct a minimal lowered module referencing the POC sample
@@ -34,7 +34,7 @@ public class RoslynPdbVerificationTests
         result.Mapping.Entries.Any(e => e.NodeId == "node1").Should().BeTrue("Expected mapping row for NodeId 'node1'");
     }
 
-    [Test]
+    [Fact]
     public void EmitPortablePdb_HasDocumentsAndMethodDebugInfo()
     {
         var source = "using System; public class Program { public static void Main() { Console.WriteLine(1); } }";

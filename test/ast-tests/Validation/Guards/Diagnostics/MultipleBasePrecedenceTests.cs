@@ -1,4 +1,4 @@
-using TUnit.Core;
+using Xunit;
 using FluentAssertions;
 using ast;
 using ast_model.TypeSystem;
@@ -9,7 +9,7 @@ namespace ast_tests.Validation.Guards.Diagnostics;
 
 public class MultipleBasePrecedenceTests
 {
-    [Test]
+    [Fact]
     public void MultipleBase_ShouldSuppressE1001()
     {
         // Create function with multiple base overloads and some guarded overloads

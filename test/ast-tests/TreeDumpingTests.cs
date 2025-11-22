@@ -5,7 +5,7 @@ namespace ast_tests;
 
 public class TreeDumpingTests
 {
-    [Test]
+    [Fact]
     public void TestParseAndDumpAST()
     {
         var t = typeof(AstBuilderVisitorTests);

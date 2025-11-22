@@ -8,7 +8,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class CollectionRuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task ArrayDeclaration_ShouldCompile()
     {
         // Arrange
@@ -28,7 +28,7 @@ public class CollectionRuntimeTests : RuntimeTestBase
         // TODO: When PE emission is fixed, expect exit code 1 (arr[0])
     }
 
-    [Test]
+    [Fact]
     public async Task ArrayWithLoop_ShouldCompile()
     {
         // Arrange
@@ -54,7 +54,7 @@ public class CollectionRuntimeTests : RuntimeTestBase
         // TODO: When PE emission is fixed, expect exit code 15 (1+2+3+4+5)
     }
 
-    [Test]
+    [Fact]
     public async Task ListDeclaration_ShouldCompile()
     {
         // Arrange
@@ -80,7 +80,7 @@ public class CollectionRuntimeTests : RuntimeTestBase
         }
     }
 
-    [Test]
+    [Fact]
     public async Task EmptyArray_ShouldCompile()
     {
         // Arrange
@@ -106,7 +106,7 @@ public class CollectionRuntimeTests : RuntimeTestBase
         }
     }
 
-    [Test]
+    [Fact]
     public async Task ArrayIndexing_ShouldCompile()
     {
         // Arrange
@@ -128,7 +128,7 @@ public class CollectionRuntimeTests : RuntimeTestBase
         // TODO: When PE emission is fixed, expect exit code 400 (100 + 300)
     }
 
-    [Test]
+    [Fact]
     public async Task NestedArrayAccess_ShouldCompile()
     {
         // Arrange
@@ -154,7 +154,7 @@ public class CollectionRuntimeTests : RuntimeTestBase
         }
     }
 
-    [Test]
+    [Fact]
     public async Task ArrayWithMixedTypes_ShouldCompile()
     {
         // Arrange - Test if the language supports heterogeneous collections

@@ -6,7 +6,7 @@ namespace kg_smoke_tests;
 
 public class KG_SaveGraph_SmokeTests
 {
-    [Test]
+    [Fact]
     public async Task KG_SaveGraph_ShouldCompile()
     {
         var src = """
@@ -36,7 +36,7 @@ public class KG_SaveGraph_SmokeTests
         File.Exists(outPath).Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public async Task KG_SaveGraph_WithGraphUriString_ShouldCompile()
     {
         var src = """
@@ -66,7 +66,7 @@ public class KG_SaveGraph_SmokeTests
         File.Exists(outPath).Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public async Task KG_SaveGraph_ToRemoteStore_ShouldCompile()
     {
         var src = """

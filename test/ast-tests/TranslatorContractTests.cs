@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using compiler;
 using FluentAssertions;
-using TUnit;
+using Xunit;
 
 namespace ast_tests;
 
 public class TranslatorContractTests
 {
-    [Test]
+    [Fact]
     public void Translate_MinimalModule_Should_Return_TranslationResult_With_Sources_And_Mapping()
     {
         var types = new List<LoweredType> { new LoweredType("T") };

@@ -1,5 +1,5 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 using ast;
 using compiler.Validation.GuardValidation.Infrastructure;
 
@@ -7,7 +7,7 @@ namespace ast_tests.Validation.Guards.Infrastructure;
 
 public class PredicateDescriptorTests
 {
-    [Test]
+    [Fact]
     public void Always_ShouldHaveBaseTypeAndEmptyConstraints()
     {
         // Act
@@ -18,7 +18,7 @@ public class PredicateDescriptorTests
         descriptor.Constraints.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void Unknown_ShouldHaveUnknownTypeAndEmptyConstraints()
     {
         // Act
@@ -29,7 +29,7 @@ public class PredicateDescriptorTests
         descriptor.Constraints.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void Constructor_ShouldSetTypeAndConstraints()
     {
         // Arrange

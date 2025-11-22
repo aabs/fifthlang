@@ -20,7 +20,7 @@ public class GenericConstraintTests
         return new FifthParser(tokens);
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Function_With_Interface_Constraint()
     {
         // Arrange
@@ -45,7 +45,7 @@ public class GenericConstraintTests
         // Parser should accept where clause syntax
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Class_With_Constructor_Constraint()
     {
         // Arrange
@@ -69,7 +69,7 @@ public class GenericConstraintTests
         ctx.Should().NotBeNull();
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Multiple_Constraints_On_Type_Parameter()
     {
         // Arrange
@@ -93,7 +93,7 @@ public class GenericConstraintTests
         ctx.Should().NotBeNull();
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Function_With_Base_Class_Constraint()
     {
         // Arrange
@@ -117,7 +117,7 @@ public class GenericConstraintTests
         ctx.Should().NotBeNull();
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Class_With_Multiple_Type_Parameters_And_Constraints()
     {
         // Arrange

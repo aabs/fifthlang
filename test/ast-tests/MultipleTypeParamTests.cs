@@ -19,7 +19,7 @@ public class MultipleTypeParamTests
         return new FifthParser(tokens);
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Class_With_Two_Type_Parameters()
     {
         // Arrange
@@ -52,7 +52,7 @@ public class MultipleTypeParamTests
         classDef.TypeParameters[1].Name.Value.Should().Be("T2");
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Function_With_Three_Type_Parameters()
     {
         // Arrange
@@ -86,7 +86,7 @@ public class MultipleTypeParamTests
         funcDef.TypeParameters[2].Name.Value.Should().Be("T3");
     }
 
-    [Test]
+    [Fact]
     public void Can_Parse_Dictionary_With_Key_Value_Type_Parameters()
     {
         // Arrange

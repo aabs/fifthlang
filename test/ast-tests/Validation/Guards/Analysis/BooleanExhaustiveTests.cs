@@ -1,4 +1,4 @@
-using TUnit.Core;
+using Xunit;
 using FluentAssertions;
 using ast;
 using ast_model.TypeSystem;
@@ -10,7 +10,7 @@ namespace ast_tests.Validation.Guards.Analysis;
 
 public class BooleanExhaustiveTests
 {
-    [Test]
+    [Fact]
     public void BooleanPair_ShouldBeConsideredCompleteWithoutBase()
     {
         var group = new FunctionGroup("testFunc", 1);

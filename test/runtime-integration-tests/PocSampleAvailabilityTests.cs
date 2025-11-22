@@ -1,12 +1,12 @@
 using System.IO;
 using FluentAssertions;
-using TUnit;
+using Xunit;
 
 namespace runtime_integration_tests;
 
 public class PocSampleAvailabilityTests
 {
-    [Test]
+    [Fact]
     public void RoslynPoc_Sample_Is_Copied_To_Output()
     {
         // The test project MSI copies TestPrograms/**/*.5th to output

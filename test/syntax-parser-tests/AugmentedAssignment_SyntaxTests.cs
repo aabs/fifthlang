@@ -4,7 +4,7 @@ namespace syntax_parser_tests;
 
 public class AugmentedAssignment_SyntaxTests
 {
-    [Test]
+    [Fact]
     public void PlusAssign_AsStatement_ShouldParse()
     {
         var input = "{ x += y; }";
@@ -12,7 +12,7 @@ public class AugmentedAssignment_SyntaxTests
             "+= augmented assignment should parse within a block");
     }
 
-    [Test]
+    [Fact]
     public void PlusAssign_MissingSemicolon_ShouldFail()
     {
         var input = "{ x += y }";

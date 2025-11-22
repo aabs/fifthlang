@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
-using TUnit;
+using Xunit;
 using ast;
 using test_infra;
 using compiler;
@@ -20,7 +20,7 @@ namespace ast_tests;
 /// </summary>
 public class TriplePropertyBasedTests
 {
-    [Test]
+    [Fact]
     public void T036_DuplicateSuppression_SameTripleMultipleTimes_ParsesSuccessfully()
     {
         // Property: Adding the same triple N times should parse successfully
@@ -40,9 +40,9 @@ main(): int {
         // The actual count verification would require a more sophisticated visitor
     }
 
-    [Test]
-    [Arguments("ex:s1, ex:p1, ex:o1", "ex:s2, ex:p2, ex:o2")]
-    [Arguments("ex:a, ex:b, ex:c", "ex:d, ex:e, ex:f")]
+    [Theory]
+    [InlineData("ex:s1, ex:p1, ex:o1", "ex:s2, ex:p2, ex:o2")]
+    [InlineData("ex:a, ex:b, ex:c", "ex:d, ex:e, ex:f")]
     public void T036_DifferentTriples_NoSuppression(string triple1, string triple2)
     {
         // Property: Adding different triples should maintain all of them
@@ -58,7 +58,7 @@ main(): int {{
         result.Diagnostics.Should().NotContain(d => d.Severity == test_infra.DiagnosticSeverity.Error);
     }
 
-    [Test]
+    [Fact]
     public void T037_ListExpansion_SingleList_ParsesCorrectly()
     {
         // Property: List expansion in triple object position
@@ -76,8 +76,8 @@ main(): int {
         // All three triple additions should parse successfully
     }
 
-    [Test]
-    [Arguments("ex:s1, ex:p1, ex:o1", "ex:s2, ex:p2, ex:o2", "ex:s3, ex:p3, ex:o3")]
+    [Theory]
+    [InlineData("ex:s1, ex:p1, ex:o1", "ex:s2, ex:p2, ex:o2", "ex:s3, ex:p3, ex:o3")]
     public void T040A_OrderingInvariance_DifferentAdditionOrders_ParseCorrectly(
         string triple1, string triple2, string triple3)
     {
@@ -108,7 +108,7 @@ main(): int {{
         // Both forms should parse successfully
     }
 
-    [Test]
+    [Fact]
     public void T040A_GraphUnion_Commutative_ParsesCorrectly()
     {
         // Property: t1 + t2 and t2 + t1 should both parse (union is commutative)
@@ -135,7 +135,7 @@ main(): int {
         result2.Diagnostics.Should().NotContain(d => d.Severity == test_infra.DiagnosticSeverity.Error);
     }
 
-    [Test]
+    [Fact]
     public void T040A_GraphUnion_Associative_ParsesCorrectly()
     {
         // Property: (t1 + t2) + t3 and t1 + (t2 + t3) should both parse (union is associative)
@@ -162,7 +162,7 @@ main(): int {
         result2.Diagnostics.Should().NotContain(d => d.Severity == test_infra.DiagnosticSeverity.Error);
     }
 
-    [Test]
+    [Fact]
     public void T040A_GraphUnion_Idempotent_ParsesCorrectly()
     {
         // Property: t + t should parse correctly (union with itself)

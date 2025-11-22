@@ -1,5 +1,5 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 using ast;
 using ast_model.TypeSystem;
 using compiler.Validation.GuardValidation.Normalization;
@@ -10,7 +10,7 @@ namespace ast_tests.Validation.Guards.Normalization;
 
 public class PredicateNormalizerTests
 {
-    [Test]
+    [Fact]
     public void ClassifyPredicate_WithNoConstraints_ShouldReturnBase()
     {
         // Arrange
@@ -24,7 +24,7 @@ public class PredicateNormalizerTests
         result.Should().Be(PredicateType.Base);
     }
 
-    [Test]
+    [Fact]
     public void ClassifyPredicate_WithTautology_ShouldReturnBase()
     {
         // Arrange
@@ -39,7 +39,7 @@ public class PredicateNormalizerTests
         result.Should().Be(PredicateType.Base);
     }
 
-    [Test]
+    [Fact]
     public void ClassifyPredicate_WithAnalyzableConstraint_ShouldReturnAnalyzable()
     {
         // Arrange
@@ -60,7 +60,7 @@ public class PredicateNormalizerTests
         result.Should().Be(PredicateType.Analyzable);
     }
 
-    [Test]
+    [Fact]
     public void ClassifyPredicate_WithUnknownConstraint_ShouldReturnUnknown()
     {
         // Arrange
@@ -96,7 +96,7 @@ public class PredicateNormalizerTests
         result.Should().Be(PredicateType.Unknown);
     }
 
-    [Test]
+    [Fact]
     public void AnalyzeOverload_ShouldCreateAnalyzedOverloadWithCorrectClassification()
     {
         // Arrange
@@ -112,7 +112,7 @@ public class PredicateNormalizerTests
         result.PredicateDescriptor.Should().Be(PredicateDescriptor.Always);
     }
 
-    [Test]
+    [Fact]
     public void CreatePredicateDescriptor_WithBaseType_ShouldReturnAlways()
     {
         // Arrange
@@ -126,7 +126,7 @@ public class PredicateNormalizerTests
         result.Should().Be(PredicateDescriptor.Always);
     }
 
-    [Test]
+    [Fact]
     public void CreatePredicateDescriptor_WithUnknownType_ShouldReturnUnknown()
     {
         // Arrange

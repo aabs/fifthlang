@@ -9,12 +9,12 @@ namespace runtime_integration_tests;
 /// These tests compile and execute Fifth programs, then verify Store contents.
 /// Validates end-to-end functionality including parsing, lowering, and runtime execution.
 /// </summary>
-[Category("KG")]
-[Category("TriG")]
-[Category("Integration")]
+[Trait("Category", "KG")]
+[Trait("Category", "TriG")]
+[Trait("Category", "Integration")]
 public class TriGLiteralExpression_ContentValidationTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task BasicTriGLiteral_ShouldExecuteSuccessfully()
     {
         // Arrange - User Story 1: Basic TriG literal without interpolation
@@ -45,7 +45,7 @@ public class TriGLiteralExpression_ContentValidationTests : RuntimeTestBase
         result.ExitCode.Should().Be(0, $"Program should execute successfully. Stderr: {result.StandardError}");
     }
 
-    [Test]
+    [Fact]
     public async Task TriGLiteralWithInterpolation_ShouldSerializeValuesCorrectly()
     {
         // Arrange - User Story 2: Validate interpolated values appear in RDF
@@ -77,7 +77,7 @@ public class TriGLiteralExpression_ContentValidationTests : RuntimeTestBase
         result.ExitCode.Should().Be(0, $"Program with interpolation should execute. Stderr: {result.StandardError}");
     }
 
-    [Test]
+    [Fact]
     public async Task TriGLiteralWithMultipleTypes_ShouldSerializeAllCorrectly()
     {
         // Arrange - Test multiple data types in interpolations
@@ -112,7 +112,7 @@ public class TriGLiteralExpression_ContentValidationTests : RuntimeTestBase
         result.ExitCode.Should().Be(0, $"Program with multiple types should execute. Stderr: {result.StandardError}");
     }
 
-    [Test]
+    [Fact]
     public async Task TriGLiteralWithNestedIRIs_ShouldPreserveAllIRIs()
     {
         // Arrange - Verify nested IRIs don't cause premature termination
@@ -138,7 +138,7 @@ public class TriGLiteralExpression_ContentValidationTests : RuntimeTestBase
         result.ExitCode.Should().Be(0, $"Program with nested IRIs should execute. Stderr: {result.StandardError}");
     }
 
-    [Test]
+    [Fact]
     public async Task TriGLiteralWithRuntimeModifiedValue_ShouldUseCurrentValue()
     {
         // Arrange - Interpolation should evaluate at runtime with current values
@@ -169,7 +169,7 @@ public class TriGLiteralExpression_ContentValidationTests : RuntimeTestBase
         result.ExitCode.Should().Be(0, $"Runtime-modified value should work. Stderr: {result.StandardError}");
     }
 
-    [Test]
+    [Fact]
     public async Task MultipleTriGLiterals_ShouldCreateSeparateStores()
     {
         // Arrange - Multiple TriG literals should create separate stores
@@ -199,7 +199,7 @@ public class TriGLiteralExpression_ContentValidationTests : RuntimeTestBase
         result.ExitCode.Should().Be(0, $"Multiple stores should work independently. Stderr: {result.StandardError}");
     }
 
-    [Test]
+    [Fact]
     public async Task EmptyTriGLiteral_ShouldCreateValidEmptyStore()
     {
         // Arrange - Empty TriG literal should create a valid store
@@ -221,7 +221,7 @@ public class TriGLiteralExpression_ContentValidationTests : RuntimeTestBase
         result.ExitCode.Should().Be(0, $"Empty store should be valid. Stderr: {result.StandardError}");
     }
 
-    [Test]
+    [Fact]
     public async Task TriGLiteralWithBraceEscaping_ShouldPreserveLiteralBraces()
     {
         // Arrange - Triple braces should produce literal braces in output
@@ -248,7 +248,7 @@ public class TriGLiteralExpression_ContentValidationTests : RuntimeTestBase
         result.ExitCode.Should().Be(0, $"Brace escaping should work. Stderr: {result.StandardError}");
     }
 
-    [Test]
+    [Fact]
     public async Task TriGLiteralWithComplexGraph_ShouldPreserveAllTriples()
     {
         // Arrange - Complex graph with multiple subjects and predicates
@@ -286,7 +286,7 @@ public class TriGLiteralExpression_ContentValidationTests : RuntimeTestBase
         result.ExitCode.Should().Be(0, $"Complex graph should be parsed correctly. Stderr: {result.StandardError}");
     }
 
-    [Test]
+    [Fact]
     public async Task TriGLiteralWithIRIsFollowedBySemicolons_ShouldParseCorrectly()
     {
         // Arrange - Validate bracket depth counting handles IRIs followed by semicolons

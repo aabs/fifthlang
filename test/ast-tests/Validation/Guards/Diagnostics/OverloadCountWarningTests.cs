@@ -1,4 +1,4 @@
-using TUnit.Core;
+using Xunit;
 using FluentAssertions;
 using ast;
 using ast_model.TypeSystem;
@@ -9,7 +9,7 @@ namespace ast_tests.Validation.Guards.Diagnostics;
 
 public class OverloadCountWarningTests
 {
-    [Test]
+    [Fact]
     public void CountAt32_ShouldNotWarn()
     {
         var overloads = new List<IOverloadableFunction>();
@@ -54,7 +54,7 @@ public class OverloadCountWarningTests
         validator.Diagnostics.Should().NotContain(d => d.Message.Contains("GUARD_OVERLOAD_COUNT (W1101)"));
     }
 
-    [Test]
+    [Fact]
     public void CountAt33_ShouldWarn()
     {
         var overloads = new List<IOverloadableFunction>();

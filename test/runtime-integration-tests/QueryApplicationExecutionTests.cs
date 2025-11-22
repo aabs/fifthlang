@@ -1,5 +1,5 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 
 namespace runtime_integration_tests;
 
@@ -8,9 +8,9 @@ namespace runtime_integration_tests;
 /// These tests verify that queries actually execute and results are accessible at runtime
 /// using TriG literals (<{...}>), SPARQL literals (?<...>), and query application operator (<-).
 /// </summary>
-[Category("QueryApplication")]
-[Category("Execution")]
-[Category("EndToEnd")]
+[Trait("Category", "QueryApplication")]
+[Trait("Category", "Execution")]
+[Trait("Category", "EndToEnd")]
 public class QueryApplicationExecutionTests : RuntimeTestBase
 {
     /// <summary>
@@ -23,7 +23,7 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         return (result.ExitCode, result.StandardOutput);
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_SELECT_WithTriGLiteral_ReturnsSuccess()
     {
         var src = """
@@ -47,7 +47,7 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         exitCode.Should().Be(0, $"SELECT query with TriG literal should execute successfully. Output: {output}");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_ASK_WithTriGLiteral_ReturnsSuccess()
     {
         var src = """
@@ -70,7 +70,7 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         exitCode.Should().Be(0, $"ASK query with TriG literal should execute successfully. Output: {output}");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_CONSTRUCT_WithTriGLiteral_ReturnsSuccess()
     {
         var src = """
@@ -94,7 +94,7 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         exitCode.Should().Be(0, $"CONSTRUCT query with TriG literal should execute successfully. Output: {output}");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_DESCRIBE_WithTriGLiteral_ReturnsSuccess()
     {
         var src = """
@@ -118,7 +118,7 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         exitCode.Should().Be(0, $"DESCRIBE query with TriG literal should execute successfully. Output: {output}");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_EmptyStore_ExecutesWithoutError()
     {
         var src = """
@@ -139,7 +139,7 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         exitCode.Should().Be(0, $"query on empty store should execute without error. Output: {output}");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_MultipleSequentialQueries_AllExecute()
     {
         var src = """
@@ -169,7 +169,7 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         exitCode.Should().Be(0, $"multiple sequential queries should execute. Output: {output}");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_ChainedOperations_WorkCorrectly()
     {
         var src = """
@@ -191,7 +191,7 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         exitCode.Should().Be(0, $"chained operations should complete. Output: {output}");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_StoreReuse_WorksForMultipleQueries()
     {
         var src = """
@@ -217,7 +217,7 @@ public class QueryApplicationExecutionTests : RuntimeTestBase
         exitCode.Should().Be(0, $"store should be reusable for multiple queries. Output: {output}");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_WithLargerDataset_ExecutesSuccessfully()
     {
         var src = """

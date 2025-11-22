@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
-using TUnit;
+using Xunit;
 using ast;
 using compiler.LanguageTransformations;
 
@@ -10,7 +10,7 @@ namespace ast_tests;
 
 public class TripleDiagnosticsUnitTests
 {
-    [Test]
+    [Fact]
     public void T001_TripleDiagnostics_EmptyListProduces_TRPL004()
     {
         var triple = new TripleLiteralExp
@@ -25,7 +25,7 @@ public class TripleDiagnosticsUnitTests
         diags.Should().Contain(d => d.Code == "TRPL004");
     }
 
-    [Test]
+    [Fact]
     public void T002_TripleExpansion_EmptyListProduces_TRPL004()
     {
         var triple = new TripleLiteralExp

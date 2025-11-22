@@ -75,7 +75,7 @@ public class SparqlSyntaxTests
             => _errors.Add($"line {line}:{charPositionInLine} {msg} token='{offendingSymbol?.Text}'");
     }
 
-    [Test]
+    [Fact]
     public void SparqlSyntaxSamples_ShouldParseWithoutErrors()
     {
         GetSparqlSampleFiles().Should().NotBeEmpty("SPARQL sample files were downloaded");
@@ -89,7 +89,7 @@ public class SparqlSyntaxTests
         }
     }
 
-    [Test]
+    [Fact]
     public void BasicSelectQuery_ShouldParse()
     {
         var file = Path.Combine(DataDir, "basic-select-01.rq");
@@ -104,7 +104,7 @@ public class SparqlSyntaxTests
         tree.Should().NotBeNull();
     }
 
-    [Test]
+    [Fact]
     public void BasicConstructQuery_ShouldParse()
     {
         var file = Path.Combine(DataDir, "basic-construct-01.rq");
@@ -119,7 +119,7 @@ public class SparqlSyntaxTests
         tree.Should().NotBeNull();
     }
 
-    [Test]
+    [Fact]
     public void BasicAskQuery_ShouldParse()
     {
         var file = Path.Combine(DataDir, "basic-ask-01.rq");

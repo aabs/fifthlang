@@ -21,7 +21,7 @@ public class SyntaxParserTests
         }
     }
 
-    [Test]
+    [Fact]
     public void AllValidSyntaxSamples_ShouldParse()
     {
         foreach (var file in GetSyntaxSampleFiles(invalid: false))
@@ -31,7 +31,7 @@ public class SyntaxParserTests
         }
     }
 
-    [Test]
+    [Fact]
     public void AllInvalidSyntaxSamples_ShouldFailParsing()
     {
         foreach (var file in GetSyntaxSampleFiles(invalid: true))

@@ -1,4 +1,4 @@
-using TUnit.Core;
+using Xunit;
 using FluentAssertions;
 using ast;
 using ast_model.TypeSystem;
@@ -10,7 +10,7 @@ namespace ast_tests.Validation.Guards.Analysis;
 
 public class IncompletenessTests
 {
-    [Test]
+    [Fact]
     public void IncompleteWithoutBase_ShouldEmitE1001()
     {
         // One boolean guard only -> incomplete

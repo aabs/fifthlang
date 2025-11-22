@@ -8,7 +8,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class ComprehensiveBasicTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task return_int_ShouldReturn42()
     {
         // Arrange
@@ -25,7 +25,7 @@ public class ComprehensiveBasicTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur during execution");
     }
 
-    [Test]
+    [Fact]
     public async Task arithmetic_ShouldReturn25()
     {
         // Arrange

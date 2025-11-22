@@ -6,7 +6,7 @@ namespace syntax_parser_tests;
 
 public class InvalidDeclaration_SyntaxTests
 {
-    [Test]
+    [Fact]
     public void TypeFirstVariableDeclaration_ShouldFail()
     {
         // Incorrect (legacy-style) declaration: Type name = expr; should be name : Type = expr;
@@ -15,7 +15,7 @@ public class InvalidDeclaration_SyntaxTests
             "Type-first variable declaration should not be accepted by grammar");
     }
 
-    [Test]
+    [Fact]
     public void TypeFirstStoreDeclaration_ShouldFail()
     {
         var input = "store home = sparql_store(<http://example.com/>);";
@@ -23,7 +23,7 @@ public class InvalidDeclaration_SyntaxTests
             "Type-first store declaration should not be accepted; expect 'home : store = ...' syntax");
     }
 
-    [Test]
+    [Fact]
     public void TypeFirstGraphDeclaration_ShouldFail()
     {
         var input = "graph g = KG.CreateGraph();";

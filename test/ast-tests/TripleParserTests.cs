@@ -1,6 +1,6 @@
 using System.Linq;
 using FluentAssertions;
-using TUnit;
+using Xunit;
 using compiler;
 using Fifth;
 
@@ -8,7 +8,7 @@ namespace ast_tests;
 
 public class TripleParserTests
 {
-    [Test]
+    [Fact]
     public void P001_ParserRecognizes_EmptyList_TripleLiteral()
     {
         const string code = "alias ex as <http://example.org/>;\nmain(): int { <ex:s, ex:p, []>; return 0; }";

@@ -9,8 +9,8 @@ namespace runtime_integration_tests;
 /// </summary>
 public class ClassRuntimeTests : RuntimeTestBase
 {
-    [Test]
-    [Category("ParserOnly")]
+    [Fact]
+    [Trait("Category", "ParserOnly")]
     public void ClassWithAliasScope_ShouldParseAndRecordAliasScope()
     {
         // Arrange
@@ -42,7 +42,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         personClass!.AliasScope.Should().Be("x", "class Person in x should record aliasScope as 'x'");
     }
 
-    [Test]
+    [Fact]
     public async Task SimpleClassWithProperties_ShouldCreateAndAccessCorrectly()
     {
         // Arrange
@@ -71,7 +71,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Test]
+    [Fact]
     public async Task ClassWithStringProperty_ShouldHandleStringCorrectly()
     {
         // Arrange
@@ -104,7 +104,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Test]
+    [Fact]
     public async Task ClassWithMultipleInstances_ShouldMaintainSeparateState()
     {
         // Arrange
@@ -130,7 +130,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Test]
+    [Fact]
     public async Task ClassWithComplexProperties_ShouldWorkCorrectly()
     {
         // Arrange
@@ -163,7 +163,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Test]
+    [Fact]
     public async Task ClassUsedInControlFlow_ShouldWorkCorrectly()
     {
         // Arrange
@@ -195,7 +195,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Test]
+    [Fact]
     public async Task ClassWithFloatProperties_ShouldHandleFloatCalculations()
     {
         // Arrange - Note: This test assumes float support in the language
@@ -233,7 +233,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         }
     }
 
-    [Test]
+    [Fact]
     public async Task ClassWithPropertyModification_ShouldUpdateCorrectly()
     {
         // Arrange

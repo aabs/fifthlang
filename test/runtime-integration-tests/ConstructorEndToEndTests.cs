@@ -10,7 +10,7 @@ namespace runtime_integration_tests;
 /// </summary>
 public class ConstructorEndToEndTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task BasicConstructor_InstantiatesObject_WithFieldsInitialized()
     {
         // Arrange - Test that constructor actually initializes fields and object can be used
@@ -39,7 +39,7 @@ public class ConstructorEndToEndTests : RuntimeTestBase
         result.ExitCode.Should().Be(30, "Constructor should initialize Age field to 30");
     }
 
-    [Test]
+    [Fact]
     public async Task ParameterlessConstructor_WithDefaultInitialization()
     {
         // Arrange - Test that parameterless constructor initializes field and object can be used
@@ -66,7 +66,7 @@ public class ConstructorEndToEndTests : RuntimeTestBase
         result.ExitCode.Should().Be(42, "Parameterless constructor should initialize Value field to 42");
     }
 
-    [Test]
+    [Fact]
     public async Task MultipleConstructorOverloads_SelectCorrectOverload()
     {
         // Arrange - Test that correct overload is called based on argument count
@@ -101,7 +101,7 @@ public class ConstructorEndToEndTests : RuntimeTestBase
         result.ExitCode.Should().Be(46, "Should call correct overload: square(5*5=25) + rect(3*7=21) = 46");
     }
 
-    [Test]
+    [Fact]
     public async Task ConstructorWithBaseCall_InitializesBaseFields()
     {
         // Arrange - Test that base constructor actually initializes base class fields
@@ -136,7 +136,7 @@ public class ConstructorEndToEndTests : RuntimeTestBase
         result.ExitCode.Should().Be(4, "Base constructor should initialize Legs field to 4");
     }
 
-    [Test]
+    [Fact]
     public async Task GenericClassConstructor_StoresTypedValue()
     {
         // Arrange - Test that generic constructor works with type parameter
@@ -163,7 +163,7 @@ public class ConstructorEndToEndTests : RuntimeTestBase
         result.ExitCode.Should().Be(99, "Generic constructor should store and retrieve value 99");
     }
 
-    [Test]
+    [Fact]
     public async Task ConstructorWithComplexFieldInitialization_ComputesValues()
     {
         // Arrange - Test that constructor can perform computations during initialization
@@ -192,7 +192,7 @@ public class ConstructorEndToEndTests : RuntimeTestBase
         result.ExitCode.Should().Be(21, "Constructor should compute: initial(7) + doubled(14) = 21");
     }
 
-    [Test]
+    [Fact]
     public async Task MultipleClassesWithConstructors_WorkTogether()
     {
         // Arrange - Test that objects from multiple classes with constructors interact correctly
@@ -233,7 +233,7 @@ public class ConstructorEndToEndTests : RuntimeTestBase
         result.ExitCode.Should().Be(11, "Multiple constructors should work together: 3 + 8 = 11");
     }
 
-    [Test]
+    [Fact]
     public async Task ConstructorWithMixedMemberTypes_MethodsUseConstructorInitializedFields()
     {
         // Arrange - Test that methods can use fields initialized by constructor
@@ -266,7 +266,7 @@ public class ConstructorEndToEndTests : RuntimeTestBase
         result.ExitCode.Should().Be(50, "Method should use constructor-initialized field: 50000/1000 = 50");
     }
 
-    [Test]
+    [Fact]
     public async Task SynthesizedParameterlessConstructor_CreatesUsableObject()
     {
         // Arrange - Test that synthesized constructor actually creates usable objects
@@ -288,7 +288,7 @@ public class ConstructorEndToEndTests : RuntimeTestBase
         result.ExitCode.Should().Be(123, "Synthesized constructor should create usable object");
     }
 
-    [Test]
+    [Fact]
     public async Task ConstructorWithControlFlow_ConditionalInitialization()
     {
         // Arrange - Test that constructor control flow actually executes correctly

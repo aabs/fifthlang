@@ -4,7 +4,7 @@ namespace syntax_parser_tests;
 
 public class ConstructorParsingTests
 {
-    [Test]
+    [Fact]
     public void BasicConstructor_ShouldParse()
     {
         var input = @"
@@ -22,7 +22,7 @@ class Person {
             "Basic constructor with parameters should parse");
     }
 
-    [Test]
+    [Fact]
     public void ParameterlessConstructor_ShouldParse()
     {
         var input = @"
@@ -38,7 +38,7 @@ class Person {
             "Parameterless constructor should parse");
     }
 
-    [Test]
+    [Fact]
     public void ConstructorWithBaseCall_ShouldParse()
     {
         var input = @"
@@ -54,7 +54,7 @@ class Employee {
             "Constructor with base call should parse");
     }
 
-    [Test]
+    [Fact]
     public void ConstructorWithBaseCallAndArgs_ShouldParse()
     {
         var input = @"
@@ -70,7 +70,7 @@ class Employee {
             "Constructor with base call and arguments should parse");
     }
 
-    [Test]
+    [Fact]
     public void MultipleConstructors_ShouldParse()
     {
         var input = @"
@@ -93,7 +93,7 @@ class Person {
             "Multiple constructor overloads should parse");
     }
 
-    [Test]
+    [Fact]
     public void Constructor_WithMixedMembers_ShouldParse()
     {
         var input = @"

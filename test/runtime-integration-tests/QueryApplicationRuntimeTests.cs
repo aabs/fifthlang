@@ -1,5 +1,5 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 
 namespace runtime_integration_tests;
 
@@ -7,10 +7,10 @@ namespace runtime_integration_tests;
 /// Integration tests for Query Application feature (spec 011-query-application-result-type).
 /// Tests runtime execution of query application operator (<-) with all result types.
 /// </summary>
-[Category("QueryApplication")]
+[Trait("Category", "QueryApplication")]
 public class QueryApplicationRuntimeTests : RuntimeTestBase
 {
-    [Test]
+    [Fact]
     public async Task QueryApplication_SELECT_BasicQuery_ShouldCompile()
     {
         var src = """
@@ -32,7 +32,7 @@ public class QueryApplicationRuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("source should compile successfully");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_CONSTRUCT_Query_ShouldCompile()
     {
         var src = """
@@ -54,7 +54,7 @@ public class QueryApplicationRuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("source should compile successfully");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_ASK_Query_ShouldCompile()
     {
         var src = """
@@ -76,7 +76,7 @@ public class QueryApplicationRuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("source should compile successfully");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_DESCRIBE_Query_ShouldCompile()
     {
         var src = """
@@ -98,7 +98,7 @@ public class QueryApplicationRuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("source should compile successfully");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_OperatorPrecedence_FunctionCallBeforeApplication_ShouldCompile()
     {
         var src = """
@@ -125,7 +125,7 @@ public class QueryApplicationRuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("source should compile successfully");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_WithVariables_ShouldCompile()
     {
         var src = """
@@ -150,7 +150,7 @@ public class QueryApplicationRuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("source should compile successfully");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_ChainedQueries_ShouldCompile()
     {
         var src = """
@@ -174,7 +174,7 @@ public class QueryApplicationRuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("source should compile successfully");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_MultipleApplicationsInSequence_ShouldCompile()
     {
         var src = """
@@ -199,7 +199,7 @@ public class QueryApplicationRuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("source should compile successfully");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_InFunctionCall_ShouldCompile()
     {
         var src = """
@@ -222,7 +222,7 @@ public class QueryApplicationRuntimeTests : RuntimeTestBase
         File.Exists(exe).Should().BeTrue("source should compile successfully");
     }
 
-    [Test]
+    [Fact]
     public async Task QueryApplication_AssignToVariable_ShouldCompile()
     {
         var src = """

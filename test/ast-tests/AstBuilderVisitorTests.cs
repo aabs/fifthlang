@@ -9,7 +9,7 @@ namespace ast_tests;
 
 public class AstBuilderVisitorTests
 {
-    [Test]
+    [Fact]
     public void can_build_from_function_def()
     {
         var funcdefsrc = $$"""
@@ -27,7 +27,7 @@ public class AstBuilderVisitorTests
         }
     }
 
-    [Test]
+    [Fact]
     public void can_build_from_function_def_with_if_statement()
     {
         var funcdefsrc = $$"""
@@ -62,8 +62,8 @@ public class AstBuilderVisitorTests
         }
     }
 
-    [Test]
-    [MethodDataSource(nameof(DoubleSamples))]
+    [Theory]
+    [MemberData(nameof(DoubleSamples))]
     public void can_parse_double_literals(double d)
     {
         var nativeRepresentation = $"{d:0.000}d";
@@ -86,7 +86,7 @@ public class AstBuilderVisitorTests
             a.Should().BeOfType<Float8LiteralExp>();
     }
 
-    [Test]
+    [Fact]
     public void can_parse_floats_case1()
     {
         var s = CharStreams.fromString("4.940656458e-324");
@@ -98,7 +98,7 @@ public class AstBuilderVisitorTests
         a.Should().BeOfType<Float4LiteralExp>();
     }
 
-    [Test]
+    [Fact]
     public void can_parse_floats_case2()
     {
         var s = CharStreams.fromString("0.0");
@@ -110,8 +110,8 @@ public class AstBuilderVisitorTests
         a.Should().BeOfType<Float4LiteralExp>();
     }
 
-    [Test]
-    [MethodDataSource(nameof(IntSamples))]
+    [Theory]
+    [MemberData(nameof(IntSamples))]
     public void can_parse_int_literals(int d)
     {
         var nativeRepresentation = $"{d}";
@@ -132,7 +132,7 @@ public class AstBuilderVisitorTests
             a.Should().BeOfType<Int32LiteralExp>();
     }
 
-    [Test]
+    [Fact]
     public void can_parse_int_literals_case1()
     {
         int d = -1;
@@ -154,9 +154,9 @@ public class AstBuilderVisitorTests
             a.Should().BeOfType<Int32LiteralExp>();
     }
 
-    [Test]
-    [Arguments("a = 5;")]
-    [Arguments("a = 5 * 6;")]
+    [Theory]
+    [InlineData("a = 5;")]
+    [InlineData("a = 5 * 6;")]
     public void handles_assignment_statements(string exp)
     {
         var s = CharStreams.fromString(exp);
@@ -168,11 +168,11 @@ public class AstBuilderVisitorTests
         a.Should().BeOfType<AssignmentStatement>();
     }
 
-    [Test]
-    [Arguments(0, "Name", "string")]
-    [Arguments(1, "Height", "float")]
-    [Arguments(2, "Age", "float")]
-    [Arguments(3, "Weight", "float")]
+    [Theory]
+    [InlineData(0, "Name", "string")]
+    [InlineData(1, "Height", "float")]
+    [InlineData(2, "Age", "float")]
+    [InlineData(3, "Weight", "float")]
     public void handles_class_definition(int ord, string name, string typename)
     {
         var p = GetParserFor("class-definition.5th");
@@ -193,7 +193,7 @@ public class AstBuilderVisitorTests
         prop1.TypeName.Value.Should().Be(typename);
     }
 
-    [Test]
+    [Fact]
     public void handles_function_overloading()
     {
         var p = GetParserFor("overloading.5th");
@@ -249,7 +249,7 @@ public class AstBuilderVisitorTests
         retv.Value.Should().Be("\"child\"");
     }
 
-    [Test]
+    [Fact]
     public void handles_if_statements()
     {
         var p = GetParserFor("statement-if.5th");
@@ -268,7 +268,7 @@ public class AstBuilderVisitorTests
         ifstmt.ElseBlock.Should().BeNull();
     }
 
-    [Test]
+    [Fact]
     public void handles_ifelse_statements()
     {
         var p = GetParserFor("statement-ifelse.5th");
@@ -287,7 +287,7 @@ public class AstBuilderVisitorTests
         ifstmt.ElseBlock.Should().NotBeNull();
     }
 
-    [Test, Skip("List comprehensions are not yet implemented")]
+    [Fact(Skip = "List comprehensions are not yet implemented")]
     public void handles_list_comprehensions()
     {
         var p = GetParserFor("statement-list-decl.5th");
@@ -308,7 +308,7 @@ public class AstBuilderVisitorTests
         s0vd.InitialValue.Should().BeOfType<ListComprehension>();
     }
 
-    [Test]
+    [Fact]
     public void handles_list_literals()
     {
         var p = GetParserFor("statement-list-literal.5th");
@@ -329,7 +329,7 @@ public class AstBuilderVisitorTests
         s0vd.InitialValue.Should().BeOfType<ListLiteral>();
     }
 
-    [Test]
+    [Fact]
     public void handles_property_access()
     {
         var p = GetParserFor("property-access.5th");
@@ -353,7 +353,7 @@ public class AstBuilderVisitorTests
         s1aslvr.VarName.Should().Be("Weight");
     }
 
-    [Test]
+    [Fact]
     public void handles_recursive_destructure_definitions()
     {
         var p = GetParserFor("recursive-destructuring.5th");
@@ -379,9 +379,9 @@ public class AstBuilderVisitorTests
         p0b1b2.ReferencedPropertyName.Value.Should().Be("Weight");
     }
 
-    [Test]
-    [Arguments("a: int;", false)]
-    [Arguments("a: int = 5;", true)]
+    [Theory]
+    [InlineData("a: int;", false)]
+    [InlineData("a: int = 5;", true)]
     public void handles_vardecl_statements(string exp, bool shouldHaveInitialiserExpression)
     {
         var s = CharStreams.fromString(exp);
@@ -403,7 +403,7 @@ public class AstBuilderVisitorTests
         }
     }
 
-    [Test]
+    [Fact]
     public void handles_while_statements()
     {
         var p = GetParserFor("statement-while.5th");
@@ -418,27 +418,27 @@ public class AstBuilderVisitorTests
             .Subject.Should().BeOfType<WhileStatement>();
     }
 
-    [Test]
-    [Arguments("3 + 7", Operator.ArithmeticAdd)]
-    [Arguments("3 - 7", Operator.ArithmeticSubtract)]
-    [Arguments("3 * 7", Operator.ArithmeticMultiply)]
-    [Arguments("3 / 7", Operator.ArithmeticDivide)]
-    [Arguments("3 ** 7", Operator.ArithmeticPow)]
-    [Arguments("3 % 7", Operator.ArithmeticMod)]
-    [Arguments("3 == 7", Operator.Equal)]
-    [Arguments("3 != 7", Operator.NotEqual)]
-    [Arguments("3 > 7", Operator.GreaterThan)]
-    [Arguments("3 < 7", Operator.LessThan)]
-    [Arguments("3 <= 7", Operator.LessThanOrEqual)]
-    [Arguments("3 >= 7", Operator.GreaterThanOrEqual)]
-    [Arguments("3 & 7", Operator.BitwiseAnd)]
-    [Arguments("3 | 7", Operator.BitwiseOr)]
-    [Arguments("3 << 7", Operator.BitwiseLeftShift)]
-    [Arguments("3 >> 7", Operator.BitwiseRightShift)]
-    [Arguments("3 && 7", Operator.LogicalAnd)]
-    [Arguments("3 || 7", Operator.LogicalOr)]
-    [Arguments("3 ^ 7", Operator.ArithmeticPow)]
-    [Arguments("3 ~ 7", Operator.LogicalXor)]
+    [Theory]
+    [InlineData("3 + 7", Operator.ArithmeticAdd)]
+    [InlineData("3 - 7", Operator.ArithmeticSubtract)]
+    [InlineData("3 * 7", Operator.ArithmeticMultiply)]
+    [InlineData("3 / 7", Operator.ArithmeticDivide)]
+    [InlineData("3 ** 7", Operator.ArithmeticPow)]
+    [InlineData("3 % 7", Operator.ArithmeticMod)]
+    [InlineData("3 == 7", Operator.Equal)]
+    [InlineData("3 != 7", Operator.NotEqual)]
+    [InlineData("3 > 7", Operator.GreaterThan)]
+    [InlineData("3 < 7", Operator.LessThan)]
+    [InlineData("3 <= 7", Operator.LessThanOrEqual)]
+    [InlineData("3 >= 7", Operator.GreaterThanOrEqual)]
+    [InlineData("3 & 7", Operator.BitwiseAnd)]
+    [InlineData("3 | 7", Operator.BitwiseOr)]
+    [InlineData("3 << 7", Operator.BitwiseLeftShift)]
+    [InlineData("3 >> 7", Operator.BitwiseRightShift)]
+    [InlineData("3 && 7", Operator.LogicalAnd)]
+    [InlineData("3 || 7", Operator.LogicalOr)]
+    [InlineData("3 ^ 7", Operator.ArithmeticPow)]
+    [InlineData("3 ~ 7", Operator.LogicalXor)]
     public void should_handle_all_kinds_of_binary_expressions(string exp, Operator op)
     {
         var s = CharStreams.fromString(exp);
@@ -450,13 +450,13 @@ public class AstBuilderVisitorTests
         a.Should().BeOfType<BinaryExp>();
     }
 
-    [Test]
-    [Arguments("+ 7", Operator.ArithmeticAdd)]
-    [Arguments("+7", Operator.ArithmeticAdd)]
-    [Arguments("- 7", Operator.ArithmeticSubtract)]
-    [Arguments("-7", Operator.ArithmeticSubtract)]
-    [Arguments("! 7", Operator.LogicalNot)]
-    [Arguments("!7", Operator.LogicalNot)]
+    [Theory]
+    [InlineData("+ 7", Operator.ArithmeticAdd)]
+    [InlineData("+7", Operator.ArithmeticAdd)]
+    [InlineData("- 7", Operator.ArithmeticSubtract)]
+    [InlineData("-7", Operator.ArithmeticSubtract)]
+    [InlineData("! 7", Operator.LogicalNot)]
+    [InlineData("!7", Operator.LogicalNot)]
     public void should_handle_all_kinds_of_unary_expressions(string exp, Operator op)
     {
         var s = CharStreams.fromString(exp);
@@ -487,7 +487,7 @@ public class AstBuilderVisitorTests
         return parser;
     }
 
-    [Test]
+    [Fact]
     public void function_with_int_return_type_should_have_correct_type_annotation()
     {
         // Initialize TypeRegistry with primitive types
@@ -519,12 +519,12 @@ public class AstBuilderVisitorTests
         }
     }
 
-    [Test]
-    [Arguments("int", typeof(int), "Int32")]
-    [Arguments("string", typeof(string), "String")]
-    [Arguments("bool", typeof(bool), "Boolean")]
-    [Arguments("float", typeof(float), "Single")]
-    [Arguments("double", typeof(double), "Double")]
+    [Theory]
+    [InlineData("int", typeof(int), "Int32")]
+    [InlineData("string", typeof(string), "String")]
+    [InlineData("bool", typeof(bool), "Boolean")]
+    [InlineData("float", typeof(float), "Single")]
+    [InlineData("double", typeof(double), "Double")]
     public void function_return_type_mappings_should_work_correctly(string languageTypeName, Type expectedDotnetType, string expectedTypeName)
     {
         // Initialize TypeRegistry with primitive types
@@ -569,13 +569,15 @@ public class AstBuilderVisitorTests
             }
         }
     }
-    public static IEnumerable<double> DoubleSamples()
+    public static IEnumerable<object[]> DoubleSamples()
     {
-        return new[] { -100.5, -1.0, 0.0, 1.5, 3.14, 42.0, 999.999 };
+        return new[] { -100.5, -1.0, 0.0, 1.5, 3.14, 42.0, 999.999 }
+            .Select(d => new object[] { d });
     }
 
-    public static IEnumerable<int> IntSamples()
+    public static IEnumerable<object[]> IntSamples()
     {
-        return new[] { -100, -1, 0, 1, 42, 123456 };
+        return new[] { -100, -1, 0, 1, 42, 123456 }
+            .Select(i => new object[] { i });
     }
 }

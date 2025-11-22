@@ -6,7 +6,7 @@ namespace kg_smoke_tests;
 
 public class KG_Quickstart_SmokeTests
 {
-    [Test]
+    [Fact]
     public async Task Quickstart_Connect_Assert_Save_ShouldCompile()
     {
         var src = """

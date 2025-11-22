@@ -1,12 +1,12 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 using compiler.Validation.GuardValidation.Instrumentation;
 
 namespace ast_tests.Validation.Guards.Instrumentation;
 
 public class ValidationInstrumenterTests
 {
-    [Test]
+    [Fact]
     public void Reset_ShouldClearAllMetrics()
     {
         // Arrange
@@ -26,7 +26,7 @@ public class ValidationInstrumenterTests
         instrumenter.PhaseTimings.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void StartPhase_ShouldBeginTiming()
     {
         // Arrange
@@ -44,7 +44,7 @@ public class ValidationInstrumenterTests
         instrumenter.PhaseTimings["testPhase"].Should().BeGreaterThan(TimeSpan.Zero);
     }
 
-    [Test]
+    [Fact]
     public void EndPhase_ShouldRecordElapsedTime()
     {
         // Arrange
@@ -61,7 +61,7 @@ public class ValidationInstrumenterTests
         instrumenter.PhaseTimings.Should().ContainKey("testPhase");
     }
 
-    [Test]
+    [Fact]
     public void RecordFunctionGroupMetrics_ShouldUpdateCounts()
     {
         // Arrange
@@ -76,7 +76,7 @@ public class ValidationInstrumenterTests
         metrics.OverloadsAnalyzed.Should().Be(7);
     }
 
-    [Test]
+    [Fact]
     public void EndPhase_WithoutStart_ShouldNotThrow()
     {
         // Arrange
@@ -87,7 +87,7 @@ public class ValidationInstrumenterTests
         act.Should().NotThrow();
     }
 
-    [Test]
+    [Fact]
     public void MultiplePhases_ShouldTrackSeparately()
     {
         // Arrange

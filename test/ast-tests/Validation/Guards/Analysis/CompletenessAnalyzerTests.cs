@@ -1,5 +1,5 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 using ast;
 using compiler.Validation.GuardValidation.Analysis;
 using compiler.Validation.GuardValidation.Infrastructure;
@@ -9,7 +9,7 @@ namespace ast_tests.Validation.Guards.Analysis;
 
 public class CompletenessAnalyzerTests
 {
-    [Test]
+    [Fact]
     public void CheckForUnreachableOverloads_WithBaseFollowedByGuarded_ShouldDetectUnreachable()
     {
         // Arrange
@@ -35,7 +35,7 @@ public class CompletenessAnalyzerTests
         covering.Overload.Should().Be(baseOverload);
     }
 
-    [Test]
+    [Fact]
     public void CheckForUnreachableOverloads_WithOnlyGuardedOverloads_ShouldNotDetectUnreachable()
     {
         // Arrange
@@ -56,7 +56,7 @@ public class CompletenessAnalyzerTests
         unreachableOverloads.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void IsComplete_WithAnalyzableAndNoUnknown_ShouldReturnFalse()
     {
         // Arrange
@@ -74,7 +74,7 @@ public class CompletenessAnalyzerTests
         result.Should().BeFalse();
     }
 
-    [Test]
+    [Fact]
     public void IsComplete_WithUnknownPredicates_ShouldReturnFalse()
     {
         // Arrange
@@ -92,7 +92,7 @@ public class CompletenessAnalyzerTests
         result.Should().BeFalse();
     }
 
-    [Test]
+    [Fact]
     public void ValidateBaseOrdering_WithBaseNotLast_ShouldReturnInvalidIndex()
     {
         // Arrange
@@ -111,7 +111,7 @@ public class CompletenessAnalyzerTests
         result.Should().Be(2); // 1-based index of invalid subsequent overload
     }
 
-    [Test]
+    [Fact]
     public void ValidateBaseOrdering_WithBaseLast_ShouldReturnNull()
     {
         // Arrange
@@ -130,7 +130,7 @@ public class CompletenessAnalyzerTests
         result.Should().BeNull();
     }
 
-    [Test]
+    [Fact]
     public void CalculateUnknownPercentage_ShouldReturnCorrectPercentage()
     {
         // Arrange

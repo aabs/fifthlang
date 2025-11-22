@@ -1,12 +1,12 @@
 using FluentAssertions;
-using TUnit.Core;
+using Xunit;
 using System.Reflection;
 
 namespace runtime_integration_tests.Validation.GuardValidation;
 
 public class PublicSurfaceTests
 {
-    [Test]
+    [Fact]
     public void GuardValidationModule_ShouldOnlyExposePhaseEntryPoint()
     {
         // Arrange
@@ -30,7 +30,7 @@ public class PublicSurfaceTests
             "the public type should be in the root validation namespace");
     }
 
-    [Test]
+    [Fact]
     public void GuardValidationSubmodules_ShouldOnlyContainInternalTypes()
     {
         // Arrange
@@ -59,7 +59,7 @@ public class PublicSurfaceTests
         }
     }
 
-    [Test]
+    [Fact]
     public void GuardValidationModule_ShouldContainExpectedInternalTypes()
     {
         // Arrange

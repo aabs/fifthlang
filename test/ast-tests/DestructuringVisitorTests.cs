@@ -6,7 +6,7 @@ namespace ast_tests;
 
 public class DestructuringVisitorTests : VisitorTestsBase
 {
-    [Test]
+    [Fact]
     public void VisitingWellFormedDestructure_YieldsProperPropertyLinkage()
     {
         var ast = (AstThing)ParseProgram("recursive-destructuring.5th");

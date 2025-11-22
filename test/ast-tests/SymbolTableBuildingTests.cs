@@ -61,7 +61,7 @@ public class SymbolTableBuildingTests
 
     #endregion Helpers
 
-    [Test]
+    [Fact]
     public void SymbolTableBuilding_RecursiveDestructuring1()
     {
         var asm = ParseProgram("recursive-destructuring.5th");
@@ -73,7 +73,7 @@ public class SymbolTableBuildingTests
         steP.OriginatingAstThing.TryResolve(new Symbol("Vitals", SymbolKind.PropertyDef), out var stevprop).Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public void SymbolTableBuilding_SimpleProgram()
     {
         var asm = ParseProgram("statement-if.5th");

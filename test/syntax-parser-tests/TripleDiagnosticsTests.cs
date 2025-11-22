@@ -3,7 +3,7 @@
 // See docs/issues/triple-diagnostics-refactor.md
 using System.Linq;
 using FluentAssertions;
-using TUnit;
+using Xunit;
 using test_infra;
 
 namespace syntax_parser_tests;
@@ -22,7 +22,7 @@ public class TripleDiagnosticsTests
     // [Test] public void T011_05_Empty_List_TRPL004_Placeholder() { ... }
     // [Test] public void T011_06_Unresolved_Prefix_Placeholder() { ... }
 
-    [Test]
+    [Fact]
     public void T011_01_Arity_Too_Few_TRPL001()
     {
         const string code = "alias ex as <http://example.org/>;\nmain(): int { <ex:s, ex:p>; return 0; }";
@@ -30,7 +30,7 @@ public class TripleDiagnosticsTests
         Codes(result).Should().Contain("TRPL001");
     }
 
-    [Test]
+    [Fact]
     public void T011_02_Arity_Too_Many_TRPL001()
     {
         const string code = "alias ex as <http://example.org/>;\nmain(): int { <ex:s, ex:p, ex:o, ex:x>; return 0; }";
@@ -38,7 +38,7 @@ public class TripleDiagnosticsTests
         Codes(result).Should().Contain("TRPL001");
     }
 
-    [Test]
+    [Fact]
     public void T011_03_Trailing_Comma_TRPL001()
     {
         const string code = "alias ex as <http://example.org/>;\nmain(): int { <ex:s, ex:p, ex:o,>; return 0; }";
