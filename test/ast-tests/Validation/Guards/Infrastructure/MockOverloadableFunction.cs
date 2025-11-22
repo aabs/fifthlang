@@ -25,7 +25,8 @@ public class MockOverloadableFunction : IOverloadableFunction
                 TypeName = TypeName.From("int"),
                 ParameterConstraint = hasConstraints ? new BooleanLiteralExp { Value = true } : null,
                 Visibility = Visibility.Private,
-                DestructureDef = null
+                DestructureDef = null,
+                CollectionType = CollectionType.SingleInstance
             };
             Params.Add(param);
         }

@@ -1,11 +1,13 @@
 class Bar 
 {
     c: int;
+    Bar() { c = 0; }
 }
 
 class Foo 
 {
     b: Bar[];
+    Foo() { b = new Bar[0]; }
 }
 
 main(): int

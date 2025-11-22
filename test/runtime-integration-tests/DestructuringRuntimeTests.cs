@@ -17,6 +17,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
             class Point {
                 X: int;
                 Y: int;
+                Point() { X = 0; Y = 0; }
             }
 
             process_point(p: Point { x: X, y: Y }): int {
@@ -47,6 +48,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
             class Point {
                 X: int;
                 Y: int;
+                Point() { X = 0; Y = 0; }
             }
 
             process_point(p: Point { x: X, y: Y }): int {
@@ -62,7 +64,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         // Act & Assert
         var executablePath = await CompileSourceAsync(sourceCode);
         File.Exists(executablePath).Should().BeTrue("Conditional destructuring should compile");
-        
+
         // Execute and validate result
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(30, "Should return 30 (10 + 20) from destructuring");
@@ -78,12 +80,14 @@ public class DestructuringRuntimeTests : RuntimeTestBase
                 Street: string;
                 City: string;
                 ZipCode: int;
+                Address() { Street = ""; City = ""; ZipCode = 0; }
             }
 
             class Person {
                 Name: string;
                 Age: int;
                 Address: Address;
+                Person() { Name = ""; Age = 0; Address = new Address(); }
             }
 
             get_zip(person: Person { 
@@ -112,7 +116,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         // Act
         var executablePath = await CompileSourceAsync(sourceCode);
         File.Exists(executablePath).Should().BeTrue("Nested destructuring should compile");
-        
+
         // Execute and validate result
         var result = await ExecuteAsync(executablePath);
         var expected = 12345;
@@ -144,7 +148,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         {
             var executablePath = await CompileSourceAsync(sourceCode);
             File.Exists(executablePath).Should().BeTrue("Array destructuring should compile");
-            
+
             // Execute and validate result
             var result = await ExecuteAsync(executablePath);
             result.ExitCode.Should().Be(15, "Should return 15 (5 + 10) from array destructuring");
@@ -166,6 +170,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
                 Name: string;
                 Grade: int;
                 Subject: string;
+                Student() { Name = ""; Grade = 0; Subject = ""; }
             }
 
             categorize_student(student: Student {
@@ -209,7 +214,7 @@ public class DestructuringRuntimeTests : RuntimeTestBase
         // Act
         var executablePath = await CompileSourceAsync(sourceCode);
         File.Exists(executablePath).Should().BeTrue("Guarded destructuring should compile");
-        
+
         // Execute and validate result
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(3, "Should return 3 (1 + 2) from guarded destructuring overloads");

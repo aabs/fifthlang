@@ -1,4 +1,4 @@
-class Name { First: string; Last: string; }
-class Person { Name: Name; }
+class Name { First: string; Last: string; Name() { First = ""; Last = ""; } }
+class Person { Name: Name; Person() { Name = new Name(); } }
 f(p: Person { name: Name { first: First, last: Last } }): int { return 0; }
 main(): int { return f(new Person { Name = new Name { First = "John", Last = "Doe" } }); }

@@ -1,4 +1,4 @@
-class Person { FirstName: string; LastName: string; }
+class Person { FirstName: string; LastName: string; Person() { FirstName = ""; LastName = ""; } }
 
 // constrained case
 f(x: int | x > 0, 

@@ -1,4 +1,4 @@
-class A { b: int; }
+class A { b: int; A() { b = 0; } }
 foo(x: int): int { return x; }
 main(): int { 
     a: A; 

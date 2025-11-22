@@ -16,8 +16,7 @@ public class GenericTypeMemberAccessTests : RuntimeTestBase
         // Arrange - This previously failed with "Cannot access member on primitive type 'Int32'"
         var fifthCode = """
             class Box<T> {
-                value: T;
-            }
+                value: T;                Box() { }            }
 
             main(): int {
                 box: Box<int> = new Box<int>();
@@ -42,6 +41,7 @@ public class GenericTypeMemberAccessTests : RuntimeTestBase
         var fifthCode = """
             class Box<T> {
                 value: T;
+                Box() { }
             }
 
             main(): int {
@@ -71,6 +71,7 @@ public class GenericTypeMemberAccessTests : RuntimeTestBase
         var fifthCode = """
             class Box<T> {
                 value: T;
+                Box() { }
             }
 
             main(): int {

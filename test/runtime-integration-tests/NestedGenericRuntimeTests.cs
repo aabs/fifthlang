@@ -17,6 +17,7 @@ public class NestedGenericRuntimeTests : RuntimeTestBase
         var fifthCode = """
             class Container<T> {
                 items: [T];
+                Container() { }
             }
 
             main(): int {
@@ -29,7 +30,7 @@ public class NestedGenericRuntimeTests : RuntimeTestBase
 
         // Assert
         File.Exists(executablePath).Should().BeTrue("Class with generic list field should compile");
-        
+
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(0);
     }
@@ -41,10 +42,12 @@ public class NestedGenericRuntimeTests : RuntimeTestBase
         var fifthCode = """
             class Stack<T> {
                 items: [T];
+                Stack() { }
             }
             
             class Queue<T> {
                 items: [T];
+                Queue() { }
             }
 
             main(): int {
@@ -57,7 +60,7 @@ public class NestedGenericRuntimeTests : RuntimeTestBase
 
         // Assert
         File.Exists(executablePath).Should().BeTrue("Multiple generic classes should compile");
-        
+
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(0);
     }

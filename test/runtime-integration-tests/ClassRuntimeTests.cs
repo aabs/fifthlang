@@ -50,6 +50,7 @@ public class ClassRuntimeTests : RuntimeTestBase
             class Point {
                 X: int;
                 Y: int;
+                Point() { X = 0; Y = 0; }
             }
 
             main(): int {
@@ -78,6 +79,7 @@ public class ClassRuntimeTests : RuntimeTestBase
             class Person {
                 Name: string;
                 Age: int;
+                Person() { Name = ""; Age = 0; }
             }
 
             get_age(p: Person): int {
@@ -109,6 +111,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         var sourceCode = """
             class Counter {
                 Value: int;
+                Counter() { Value = 0; }
             }
 
             main(): int {
@@ -135,6 +138,7 @@ public class ClassRuntimeTests : RuntimeTestBase
             class Rectangle {
                 Width: int;
                 Height: int;
+                Rectangle() { Width = 0; Height = 0; }
             }
 
             calculate_area(r: Rectangle): int {
@@ -166,6 +170,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         var sourceCode = """
             class Student {
                 Grade: int;
+                Student() { Grade = 0; }
             }
 
             main(): int {
@@ -197,6 +202,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         var sourceCode = """
             class Circle {
                 Radius: float;
+                Circle() { Radius = 0.0; }
             }
 
             calculate_area_int(c: Circle): int {
@@ -234,6 +240,7 @@ public class ClassRuntimeTests : RuntimeTestBase
         var sourceCode = """
             class Accumulator {
                 Sum: int;
+                Accumulator() { Sum = 0; }
             }
 
             add_to_accumulator(acc: Accumulator, value: int): int {

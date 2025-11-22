@@ -1,2 +1,2 @@
-class P { Name: string; Age: int; }
+class P { Name: string; Age: int; P() { Name=""; Age=0; } }
 main(): int { return 0; }

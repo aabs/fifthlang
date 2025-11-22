@@ -1,2 +1,2 @@
-class P { A: int; }
+class P { A: int; P() { A = 0; } }
 main(): int { p: P = new P(); return 0; }

@@ -1,6 +1,7 @@
 class Point {
     X: int;
     Y: int;
+    Point() { X=0; Y=0; }
 }
 
 main(): int {

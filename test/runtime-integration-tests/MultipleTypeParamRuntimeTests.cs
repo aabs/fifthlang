@@ -16,6 +16,7 @@ public class MultipleTypeParamRuntimeTests : RuntimeTestBase
             class Pair<T1, T2> {
                 first: T1;
                 second: T2;
+                Pair() { }
             }
 
             main(): int {
@@ -28,7 +29,7 @@ public class MultipleTypeParamRuntimeTests : RuntimeTestBase
 
         // Assert
         File.Exists(executablePath).Should().BeTrue("Class with two type parameters should compile");
-        
+
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(0);
     }
@@ -52,7 +53,7 @@ public class MultipleTypeParamRuntimeTests : RuntimeTestBase
 
         // Assert
         File.Exists(executablePath).Should().BeTrue("Function with three type parameters should compile");
-        
+
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(0);
     }
@@ -65,6 +66,7 @@ public class MultipleTypeParamRuntimeTests : RuntimeTestBase
             class Dictionary<TKey, TValue> {
                 keys: [TKey];
                 values: [TValue];
+                Dictionary() { }
             }
 
             main(): int {
@@ -77,7 +79,7 @@ public class MultipleTypeParamRuntimeTests : RuntimeTestBase
 
         // Assert
         File.Exists(executablePath).Should().BeTrue("Dictionary with key-value type parameters should compile");
-        
+
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(0);
     }

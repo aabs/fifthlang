@@ -28,7 +28,7 @@ public class GenericConstraintRuntimeTests : RuntimeTestBase
 
         // Assert
         File.Exists(executablePath).Should().BeTrue("Function with constraint clause should compile");
-        
+
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(0);
     }
@@ -40,6 +40,7 @@ public class GenericConstraintRuntimeTests : RuntimeTestBase
         var fifthCode = """
             class Factory<T> where T: BaseType {
                 value: T;
+                Factory() { }
             }
 
             main(): int {
@@ -52,7 +53,7 @@ public class GenericConstraintRuntimeTests : RuntimeTestBase
 
         // Assert
         File.Exists(executablePath).Should().BeTrue("Class with constraint clause should compile");
-        
+
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(0);
     }
@@ -76,7 +77,7 @@ public class GenericConstraintRuntimeTests : RuntimeTestBase
 
         // Assert
         File.Exists(executablePath).Should().BeTrue("Function with multiple constraints should compile");
-        
+
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(0);
     }

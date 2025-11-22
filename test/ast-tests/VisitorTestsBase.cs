@@ -112,6 +112,7 @@ public class VisitorTestsBase
             DestructureDef = null,
             Location = CreateLocation(),
             Parent = null,
+            CollectionType = CollectionType.SingleInstance
         };
     }
 

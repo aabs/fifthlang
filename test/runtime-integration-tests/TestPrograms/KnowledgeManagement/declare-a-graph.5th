@@ -4,6 +4,7 @@ class Person in <x:>
 {
     dob : DateTimeOffset ;
     age : int ;
+    Person() { age = 0; dob = DateTimeOffset.Now; }
 }
 
 calculate_age(val : DateTimeOffset): int

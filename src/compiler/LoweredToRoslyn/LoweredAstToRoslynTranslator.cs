@@ -1327,11 +1327,20 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 TypeArgumentList(
                     SingletonSeparatedList<TypeSyntax>(ParseTypeName(elementTypeName))));
 
-        // Check if we have a size argument in ConstructorArguments
+        // Check if we have a size argument in ConstructorArguments OR in Annotations["ArraySize"]
+        ExpressionSyntax? sizeExpr = null;
         if (objInit.ConstructorArguments != null && objInit.ConstructorArguments.Count == 1)
         {
+            sizeExpr = TranslateExpression(objInit.ConstructorArguments[0]);
+        }
+        else if (objInit.Annotations != null && objInit.Annotations.TryGetValue("ArraySize", out var sizeObj) && sizeObj is Expression sizeExpNode)
+        {
+            sizeExpr = TranslateExpression(sizeExpNode);
+        }
+
+        if (sizeExpr != null)
+        {
             // Generate: new List<T>(new T[size]) to initialize with default values
-            var sizeExpr = TranslateExpression(objInit.ConstructorArguments[0]);
             var arrayCreation = ArrayCreationExpression(
                 ArrayType(ParseTypeName(elementTypeName))
                     .WithRankSpecifiers(
@@ -1526,9 +1535,9 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     {
         var mappedType = MapTypeName(typeName);
 
-        // If collection type is Array or List and mappedType is not already a generic List, wrap as List<T>
-        if ((collectionType == ast.CollectionType.Array || collectionType == ast.CollectionType.List)
-            && !mappedType.StartsWith("System.Collections.Generic.List<", StringComparison.Ordinal))
+        // If collection type is Array or List, wrap as List<T>
+        // Note: We intentionally wrap even if mappedType is already a List<T> to support nested lists (e.g. [[int]])
+        if (collectionType == ast.CollectionType.Array || collectionType == ast.CollectionType.List)
         {
             mappedType = $"System.Collections.Generic.List<{mappedType}>";
         }

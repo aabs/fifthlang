@@ -1,3 +1,3 @@
-class Person { Age: int; }
+class Person { Age: int; Person() { Age=0; } }
 f(p: Person { age: Age | Age > 0 }): int { return 0; }
 main(): int { return f(new Person()); }

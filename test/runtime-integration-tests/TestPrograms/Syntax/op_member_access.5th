@@ -1,5 +1,6 @@
 class Foo {
 	a: int;
+    Foo() { a = 0; }
 }
 
 main(): int {

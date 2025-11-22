@@ -15,7 +15,7 @@ public class LearnFifthGuideTests
         // Navigate from test assembly location to repository root
         var testDir = AppContext.BaseDirectory;
         var repoRoot = Path.GetFullPath(Path.Combine(testDir, "..", "..", "..", "..", ".."));
-        return Path.Combine(repoRoot, "docs", "examples", "learnfifth.5th");
+        return Path.Combine(repoRoot, "docs", "Getting-Started", "examples", "learnfifth.5th");
     }
 
     [Test]

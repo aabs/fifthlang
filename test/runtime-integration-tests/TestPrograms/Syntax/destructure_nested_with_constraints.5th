@@ -1,4 +1,4 @@
-class N { A: int; }
-class P { N: N; }
+class N { A: int; N() { A=0; } }
+class P { N: N; P() { N=new N(); } }
 f(p: P { n: N { a: A | A > 0 } }): int { return 0; }
 main(): int { return f(new P { N = new N { A = 5 } }); }

@@ -17,6 +17,7 @@ public class GenericClassRuntimeTests : RuntimeTestBase
         var fifthCode = """
             class Stack<T> {
                 items: [T];
+                Stack() { }
             }
 
             main(): int {
@@ -29,7 +30,7 @@ public class GenericClassRuntimeTests : RuntimeTestBase
 
         // Assert
         File.Exists(executablePath).Should().BeTrue("Generic class should compile to executable");
-        
+
         // Execute to verify it runs
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(0, "Should return 0 as specified");
@@ -43,6 +44,7 @@ public class GenericClassRuntimeTests : RuntimeTestBase
             class Dictionary<TKey, TValue> {
                 keys: [TKey];
                 values: [TValue];
+                Dictionary() { }
             }
 
             main(): int {
@@ -55,7 +57,7 @@ public class GenericClassRuntimeTests : RuntimeTestBase
 
         // Assert
         File.Exists(executablePath).Should().BeTrue("Multi-parameter generic class should compile");
-        
+
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(0);
     }
@@ -79,7 +81,7 @@ public class GenericClassRuntimeTests : RuntimeTestBase
 
         // Assert
         File.Exists(executablePath).Should().BeTrue("Generic function should compile");
-        
+
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(0);
     }
@@ -91,6 +93,7 @@ public class GenericClassRuntimeTests : RuntimeTestBase
         var fifthCode = """
             class SimpleClass {
                 value: int;
+                SimpleClass() { value = 0; }
             }
 
             main(): int {
@@ -103,7 +106,7 @@ public class GenericClassRuntimeTests : RuntimeTestBase
 
         // Assert
         File.Exists(executablePath).Should().BeTrue("Non-generic classes should still work");
-        
+
         var result = await ExecuteAsync(executablePath);
         result.ExitCode.Should().Be(0);
     }

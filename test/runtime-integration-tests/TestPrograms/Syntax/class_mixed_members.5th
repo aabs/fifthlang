@@ -1,6 +1,7 @@
 class Person {
     Name: string;
     Age: int;
+    Person() { Name=""; Age=0; }
 
     greet(name: string): int {
         return 0;

@@ -2,6 +2,7 @@ class Employee {
     Name: string;
     Salary: int;
     Department: string;
+    Employee() { Name=""; Salary=0; Department=""; }
 }
 
 calculate_bonus(emp: Employee {
