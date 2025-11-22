@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Xunit;
 
 public class PerfAssertions
@@ -29,7 +30,7 @@ public class PerfAssertions
             return;
         }
 
-        File.Exists(baseline.Should().BeTrue();
+        File.Exists(baseline).Should().BeTrue();
 
         var psi = new ProcessStartInfo()
         {
@@ -51,6 +52,6 @@ public class PerfAssertions
         if (!string.IsNullOrWhiteSpace(stderr))
             Console.WriteLine(stderr);
 
-        proc.ExitCode.Should().Be(0;
+        proc.ExitCode.Should().Be(0);
     }
 }

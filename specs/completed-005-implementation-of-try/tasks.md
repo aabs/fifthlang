@@ -35,9 +35,9 @@ Independent test criteria: All new grammar samples parse; AST shape tests pass f
 - [ ] T017 [P] [US1] Add grammar sample `src/parser/grammar/test_samples/TryCatchFinally_Syntax_03.5th`
 - [ ] T018 [P] [US1] Add grammar sample `src/parser/grammar/test_samples/ThrowExpression_Syntax_01.5th`
 - [ ] T019 [P] [US1] Add grammar sample `src/parser/grammar/test_samples/ThrowExpression_Syntax_02.5th`
-- [ ] T020 [US1] Add parser tests in `test/syntax-parser-tests/` to validate all samples parse
-- [ ] T021 [US1] Add AST tests in `test/ast-tests/` to validate shapes for Try/Catch/Finally/ThrowExp
-- [ ] T022 [US1] Add AST contract test `NoAdHocAnnotations_Contract` to assert first-class nodes only (no annotation bags)
+- [ ] T020 [US1] Add parser tests in `test/syntax-parser-tests/` (xUnit) to validate all samples parse
+- [ ] T021 [US1] Add AST tests in `test/ast-tests/` (xUnit) to validate shapes for Try/Catch/Finally/ThrowExp
+- [ ] T022 [US1] Add AST contract test `NoAdHocAnnotations_Contract` (xUnit) to assert first-class nodes only (no annotation bags)
 
 ## Phase 4 — [US2] Semantic analysis & diagnostics (P1)
 
@@ -48,7 +48,7 @@ Independent test criteria: Semantic tests fail before implementation and pass af
 - [ ] T024 [US2] Implement filter expression boolean-convertible check in semantic analyzer
 - [ ] T025 [US2] Implement unreachable catch detection (ordering/type shadowing) → error
 - [ ] T026 [US2] Implement throw expression operand type check (must be Exception)
-- [ ] T027 [US2] Add semantic tests in `test/ast-tests/` or `test/runtime-integration-tests/` (as appropriate): `CatchNonExceptionType_Error`, `FilterMustBeBoolean_Error`, `UnreachableCatch_Error`, `ThrowExpression_OperandType_Error`
+- [ ] T027 [US2] Add semantic tests in `test/ast-tests/` or `test/runtime-integration-tests/` (xUnit): `CatchNonExceptionType_Error`, `FilterMustBeBoolean_Error`, `UnreachableCatch_Error`, `ThrowExpression_OperandType_Error`
  - [ ] T048 [US2] Implement iterator/async-iterator deferral diagnostic for try/catch/finally in iterator methods (per FR-009) and add tests (`Iterator_TryCatchFinally_DeferredDiagnostic`)
 
 ## Phase 5 — [US3] IL emission (structural equivalence, non-async) (P2)
@@ -59,9 +59,9 @@ Independent test criteria: Structural IL tests pass comparing handler layout and
 - [ ] T028 [US3] Implement try/finally emission in `src/code_generator/PEEmitter.cs` (regions, `leave`, `endfinally`)
 - [ ] T029 [US3] Implement catch and filter emission (`catch` vs `filter` metadata) in `src/code_generator/PEEmitter.cs`
 - [ ] T030 [US3] Implement throw expression emission (evaluate then `throw`) in `src/code_generator/PEEmitter.cs`
-- [ ] T031 [US3] Add IL structural tests under `test/runtime-integration-tests/` for `TryFinally_ILLayout`
-- [ ] T032 [US3] Add IL structural tests under `test/runtime-integration-tests/` for `TryCatch_Filter_IL`
-- [ ] T033 [US3] Add IL structural tests under `test/runtime-integration-tests/` for `ThrowExpression_IL`
+- [ ] T031 [US3] Add IL structural tests under `test/runtime-integration-tests/` (xUnit) for `TryFinally_ILLayout`
+- [ ] T032 [US3] Add IL structural tests under `test/runtime-integration-tests/` (xUnit) for `TryCatch_Filter_IL`
+- [ ] T033 [US3] Add IL structural tests under `test/runtime-integration-tests/` (xUnit) for `ThrowExpression_IL`
 
  
 
@@ -70,10 +70,10 @@ Independent test criteria: Structural IL tests pass comparing handler layout and
 Goal: Validate observable behavior matches C# semantics for catch selection, rethrow, finally execution, and throw expressions.
 Independent test criteria: Integration tests pass verifying behavior; stack traces preserved for `throw;`.
 
-- [ ] T038 [US5] Add `FinallyAlwaysExecutes` test in `test/runtime-integration-tests/`
-- [ ] T039 [US5] Add `RethrowPreservesStackTrace` test in `test/runtime-integration-tests/`
-- [ ] T040 [US5] Add `ExceptionMapping_Emission` test in `test/runtime-integration-tests/`
-- [ ] T041 [US5] Add `ThrowExpression_Runtime` test in `test/runtime-integration-tests/`
+- [ ] T038 [US5] Add `FinallyAlwaysExecutes` test in `test/runtime-integration-tests/` (xUnit)
+- [ ] T039 [US5] Add `RethrowPreservesStackTrace` test in `test/runtime-integration-tests/` (xUnit)
+- [ ] T040 [US5] Add `ExceptionMapping_Emission` test in `test/runtime-integration-tests/` (xUnit)
+- [ ] T041 [US5] Add `ThrowExpression_Runtime` test in `test/runtime-integration-tests/` (xUnit)
 
 ## Phase 8 — Polish & Cross-Cutting
 

@@ -44,6 +44,7 @@ public class GuardValidationBenchmarks
                 {
                     Name = "x",
                     TypeName = TypeName.From("int"),
+                    CollectionType = default!,
                     ParameterConstraint = (oi % 2 == 0) ? new BinaryExp
                     {
                         Operator = Operator.GreaterThan,

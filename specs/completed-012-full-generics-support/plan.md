@@ -14,9 +14,9 @@ Implement complete generic type support for the Fifth programming language, incl
 ## Technical Context
 
 **Language/Version**: C# 14, .NET 8.0 SDK (global.json pins 8.0.118)  
-**Primary Dependencies**: Antlr4.Runtime.Standard (4.8+), RazorLight (code generation), TUnit + FluentAssertions (testing), dunet (discriminated unions), Vogen (value objects)  
+**Primary Dependencies**: Antlr4.Runtime.Standard (4.8+), RazorLight (code generation), xUnit + FluentAssertions (testing), dunet (discriminated unions), Vogen (value objects)  
 **Storage**: N/A (compiler/type system - all in-memory AST and type information)  
-**Testing**: TUnit with FluentAssertions in `test/ast-tests/`, `test/syntax-parser-tests/`, `test/runtime-integration-tests/`  
+**Testing**: xUnit with FluentAssertions in `test/ast-tests/`, `test/syntax-parser-tests/`, `test/runtime-integration-tests/`  
 **Target Platform**: .NET 8.0 cross-platform (compiler runs on Windows/macOS/Linux, generates PE assemblies)  
 **Project Type**: Compiler infrastructure (single solution with multiple libraries)  
 **Performance Goals**: Compilation time increase < 15% for programs using generics, type inference resolution < 100ms for typical function calls  

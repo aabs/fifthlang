@@ -9,9 +9,9 @@ Add explicit class-named constructors (non-generic, overloadable) with base chai
 
 ## Technical Context
 **Language/Version**: C# 14 / .NET 8.0 (host), Fifth language surface (compiler target)  
-**Primary Dependencies**: Antlr4.Runtime.Standard, RazorLight (for AST gen templates), TUnit + FluentAssertions, dunet, Vogen  
+**Primary Dependencies**: Antlr4.Runtime.Standard, RazorLight (for AST gen templates), xUnit + FluentAssertions, dunet, Vogen  
 **Storage**: N/A (in-memory AST + type tables)  
-**Testing**: TUnit (parser, AST, integration), runtime-integration-tests suite  
+**Testing**: xUnit (parser, AST, integration), runtime-integration-tests suite  
 **Target Platform**: .NET 8.0 managed execution (cross-platform)  
 **Project Type**: Multi-project compiler/toolchain (no new projects required)  
 **Performance Goals**: Constructor resolution adds <5% compile time; diagnostics emit <1ms median; memory +2% max for medium codebases  

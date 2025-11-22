@@ -22,7 +22,7 @@ Introduce a compiler validation phase after symbol/type binding to enforce guard
 **Language/Version**: C# (.NET 8.0) custom compiler for Fifth language
 **Primary Dependencies**: Internal AST model, parser (ANTLR 4.8 runtime), diagnostic infrastructure, code generator
 **Storage**: N/A (in-memory compilation)
-**Testing**: TUnit + FluentAssertions integration/runtime tests
+**Testing**: xUnit + FluentAssertions integration/runtime tests
 **Target Platform**: .NET 8 toolchain (macOS/Linux CI)
 **Project Type**: Single compiler/runtime solution (Option 1 structure)
 **Performance Goals**: Validator adds <5% wall clock; O(n^2 + n*k) per group; minimal allocations (reuse lists)

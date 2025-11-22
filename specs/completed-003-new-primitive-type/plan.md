@@ -37,7 +37,7 @@ Add a new primitive type `triple` with literal syntax `<subject, predicate, obje
 **Language/Version**: C# / .NET 8.0 (pinned 8.0.118)
 **Primary Dependencies**: ANTLR 4.8 runtime, `VDS.RDF` (triple backing), existing Fifth KG helpers
 **Storage**: N/A (in-memory AST & graphs)
-**Testing**: TUnit + FluentAssertions (ast-tests, syntax-parser-tests, runtime-integration-tests)
+**Testing**: xUnit + FluentAssertions (ast-tests, syntax-parser-tests, runtime-integration-tests)
 **Target Platform**: Cross-platform .NET 8 CLI
 **Project Type**: Single multi-project compiler toolchain (.NET solution)
 **Performance Goals**: ≤5% average parse time regression (mean ≤5% and ≤2σ) per NFR-002; no measurable impact on non-triple files beyond threshold

@@ -50,9 +50,9 @@ until the FR-009 deletion gates are satisfied.
 **Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 ## Technical Context
 Language/Version: C# targeting C# 14 for generated sources (LangVersion=14 when `UsePinnedRoslyn=true` in CI/release; local devs may use SDK-provided Roslyn and 'preview' language mode).
-Primary Dependencies: Microsoft.CodeAnalysis.CSharp (Roslyn) pinned to 4.14.0 for CI/release, System.Reflection.Metadata pinned to 9.0.0, Antlr4.Runtime.Standard (parser), TUnit & FluentAssertions (tests), RazorLight (codegen templates) and existing runtime dependencies referenced by the compiler.
+Primary Dependencies: Microsoft.CodeAnalysis.CSharp (Roslyn) pinned to 4.14.0 for CI/release, System.Reflection.Metadata pinned to 9.0.0, Antlr4.Runtime.Standard (parser), xUnit & FluentAssertions (tests), RazorLight (codegen templates) and existing runtime dependencies referenced by the compiler.
 Storage: N/A (compiler/tooling work — no persistent data stores required)
-Testing: TUnit-based unit & integration tests; dotnet test harnesses under `test/` (parser tests, ast-tests, runtime-integration-tests, kg-smoke-tests, perf scenarios).
+Testing: xUnit-based unit & integration tests; dotnet test harnesses under `test/` (parser tests, ast-tests, runtime-integration-tests, kg-smoke-tests, perf scenarios).
 Target Platform: Validate and produce artifacts on .NET 8 (canonical pinned SDK) and .NET 10-rc; CI matrix must run both SDKs.
 Project Type: Library-first compiler monorepo (existing layout). New translator and supporting types will be added under `src/compiler/LoweredToRoslyn/` and tests under `test/`.
 Performance Goals: Performance validation is deferred during initial CI gating (FR-004). Compile-time and runtime benchmarks will be executed during stabilization and optimization phases; regressions will be documented and addressed post-cutover.

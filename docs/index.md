@@ -66,7 +66,7 @@ Fifth uniquely combines imperative programming with first-class RDF and SPARQL s
 - Function overloading with parameter guards
 - List comprehensions
 - Knowledge graph operations (TriG literals, SPARQL literals, graph operations)
-- Comprehensive test suite (TUnit + FluentAssertions)
+- Comprehensive test suite (xUnit + FluentAssertions)
 
 ### Planned Improvements
 See our [architectural roadmap](Planning/architecture-review/NEXT-STEPS.md) for detailed plans. Key priorities:
@@ -255,6 +255,6 @@ test/
 └── kg-smoke-tests/      Knowledge graph feature tests
 ```
 
-Built with: C# 14, .NET 8.0, ANTLR 4.8, dotNetRDF, Roslyn, TUnit
+Built with: C# 14, .NET 8.0, ANTLR 4.8, dotNetRDF, Roslyn, xUnit
 
 Status: Active development | Experimental | Pre-release

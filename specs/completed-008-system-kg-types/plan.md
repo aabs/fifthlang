@@ -20,7 +20,7 @@ Transition `graph`, `triple`, and `store` from compiler primitives to `Fifth.Sys
 **Language/Version**: C# 14, .NET SDK 8.0.118 (per global.json)  
 **Primary Dependencies**: dotNetRDF (`VDS.RDF.*`), Fifth.System library  
 **Storage**: N/A (in-memory objects and SPARQL stores via library)  
-**Testing**: TUnit + FluentAssertions; existing suites: ast-tests, syntax-parser-tests, runtime-integration-tests, kg-smoke-tests  
+**Testing**: xUnit + FluentAssertions; existing suites: ast-tests, syntax-parser-tests, runtime-integration-tests, kg-smoke-tests  
 **Target Platform**: .NET 8 (macOS/Linux/Windows)  
 **Project Type**: Multi-project .NET solution (compiler + system library)  
 **Performance Goals**: KG operations within 5% of current baseline (SC-004)  

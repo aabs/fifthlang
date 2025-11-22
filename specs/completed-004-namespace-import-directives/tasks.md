@@ -7,7 +7,7 @@
 - [ ] T001 Seed namespace import smoke-program assets in `test/runtime-integration-tests/TestPrograms/NamespaceImports/{math.5th,consumer.5th}` matching the quickstart scenario and ensure the files copy to `bin/Debug` via `runtime-integration-tests.csproj` metadata.
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
-- [ ] T002 [P] Create `test/syntax-parser-tests/NamespaceImportSyntaxTests.cs` covering namespace declaration/import acceptance and asserting legacy `use` syntax now fails.
+- [ ] T002 [P] Create `test/syntax-parser-tests/NamespaceImportSyntaxTests.cs` (xUnit) covering namespace declaration/import acceptance and asserting legacy `use` syntax now fails.
 - [ ] T003 [P] Add `test/runtime-integration-tests/Validation/NamespaceDuplicateSymbolTests.cs` that compiles two modules in the same namespace declaring `export add(int a, int b): int { return a + b; }` and expects a duplicate-symbol diagnostic naming both files.
 - [ ] T004 [P] Add `test/runtime-integration-tests/NamespaceImportRuntimeTests.cs` that compiles the NamespaceImports program set and asserts `main(): int { return add(2, 3); }` evaluates to `5` with no diagnostics.
 - [ ] T005 [P] Add `test/runtime-integration-tests/Validation/NamespaceImportDiagnosticsTests.cs` verifying warning `WNS0001` is emitted (module path + namespace) when an import targets an undeclared namespace.

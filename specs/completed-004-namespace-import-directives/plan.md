@@ -30,7 +30,7 @@ Implement file-scoped namespaces and module-local `import` directives for Fifth 
 **Language/Version**: C# targeting .NET 8.0.118 (`global.json`)
 **Primary Dependencies**: Antlr4.Runtime.Standard, RazorLight, System.CommandLine, MSBuild project evaluation
 **Storage**: In-memory symbol tables and metadata structures
-**Testing**: TUnit + FluentAssertions suites (`test/ast-tests`, `test/syntax-parser-tests`, `test/runtime-integration-tests`), `scripts/validate-examples.fish`
+**Testing**: xUnit + FluentAssertions suites (`test/ast-tests`, `test/syntax-parser-tests`, `test/runtime-integration-tests`), `scripts/validate-examples.fish`
 **Target Platform**: Cross-platform .NET CLI
 **Project Type**: Single compiler toolchain repository serving language, parser, compiler, and runtime components
 **Performance Goals**: Namespace resolution ≤ 2 seconds for 100-module projects
@@ -72,7 +72,7 @@ test/
 └── ast-tests/
 ```
 
-**Structure Decision**: Single-toolchain repository; feature touches parser grammar/visitor, compiler symbol aggregation pipeline, AST model (if required), and associated TUnit suites plus CLI entry points.
+**Structure Decision**: Single-toolchain repository; feature touches parser grammar/visitor, compiler symbol aggregation pipeline, AST model (if required), and associated xUnit suites plus CLI entry points.
 
 ## Phase 0: Outline & Research
 - **Objectives**
