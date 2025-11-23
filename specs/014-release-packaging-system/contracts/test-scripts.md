@@ -238,8 +238,8 @@ The smoke test runs the following test cases in order:
     },
     {
       "name": "size_within_limits",
-      "status": "passed",
-      "message": "Package size: 89.4 MB (< 150 MB limit)"
+      "status": "warning",
+      "message": "Package size: 89.4 MB (under 150 MB soft limit)"
     }
   ],
   "file_count": 47,
@@ -257,8 +257,8 @@ The smoke test runs the following test cases in order:
 [PASS] README.md present
 [PASS] VERSION.txt present and correct
 [PASS] Directory structure correct
-[PASS] Package size within limits (89.4 MB < 150 MB)
-[INFO] Package verification passed (8/8 checks)
+[WARN] Package size: 89.4 MB (under 150 MB soft limit)
+[INFO] Package verification passed (8/8 checks, 0 warnings)
 ```
 
 ### Verification Checks
@@ -270,7 +270,7 @@ The smoke test runs the following test cases in order:
 5. **has_readme**: README.md present with installation instructions
 6. **has_version_file**: VERSION.txt contains correct version string
 7. **correct_directory_structure**: Archive has expected directory layout
-8. **size_within_limits**: Package size < 150MB threshold
+8. **size_within_limits**: Package size check (150MB soft limit - logs warning if exceeded, does not fail per FR-031)
 
 ### Behavior Contracts
 
@@ -278,6 +278,7 @@ The smoke test runs the following test cases in order:
 2. **Platform-Aware**: Skips permission checks on Windows
 3. **Fast Execution**: Completes in < 5 seconds
 4. **Detailed Failures**: Reports all failing checks, not just first
+5. **Soft Size Limit** (FR-031): Package size > 150MB logs warning but does not fail (exit code 0 with warning annotation)
 5. **Deterministic**: Same package → same result
 
 ### Example Usage

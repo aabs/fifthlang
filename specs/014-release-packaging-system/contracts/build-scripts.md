@@ -277,13 +277,44 @@ echo $?  # Check exit code
 1.2.3+a1b2c3d.20251123190000
 ```
 
+### Pre-release Version Format (FR-021)
+
+For non-tagged commits on master branch, the script generates pre-release versions using the format:
+
+**Format**: `{base_version}-pre.{YYYYMMDD}.{short_commit}`
+
+**Examples**:
+- `0.1.0-pre.20251123.a1b2c3d` - Pre-release from master
+- `1.2.0-pre.20251215.b4c5d6e` - Pre-release after v1.1.0 tag
+
+**Components**:
+- `base_version`: Derived from most recent git tag (e.g., `1.2.0`), or defaults to `0.1.0` if no tags exist
+- `pre`: Literal string indicating pre-release
+- `YYYYMMDD`: Build date in UTC
+- `short_commit`: First 7 characters of commit SHA
+
+**JSON output for pre-release**:
+```json
+{
+  "version": "0.1.0-pre.20251123.a1b2c3d",
+  "version_tag": null,
+  "commit_sha": "a1b2c3d4e5f6",
+  "commit_short": "a1b2c3d",
+  "is_prerelease": true,
+  "is_dirty": false,
+  "branch": "master",
+  "build_timestamp": "2025-11-23T19:00:00Z"
+}
+```
+
 ### Behavior Contracts
 
 1. **Tag Parsing**: Strips "v" prefix from tags (v1.2.3 → 1.2.3)
-2. **Prerelease Detection**: Recognizes -alpha, -beta, -rc suffixes
-3. **Dirty Detection**: Fails if uncommitted changes (unless --allow-dirty)
-4. **CI Integration**: Uses CI environment variables when available
-5. **Fallback**: Uses describe output if no exact tag match
+2. **Prerelease Detection**: Recognizes -alpha, -beta, -rc suffixes in tags, AND generates pre-release format for non-tagged commits
+3. **Pre-release Naming**: Non-tagged commits use `{base}-pre.{date}.{commit}` format (FR-021)
+4. **Dirty Detection**: Fails if uncommitted changes (unless --allow-dirty)
+5. **CI Integration**: Uses CI environment variables when available
+6. **Fallback**: Uses describe output if no exact tag match, generates pre-release version from base
 
 ### Example Usage
 

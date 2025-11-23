@@ -43,13 +43,36 @@ on:
 
 ---
 
+## Concurrency Control Contract
+
+**Policy (FR-032)**: When multiple commits trigger builds concurrently, the system cancels older pending/in-progress builds in favor of the most recent commit.
+
+**Implementation**:
+```yaml
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+```
+
+**Behavior**:
+- When new commit pushed to master → cancel any in-progress builds for same ref
+- Ensures CI resources focus on latest code
+- Prevents queue buildup from rapid commits
+- Tag-based releases are isolated by unique ref (no cancellation)
+- Manual workflow dispatches use unique run ID (no cancellation between manual runs)
+
+**Rationale**: Prevents wasted CI minutes and storage on stale commits while master is actively developed. Aligns with modern CI best practices for trunk-based development.
+
+---
+
 ## Build Matrix Configuration
 
 ### Matrix Dimensions
 
 ```yaml
 strategy:
-  fail-fast: false
+  fail-fast: false  # Allow all jobs to complete for diagnostics
+  # Note: All-or-nothing policy (FR-030) enforced in publish job
   matrix:
     include:
       # Linux x64
@@ -152,6 +175,26 @@ strategy:
 - `framework`: Target framework (net8.0, net10.0)
 - `archive_format`: Archive format (tar.gz for Unix, zip for Windows)
 
+### All-or-Nothing Build Policy (FR-030)
+
+**Critical Policy**: The workflow implements an all-or-nothing build policy. If ANY of the 12 platform/framework builds fail, the entire release is aborted and NO packages are published.
+
+**Enforcement Mechanism**:
+- `fail-fast: false` allows all builds to run for complete diagnostics
+- Publish job uses `needs: [build]` with `if: ${{ success() }}` condition
+- Success condition requires ALL build jobs to succeed
+- Partial success (e.g., 11/12 builds) triggers complete abort
+
+**Rationale**: Ensures users never receive incomplete releases. A missing platform could indicate systemic issues that affect all platforms.
+
+### .NET 10.0 SDK Graceful Degradation (FR-033)
+
+**Policy**: When .NET 10.0 SDK is unavailable in the GitHub Actions environment, the system builds only .NET 8.0 packages (6 total), logs warnings, and annotates the unavailability in release notes.
+
+**Detection Mechanism**: Each build job checks for framework SDK availability before proceeding. If .NET 10.0 SDK is missing, those jobs fail gracefully, and the publish job detects partial framework coverage.
+
+**User Impact**: Users still receive functional .NET 8.0 packages while .NET 10.0 support is pending SDK availability.
+
 ---
 
 ## Job Contract: build
@@ -193,7 +236,23 @@ strategy:
        distribution: 'temurin'
    ```
 
-4. **Extract Version**: Get version from git tag or input
+4. **Check Framework SDK Availability**: Detect if target framework SDK is available (FR-033)
+   ```yaml
+   - name: Check framework SDK availability
+     id: check_framework
+     continue-on-error: true
+     run: |
+       if [ "${{ matrix.framework }}" == "net10.0" ]; then
+         if ! dotnet --list-sdks | grep -q "^10\."; then
+           echo "⚠️  .NET 10.0 SDK not available - this job will fail gracefully" >&2
+           echo "SDK_AVAILABLE=false" >> $GITHUB_OUTPUT
+           exit 1  # Fail this job gracefully
+         fi
+       fi
+       echo "SDK_AVAILABLE=true" >> $GITHUB_OUTPUT
+   ```
+
+5. **Extract Version**: Get version from git tag or input
    ```yaml
    - name: Extract version
      id: version
@@ -202,7 +261,7 @@ strategy:
        echo "version=$VERSION" >> $GITHUB_OUTPUT
    ```
 
-5. **Build Package**: Run build-release.sh script
+6. **Build Package**: Run build-release.sh script
    ```yaml
    - name: Build release package
      run: |
@@ -213,7 +272,7 @@ strategy:
          --output-dir ./dist
    ```
 
-6. **Verify Package**: Run verification before tests
+7. **Verify Package**: Run verification before tests (size check is soft limit per FR-031)
    ```yaml
    - name: Verify package structure
      run: |
@@ -221,7 +280,7 @@ strategy:
          --package-path ./dist/fifth-*.tar.gz
    ```
 
-7. **Smoke Test**: Run functional tests on package
+8. **Smoke Test**: Run functional tests on package
    ```yaml
    - name: Run smoke tests
      run: |
@@ -230,7 +289,7 @@ strategy:
          --test-dir /tmp/smoke-test
    ```
 
-8. **Upload Artifact**: Save package for publish job
+9. **Upload Artifact**: Save package for publish job
    ```yaml
    - uses: actions/upload-artifact@v4
      with:
@@ -241,9 +300,10 @@ strategy:
 
 ### Failure Handling
 
-- **Build Failure**: Job fails, other matrix jobs continue (fail-fast: false)
-- **Test Failure**: Job fails, package not uploaded
-- **Verification Failure**: Job fails, no smoke tests run
+- **Build Failure**: Job fails, other matrix jobs continue (fail-fast: false). All-or-nothing policy (FR-030) ensures entire release aborts if any job fails.
+- **Test Failure**: Job fails, package not uploaded. Triggers release abort per all-or-nothing policy.
+- **Verification Failure**: Job fails, no smoke tests run. Note: Package size warnings (>150MB) are non-blocking per FR-031.
+- **Framework SDK Unavailable**: Job fails gracefully, allowing .NET 8.0-only release per FR-033.
 
 ---
 
@@ -252,8 +312,9 @@ strategy:
 **Purpose**: Aggregate all packages and publish to GitHub Releases.
 
 ### Dependencies
-- Requires: All `build` jobs complete successfully
+- Requires: All `build` jobs complete successfully (enforces all-or-nothing policy per FR-030)
 - Runs: Only on success of all builds (unless dry run)
+- Note: If .NET 10.0 SDK unavailable, expects only 6 packages (.NET 8.0) per FR-033
 
 ### Inputs
 - Artifacts from all build jobs (12 packages)
@@ -273,7 +334,36 @@ strategy:
        path: ./dist
    ```
 
-2. **Generate Checksums**: Create SHA256SUMS manifest
+2. **Check Framework Coverage**: Detect partial framework coverage (FR-033)
+   ```yaml
+   - name: Check framework coverage
+     id: check_coverage
+     run: |
+       NET8_COUNT=$(find ./dist -name "*-net8.0.*" | wc -l)
+       NET10_COUNT=$(find ./dist -name "*-net10.0.*" | wc -l)
+       
+       echo "net8_packages=$NET8_COUNT" >> $GITHUB_OUTPUT
+       echo "net10_packages=$NET10_COUNT" >> $GITHUB_OUTPUT
+       
+       if [ "$NET10_COUNT" -eq 0 ]; then
+         echo "⚠️  .NET 10.0 packages unavailable - publishing .NET 8.0 only" | tee -a $GITHUB_STEP_SUMMARY
+         echo "framework_warning=.NET 10.0 SDK was unavailable; only .NET 8.0 packages included" >> $GITHUB_OUTPUT
+       fi
+   ```
+
+3. **Check Package Sizes**: Log warnings for packages exceeding soft limit (FR-031)
+   ```yaml
+   - name: Check package sizes
+     run: |
+       for pkg in ./dist/**/*.{tar.gz,zip}; do
+         SIZE_MB=$(du -m "$pkg" | cut -f1)
+         if [ "$SIZE_MB" -gt 150 ]; then
+           echo "⚠️  Package $pkg exceeds 150MB soft limit: ${SIZE_MB}MB" | tee -a $GITHUB_STEP_SUMMARY
+         fi
+       done
+   ```
+
+4. **Generate Checksums**: Create SHA256SUMS manifest
    ```yaml
    - name: Generate checksums
      run: |
@@ -282,7 +372,7 @@ strategy:
          --output-file ./dist/SHA256SUMS
    ```
 
-3. **Generate Release Notes**: Extract changelog from commits
+5. **Generate Release Notes**: Extract changelog from commits and add framework/size warnings
    ```yaml
    - name: Generate release notes
      id: release_notes
@@ -290,12 +380,18 @@ strategy:
        NOTES=$(./scripts/release/generate-release-notes.sh \
          --version ${{ steps.version.outputs.version }} \
          --format markdown)
+       
+       # Add framework warning if .NET 10.0 unavailable
+       if [ -n "${{ steps.check_coverage.outputs.framework_warning }}" ]; then
+         NOTES="$NOTES\n\n⚠️ **Note**: ${{ steps.check_coverage.outputs.framework_warning }}"
+       fi
+       
        echo "notes<<EOF" >> $GITHUB_OUTPUT
        echo "$NOTES" >> $GITHUB_OUTPUT
        echo "EOF" >> $GITHUB_OUTPUT
    ```
 
-4. **Create GitHub Release**: Publish release with packages
+6. **Create GitHub Release**: Publish release with packages
    ```yaml
    - name: Create GitHub Release
      uses: softprops/action-gh-release@v1
@@ -314,7 +410,7 @@ strategy:
        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
    ```
 
-5. **Dry Run Output**: Log what would be published (if dry run)
+7. **Dry Run Output**: Log what would be published (if dry run)
    ```yaml
    - name: Dry run output
      if: ${{ inputs.dry_run }}
@@ -322,15 +418,18 @@ strategy:
        echo "DRY RUN: Would publish the following:"
        ls -lh ./dist
        cat ./dist/SHA256SUMS
+       echo "Framework coverage: ${{ steps.check_coverage.outputs.net8_packages }} net8.0, ${{ steps.check_coverage.outputs.net10_packages }} net10.0"
    ```
 
 ### Success Criteria
 
-- All 12 packages present in artifacts
+- All expected packages present in artifacts (12 packages, or 6 if .NET 10.0 SDK unavailable per FR-033)
 - Checksums generated successfully
 - Release created on GitHub
 - All packages attached to release
 - Release marked as pre-release if version contains suffix
+- Framework availability warnings included in release notes if applicable
+- Package size warnings logged but non-blocking (FR-031)
 
 ---
 
@@ -388,9 +487,10 @@ strategy:
 - **Resolution**: Re-run workflow or manually create release
 
 ### Partial Build Success (Some Matrix Jobs Fail)
-- **Behavior**: Publish job skipped (needs all 12 builds)
-- **Impact**: No release created
-- **Resolution**: Investigate failing jobs, fix, re-run
+- **Behavior**: Publish job skipped per all-or-nothing policy (FR-030). ALL build jobs must succeed for ANY packages to be published.
+- **Impact**: No release created. Users receive no packages (even if 11/12 succeed).
+- **Resolution**: Investigate failing jobs, fix root cause, re-run entire workflow.
+- **Exception**: If only .NET 10.0 jobs fail due to SDK unavailability, this is handled gracefully per FR-033 (6 .NET 8.0 packages published).
 
 ---
 

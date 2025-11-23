@@ -50,6 +50,10 @@ This document captures unknowns extracted from the Technical Context and feature
   - Single workflow with 12x matrix vs multiple workflows
   - Job dependencies (e.g., build before test)
   - Artifact passing between jobs
+- [ ] Research GitHub Actions concurrency groups (FR-032)
+  - How to cancel older pending builds when new commit arrives
+  - Interaction with matrix builds (cancel all matrix jobs or individual?)
+  - Testing cancellation behavior in workflow_dispatch scenarios
 - [ ] Investigate caching strategies
   - NuGet package caching (already exists in ci.yml)
   - Intermediate build output caching
@@ -57,8 +61,12 @@ This document captures unknowns extracted from the Technical Context and feature
 - [ ] Test incremental builds
   - Does `dotnet publish` reuse `dotnet build` outputs?
   - Can we cache restore/build and only publish in release workflow?
+- [ ] Design all-or-nothing enforcement mechanism (FR-030)
+  - How to ensure publish job only runs if ALL 12 builds succeed
+  - Testing partial failure scenarios (11/12 succeed)
+  - Validating `needs: [build]` with `if: ${{ success() }}` condition
 
-**Success Criteria**: Workflow design that completes in < 45 min with documented caching strategy.
+**Success Criteria**: Workflow design that completes in < 45 min with documented caching strategy and verified all-or-nothing enforcement.
 
 ---
 
@@ -135,6 +143,11 @@ This document captures unknowns extracted from the Technical Context and feature
   - Extract version from git tags
   - Auto-generate changelog from commits since last tag
   - Include installation instructions in release body
+  - Add warnings for framework availability (FR-033) and package size (FR-031)
+- [ ] Implement pre-release version naming (FR-021)
+  - Parse git tags to determine base version
+  - Generate `{base}-pre.{YYYYMMDD}.{commit}` format for non-tagged builds
+  - Test version extraction from various git states (tagged, untagged, no tags)
 - [ ] Checksum file format
   - SHA256SUMS standard format (BSD vs GNU)
   - Per-package checksum files vs single aggregate
@@ -148,17 +161,22 @@ This document captures unknowns extracted from the Technical Context and feature
 
 ---
 
-### 6. .NET 10.0 Forward Compatibility
+### 6. .NET 10.0 Forward Compatibility & Graceful Degradation
 
-**Question**: What considerations are needed to ensure the build system works for both .NET 8.0 and .NET 10.0, and how do we test .NET 10.0 before its official release?
+**Question**: What considerations are needed to ensure the build system works for both .NET 8.0 and .NET 10.0, with graceful degradation when .NET 10.0 SDK is unavailable?
 
-**Why Critical**: Requirement specifies dual-framework support. Need to prepare for .NET 10.0 even though it's not GA yet.
+**Why Critical**: Requirement specifies dual-framework support with graceful degradation (FR-033). Need to handle .NET 10.0 preview/unavailability scenarios.
 
 **Research Tasks**:
 - [ ] Investigate .NET 10.0 preview availability
   - Current preview status
   - GitHub Actions runner support for previews
   - Breaking changes from 8.0 to 10.0
+- [ ] Design SDK detection and fallback mechanism (FR-033)
+  - How to check if .NET 10.0 SDK is available in build job
+  - Gracefully skip .NET 10.0 builds without failing entire workflow
+  - Detect partial framework coverage in publish job
+  - Generate appropriate warnings in release notes
 - [ ] Design multi-framework build strategy
   - Single csproj with multiple `<TargetFrameworks>` vs separate builds
   - How to specify framework version in `dotnet publish`
@@ -171,8 +189,9 @@ This document captures unknowns extracted from the Technical Context and feature
   - When to add .NET 10.0 builds (at preview vs at GA)
   - Support policy (how long to support .NET 8.0 after 10.0 GA)
   - Communication to users about framework support
+  - Migration from preview to stable SDK
 
-**Success Criteria**: Documented strategy for adding .NET 10.0 support and plan for testing with preview SDKs.
+**Success Criteria**: Documented strategy for adding .NET 10.0 support with SDK detection, graceful degradation plan, and verified behavior when SDK is unavailable.
 
 ---
 
