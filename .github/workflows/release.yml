@@ -183,19 +183,19 @@ jobs:
 
           echo "$BUILD_JSON" > build-output.json
           PACKAGE_PATH=$(python3 - <<'PY'
-import json
-with open('build-output.json', 'r', encoding='utf-8') as handle:
-    payload = json.load(handle)
-print(payload['package_path'])
-PY
-)
+          import json
+          with open('build-output.json', 'r', encoding='utf-8') as handle:
+              payload = json.load(handle)
+          print(payload['package_path'])
+          PY
+            )
           PACKAGE_SIZE=$(python3 - <<'PY'
-import json
-with open('build-output.json', 'r', encoding='utf-8') as handle:
-    payload = json.load(handle)
-print(payload['package_size_bytes'])
-PY
-)
+          import json
+          with open('build-output.json', 'r', encoding='utf-8') as handle:
+              payload = json.load(handle)
+          print(payload['package_size_bytes'])
+          PY
+            )
           echo "package_path=$PACKAGE_PATH" >> "$GITHUB_OUTPUT"
           echo "package_name=$(basename "$PACKAGE_PATH")" >> "$GITHUB_OUTPUT"
           echo "package_size=$PACKAGE_SIZE" >> "$GITHUB_OUTPUT"
@@ -239,20 +239,20 @@ PY
           fi
 
           cat <<EOF > "$METADATA_PATH"
-{
-  "platform": "${{ matrix.platform }}",
-  "arch": "${{ matrix.arch }}",
-  "runtime": "${{ matrix.runtime }}",
-  "framework": "${{ matrix.framework }}",
-  "archive_format": "${{ matrix.archive_format }}",
-  "package_available": ${PACKAGE_AVAILABLE},
-  "package_path": "${PACKAGE_PATH}",
-  "package_size_bytes": "${PACKAGE_SIZE}",
-  "sdk_available": ${SDK_AVAILABLE},
-  "sdk_version": "${SDK_VERSION}",
-  "sdk_is_preview": ${SDK_IS_PREVIEW}
-}
-EOF
+          {
+            "platform": "${{ matrix.platform }}",
+            "arch": "${{ matrix.arch }}",
+            "runtime": "${{ matrix.runtime }}",
+            "framework": "${{ matrix.framework }}",
+            "archive_format": "${{ matrix.archive_format }}",
+            "package_available": ${PACKAGE_AVAILABLE},
+            "package_path": "${PACKAGE_PATH}",
+            "package_size_bytes": "${PACKAGE_SIZE}",
+            "sdk_available": ${SDK_AVAILABLE},
+            "sdk_version": "${SDK_VERSION}",
+            "sdk_is_preview": ${SDK_IS_PREVIEW}
+          }
+          EOF
 
           echo "metadata_path=$METADATA_PATH" >> "$GITHUB_OUTPUT"
 
@@ -357,91 +357,91 @@ EOF
           METADATA_DIR: ${{ steps.organize.outputs.metadata_dir }}
         run: |
           python3 <<'PY'
-import json
-import os
-import glob
-import sys
-
-metadata_dir = os.environ['METADATA_DIR']
-files = sorted(glob.glob(os.path.join(metadata_dir, '*.json')))
-if not files:
-    print('::error::No metadata files found after download')
-    sys.exit(1)
-
-expected_counts = {'net8.0': 0, 'net10.0': 0}
-available_counts = {'net8.0': 0, 'net10.0': 0}
-net10_sdk_availability = []
-preview_versions = set()
-net10_sdk_versions = set()
-
-for path in files:
-    with open(path, 'r', encoding='utf-8') as handle:
-        data = json.load(handle)
-    tfm = data.get('framework')
-    expected_counts[tfm] = expected_counts.get(tfm, 0) + 1
-    if data.get('package_available'):
-        available_counts[tfm] = available_counts.get(tfm, 0) + 1
-    if tfm == 'net10.0':
-        net10_sdk_availability.append(bool(data.get('sdk_available', True)))
-        sdk_version = data.get('sdk_version') or ''
-        if sdk_version:
-            net10_sdk_versions.add(sdk_version)
-        if data.get('sdk_is_preview') and data.get('package_available'):
-            preview_versions.add(sdk_version or 'unknown')
-
-net8_expected = expected_counts.get('net8.0', 0)
-net10_expected = expected_counts.get('net10.0', 0)
-net8_available = available_counts.get('net8.0', 0)
-net10_available = available_counts.get('net10.0', 0)
-
-if net8_expected != 6 or net8_available != 6:
-    print('::error::Expected 6 net8.0 packages but found', net8_available)
-    sys.exit(1)
-
-framework_warning = ''
-if net10_expected == 0:
-    print('::error::No net10.0 metadata entries found. Build matrix is misconfigured.')
-    sys.exit(1)
-
-if net10_available == net10_expected:
-    pass
-elif net10_available == 0 and net10_sdk_availability and not any(net10_sdk_availability):
-    framework_warning = '.NET 10.0 SDK was unavailable on runners; only .NET 8.0 packages were produced.'
-else:
-    print(f"::error::net10.0 packages incomplete ({net10_available}/{net10_expected}).")
-    sys.exit(1)
-
-preview_warning = ''
-if preview_versions:
-    joined = ', '.join(sorted(preview_versions))
-    preview_warning = f'.NET 10.0 packages were built using preview SDKs ({joined}).'
-
-summary_lines = [
-    f"net8.0 packages: {net8_available}/{net8_expected}",
-    f"net10.0 packages: {net10_available}/{net10_expected}",
-]
-if framework_warning:
-    summary_lines.append(f"WARNING: {framework_warning}")
-if preview_warning:
-    summary_lines.append(f"NOTICE: {preview_warning}")
-
-print('\n'.join(summary_lines))
-
-coverage_outputs = {
-    'net8_packages': str(net8_available),
-    'net10_packages': str(net10_available),
-    'framework_warning': framework_warning,
-    'preview_warning': preview_warning,
-    'net10_sdk_versions': ','.join(sorted(net10_sdk_versions)),
-}
-
-with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as handle:
-    for key, value in coverage_outputs.items():
-        handle.write(f"{key}={value}\n")
-
-with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
-    summary.write('\n'.join(summary_lines) + '\n')
-PY
+          import json
+          import os
+          import glob
+          import sys
+          
+          metadata_dir = os.environ['METADATA_DIR']
+          files = sorted(glob.glob(os.path.join(metadata_dir, '*.json')))
+          if not files:
+              print('::error::No metadata files found after download')
+              sys.exit(1)
+          
+          expected_counts = {'net8.0': 0, 'net10.0': 0}
+          available_counts = {'net8.0': 0, 'net10.0': 0}
+          net10_sdk_availability = []
+          preview_versions = set()
+          net10_sdk_versions = set()
+          
+          for path in files:
+              with open(path, 'r', encoding='utf-8') as handle:
+                  data = json.load(handle)
+              tfm = data.get('framework')
+              expected_counts[tfm] = expected_counts.get(tfm, 0) + 1
+              if data.get('package_available'):
+                  available_counts[tfm] = available_counts.get(tfm, 0) + 1
+              if tfm == 'net10.0':
+                  net10_sdk_availability.append(bool(data.get('sdk_available', True)))
+                  sdk_version = data.get('sdk_version') or ''
+                  if sdk_version:
+                      net10_sdk_versions.add(sdk_version)
+                  if data.get('sdk_is_preview') and data.get('package_available'):
+                      preview_versions.add(sdk_version or 'unknown')
+          
+          net8_expected = expected_counts.get('net8.0', 0)
+          net10_expected = expected_counts.get('net10.0', 0)
+          net8_available = available_counts.get('net8.0', 0)
+          net10_available = available_counts.get('net10.0', 0)
+          
+          if net8_expected != 6 or net8_available != 6:
+              print('::error::Expected 6 net8.0 packages but found', net8_available)
+              sys.exit(1)
+          
+          framework_warning = ''
+          if net10_expected == 0:
+              print('::error::No net10.0 metadata entries found. Build matrix is misconfigured.')
+              sys.exit(1)
+          
+          if net10_available == net10_expected:
+              pass
+          elif net10_available == 0 and net10_sdk_availability and not any(net10_sdk_availability):
+              framework_warning = '.NET 10.0 SDK was unavailable on runners; only .NET 8.0 packages were produced.'
+          else:
+              print(f"::error::net10.0 packages incomplete ({net10_available}/{net10_expected}).")
+              sys.exit(1)
+          
+          preview_warning = ''
+          if preview_versions:
+              joined = ', '.join(sorted(preview_versions))
+              preview_warning = f'.NET 10.0 packages were built using preview SDKs ({joined}).'
+          
+          summary_lines = [
+              f"net8.0 packages: {net8_available}/{net8_expected}",
+              f"net10.0 packages: {net10_available}/{net10_expected}",
+          ]
+          if framework_warning:
+              summary_lines.append(f"WARNING: {framework_warning}")
+          if preview_warning:
+              summary_lines.append(f"NOTICE: {preview_warning}")
+          
+          print('\n'.join(summary_lines))
+          
+          coverage_outputs = {
+              'net8_packages': str(net8_available),
+              'net10_packages': str(net10_available),
+              'framework_warning': framework_warning,
+              'preview_warning': preview_warning,
+              'net10_sdk_versions': ','.join(sorted(net10_sdk_versions)),
+          }
+          
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as handle:
+              for key, value in coverage_outputs.items():
+                  handle.write(f"{key}={value}\n")
+          
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
+              summary.write('\n'.join(summary_lines) + '\n')
+          PY
 
       - name: Check package sizes (soft limit 150MB)
         shell: bash
