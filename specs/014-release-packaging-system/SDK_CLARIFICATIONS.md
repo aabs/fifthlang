@@ -59,7 +59,8 @@ This document clarifies the .NET SDK versioning strategy for the release packagi
 **Implementation**:
 ```bash
 # Detect SDK version and preview status
-SDK_VERSION=$(dotnet --list-sdks | grep "^10\." | head -n1 | awk '{print $1}')
+# Use ^10\.0\. to match only .NET 10.0.x versions (not future 11.0, 12.0, etc.)
+SDK_VERSION=$(dotnet --list-sdks | grep "^10\.0\." | head -n1 | awk '{print $1}')
 if [[ "$SDK_VERSION" == *"preview"* ]] || [[ "$SDK_VERSION" == *"rc"* ]]; then
   echo "IS_PREVIEW=true" >> $GITHUB_OUTPUT
   echo "SDK_VERSION=$SDK_VERSION" >> $GITHUB_OUTPUT
