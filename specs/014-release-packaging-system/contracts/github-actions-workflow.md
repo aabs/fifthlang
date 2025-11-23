@@ -235,7 +235,7 @@ strategy:
      uses: actions/setup-dotnet@v4
      with:
        dotnet-version: '10.0.x'  # Uses latest available (preview or final)
-       dotnet-quality: 'preview'  # Allows preview releases if final not available
+       include-prerelease: true  # Allows preview releases if final not available
    ```
    
    **Clarification**: The `global.json` file pins the SDK used for project operations (8.0.414), but we can install additional SDKs (like .NET 10.0) to support multi-targeting. The `dotnet publish --framework net10.0` command will use the 10.0 SDK even though 8.0 is pinned. This is standard .NET multi-targeting behavior.
@@ -255,7 +255,7 @@ strategy:
      continue-on-error: true
      run: |
        if [ "${{ matrix.framework }}" == "net10.0" ]; then
-         SDK_VERSION=$(dotnet --list-sdks | grep "^10\." | head -n1 | awk '{print $1}')
+         SDK_VERSION=$(dotnet --list-sdks | grep "^10\.0\." | head -n1 | awk '{print $1}')
          if [ -z "$SDK_VERSION" ]; then
            echo "⚠️  .NET 10.0 SDK not available - this job will fail gracefully" >&2
            echo "SDK_AVAILABLE=false" >> $GITHUB_OUTPUT
@@ -278,7 +278,7 @@ strategy:
    ```
    
    **Notes**: 
-   - Detects both preview and final .NET 10.0 SDKs
+   - Detects both preview and final .NET 10.0 SDKs using pattern `^10\.0\.` (specific to .NET 10.0 only)
    - Outputs `IS_PREVIEW=true` if using preview SDK (for release notes annotation)
    - Captures SDK version for transparency in release notes
    - Gracefully fails net10.0 jobs if no SDK available (degradation per FR-033)
@@ -383,7 +383,7 @@ strategy:
        else
          # Check if any net10.0 packages were built with preview SDK
          # This info should be in build job outputs or artifact metadata
-         NET10_SDK_VERSION=$(dotnet --list-sdks | grep "^10\." | head -n1 | awk '{print $1}')
+         NET10_SDK_VERSION=$(dotnet --list-sdks | grep "^10\.0\." | head -n1 | awk '{print $1}')
          if [[ "$NET10_SDK_VERSION" == *"preview"* ]] || [[ "$NET10_SDK_VERSION" == *"rc"* ]]; then
            echo "ℹ️  .NET 10.0 packages built with preview SDK: $NET10_SDK_VERSION" | tee -a $GITHUB_STEP_SUMMARY
            echo "preview_warning=⚠️ .NET 10.0 packages built with preview SDK $NET10_SDK_VERSION (not final release)" >> $GITHUB_OUTPUT
