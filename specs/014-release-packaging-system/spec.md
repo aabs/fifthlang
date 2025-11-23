@@ -19,6 +19,12 @@ The Fifth language compiler requires an automated release packaging system that 
 - Q: When multiple commits are pushed to master in quick succession, how should the system handle concurrent builds? → A: Cancel older builds: Cancel pending/in-progress builds when newer commit arrives
 - Q: When .NET 10.0 SDK is not yet available in the GitHub Actions environment, how should the system respond? → A: Build .NET 8.0 only: Build 6 .NET 8.0 packages, log warning, note .NET 10.0 unavailable in release notes
 
+### Session 2025-11-23 (Updated)
+
+- Q: Does pinning the .NET SDK version in `global.json` interfere with cross-compiling to different .NET runtime frameworks? → A: No. The `global.json` pins the SDK used for project operations (building, restoring), but does not prevent targeting multiple runtime frameworks (net8.0, net10.0). The build can install additional SDKs (e.g., .NET 10.0) alongside the pinned SDK (8.0) to support multi-targeting. When running `dotnet publish --framework net10.0`, the .NET 10.0 SDK will be used for that specific target, even though global.json pins 8.0 for project consistency.
+
+- Q: If .NET 10.0 final release is not yet available, should the system use preview releases? → A: Yes. The build system should use whatever .NET 10.0 SDK is available, whether preview or final. This allows early testing and package creation before GA release. Packages built with preview SDKs must be clearly annotated in release notes with the preview SDK version used, and appropriate warnings included to inform users they are using preview-built packages.
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Compiler Developer Publishes Release (Priority: P1)
@@ -170,7 +176,8 @@ After installing the compiler, a user wants to quickly verify the installation w
 - **FR-030**: If any platform/framework build fails, system MUST abort entire release and publish no packages (all-or-nothing policy)
 - **FR-031**: When package size exceeds 150MB, system MUST log warning, annotate package size in release notes, and continue publication
 - **FR-032**: When multiple commits trigger builds concurrently, system MUST cancel older pending/in-progress builds in favor of most recent commit using GitHub Actions concurrency groups
-- **FR-033**: When .NET 10.0 SDK is unavailable, system MUST build only .NET 8.0 packages (6 platforms), log warning, and annotate .NET 10.0 unavailability in release notes
+- **FR-033**: When .NET 10.0 SDK is unavailable, system MUST build only .NET 8.0 packages (6 platforms), log warning, and annotate .NET 10.0 unavailability in release notes. When .NET 10.0 SDK is available as a preview release (not final), system MUST use the preview SDK, build all 12 packages, and annotate release notes with preview SDK version used and appropriate warnings for users
+- **FR-034**: System MUST support installing multiple .NET SDKs (8.0 pinned in global.json plus 10.0 preview/final) to enable cross-compilation to different target frameworks without interference from the pinned SDK version
 
 
 ### Non-Functional Requirements

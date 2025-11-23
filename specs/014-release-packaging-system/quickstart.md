@@ -29,38 +29,60 @@ This quickstart guide walks you through building and testing Fifth compiler rele
 # .NET SDK 8.0 (check global.json for exact version)
 brew install --cask dotnet-sdk
 
+# .NET 10.0 SDK (optional, for testing multi-framework builds)
+# Install preview if final not available: https://dotnet.microsoft.com/download/dotnet/10.0
+# Note: Installing 10.0 SDK alongside 8.0 does NOT interfere with global.json pinning
+
 # Java 17+ (for ANTLR)
 brew install openjdk@17
 
 # Verify versions
-dotnet --version  # Should be 8.0.x
-java -version     # Should be 17+
+dotnet --version     # Should be 8.0.x (from global.json)
+dotnet --list-sdks   # Should show both 8.0 and 10.0 SDKs if installed
+java -version        # Should be 17+
 ```
 
 **Linux (Ubuntu/Debian)**:
 ```bash
-# .NET SDK 8.0
+# .NET SDK 8.0 (pinned in global.json)
 wget https://dot.net/v1/dotnet-install.sh
 chmod +x dotnet-install.sh
 ./dotnet-install.sh --version 8.0.414
+
+# .NET 10.0 SDK (optional, for testing multi-framework builds)
+# Use --quality preview for preview releases if final not available
+./dotnet-install.sh --channel 10.0 --quality preview
+# Note: Multiple SDKs can coexist; global.json pins which one is used for project operations
 
 # Java 17+
 sudo apt install openjdk-17-jdk
 
 # Verify versions
-dotnet --version
+dotnet --version     # Should be 8.0.414
+dotnet --list-sdks   # Should show both 8.0 and 10.0 SDKs if installed
 java -version
 ```
 
 **Windows (PowerShell)**:
 ```powershell
 # Install .NET SDK 8.0 from https://dotnet.microsoft.com/download
+# Install .NET SDK 10.0 (optional) - can install preview version if final not available
+# Both SDKs can coexist; global.json determines which is used for project operations
+
 # Install Java 17+ from https://adoptium.net/
 
 # Verify versions
-dotnet --version
+dotnet --version     # Should be 8.0.x
+dotnet --list-sdks   # Shows all installed SDKs
 java -version
 ```
+
+**SDK Version Clarification**:
+- The `global.json` file pins SDK 8.0.414 for build consistency
+- You can install .NET 10.0 SDK (preview or final) alongside 8.0 without conflict
+- When building for `net10.0` target framework, the 10.0 SDK is automatically used
+- When building for `net8.0` target framework, the 8.0 SDK (from global.json) is used
+- This multi-targeting approach allows creating packages for both frameworks from the same build environment
 
 ### Clone Repository
 

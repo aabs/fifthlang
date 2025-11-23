@@ -221,12 +221,24 @@ strategy:
        fetch-depth: 0  # Need tags for version
    ```
 
-2. **Setup .NET SDK**: Install required .NET SDK version
+2. **Setup .NET SDK**: Install required .NET SDK versions
    ```yaml
+   # Install pinned SDK from global.json (8.0.414)
    - uses: actions/setup-dotnet@v4
      with:
-       global-json-file: global.json  # Respects pinned version
+       global-json-file: global.json  # Respects pinned version for build consistency
+   
+   # Install .NET 10.0 SDK (preview or final) for net10.0 target builds
+   # This allows targeting net10.0 framework even though global.json pins 8.0
+   - name: Setup .NET 10.0 SDK
+     if: matrix.framework == 'net10.0'
+     uses: actions/setup-dotnet@v4
+     with:
+       dotnet-version: '10.0.x'  # Uses latest available (preview or final)
+       dotnet-quality: 'preview'  # Allows preview releases if final not available
    ```
+   
+   **Clarification**: The `global.json` file pins the SDK used for project operations (8.0.414), but we can install additional SDKs (like .NET 10.0) to support multi-targeting. The `dotnet publish --framework net10.0` command will use the 10.0 SDK even though 8.0 is pinned. This is standard .NET multi-targeting behavior.
 
 3. **Setup Java**: Install Java 17+ for ANTLR (if grammar regeneration needed)
    ```yaml
@@ -243,14 +255,33 @@ strategy:
      continue-on-error: true
      run: |
        if [ "${{ matrix.framework }}" == "net10.0" ]; then
-         if ! dotnet --list-sdks | grep -q "^10\."; then
+         SDK_VERSION=$(dotnet --list-sdks | grep "^10\." | head -n1 | awk '{print $1}')
+         if [ -z "$SDK_VERSION" ]; then
            echo "⚠️  .NET 10.0 SDK not available - this job will fail gracefully" >&2
            echo "SDK_AVAILABLE=false" >> $GITHUB_OUTPUT
+           echo "SDK_VERSION=unavailable" >> $GITHUB_OUTPUT
            exit 1  # Fail this job gracefully
          fi
+         echo "✓ .NET 10.0 SDK available: $SDK_VERSION" >&2
+         if [[ "$SDK_VERSION" == *"preview"* ]] || [[ "$SDK_VERSION" == *"rc"* ]]; then
+           echo "ℹ️  Using preview SDK: $SDK_VERSION" >&2
+           echo "IS_PREVIEW=true" >> $GITHUB_OUTPUT
+         else
+           echo "IS_PREVIEW=false" >> $GITHUB_OUTPUT
+         fi
+         echo "SDK_AVAILABLE=true" >> $GITHUB_OUTPUT
+         echo "SDK_VERSION=$SDK_VERSION" >> $GITHUB_OUTPUT
+       else
+         echo "SDK_AVAILABLE=true" >> $GITHUB_OUTPUT
+         echo "IS_PREVIEW=false" >> $GITHUB_OUTPUT
        fi
-       echo "SDK_AVAILABLE=true" >> $GITHUB_OUTPUT
    ```
+   
+   **Notes**: 
+   - Detects both preview and final .NET 10.0 SDKs
+   - Outputs `IS_PREVIEW=true` if using preview SDK (for release notes annotation)
+   - Captures SDK version for transparency in release notes
+   - Gracefully fails net10.0 jobs if no SDK available (degradation per FR-033)
 
 5. **Extract Version**: Get version from git tag or input
    ```yaml
@@ -334,9 +365,9 @@ strategy:
        path: ./dist
    ```
 
-2. **Check Framework Coverage**: Detect partial framework coverage (FR-033)
+2. **Check Framework Coverage & SDK Versions**: Detect partial framework coverage and preview SDK usage (FR-033)
    ```yaml
-   - name: Check framework coverage
+   - name: Check framework coverage and SDK versions
      id: check_coverage
      run: |
        NET8_COUNT=$(find ./dist -name "*-net8.0.*" | wc -l)
@@ -345,11 +376,29 @@ strategy:
        echo "net8_packages=$NET8_COUNT" >> $GITHUB_OUTPUT
        echo "net10_packages=$NET10_COUNT" >> $GITHUB_OUTPUT
        
+       # Check if .NET 10.0 packages are missing
        if [ "$NET10_COUNT" -eq 0 ]; then
          echo "⚠️  .NET 10.0 packages unavailable - publishing .NET 8.0 only" | tee -a $GITHUB_STEP_SUMMARY
          echo "framework_warning=.NET 10.0 SDK was unavailable; only .NET 8.0 packages included" >> $GITHUB_OUTPUT
+       else
+         # Check if any net10.0 packages were built with preview SDK
+         # This info should be in build job outputs or artifact metadata
+         NET10_SDK_VERSION=$(dotnet --list-sdks | grep "^10\." | head -n1 | awk '{print $1}')
+         if [[ "$NET10_SDK_VERSION" == *"preview"* ]] || [[ "$NET10_SDK_VERSION" == *"rc"* ]]; then
+           echo "ℹ️  .NET 10.0 packages built with preview SDK: $NET10_SDK_VERSION" | tee -a $GITHUB_STEP_SUMMARY
+           echo "preview_warning=⚠️ .NET 10.0 packages built with preview SDK $NET10_SDK_VERSION (not final release)" >> $GITHUB_OUTPUT
+         else
+           echo "✓ .NET 10.0 packages built with final SDK: $NET10_SDK_VERSION" | tee -a $GITHUB_STEP_SUMMARY
+           echo "preview_warning=" >> $GITHUB_OUTPUT
+         fi
        fi
    ```
+   
+   **Notes**:
+   - Detects whether .NET 10.0 packages are present (FR-033 graceful degradation)
+   - Identifies preview SDK usage for transparency
+   - Outputs warnings for both missing frameworks and preview SDK usage
+   - These warnings will be included in release notes
 
 3. **Check Package Sizes**: Log warnings for packages exceeding soft limit (FR-031)
    ```yaml
@@ -372,7 +421,7 @@ strategy:
          --output-file ./dist/SHA256SUMS
    ```
 
-5. **Generate Release Notes**: Extract changelog from commits and add framework/size warnings
+5. **Generate Release Notes**: Extract changelog from commits and add framework/SDK warnings
    ```yaml
    - name: Generate release notes
      id: release_notes
@@ -383,13 +432,30 @@ strategy:
        
        # Add framework warning if .NET 10.0 unavailable
        if [ -n "${{ steps.check_coverage.outputs.framework_warning }}" ]; then
-         NOTES="$NOTES\n\n⚠️ **Note**: ${{ steps.check_coverage.outputs.framework_warning }}"
+         NOTES="$NOTES\n\n⚠️ **Framework Availability**: ${{ steps.check_coverage.outputs.framework_warning }}"
+       fi
+       
+       # Add preview SDK warning if .NET 10.0 packages built with preview
+       if [ -n "${{ steps.check_coverage.outputs.preview_warning }}" ]; then
+         NOTES="$NOTES\n\n${{ steps.check_coverage.outputs.preview_warning }}"
+       fi
+       
+       # Add package size warnings (if any packages exceed 150MB soft limit)
+       SIZE_WARNINGS=$(find ./dist -size +150M -name "*.tar.gz" -o -size +150M -name "*.zip" 2>/dev/null || true)
+       if [ -n "$SIZE_WARNINGS" ]; then
+         NOTES="$NOTES\n\n⚠️ **Package Size Notice**: Some packages exceed the 150MB target size. This is expected for self-contained deployments with full runtime."
        fi
        
        echo "notes<<EOF" >> $GITHUB_OUTPUT
        echo "$NOTES" >> $GITHUB_OUTPUT
        echo "EOF" >> $GITHUB_OUTPUT
    ```
+   
+   **Notes**:
+   - Includes framework availability warnings (FR-033)
+   - Includes preview SDK warnings for transparency
+   - Includes package size warnings (FR-031)
+   - All warnings are non-blocking but provide important context to users
 
 6. **Create GitHub Release**: Publish release with packages
    ```yaml
