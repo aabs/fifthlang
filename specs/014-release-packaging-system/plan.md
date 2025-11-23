@@ -92,7 +92,7 @@ This feature adds build/release infrastructure without modifying the compiler co
 
 **V. Reproducible Builds**  
 ✅ **PASS** - Critical for this feature:
-- Pin .NET SDK version per global.json (8.0.118)
+- Pin .NET SDK version per global.json (8.0.414)
 - Document all build tool versions in release workflow
 - Ensure deterministic package naming and checksums
 - Test on GitHub-hosted runners (standardized environments)
