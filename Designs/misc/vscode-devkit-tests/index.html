@@ -6,9 +6,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
         
-        
+        <link rel="canonical" href="https://fifth-lang.org/Designs/misc/vscode-devkit-tests/">
         <link rel="shortcut icon" href="../../../img/favicon.ico">
-        <title>VS Code Dev Kit: Running TUnit Tests - Fifthlang</title>
+        <title>VS Code Dev Kit: Running xUnit Tests - The Fifth Programming Language</title>
         <link href="../../../css/bootstrap.min.css" rel="stylesheet">
         <link href="../../../css/fontawesome.min.css" rel="stylesheet">
         <link href="../../../css/brands.min.css" rel="stylesheet">
@@ -24,7 +24,7 @@
     <body>
         <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
             <div class="container">
-                <a class="navbar-brand" href="../../..">Fifthlang</a>
+                <a class="navbar-brand" href="../../..">The Fifth Programming Language</a>
                 <!-- Expander button -->
                 <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -103,7 +103,7 @@
 </li>
             
 <li>
-    <a href="./" class="dropdown-item active" aria-current="page">VS Code Dev Kit: Running TUnit Tests</a>
+    <a href="./" class="dropdown-item active" aria-current="page">VS Code Dev Kit: Running xUnit Tests</a>
 </li>
     </ul>
   </li>
@@ -225,7 +225,7 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="1"><a href="#vs-code-dev-kit-running-tunit-tests" class="nav-link">VS Code Dev Kit: Running TUnit Tests</a>
+            <li class="nav-item" data-bs-level="1"><a href="#vs-code-dev-kit-running-xunit-tests" class="nav-link">VS Code Dev Kit: Running xUnit Tests</a>
               <ul class="nav flex-column">
             <li class="nav-item" data-bs-level="2"><a href="#one-time-setup" class="nav-link">One-time setup</a>
               <ul class="nav flex-column">
@@ -275,8 +275,8 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="vs-code-dev-kit-running-tunit-tests">VS Code Dev Kit: Running TUnit Tests</h1>
-<p>This repo uses TUnit for tests. The C# Dev Kit Testing UI can discover and run these tests with a small setup.</p>
+<h1 id="vs-code-dev-kit-running-xunit-tests">VS Code Dev Kit: Running xUnit Tests</h1>
+<p>This repo uses xUnit for tests. The C# Dev Kit Testing UI can discover and run these tests with a small setup.</p>
 <h2 id="one-time-setup">One-time setup</h2>
 <ul>
 <li>Install extensions:</li>
@@ -308,7 +308,7 @@
  dotnet build fifthlang.sln
  dotnet test fifthlang.sln --list-tests
 </code></pre>
-<p>If tests still do not appear in the Testing panel, ensure the above extensions are enabled and up to date. TUnit is fully supported via Dev Kit's Testing Platform Protocol; Dotnet Test Explorer bridges results into VS Code's unified Testing UI when needed.</p>
+<p>If tests still do not appear in the Testing panel, ensure the above extensions are enabled and up to date. xUnit is fully supported via Dev Kit's Testing Platform Protocol; Dotnet Test Explorer bridges results into VS Code's unified Testing UI when needed.</p>
 <h2 id="coverage-optional">Coverage (optional)</h2>
 <ul>
 <li>The repo includes <code>test/fifth.runsettings</code> so both CLI/Dev Kit runs can emit Cobertura coverage files.</li>
