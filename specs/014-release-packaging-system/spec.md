@@ -9,6 +9,16 @@
 
 The Fifth language compiler requires an automated release packaging system that produces distributable binaries for multiple operating systems and .NET framework versions. The system must create self-contained, production-ready packages that enable users to install and use the Fifth compiler without requiring pre-installed development tools beyond the .NET runtime.
 
+## Clarifications
+
+### Session 2025-11-23
+
+- Q: When build matrix runs and some platforms succeed while others fail (e.g., 10 of 12 platforms build successfully), what should happen? → A: All-or-nothing: If any platform fails, abort the entire release and publish nothing
+- Q: For automatic builds from master branch (non-tagged commits), what version naming scheme should pre-releases use? → A: Date + commit: `0.1.0-pre.20251123.a1b2c3d` (version + pre + date + commit)
+- Q: When a platform build succeeds but the resulting package exceeds the 150MB size limit, how should the system respond? → A: Warn and publish: Log warning, publish package with size annotation in release notes
+- Q: When multiple commits are pushed to master in quick succession, how should the system handle concurrent builds? → A: Cancel older builds: Cancel pending/in-progress builds when newer commit arrives
+- Q: When .NET 10.0 SDK is not yet available in the GitHub Actions environment, how should the system respond? → A: Build .NET 8.0 only: Build 6 .NET 8.0 packages, log warning, note .NET 10.0 unavailable in release notes
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Compiler Developer Publishes Release (Priority: P1)
@@ -99,13 +109,13 @@ After installing the compiler, a user wants to quickly verify the installation w
 ### Edge Cases
 
 - What happens when GitHub Actions infrastructure is unavailable during a master push?
-- How does system handle partial failures (e.g., 11 of 12 platforms succeed)?
-- What occurs when package size exceeds 150MB threshold?
+- Partial build failures: System aborts entire release if any platform fails (all-or-nothing policy)
+- Package size overruns: System logs warning and publishes with size annotation in release notes (soft limit)
 - How are transient network failures during artifact upload handled?
-- What happens when .NET 10.0 SDK is not yet available in CI environment?
-- How does system handle concurrent builds from multiple master commits?
+- Concurrent builds: System cancels older pending/in-progress builds when newer commit arrives (uses GitHub Actions concurrency groups)
 - What occurs when smoke test passes but manual testing reveals issues?
 - How are breaking changes between .NET 8.0 and 10.0 detected and communicated?
+- .NET 10.0 SDK unavailability: System builds only .NET 8.0 packages (6 total), logs warning, annotates .NET 10.0 unavailability in release notes
 
 ## Requirements
 
@@ -142,7 +152,7 @@ After installing the compiler, a user wants to quickly verify the installation w
 - **FR-018**: Each release MUST be tagged in Git with format `v{major}.{minor}.{patch}`
 - **FR-019**: Release notes MUST be generated automatically from commit messages since last release
 - **FR-020**: Manual triggers MUST create draft releases for review before publication
-- **FR-021**: Automatic builds from master MUST create pre-release versions with date/commit identifier
+- **FR-021**: Automatic builds from master MUST create pre-release versions using format `{base_version}-pre.{YYYYMMDD}.{short_commit}` (e.g., `0.1.0-pre.20251123.a1b2c3d`) where base version is derived from most recent git tag or defaults to `0.1.0`
 
 #### Verification and Quality
 
@@ -157,6 +167,11 @@ After installing the compiler, a user wants to quickly verify the installation w
 - **FR-027**: Installation documentation MUST be provided for each supported platform with minimum OS version requirements
 - **FR-028**: Documentation MUST include troubleshooting guidance for common installation issues
 - **FR-029**: Quick start guide MUST demonstrate basic compiler usage within 5 minutes of installation
+- **FR-030**: If any platform/framework build fails, system MUST abort entire release and publish no packages (all-or-nothing policy)
+- **FR-031**: When package size exceeds 150MB, system MUST log warning, annotate package size in release notes, and continue publication
+- **FR-032**: When multiple commits trigger builds concurrently, system MUST cancel older pending/in-progress builds in favor of most recent commit using GitHub Actions concurrency groups
+- **FR-033**: When .NET 10.0 SDK is unavailable, system MUST build only .NET 8.0 packages (6 platforms), log warning, and annotate .NET 10.0 unavailability in release notes
+
 
 ### Non-Functional Requirements
 
@@ -164,7 +179,7 @@ After installing the compiler, a user wants to quickly verify the installation w
 
 - **NFR-001**: Complete build pipeline for all 12 platform/framework combinations MUST complete within 45 minutes
 - **NFR-002**: Individual platform builds MUST complete within 10 minutes
-- **NFR-003**: Package size for self-contained deployments MUST NOT exceed 150MB per variant
+- **NFR-003**: Package size for self-contained deployments SHOULD NOT exceed 150MB per variant (soft limit with warnings and release notes annotation)
 - **NFR-004**: Compiler startup time MUST NOT increase by more than 10% compared to non-packaged builds
 
 #### Reliability
