@@ -167,31 +167,49 @@ This document captures unknowns extracted from the Technical Context and feature
 
 **Why Critical**: Requirement specifies dual-framework support with graceful degradation (FR-033). Need to handle .NET 10.0 preview/unavailability scenarios.
 
+**Key Clarification**: The `global.json` file pins the SDK used for building (currently 8.0.414) but does NOT prevent targeting multiple runtime frameworks. The build system can target both net8.0 and net10.0 frameworks from the same SDK, as long as the target framework SDKs are installed. Building for .NET 10.0 requires .NET 10.0 SDK (preview or final) to be available alongside the pinned 8.0 SDK.
+
+**Preview SDK Strategy**: When .NET 10.0 final release is not available, the system will use whatever preview SDK is available for .NET 10.0. This allows early testing and package creation before GA release.
+
 **Research Tasks**:
 - [ ] Investigate .NET 10.0 preview availability
-  - Current preview status
-  - GitHub Actions runner support for previews
-  - Breaking changes from 8.0 to 10.0
+  - Check GitHub Actions runners for pre-installed .NET 10.0 preview SDKs
+  - Determine if setup-dotnet action supports installing preview versions
+  - Test preview SDK installation using recommended approach: `dotnet-version: '10.0.x'` with `include-prerelease: true`
+  - Alternative: specific preview version like `dotnet-version: '10.0.100-preview.7'`
+  - Recommended: Use `10.0.x` + `include-prerelease: true` to get latest available (preview or final)
+  - Verify preview SDK stability and compatibility with existing code
+  - Document breaking changes from 8.0 to 10.0 (if any)
+- [ ] Clarify SDK detection and multi-framework setup
+  - Confirm `global.json` pinned SDK (8.0.414) is used for project building
+  - Verify additional SDKs (like 10.0 preview) can be installed alongside pinned SDK
+  - Document how `dotnet publish --framework net10.0` uses 10.0 SDK even with pinned 8.0 SDK
+  - Test building net8.0 and net10.0 targets from same build environment
 - [ ] Design SDK detection and fallback mechanism (FR-033)
-  - How to check if .NET 10.0 SDK is available in build job
-  - Gracefully skip .NET 10.0 builds without failing entire workflow
-  - Detect partial framework coverage in publish job
-  - Generate appropriate warnings in release notes
+  - Implement `dotnet --list-sdks | grep "^10\\.0\\."` check to detect available .NET 10.0 SDK (preview or final)
+  - Use regex pattern `^10\\.0\\.` (escaped for shell) to match only .NET 10.0.x versions (not future 11.0, 12.0, etc.)
+  - Gracefully skip .NET 10.0 builds without failing entire workflow when SDK unavailable
+  - Detect partial framework coverage in publish job (6 packages vs 12)
+  - Generate appropriate warnings in release notes about SDK availability
+  - Annotate packages built with preview SDKs (include preview version in release notes)
 - [ ] Design multi-framework build strategy
-  - Single csproj with multiple `<TargetFrameworks>` vs separate builds
-  - How to specify framework version in `dotnet publish`
-  - Package naming to distinguish frameworks
+  - Verify single csproj with `<TargetFrameworks>net8.0;net10.0</TargetFrameworks>` approach
+  - Confirm `dotnet publish --framework net8.0` vs `--framework net10.0` targets correctly
+  - Verify package naming distinguishes frameworks (net8.0 vs net10.0 in filename)
+  - Test runtime identifier (RID) compatibility across frameworks
 - [ ] Test compatibility with existing code
-  - Run existing test suite against .NET 10.0 preview
-  - Check for API deprecations or breaking changes
-  - Verify ANTLR compatibility with .NET 10.0
-- [ ] Plan transition strategy
-  - When to add .NET 10.0 builds (at preview vs at GA)
-  - Support policy (how long to support .NET 8.0 after 10.0 GA)
-  - Communication to users about framework support
-  - Migration from preview to stable SDK
+  - Run existing test suite against .NET 10.0 preview SDK
+  - Check for API deprecations or breaking changes in compiler code
+  - Verify ANTLR 4.8 runtime compatibility with .NET 10.0
+  - Test self-contained publishing with .NET 10.0 runtime
+- [ ] Plan transition strategy and SDK version management
+  - Use preview SDKs immediately when available (don't wait for GA)
+  - Document preview SDK version in release notes for transparency
+  - Support policy: maintain .NET 8.0 packages for LTS support
+  - Migration from preview to stable: no code changes needed, workflow auto-detects final SDK
+  - Communication: release notes must clearly indicate which packages use preview vs final SDKs
 
-**Success Criteria**: Documented strategy for adding .NET 10.0 support with SDK detection, graceful degradation plan, and verified behavior when SDK is unavailable.
+**Success Criteria**: Documented strategy for adding .NET 10.0 support with SDK detection (preview or final), graceful degradation plan, verified preview SDK usage, and tested behavior when SDK is unavailable.
 
 ---
 

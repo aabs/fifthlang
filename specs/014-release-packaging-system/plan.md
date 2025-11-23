@@ -12,9 +12,23 @@ Implement an automated release packaging system that produces distributable bina
 ## Technical Context
 
 **Language/Version**: C# 14, .NET SDK 8.0.414 (per global.json)  
+
+**SDK vs Runtime Framework Clarification**:
+- **Build SDK**: The `global.json` file pins the .NET SDK version (8.0.414) used to compile the project
+- **Target Frameworks**: The build can target multiple runtime frameworks (net8.0, net10.0) independently of the SDK version
+- **Cross-Compilation**: Pinning SDK version in `global.json` does NOT prevent cross-compiling to different target frameworks
+- **SDK Requirements**: Building for .NET 10.0 targets requires .NET 10.0 SDK to be installed alongside the pinned 8.0 SDK
+- **Preview SDK Strategy**: When .NET 10.0 final release is not available, the build system will:
+  - Attempt to use the latest available .NET 10.0 preview SDK (if any)
+  - Gracefully degrade to .NET 8.0-only builds if no .NET 10.0 SDK (preview or final) is available
+  - Document preview SDK version used in release notes
+  - Annotate packages built with preview SDKs with appropriate warnings
+
 **Primary Dependencies**: 
 - GitHub Actions (CI/CD platform)
 - .NET CLI (`dotnet publish`) for self-contained deployment
+- .NET SDK 8.0.414 (pinned in global.json for build consistency)
+- .NET SDK 10.0 (preview or final, for .NET 10.0 target builds)
 - ANTLR 4.8 runtime (bundled in packages)
 - Bash/PowerShell scripting for build automation
 - tar/gzip (Unix) and zip (Windows) for archive creation
@@ -78,7 +92,7 @@ This feature adds build/release infrastructure without modifying the compiler co
 
 **V. Reproducible Builds**  
 ✅ **PASS** - Critical for this feature:
-- Pin .NET SDK version per global.json (8.0.118)
+- Pin .NET SDK version per global.json (8.0.414)
 - Document all build tool versions in release workflow
 - Ensure deterministic package naming and checksums
 - Test on GitHub-hosted runners (standardized environments)
@@ -266,5 +280,7 @@ All planning artifacts complete. The feature is ready for:
 - ✅ Pre-release naming follows `{version}-pre.{YYYYMMDD}.{commit}` format (FR-021)
 - ✅ Package size warnings logged but non-blocking (FR-031)
 - ✅ .NET 10.0 unavailability handled gracefully with .NET 8.0 fallback (FR-033)
+- ✅ .NET 10.0 preview SDK usage supported with appropriate release note annotations (FR-033, FR-034)
+- ✅ Multi-SDK installation working (pinned 8.0 + preview/final 10.0) without interference (FR-034)
 - ✅ All-or-nothing policy enforced (FR-030) - no partial releases
-- ✅ Release notes include framework availability and size warnings
+- ✅ Release notes include framework availability, SDK version/preview status, and size warnings

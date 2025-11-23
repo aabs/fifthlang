@@ -98,15 +98,19 @@ This document defines the key entities, their relationships, and data structures
 - `release_notes`: string (user-facing description)
 - `github_release_id`: integer (GitHub API identifier)
 - `github_release_url`: string
+- `dotnet_8_sdk_version`: string (e.g., "8.0.414" - always present, pinned in global.json)
+- `dotnet_10_sdk_version`: string or null (e.g., "10.0.100-preview.7" - null if unavailable)
+- `is_dotnet_10_preview`: boolean (true if .NET 10 packages built with preview SDK)
+- `framework_coverage`: enum (Full=12 packages, Net8Only=6 packages)
 
 **Relationships**:
-- Contains 12 **Release Packages** (6 platforms × 2 frameworks)
+- Contains 6-12 **Release Packages** (6 platforms × 1-2 frameworks, depending on SDK availability)
 - References 1 git commit
 - Has 1 **Checksum Manifest**
 
 **File Representation**: GitHub Release + metadata JSON
 
-**Example**:
+**Example** (Full release with .NET 10 preview):
 ```json
 {
   "version_tag": "v0.9.0",
@@ -115,9 +119,32 @@ This document defines the key entities, their relationships, and data structures
   "is_prerelease": false,
   "git_commit_sha": "a1b2c3d4e5f6",
   "changelog": "### Added\n- Multi-platform packaging\n### Fixed\n- Parser error recovery",
-  "release_notes": "First official release with automated packaging",
+  "release_notes": "First official release with automated packaging\n\n⚠️ .NET 10.0 packages built with preview SDK 10.0.100-preview.7 (not final release)",
   "github_release_id": 123456,
-  "github_release_url": "https://github.com/aabs/fifthlang/releases/tag/v0.9.0"
+  "github_release_url": "https://github.com/aabs/fifthlang/releases/tag/v0.9.0",
+  "dotnet_8_sdk_version": "8.0.414",
+  "dotnet_10_sdk_version": "10.0.100-preview.7",
+  "is_dotnet_10_preview": true,
+  "framework_coverage": "Full"
+}
+```
+
+**Example** (Net8-only release due to SDK unavailability):
+```json
+{
+  "version_tag": "v0.8.5",
+  "version_number": "0.8.5",
+  "release_date": "2025-11-15T12:00:00Z",
+  "is_prerelease": false,
+  "git_commit_sha": "x9y8z7w6",
+  "changelog": "### Fixed\n- Critical bug fixes",
+  "release_notes": "Hotfix release\n\n⚠️ **Framework Availability**: .NET 10.0 SDK was unavailable; only .NET 8.0 packages included",
+  "github_release_id": 123450,
+  "github_release_url": "https://github.com/aabs/fifthlang/releases/tag/v0.8.5",
+  "dotnet_8_sdk_version": "8.0.414",
+  "dotnet_10_sdk_version": null,
+  "is_dotnet_10_preview": false,
+  "framework_coverage": "Net8Only"
 }
 ```
 
