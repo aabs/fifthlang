@@ -255,7 +255,7 @@ strategy:
      continue-on-error: true
      run: |
        if [ "${{ matrix.framework }}" == "net10.0" ]; then
-         SDK_VERSION=$(dotnet --list-sdks | grep "^10\.0\." | head -n1 | awk '{print $1}')
+         SDK_VERSION=$(dotnet --list-sdks | grep "^10\\.0\\." | head -n1 | awk '{print $1}')
          if [ -z "$SDK_VERSION" ]; then
            echo "⚠️  .NET 10.0 SDK not available - this job will fail gracefully" >&2
            echo "SDK_AVAILABLE=false" >> $GITHUB_OUTPUT
@@ -278,7 +278,7 @@ strategy:
    ```
    
    **Notes**: 
-   - Detects both preview and final .NET 10.0 SDKs using pattern `^10\.0\.` (specific to .NET 10.0 only)
+   - Detects both preview and final .NET 10.0 SDKs using pattern `^10\\.0\\.` (escaped for shell, specific to .NET 10.0 only)
    - Outputs `IS_PREVIEW=true` if using preview SDK (for release notes annotation)
    - Captures SDK version for transparency in release notes
    - Gracefully fails net10.0 jobs if no SDK available (degradation per FR-033)
@@ -383,7 +383,7 @@ strategy:
        else
          # Check if any net10.0 packages were built with preview SDK
          # This info should be in build job outputs or artifact metadata
-         NET10_SDK_VERSION=$(dotnet --list-sdks | grep "^10\.0\." | head -n1 | awk '{print $1}')
+         NET10_SDK_VERSION=$(dotnet --list-sdks | grep "^10\\.0\\." | head -n1 | awk '{print $1}')
          if [[ "$NET10_SDK_VERSION" == *"preview"* ]] || [[ "$NET10_SDK_VERSION" == *"rc"* ]]; then
            echo "ℹ️  .NET 10.0 packages built with preview SDK: $NET10_SDK_VERSION" | tee -a $GITHUB_STEP_SUMMARY
            echo "preview_warning=⚠️ .NET 10.0 packages built with preview SDK $NET10_SDK_VERSION (not final release)" >> $GITHUB_OUTPUT

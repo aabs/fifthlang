@@ -186,8 +186,8 @@ This document captures unknowns extracted from the Technical Context and feature
   - Document how `dotnet publish --framework net10.0` uses 10.0 SDK even with pinned 8.0 SDK
   - Test building net8.0 and net10.0 targets from same build environment
 - [ ] Design SDK detection and fallback mechanism (FR-033)
-  - Implement `dotnet --list-sdks | grep "^10\.0\."` check to detect available .NET 10.0 SDK (preview or final)
-  - Use regex pattern `^10\.0\.` to match only .NET 10.0.x versions (not future 11.0, 12.0, etc.)
+  - Implement `dotnet --list-sdks | grep "^10\\.0\\."` check to detect available .NET 10.0 SDK (preview or final)
+  - Use regex pattern `^10\\.0\\.` (escaped for shell) to match only .NET 10.0.x versions (not future 11.0, 12.0, etc.)
   - Gracefully skip .NET 10.0 builds without failing entire workflow when SDK unavailable
   - Detect partial framework coverage in publish job (6 packages vs 12)
   - Generate appropriate warnings in release notes about SDK availability
