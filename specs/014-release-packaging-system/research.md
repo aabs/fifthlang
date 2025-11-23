@@ -175,7 +175,9 @@ This document captures unknowns extracted from the Technical Context and feature
 - [ ] Investigate .NET 10.0 preview availability
   - Check GitHub Actions runners for pre-installed .NET 10.0 preview SDKs
   - Determine if setup-dotnet action supports installing preview versions
-  - Test preview SDK installation: `dotnet-version: '10.0.x'` or `dotnet-version: '10.0.100-preview.x'`
+  - Test preview SDK installation using recommended approach: `dotnet-version: '10.0.x'` with `include-prerelease: true`
+  - Alternative: specific preview version like `dotnet-version: '10.0.100-preview.7'`
+  - Recommended: Use `10.0.x` + `include-prerelease: true` to get latest available (preview or final)
   - Verify preview SDK stability and compatibility with existing code
   - Document breaking changes from 8.0 to 10.0 (if any)
 - [ ] Clarify SDK detection and multi-framework setup
@@ -184,7 +186,8 @@ This document captures unknowns extracted from the Technical Context and feature
   - Document how `dotnet publish --framework net10.0` uses 10.0 SDK even with pinned 8.0 SDK
   - Test building net8.0 and net10.0 targets from same build environment
 - [ ] Design SDK detection and fallback mechanism (FR-033)
-  - Implement `dotnet --list-sdks` check to detect available .NET 10.0 SDK (preview or final)
+  - Implement `dotnet --list-sdks | grep "^10\.0\."` check to detect available .NET 10.0 SDK (preview or final)
+  - Use regex pattern `^10\.0\.` to match only .NET 10.0.x versions (not future 11.0, 12.0, etc.)
   - Gracefully skip .NET 10.0 builds without failing entire workflow when SDK unavailable
   - Detect partial framework coverage in publish job (6 packages vs 12)
   - Generate appropriate warnings in release notes about SDK availability

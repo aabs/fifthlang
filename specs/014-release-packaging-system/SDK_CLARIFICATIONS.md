@@ -36,7 +36,7 @@ This document clarifies the .NET SDK versioning strategy for the release packagi
 - uses: actions/setup-dotnet@v4
   with:
     dotnet-version: '10.0.x'
-    dotnet-quality: 'preview'  # Allows preview if final unavailable
+    include-prerelease: true  # Allows preview if final unavailable
 ```
 
 ### 2. Preview SDK Usage Strategy
