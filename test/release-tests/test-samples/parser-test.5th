@@ -1,0 +1,15 @@
+class Person {
+    name: string;
+    age: int;
+}
+
+factorial(n: int): int {
+    return (n <= 1) ? 1 : n * factorial(n - 1);
+}
+
+main(): int {
+    p: Person = Person { name: "Alice", age: 30 };
+    result: int = factorial(5);
+    std.print(result);
+    return 0;
+}

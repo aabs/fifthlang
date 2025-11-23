@@ -42,10 +42,10 @@ This provides core value: users can download and use Fifth compiler packages aut
 
 **Purpose**: Initialize project structure, dependencies, and development environment.
 
-- [ ] [T001] [P] [SETUP] Create `scripts/build/` directory for build automation scripts
-- [ ] [T002] [P] [SETUP] Create `scripts/test/` directory for testing scripts  
-- [ ] [T003] [P] [SETUP] Create `scripts/release/` directory for release management scripts
-- [ ] [T004] [SETUP] Create `test/release-tests/` directory and sample Fifth programs (hello.5th, kg-test.5th, parser-test.5th) - depends on T001-T003
+- [x] [T001] [P] [SETUP] Create `scripts/build/` directory for build automation scripts
+- [x] [T002] [P] [SETUP] Create `scripts/test/` directory for testing scripts  
+- [x] [T003] [P] [SETUP] Create `scripts/release/` directory for release management scripts
+- [x] [T004] [SETUP] Create `test/release-tests/` directory and sample Fifth programs (hello.5th, kg-test.5th, parser-test.5th) - depends on T001-T003
 
 ---
 
@@ -53,11 +53,11 @@ This provides core value: users can download and use Fifth compiler packages aut
 
 **Purpose**: Build blocking prerequisites required by all user stories.
 
-- [ ] [T005] [P] [FOUND] Create `scripts/release/version-info.sh` implementing version extraction from git tags with pre-release format support (FR-021: `{base}-pre.{YYYYMMDD}.{commit}`)
-- [ ] [T006] [P] [FOUND] Modify `src/compiler/compiler.csproj` to add PublishSingleFile and RuntimeIdentifier properties for self-contained deployment
-- [ ] [T007] [FOUND] Create test sample `test/release-tests/test-samples/hello.5th` with basic main() function printing "Hello, World!" - depends on T004
-- [ ] [T008] [FOUND] Create test sample `test/release-tests/test-samples/kg-test.5th` with TriG/SPARQL literals and KG.CreateGraph() usage - depends on T004
-- [ ] [T009] [FOUND] Create test sample `test/release-tests/test-samples/parser-test.5th` with class declarations, functions, and control flow - depends on T004
+- [x] [T005] [P] [FOUND] Create `scripts/release/version-info.sh` implementing version extraction from git tags with pre-release format support (FR-021: `{base}-pre.{YYYYMMDD}.{commit}`)
+- [x] [T006] [P] [FOUND] Modify `src/compiler/compiler.csproj` to add PublishSingleFile and RuntimeIdentifier properties for self-contained deployment
+- [x] [T007] [FOUND] Create test sample `test/release-tests/test-samples/hello.5th` with basic main() function printing "Hello, World!" - depends on T004
+- [x] [T008] [FOUND] Create test sample `test/release-tests/test-samples/kg-test.5th` with TriG/SPARQL literals and KG.CreateGraph() usage - depends on T004
+- [x] [T009] [FOUND] Create test sample `test/release-tests/test-samples/parser-test.5th` with class declarations, functions, and control flow - depends on T004
 
 ---
 
@@ -82,11 +82,11 @@ This provides core value: users can download and use Fifth compiler packages aut
 
 ### Build Script Implementation (5 tasks)
 
-- [ ] [T010] [US1] Create `scripts/build/build-release.sh` - build single-platform package with dotnet publish, accept --version, --runtime, --framework, --output-dir, emit JSON output per contract in `contracts/build-scripts.md`
-- [ ] [T011] [US1] Create `scripts/build/create-archives.sh` - package artifacts into tar.gz/zip, accept --source-dir, --output-file, --format, --version, preserve executable permissions, emit JSON output per contract in `contracts/build-scripts.md`
-- [ ] [T012] [US1] Create `scripts/build/generate-checksums.sh` - generate SHA256SUMS file, accept --package-dir, --output-file, follow GNU format, emit JSON output per contract in `contracts/build-scripts.md`
-- [ ] [T013] [US1] Add executable permissions to build scripts: `chmod +x scripts/build/*.sh`
-- [ ] [T014] [US1] Test build-release.sh locally for linux-x64 net8.0 variant, verify archive created and version-info.sh integration works - depends on T010, T005
+- [x] [T010] [US1] Create `scripts/build/build-release.sh` - build single-platform package with dotnet publish, accept --version, --runtime, --framework, --output-dir, emit JSON output per contract in `contracts/build-scripts.md`
+- [x] [T011] [US1] Create `scripts/build/create-archives.sh` - package artifacts into tar.gz/zip, accept --source-dir, --output-file, --format, --version, preserve executable permissions, emit JSON output per contract in `contracts/build-scripts.md`
+- [x] [T012] [US1] Create `scripts/build/generate-checksums.sh` - generate SHA256SUMS file, accept --package-dir, --output-file, follow GNU format, emit JSON output per contract in `contracts/build-scripts.md`
+- [x] [T013] [US1] Add executable permissions to build scripts: `chmod +x scripts/build/*.sh`
+- [x] [T014] [US1] Test build-release.sh locally for linux-x64 net8.0 variant, verify archive created and version-info.sh integration works - depends on T010, T005
 
 ### Test Script Implementation (4 tasks)
 
