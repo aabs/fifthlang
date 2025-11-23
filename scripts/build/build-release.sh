@@ -121,19 +121,28 @@ if $SKIP_TESTS; then
     warn "--skip-tests specified; assuming prior validation"
 fi
 
-DOTNET_ARGS=("publish" "$COMPILER_PROJECT" "-c" "$CONFIGURATION" "-r" "$RUNTIME" "-f" "$FRAMEWORK" "--self-contained" "true" "-p:PublishSingleFile=true" "-p:IncludeNativeLibrariesForSelfExtract=true" "-o" "$PUBLISH_DIR")
+DOTNET_ARGS=(
+    "publish" "$COMPILER_PROJECT"
+    "-c" "$CONFIGURATION"
+    "-r" "$RUNTIME"
+    "-f" "$FRAMEWORK"
+    "--self-contained" "true"
+    "-p:PublishSingleFile=true"
+    "-p:IncludeNativeLibrariesForSelfExtract=true"
+    "-p:Version=$VERSION"
+    "-p:InformationalVersion=$VERSION"
+    "-o" "$PUBLISH_DIR"
+)
 dotnet "${DOTNET_ARGS[@]}"
 
 log "Staging artifacts"
-cp -a "$PUBLISH_DIR/." "$STAGING_DIR/lib/"
-
 EXECUTABLE_SOURCE=""
-if [[ -f "$STAGING_DIR/lib/compiler.exe" ]]; then
-    EXECUTABLE_SOURCE="$STAGING_DIR/lib/compiler.exe"
-elif [[ -f "$STAGING_DIR/lib/compiler" ]]; then
-    EXECUTABLE_SOURCE="$STAGING_DIR/lib/compiler"
+if [[ -f "$PUBLISH_DIR/compiler.exe" ]]; then
+    EXECUTABLE_SOURCE="$PUBLISH_DIR/compiler.exe"
+elif [[ -f "$PUBLISH_DIR/compiler" ]]; then
+    EXECUTABLE_SOURCE="$PUBLISH_DIR/compiler"
 else
-    EXECUTABLE_SOURCE=$(find "$STAGING_DIR/lib" -maxdepth 1 -type f -perm -111 | head -n1 || true)
+    EXECUTABLE_SOURCE=$(find "$PUBLISH_DIR" -maxdepth 1 -type f -perm -111 | head -n1 || true)
 fi
 
 if [[ -z "$EXECUTABLE_SOURCE" ]]; then
@@ -147,8 +156,19 @@ else
     TARGET_EXE="fifth"
 fi
 
-mv "$EXECUTABLE_SOURCE" "$STAGING_DIR/bin/$TARGET_EXE"
+cp "$EXECUTABLE_SOURCE" "$STAGING_DIR/bin/$TARGET_EXE"
 chmod +x "$STAGING_DIR/bin/$TARGET_EXE"
+
+DEPENDENCY_PUBLISH_DIR="$WORK_DIR/publish-framework"
+dotnet publish "$COMPILER_PROJECT" \
+    -c "$CONFIGURATION" \
+    -f "$FRAMEWORK" \
+    -p:PublishSingleFile=false \
+    -p:SelfContained=false \
+    -o "$DEPENDENCY_PUBLISH_DIR"
+
+cp -a "$DEPENDENCY_PUBLISH_DIR/." "$STAGING_DIR/lib/"
+rm -f "$STAGING_DIR/lib/compiler" "$STAGING_DIR/lib/compiler.exe"
 
 README_SRC="$REPO_ROOT/README.md"
 LICENSE_SRC="$REPO_ROOT/LICENSE"
