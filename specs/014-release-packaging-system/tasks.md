@@ -91,7 +91,7 @@ This provides core value: users can download and use Fifth compiler packages aut
 ### Test Script Implementation (4 tasks)
 
 - [ ] [T015] [US1] Create `scripts/test/smoke-test.sh` - implement 5 test cases (version_check, compile_hello_world, execute_hello_world, compile_with_kg_features, parser_grammar_loaded), accept --package-path, --test-dir, emit JSON output per contract in `contracts/test-scripts.md` - depends on T007, T008, T009
-- [ ] [T016] [US1] Create `scripts/test/verify-package.sh` - implement 8 verification checks (archive extraction, executable presence, permissions, LICENSE, README, VERSION.txt, directory structure, size limits), accept --package-path, emit JSON output with soft limit handling (FR-031) per contract in `contracts/test-scripts.md`
+- [x] [T016] [US1] Create `scripts/test/verify-package.sh` - implement 8 verification checks (archive extraction, executable presence, permissions, LICENSE, README, VERSION.txt, directory structure, size limits), accept --package-path, emit JSON output with soft limit handling (FR-031) per contract in `contracts/test-scripts.md`
 - [ ] [T017] [US1] Add executable permissions to test scripts: `chmod +x scripts/test/*.sh`
 - [ ] [T018] [US1] Test smoke-test.sh with locally built linux-x64 package, verify all 5 test cases execute and report correctly - depends on T015, T014
 
