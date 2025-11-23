@@ -3,18 +3,23 @@
 
 FIFTH = fifth
 SOURCE = main.5th
-OUTPUT = main
+DIR_OUTPUT = build
+OUTPUT = $(DIR_OUTPUT)/main.dll
 
 .PHONY: all build run clean
 
 # Default to compile-only to satisfy CI/build checks
 all: build
 
-build:
+prepare:
+	mkdir -p $(DIR_OUTPUT)
+
+build: prepare
 	$(FIFTH) --command build --source $(SOURCE) --output $(OUTPUT)
 
 run: build
-	$(FIFTH) --command run --source $(SOURCE) --output $(OUTPUT)
+	dotnet $(OUTPUT)
 
 clean:
-	rm -f $(OUTPUT)
+	rm -rf $(DIR_OUTPUT)
+	rm -rf build_debug_roslyn
