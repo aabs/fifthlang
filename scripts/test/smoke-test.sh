@@ -161,10 +161,32 @@ DOTNET_RUNTIME=$(dotnet --version 2>/dev/null || echo "unknown")
 
 PACKAGE_TARGET_PLATFORM=""
 PACKAGE_TARGET_ARCH=""
-if [[ $PACKAGE_BASENAME =~ -(linux|osx|win)-(x64|arm64)- ]]; then
-    PACKAGE_TARGET_PLATFORM="${BASH_REMATCH[1]}"
-    PACKAGE_TARGET_ARCH="${BASH_REMATCH[2]}"
-fi
+case "$PACKAGE_BASENAME" in
+    *-linux-x64-*)
+        PACKAGE_TARGET_PLATFORM="linux"
+        PACKAGE_TARGET_ARCH="x64"
+        ;;
+    *-linux-arm64-*)
+        PACKAGE_TARGET_PLATFORM="linux"
+        PACKAGE_TARGET_ARCH="arm64"
+        ;;
+    *-osx-x64-*)
+        PACKAGE_TARGET_PLATFORM="osx"
+        PACKAGE_TARGET_ARCH="x64"
+        ;;
+    *-osx-arm64-*)
+        PACKAGE_TARGET_PLATFORM="osx"
+        PACKAGE_TARGET_ARCH="arm64"
+        ;;
+    *-win-x64-*)
+        PACKAGE_TARGET_PLATFORM="win"
+        PACKAGE_TARGET_ARCH="x64"
+        ;;
+    *-win-arm64-*)
+        PACKAGE_TARGET_PLATFORM="win"
+        PACKAGE_TARGET_ARCH="arm64"
+        ;;
+esac
 
 TEST_DIR_ABS=$(abs_path "$TEST_DIR")
 rm -rf "$TEST_DIR_ABS"
