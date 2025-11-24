@@ -161,7 +161,7 @@ DOTNET_RUNTIME=$(dotnet --version 2>/dev/null || echo "unknown")
 
 PACKAGE_TARGET_PLATFORM=""
 PACKAGE_TARGET_ARCH=""
-if [[ "$PACKAGE_BASENAME" =~ -(linux|osx|win)-(x64|arm64)- ]]; then
+if [[ $PACKAGE_BASENAME =~ -(linux|osx|win)-(x64|arm64)- ]]; then
     PACKAGE_TARGET_PLATFORM="${BASH_REMATCH[1]}"
     PACKAGE_TARGET_ARCH="${BASH_REMATCH[2]}"
 fi
