@@ -177,27 +177,15 @@ jobs:
           mkdir -p "$DIST_DIR"
           BUILD_OUTPUT_JSON="${{ runner.temp }}/build-${{ matrix.runtime }}-${{ matrix.framework }}.json"
 
-          ./scripts/build/build-release.sh \
-            --version '${{ steps.version.outputs.value }}' \
-            --runtime '${{ matrix.runtime }}' \
-            --framework '${{ matrix.framework }}' \
-            --output-dir "$DIST_DIR" \
-            --json-output "$BUILD_OUTPUT_JSON"
+            ./scripts/build/build-release.sh \
+              --version '${{ steps.version.outputs.value }}' \
+              --runtime '${{ matrix.runtime }}' \
+              --framework '${{ matrix.framework }}' \
+              --output-dir "$DIST_DIR" \
+              --json-output "$BUILD_OUTPUT_JSON"
 
-              PACKAGE_PATH=$(python3 - "$BUILD_OUTPUT_JSON" <<'PY'
-              import json, sys
-              with open(sys.argv[1], 'r', encoding='utf-8') as handle:
-                payload = json.load(handle)
-              print(payload['package_path'])
-        PY
-            )
-              PACKAGE_SIZE=$(python3 - "$BUILD_OUTPUT_JSON" <<'PY'
-              import json, sys
-              with open(sys.argv[1], 'r', encoding='utf-8') as handle:
-                payload = json.load(handle)
-              print(payload['package_size_bytes'])
-        PY
-            )
+            PACKAGE_PATH=$(python3 -c "import json, sys; data=json.load(open(sys.argv[1], 'r', encoding='utf-8')); print(data['package_path'])" "$BUILD_OUTPUT_JSON")
+            PACKAGE_SIZE=$(python3 -c "import json, sys; data=json.load(open(sys.argv[1], 'r', encoding='utf-8')); print(data['package_size_bytes'])" "$BUILD_OUTPUT_JSON")
           echo "package_path=$PACKAGE_PATH" >> "$GITHUB_OUTPUT"
           echo "package_name=$(basename "$PACKAGE_PATH")" >> "$GITHUB_OUTPUT"
           echo "package_size=$PACKAGE_SIZE" >> "$GITHUB_OUTPUT"
