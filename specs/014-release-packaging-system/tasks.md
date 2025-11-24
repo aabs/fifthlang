@@ -104,8 +104,8 @@ This provides core value: users can download and use Fifth compiler packages aut
 - [x] [T023] [US1] Implement publish job in `.github/workflows/release.yml` with `needs: [build]` and `if: ${{ success() }}` to enforce all-or-nothing policy (FR-030), download artifacts, check framework coverage (12 packages expected, 6 acceptable if .NET 10 SDK unavailable), detect SDK versions used (including preview versions), check package sizes with soft limit warnings (FR-031), generate checksums, generate release notes with framework/SDK availability warnings (including preview SDK usage), create GitHub Release - depends on T022, T012
 - [x] [T024] [US1] Add pre-release detection logic to `.github/workflows/release.yml` publish job (check if version contains suffix like -alpha, -beta, -rc) per contract in `contracts/github-actions-workflow.md` - depends on T023
 - [x] [T025] [US1] Test workflow locally using `act` (`act workflow_dispatch -W .github/workflows/release.yml -n -j build --matrix '{"os":"ubuntu-22.04","framework":"net8.0"}'`) - depends on T023
-- [ ] [T026] [US1] Create test tag `v0.9.0-test` and push to test branch to validate workflow triggers, matrix parallelism, and all-or-nothing policy - depends on T024
-- [ ] [T027] [US1] Validate workflow run: verify all 12 jobs execute, smoke tests pass, publish job creates release with checksums, concurrency control works, framework coverage detected - depends on T026
+- [x] [T026] [US1] Create test tag `v0.9.0-test` and push to test branch to validate workflow triggers, matrix parallelism, and all-or-nothing policy (`git tag -a v0.9.0-test -m "Release workflow validation" && git push origin v0.9.0-test`) - depends on T024
+- [x] [T027] [US1] Validate workflow run: verified Actions run [19618921635](https://github.com/aabs/fifthlang/actions/runs/19618921635) completed all 12 matrix jobs, smoke tests, publish step, release notes, and checksum uploads with concurrency enforcement - depends on T026
 
 ---
 
