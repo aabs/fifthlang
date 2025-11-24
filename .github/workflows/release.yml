@@ -175,27 +175,28 @@ jobs:
           set -euo pipefail
           DIST_DIR="${{ runner.temp }}/dist-${{ matrix.runtime }}-${{ matrix.framework }}"
           mkdir -p "$DIST_DIR"
+          BUILD_OUTPUT_JSON="${{ runner.temp }}/build-${{ matrix.runtime }}-${{ matrix.framework }}.json"
 
-          BUILD_JSON=$(./scripts/build/build-release.sh \
+          ./scripts/build/build-release.sh \
             --version '${{ steps.version.outputs.value }}' \
             --runtime '${{ matrix.runtime }}' \
             --framework '${{ matrix.framework }}' \
-            --output-dir "$DIST_DIR")
+            --output-dir "$DIST_DIR" \
+            --json-output "$BUILD_OUTPUT_JSON"
 
-          echo "$BUILD_JSON" > build-output.json
-          PACKAGE_PATH=$(python3 - <<'PY'
-          import json
-          with open('build-output.json', 'r', encoding='utf-8') as handle:
-              payload = json.load(handle)
-          print(payload['package_path'])
-          PY
+          PACKAGE_PATH=$(python3 - "$BUILD_OUTPUT_JSON" <<'PY'
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as handle:
+    payload = json.load(handle)
+print(payload['package_path'])
+PY
             )
-          PACKAGE_SIZE=$(python3 - <<'PY'
-          import json
-          with open('build-output.json', 'r', encoding='utf-8') as handle:
-              payload = json.load(handle)
-          print(payload['package_size_bytes'])
-          PY
+          PACKAGE_SIZE=$(python3 - "$BUILD_OUTPUT_JSON" <<'PY'
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as handle:
+    payload = json.load(handle)
+print(payload['package_size_bytes'])
+PY
             )
           echo "package_path=$PACKAGE_PATH" >> "$GITHUB_OUTPUT"
           echo "package_name=$(basename "$PACKAGE_PATH")" >> "$GITHUB_OUTPUT"

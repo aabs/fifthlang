@@ -5,6 +5,7 @@ usage() {
     cat <<'EOF'
 Usage: build-release.sh --version <semver> --runtime <rid> --framework <tfm> --output-dir <dir>
                         [--configuration <config>] [--verbose] [--skip-tests]
+                        [--json-output <file>]
 EOF
 }
 
@@ -48,6 +49,7 @@ OUTPUT_DIR=""
 CONFIGURATION="Release"
 VERBOSE=false
 SKIP_TESTS=false
+JSON_OUTPUT=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -77,6 +79,10 @@ while [[ $# -gt 0 ]]; do
         --skip-tests)
             SKIP_TESTS=true
             ;;
+        --json-output)
+            shift || { usage >&2; exit 2; }
+            JSON_OUTPUT="${1:-}"
+            ;;
         -h|--help)
             usage
             exit 0
@@ -98,6 +104,11 @@ fi
 
 require_command dotnet
 require_command python3
+
+if [[ -n "$JSON_OUTPUT" && -d "$JSON_OUTPUT" ]]; then
+    error "--json-output expects a file path, but '$JSON_OUTPUT' is a directory"
+    exit 2
+fi
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
@@ -204,21 +215,29 @@ VERSION_SIZE=$(file_size_bytes "$STAGING_DIR/VERSION.txt")
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 
-cat <<EOF
+JSON_PAYLOAD=$(cat <<EOF
 {
-  "success": true,
-  "package_path": "${OUTPUT_PACKAGE}",
-  "package_size_bytes": ${PACKAGE_SIZE},
-  "runtime": "${RUNTIME}",
-  "framework": "${FRAMEWORK}",
-  "version": "${VERSION}",
-  "build_time_seconds": ${DURATION},
-  "artifacts": [
-    {"type": "executable", "path": "bin/${TARGET_EXE}", "size_bytes": ${BIN_SIZE}},
-    {"type": "document", "path": "README.md", "size_bytes": ${README_SIZE}},
-    {"type": "document", "path": "LICENSE", "size_bytes": ${LICENSE_SIZE}},
-    {"type": "metadata", "path": "VERSION.txt", "size_bytes": ${VERSION_SIZE}}
-  ],
-  "archive": ${ARCHIVE_JSON}
+    "success": true,
+    "package_path": "${OUTPUT_PACKAGE}",
+    "package_size_bytes": ${PACKAGE_SIZE},
+    "runtime": "${RUNTIME}",
+    "framework": "${FRAMEWORK}",
+    "version": "${VERSION}",
+    "build_time_seconds": ${DURATION},
+    "artifacts": [
+        {"type": "executable", "path": "bin/${TARGET_EXE}", "size_bytes": ${BIN_SIZE}},
+        {"type": "document", "path": "README.md", "size_bytes": ${README_SIZE}},
+        {"type": "document", "path": "LICENSE", "size_bytes": ${LICENSE_SIZE}},
+        {"type": "metadata", "path": "VERSION.txt", "size_bytes": ${VERSION_SIZE}}
+    ],
+    "archive": ${ARCHIVE_JSON}
 }
 EOF
+)
+
+if [[ -n "$JSON_OUTPUT" ]]; then
+        mkdir -p "$(dirname "$JSON_OUTPUT")"
+        printf '%s\n' "$JSON_PAYLOAD" > "$JSON_OUTPUT"
+else
+        printf '%s\n' "$JSON_PAYLOAD"
+fi
