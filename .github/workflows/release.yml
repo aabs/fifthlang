@@ -112,13 +112,22 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Setup .NET 10 SDK
+      - name: Install .NET 10 SDK (preview)
         if: matrix.framework == 'net10.0'
-        continue-on-error: true
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-          dotnet-quality: 'preview'
+        shell: bash
+        env:
+          DOTNET_10_INSTALL_DIR: ${{ runner.temp }}/dotnet10
+        run: |
+          set -euo pipefail
+          INSTALL_SCRIPT="$RUNNER_TEMP/dotnet-install.sh"
+          INSTALL_DIR="$DOTNET_10_INSTALL_DIR"
+          mkdir -p "$INSTALL_DIR"
+          curl -sSL https://dot.net/v1/dotnet-install.sh -o "$INSTALL_SCRIPT"
+          chmod +x "$INSTALL_SCRIPT"
+          "$INSTALL_SCRIPT" --channel 10.0 --quality preview --install-dir "$INSTALL_DIR"
+          echo "$INSTALL_DIR" >> "$GITHUB_PATH"
+          echo "DOTNET_ROOT=$INSTALL_DIR" >> "$GITHUB_ENV"
+          dotnet --list-sdks
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
