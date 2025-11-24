@@ -69,6 +69,28 @@ encode_base64() {
     python3 -c 'import base64, sys; print(base64.b64encode(sys.stdin.buffer.read()).decode())'
 }
 
+detect_binary_arch() {
+    local binary_path="$1"
+    if ! command -v file >/dev/null 2>&1; then
+        return 0
+    fi
+    local descriptor
+    if ! descriptor=$(file -b "$binary_path" 2>/dev/null); then
+        return 0
+    fi
+    case "$descriptor" in
+        *"ARM aarch64"*|*"ARM64"*|*"aarch64"*)
+            echo "arm64"
+            ;;
+        *"x86-64"*|*"x86_64"*|*"x64"*)
+            echo "x64"
+            ;;
+        *"Intel 80386"*|*"i386"*)
+            echo "x86"
+            ;;
+    esac
+}
+
 PACKAGE_PATH=""
 TEST_DIR=""
 VERBOSE=false
@@ -188,6 +210,11 @@ case "$PACKAGE_BASENAME" in
         ;;
 esac
 
+log "Runner arch: $RUNNER_ARCH"
+if [[ -n "$PACKAGE_TARGET_ARCH" ]]; then
+    log "Package target arch (name): $PACKAGE_TARGET_ARCH"
+fi
+
 TEST_DIR_ABS=$(abs_path "$TEST_DIR")
 rm -rf "$TEST_DIR_ABS"
 mkdir -p "$TEST_DIR_ABS"
@@ -283,6 +310,17 @@ fi
 if [[ -z "$FIFTH_BIN" ]]; then
     error "Fifth executable not found in package"
     exit 11
+fi
+
+BINARY_TARGET_ARCH=$(detect_binary_arch "$FIFTH_BIN")
+if [[ -n "$BINARY_TARGET_ARCH" ]]; then
+    log "Binary arch (file): $BINARY_TARGET_ARCH"
+    if [[ -z "$PACKAGE_TARGET_ARCH" ]]; then
+        PACKAGE_TARGET_ARCH="$BINARY_TARGET_ARCH"
+    elif [[ "$PACKAGE_TARGET_ARCH" != "$BINARY_TARGET_ARCH" ]]; then
+        warn "Archive arch '$PACKAGE_TARGET_ARCH' disagrees with binary arch '$BINARY_TARGET_ARCH'; using binary metadata"
+        PACKAGE_TARGET_ARCH="$BINARY_TARGET_ARCH"
+    fi
 fi
 
 log "Using compiler: $FIFTH_BIN"
