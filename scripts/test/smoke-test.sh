@@ -47,6 +47,24 @@ print(round(float(sys.argv[2]) - float(sys.argv[1]), 4))
 PY
 }
 
+normalize_arch() {
+    local raw="$1"
+    case "$raw" in
+        x86_64|X86_64|amd64|AMD64)
+            echo "x64"
+            ;;
+        arm64|ARM64|aarch64|AARCH64)
+            echo "arm64"
+            ;;
+        i386|i686)
+            echo "x86"
+            ;;
+        *)
+            echo "$raw"
+            ;;
+    esac
+}
+
 encode_base64() {
     python3 -c 'import base64, sys; print(base64.b64encode(sys.stdin.buffer.read()).decode())'
 }
@@ -138,7 +156,15 @@ fi
 PACKAGE_BASENAME=$(basename "$PACKAGE_PATH")
 OS_NAME=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH_NAME=$(uname -m)
+RUNNER_ARCH=$(normalize_arch "$ARCH_NAME")
 DOTNET_RUNTIME=$(dotnet --version 2>/dev/null || echo "unknown")
+
+PACKAGE_TARGET_PLATFORM=""
+PACKAGE_TARGET_ARCH=""
+if [[ "$PACKAGE_BASENAME" =~ -(linux|osx|win)-(x64|arm64)- ]]; then
+    PACKAGE_TARGET_PLATFORM="${BASH_REMATCH[1]}"
+    PACKAGE_TARGET_ARCH="${BASH_REMATCH[2]}"
+fi
 
 TEST_DIR_ABS=$(abs_path "$TEST_DIR")
 rm -rf "$TEST_DIR_ABS"
@@ -240,6 +266,11 @@ fi
 log "Using compiler: $FIFTH_BIN"
 log "Detected version: $PACKAGE_VERSION"
 
+SKIP_REASON=""
+if [[ -n "$PACKAGE_TARGET_ARCH" && -n "$RUNNER_ARCH" && "$PACKAGE_TARGET_ARCH" != "$RUNNER_ARCH" ]]; then
+    SKIP_REASON="Package architecture ($PACKAGE_TARGET_ARCH) is incompatible with runner architecture ($RUNNER_ARCH)"
+fi
+
 TEST_LAST_OUTPUT=""
 
 run_version_check() {
@@ -338,16 +369,29 @@ execute_test_case() {
 }
 
 FAILED=false
-for test_name in "${TEST_SEQUENCE[@]}"; do
-    if ! execute_test_case "$test_name" "run_${test_name}"; then
-        FAILED=true
-        break
-    fi
-done
+SKIPPED_ALL_TESTS=false
+
+if [[ -n "$SKIP_REASON" ]]; then
+    SKIPPED_ALL_TESTS=true
+    for test_name in "${TEST_SEQUENCE[@]}"; do
+        append_result "$test_name" "skipped" "0" "$SKIP_REASON"
+        ((TOTAL_TESTS++))
+    done
+else
+    for test_name in "${TEST_SEQUENCE[@]}"; do
+        if ! execute_test_case "$test_name" "run_${test_name}"; then
+            FAILED=true
+            break
+        fi
+    done
+fi
 
 TOTAL_DURATION=$(( $(date +%s) - SCRIPT_START ))
 
-if $FAILED; then
+if $SKIPPED_ALL_TESTS; then
+    warn "Smoke tests skipped: $SKIP_REASON"
+    TEST_SUCCESS=true
+elif $FAILED; then
     warn "Smoke tests failed"
     TEST_SUCCESS=false
 else
@@ -355,15 +399,17 @@ else
     TEST_SUCCESS=true
 fi
 
-python3 - "$TEST_RESULTS_FILE" "$PACKAGE_BASENAME" "$TOTAL_DURATION" "$OS_NAME" "$ARCH_NAME" "$DOTNET_RUNTIME" "$PACKAGE_PATH" <<'PY'
+python3 - "$TEST_RESULTS_FILE" "$PACKAGE_BASENAME" "$TOTAL_DURATION" "$OS_NAME" "$ARCH_NAME" "$DOTNET_RUNTIME" "$PACKAGE_PATH" "${SKIP_REASON:-}" <<'PY'
 import base64
 import json
 import sys
 
 path, package, duration, os_name, arch, dotnet_version, package_path = sys.argv[1:8]
+skip_reason = sys.argv[8] if len(sys.argv) > 8 else ""
 tests = []
 passed = 0
 failed = 0
+skipped = 0
 with open(path, 'r', encoding='utf-8') as handle:
     for line in handle:
         if not line.strip():
@@ -378,6 +424,8 @@ with open(path, 'r', encoding='utf-8') as handle:
         })
         if status == "passed":
             passed += 1
+        elif status == "skipped":
+            skipped += 1
         else:
             failed += 1
 
@@ -385,7 +433,7 @@ summary = {
     "total": len(tests),
     "passed": passed,
     "failed": failed,
-    "skipped": 0,
+    "skipped": skipped,
     "duration_seconds": float(duration)
 }
 
@@ -401,6 +449,9 @@ payload = {
         "dotnet_runtime": dotnet_version
     }
 }
+
+if skip_reason:
+    payload["skip_reason"] = skip_reason
 
 print(json.dumps(payload, indent=2))
 if failed != 0:
