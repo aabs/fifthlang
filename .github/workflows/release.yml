@@ -126,7 +126,7 @@ jobs:
           chmod +x "$INSTALL_SCRIPT"
           "$INSTALL_SCRIPT" --channel 10.0 --quality preview --install-dir "$INSTALL_DIR"
           echo "$INSTALL_DIR" >> "$GITHUB_PATH"
-          echo "DOTNET_ROOT=$INSTALL_DIR" >> "$GITHUB_ENV"
+          echo "DOTNET_10_ROOT=$INSTALL_DIR" >> "$GITHUB_ENV"
           dotnet --list-sdks
 
       - name: Setup Java 17
