@@ -237,25 +237,26 @@ fi
 mv "$TMP_OUTPUT" "$OUTPUT_FILE_ABS"
 
 ARCHIVE_BYTES=$(file_size_bytes "$OUTPUT_FILE_ABS")
-COMPRESSION_RATIO="0"
-if [[ "$SOURCE_BYTES" != "0" ]]; then
-    COMPRESSION_RATIO=$(python3 - "$ARCHIVE_BYTES" "$SOURCE_BYTES" <<'PY'
-import sys
-archive = int(sys.argv[1])
-source = int(sys.argv[2])
-print(f"{archive/source:.4f}")
-PY
-    )
-fi
+ARCHIVE_JSON=$(ARCHIVE_PATH="$OUTPUT_FILE_ABS" ARCHIVE_BYTES="$ARCHIVE_BYTES" FILE_COUNT="$FILE_COUNT" SOURCE_BYTES="$SOURCE_BYTES" FORMAT="$FORMAT" VERSION="$VERSION" python3 <<'PY'
+import json
+import os
 
-cat <<EOF
-{
-  "success": true,
-  "archive_path": "${OUTPUT_FILE_ABS}",
-  "archive_size_bytes": ${ARCHIVE_BYTES},
-  "file_count": ${FILE_COUNT},
-  "compression_ratio": ${COMPRESSION_RATIO},
-  "format": "${FORMAT}",
-  "version": "${VERSION}"
+archive_path = os.environ["ARCHIVE_PATH"]
+archive_bytes = int(os.environ["ARCHIVE_BYTES"])
+file_count = int(os.environ["FILE_COUNT"])
+source_bytes = int(os.environ.get("SOURCE_BYTES", "0"))
+ratio = 0.0 if source_bytes == 0 else archive_bytes / source_bytes
+payload = {
+    "success": True,
+    "archive_path": archive_path,
+    "archive_size_bytes": archive_bytes,
+    "file_count": file_count,
+    "compression_ratio": f"{ratio:.4f}",
+    "format": os.environ["FORMAT"],
+    "version": os.environ["VERSION"],
 }
-EOF
+print(json.dumps(payload))
+PY
+)
+
+printf '%s\n' "$ARCHIVE_JSON"
