@@ -176,7 +176,7 @@ jobs:
           echo "Detected version $VERSION"
           echo "value=$VERSION" >> "$GITHUB_OUTPUT"
 
-        - name: Build release package
+      - name: Build release package
         id: build_release
         if: steps.framework_sdk.outputs.sdk_available == 'true' || matrix.framework != 'net10.0'
         shell: bash
