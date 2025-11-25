@@ -175,13 +175,19 @@ else
         TARGET_PARENT_WIN=$(to_windows_path "$(dirname "$TARGET_ROOT")")
         TARGET_BASENAME=$(basename "$TARGET_ROOT")
         TMP_OUTPUT_WIN=$(to_windows_path "$TMP_OUTPUT")
+        POWERSHELL_ZIP_COMMAND=$(cat <<'PWSH'
+param(
+    [string]$SourceRoot,
+    [string]$FolderName,
+    [string]$Destination
+)
+$sourcePath = Join-Path $SourceRoot $FolderName
+if (Test-Path $Destination) { Remove-Item $Destination -Force }
+Compress-Archive -Path $sourcePath -DestinationPath $Destination -Force
+PWSH
+        )
         set +u
-        pwsh -NoLogo -NoProfile -Command "& {
-            param([string]$SourceRoot,[string]$FolderName,[string]$Destination)
-            $sourcePath = Join-Path $SourceRoot $FolderName
-            if (Test-Path $Destination) { Remove-Item $Destination -Force }
-            Compress-Archive -Path $sourcePath -DestinationPath $Destination -Force
-        }" -SourceRoot "$TARGET_PARENT_WIN" -FolderName "$TARGET_BASENAME" -Destination "$TMP_OUTPUT_WIN"
+        pwsh -NoLogo -NoProfile -Command "$POWERSHELL_ZIP_COMMAND" -SourceRoot "$TARGET_PARENT_WIN" -FolderName "$TARGET_BASENAME" -Destination "$TMP_OUTPUT_WIN"
         set -u
     else
         require_command zip
@@ -199,13 +205,17 @@ else
     if $IS_WINDOWS; then
         require_command pwsh
         TMP_OUTPUT_WIN=$(to_windows_path "$TMP_OUTPUT")
+        POWERSHELL_VALIDATE_COMMAND=$(cat <<'PWSH'
+param(
+    [string]$Archive
+)
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$zip = [System.IO.Compression.ZipFile]::OpenRead($Archive)
+$zip.Dispose()
+PWSH
+        )
         set +u
-        pwsh -NoLogo -NoProfile -Command "& {
-            param([string]$Archive)
-            Add-Type -AssemblyName System.IO.Compression.FileSystem
-            $zip = [System.IO.Compression.ZipFile]::OpenRead($Archive)
-            $zip.Dispose()
-        }" -Archive "$TMP_OUTPUT_WIN"
+        pwsh -NoLogo -NoProfile -Command "$POWERSHELL_VALIDATE_COMMAND" -Archive "$TMP_OUTPUT_WIN"
         set -u
     else
         unzip -tqq "$TMP_OUTPUT" >/dev/null
