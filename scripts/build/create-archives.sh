@@ -175,12 +175,14 @@ else
         TARGET_PARENT_WIN=$(to_windows_path "$(dirname "$TARGET_ROOT")")
         TARGET_BASENAME=$(basename "$TARGET_ROOT")
         TMP_OUTPUT_WIN=$(to_windows_path "$TMP_OUTPUT")
+        set +u
         pwsh -NoLogo -NoProfile -Command "& {
             param([string]$SourceRoot,[string]$FolderName,[string]$Destination)
             $sourcePath = Join-Path $SourceRoot $FolderName
             if (Test-Path $Destination) { Remove-Item $Destination -Force }
             Compress-Archive -Path $sourcePath -DestinationPath $Destination -Force
         }" -SourceRoot "$TARGET_PARENT_WIN" -FolderName "$TARGET_BASENAME" -Destination "$TMP_OUTPUT_WIN"
+        set -u
     else
         require_command zip
         require_command unzip
@@ -197,12 +199,14 @@ else
     if $IS_WINDOWS; then
         require_command pwsh
         TMP_OUTPUT_WIN=$(to_windows_path "$TMP_OUTPUT")
+        set +u
         pwsh -NoLogo -NoProfile -Command "& {
             param([string]$Archive)
             Add-Type -AssemblyName System.IO.Compression.FileSystem
             $zip = [System.IO.Compression.ZipFile]::OpenRead($Archive)
             $zip.Dispose()
         }" -Archive "$TMP_OUTPUT_WIN"
+        set -u
     else
         unzip -tqq "$TMP_OUTPUT" >/dev/null
     fi
