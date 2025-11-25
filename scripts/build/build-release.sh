@@ -144,6 +144,9 @@ DOTNET_ARGS=(
     "-p:InformationalVersion=$VERSION"
     "-o" "$PUBLISH_DIR"
 )
+if [[ "$FRAMEWORK" == "net10.0" ]]; then
+    DOTNET_ARGS+=("-p:EnableNet10=true")
+fi
 dotnet "${DOTNET_ARGS[@]}"
 
 log "Staging artifacts"
@@ -171,12 +174,18 @@ cp "$EXECUTABLE_SOURCE" "$STAGING_DIR/bin/$TARGET_EXE"
 chmod +x "$STAGING_DIR/bin/$TARGET_EXE"
 
 DEPENDENCY_PUBLISH_DIR="$WORK_DIR/publish-framework"
-dotnet publish "$COMPILER_PROJECT" \
-    -c "$CONFIGURATION" \
-    -f "$FRAMEWORK" \
-    -p:PublishSingleFile=false \
-    -p:SelfContained=false \
-    -o "$DEPENDENCY_PUBLISH_DIR"
+DEPENDENCY_ARGS=(
+    "publish" "$COMPILER_PROJECT"
+    "-c" "$CONFIGURATION"
+    "-f" "$FRAMEWORK"
+    "-p:PublishSingleFile=false"
+    "-p:SelfContained=false"
+    "-o" "$DEPENDENCY_PUBLISH_DIR"
+)
+if [[ "$FRAMEWORK" == "net10.0" ]]; then
+    DEPENDENCY_ARGS+=("-p:EnableNet10=true")
+fi
+dotnet "${DEPENDENCY_ARGS[@]}"
 
 cp -a "$DEPENDENCY_PUBLISH_DIR/." "$STAGING_DIR/lib/"
 rm -f "$STAGING_DIR/lib/compiler" "$STAGING_DIR/lib/compiler.exe"
