@@ -207,7 +207,7 @@ jobs:
           ./scripts/test/verify-package.sh --package-path "${{ steps.build_release.outputs.package_path }}"
 
       - name: Run smoke tests
-        if: steps.build_release.outputs.package_path != ''
+        if: ${{ steps.build_release.outputs.package_path != '' && (matrix.arch != 'arm64' || runner.arch == 'ARM64') }}
         shell: bash
         run: |
           set -euo pipefail
