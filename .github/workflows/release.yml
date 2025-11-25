@@ -236,6 +236,8 @@ jobs:
             export DOTNET_ROOT="$DOTNET_10_ROOT"
             export PATH="$DOTNET_ROOT:$PATH"
             export DOTNET_MULTILEVEL_LOOKUP=0
+            export DOTNET_ROLL_FORWARD=LatestMajor
+            export DOTNET_ROLL_FORWARD_TO_PRERELEASE=1
           fi
           ./scripts/test/smoke-test.sh \
             --package-path "${{ steps.build_release.outputs.package_path }}" \
