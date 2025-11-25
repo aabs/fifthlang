@@ -297,27 +297,27 @@ jobs:
           METADATA_ENV_ARCHIVE='${{ matrix.archive_format }}'
           export METADATA_PATH PACKAGE_AVAILABLE PACKAGE_PATH PACKAGE_SIZE SDK_AVAILABLE SDK_VERSION SDK_IS_PREVIEW
           export METADATA_ENV_PLATFORM METADATA_ENV_ARCH METADATA_ENV_RUNTIME METADATA_ENV_FRAMEWORK METADATA_ENV_ARCHIVE
-          python3 <<'PY'
-import json
-import os
+              python3 <<'PY'
+              import json
+              import os
 
-payload = {
-    "platform": os.environ["METADATA_ENV_PLATFORM"],
-    "arch": os.environ["METADATA_ENV_ARCH"],
-    "runtime": os.environ["METADATA_ENV_RUNTIME"],
-    "framework": os.environ["METADATA_ENV_FRAMEWORK"],
-    "archive_format": os.environ["METADATA_ENV_ARCHIVE"],
-    "package_available": os.environ["PACKAGE_AVAILABLE"].lower() == 'true',
-    "package_path": os.environ.get("PACKAGE_PATH", ""),
-    "package_size_bytes": os.environ.get("PACKAGE_SIZE", ""),
-    "sdk_available": os.environ["SDK_AVAILABLE"].lower() == 'true',
-    "sdk_version": os.environ.get("SDK_VERSION", ""),
-    "sdk_is_preview": os.environ["SDK_IS_PREVIEW"].lower() == 'true'
-}
+              payload = {
+                "platform": os.environ["METADATA_ENV_PLATFORM"],
+                "arch": os.environ["METADATA_ENV_ARCH"],
+                "runtime": os.environ["METADATA_ENV_RUNTIME"],
+                "framework": os.environ["METADATA_ENV_FRAMEWORK"],
+                "archive_format": os.environ["METADATA_ENV_ARCHIVE"],
+                "package_available": os.environ["PACKAGE_AVAILABLE"].lower() == 'true',
+                "package_path": os.environ.get("PACKAGE_PATH", ""),
+                "package_size_bytes": os.environ.get("PACKAGE_SIZE", ""),
+                "sdk_available": os.environ["SDK_AVAILABLE"].lower() == 'true',
+                "sdk_version": os.environ.get("SDK_VERSION", ""),
+                "sdk_is_preview": os.environ["SDK_IS_PREVIEW"].lower() == 'true'
+              }
 
-with open(os.environ["METADATA_PATH"], 'w', encoding='utf-8') as handle:
-    json.dump(payload, handle)
-PY
+              with open(os.environ["METADATA_PATH"], 'w', encoding='utf-8') as handle:
+                json.dump(payload, handle)
+              PY
 
           echo "metadata_path=$METADATA_PATH" >> "$GITHUB_OUTPUT"
 
