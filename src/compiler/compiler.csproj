@@ -2,14 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(EnableNet10)' == 'true'">net8.0;net10.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(EnableNet10)' != 'true'">net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFrameworks Condition="'$(EnableNet10)' == 'true'">net8.0;net10.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(EnableNet10)' != 'true'">net8.0</TargetFrameworks>
     <RuntimeIdentifiers>linux-x64;linux-arm64;osx-x64;osx-arm64;win-x64;win-arm64</RuntimeIdentifiers>
   </PropertyGroup>
 
