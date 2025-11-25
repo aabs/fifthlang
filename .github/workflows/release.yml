@@ -112,8 +112,14 @@ jobs:
         with:
           global-json-file: global.json
 
+      - name: Install zip (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          choco install zip -y --no-progress
+
       - name: Install .NET 10 SDK (preview)
-        if: matrix.framework == 'net10.0'
+        if: matrix.framework == 'net10.0' && matrix.platform != 'windows'
         shell: bash
         env:
           DOTNET_10_INSTALL_DIR: ${{ runner.temp }}/dotnet10
@@ -132,6 +138,25 @@ jobs:
           echo "DOTNET_10_ROOT=$INSTALL_DIR" >> "$GITHUB_ENV"
           dotnet --list-sdks
           dotnet --list-runtimes
+
+      - name: Install .NET 10 SDK (preview) (Windows)
+        if: matrix.framework == 'net10.0' && matrix.platform == 'windows'
+        shell: pwsh
+        env:
+          DOTNET_10_INSTALL_DIR: ${{ runner.temp }}\dotnet10
+        run: |
+          $installScript = Join-Path $env:RUNNER_TEMP 'dotnet-install.ps1'
+          Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile $installScript
+          $installDir = "$env:DOTNET_10_INSTALL_DIR"
+          New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+          & $installScript -Channel 10.0 -Quality Preview -InstallDir $installDir
+          & $installScript -Channel 10.0 -Quality Preview -Runtime dotnet -InstallDir $installDir
+          # Install net8 runtime so smoke tests can execute compiler outputs targeting 8.0
+          & $installScript -Channel 8.0 -Runtime dotnet -InstallDir $installDir
+          "DOTNET_10_ROOT=$installDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $installDir | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          & "$installDir\dotnet.exe" --list-sdks
+          & "$installDir\dotnet.exe" --list-runtimes
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
