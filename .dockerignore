@@ -1,0 +1,41 @@
+# Docker build context exclusions for fifthlang
+# Keep image builds fast and reproducible
+
+# Git metadata
+.git/
+.gitignore
+
+# Build outputs
+bin/
+obj/
+out/
+artifacts/
+**/TestResults/
+**/*.nupkg
+**/*.snupkg
+
+# Local tool caches and dependencies
+packages/
+node_modules/
+.nuget/
+
+# Editor settings
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Generated documentation site
+site/
+
+# Logs and environments
+*.log
+*.tmp
+.env*
+
+# Temporary samples and scratch files
+samples/generics/main
+samples/generics/main.5th
+samples/generics/main.runtimeconfig.json
+_tmp/
+tmp_*/

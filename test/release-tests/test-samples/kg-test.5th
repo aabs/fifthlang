@@ -1,0 +1,8 @@
+store default = sparql_store(<http://example.org/test>);
+
+main(): int {
+    g: graph = KG.CreateGraph();
+    t: triple = <http://example.org/s> <http://example.org/p> "test";
+    g += t;
+    return 0;
+}

@@ -1,0 +1,24 @@
+class Person {
+    Name: string;
+    Age: int;
+
+    Person(name: string, age: int) {
+        this.Name = name;
+        this.Age = age;
+    }
+}
+
+factorial(n: int): int {
+    if (n <= 1) {
+        return 1;
+    }
+
+    return n * factorial(n - 1);
+}
+
+main(): int {
+    p: Person = new Person("Alice", 30);
+    result: int = factorial(5);
+    std.print(result);
+    return 0;
+}

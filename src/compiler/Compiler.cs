@@ -1,5 +1,8 @@
 using System.Diagnostics;
+using System.Reflection;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 using ast;
 
 namespace compiler;
@@ -347,51 +350,28 @@ Examples:
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Output directory: {outputDir}"));
             }
 
-            // Copy Fifth.System.dll
-            try
+            var packageLibDir = GetPackageLibDirectory();
+            if (Directory.Exists(packageLibDir))
             {
-                var fifthSystemAsm = typeof(Fifth.System.KG).Assembly.Location;
-                if (!string.IsNullOrWhiteSpace(fifthSystemAsm) && File.Exists(fifthSystemAsm))
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Copying dependencies from package lib directory: {packageLibDir}"));
+                var filesCopied = 0;
+                await Task.Run(() =>
                 {
-                    var destPath = Path.Combine(outputDir, Path.GetFileName(fifthSystemAsm));
-                    if (!File.Exists(destPath) || File.GetLastWriteTimeUtc(fifthSystemAsm) > File.GetLastWriteTimeUtc(destPath))
+                    CopyDirectory(packageLibDir, outputDir, fileName =>
                     {
-                        await Task.Run(() => File.Copy(fifthSystemAsm, destPath, overwrite: true));
-                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Copied Fifth.System.dll to output directory"));
-                    }
-                }
-                else
-                {
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Fifth.System assembly not found at: {fifthSystemAsm}"));
-                }
-            }
-            catch (System.Exception ex)
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to copy Fifth.System.dll: {ex.Message}"));
+                        var lower = fileName.ToLowerInvariant();
+                        return lower == "compiler" || lower == "compiler.exe" || lower == "compiler.dll";
+                    }, ref filesCopied);
+                });
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Copied {filesCopied} runtime dependency files"));
+                return;
             }
 
-            // Copy VDS.RDF.dll and its dependencies
-            try
-            {
-                var dotNetRdfAsm = typeof(VDS.RDF.IGraph).Assembly.Location;
-                if (!string.IsNullOrWhiteSpace(dotNetRdfAsm) && File.Exists(dotNetRdfAsm))
-                {
-                    var destPath = Path.Combine(outputDir, Path.GetFileName(dotNetRdfAsm));
-                    if (!File.Exists(destPath) || File.GetLastWriteTimeUtc(dotNetRdfAsm) > File.GetLastWriteTimeUtc(destPath))
-                    {
-                        await Task.Run(() => File.Copy(dotNetRdfAsm, destPath, overwrite: true));
-                        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Copied VDS.RDF.dll to output directory"));
-                    }
-                }
-                else
-                {
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"VDS.RDF assembly not found at: {dotNetRdfAsm}"));
-                }
-            }
-            catch (System.Exception ex)
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to copy VDS.RDF.dll: {ex.Message}"));
-            }
+            diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Package lib directory not found at {packageLibDir}; falling back to assembly locations"));
+
+            // Fallback path for developer builds where lib directory may not exist yet
+            await TryCopyAssemblyAsync(typeof(Fifth.System.KG).Assembly, outputDir, "Fifth.System.dll", diagnostics);
+            await TryCopyAssemblyAsync(typeof(VDS.RDF.IGraph).Assembly, outputDir, "dotNetRdf.dll", diagnostics);
         }
         catch (System.Exception ex)
         {
@@ -507,66 +487,111 @@ Examples:
                 syntaxTrees.Add(syntaxTree);
             }
 
-            // Get required references using Trusted Platform Assemblies for robustness
+            // Get required references using multiple strategies to support self-contained bundles
             var references = new List<Microsoft.CodeAnalysis.MetadataReference>();
+            var referencePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var referenceAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            void AddReferenceIfExists(string? candidatePath)
+            {
+                if (string.IsNullOrWhiteSpace(candidatePath))
+                {
+                    return;
+                }
+
+                try
+                {
+                    var normalized = Path.GetFullPath(candidatePath);
+                    if (!File.Exists(normalized) || !referencePaths.Add(normalized))
+                    {
+                        return;
+                    }
+
+                    if (!string.Equals(Path.GetExtension(normalized), ".dll", StringComparison.OrdinalIgnoreCase))
+                    {
+                        referencePaths.Remove(normalized);
+                        return;
+                    }
+
+                    var simpleName = Path.GetFileNameWithoutExtension(normalized);
+                    if (!string.IsNullOrWhiteSpace(simpleName) && !referenceAssemblyNames.Add(simpleName))
+                    {
+                        referencePaths.Remove(normalized);
+                        return;
+                    }
+
+                    references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(normalized));
+                }
+                catch
+                {
+                    // Ignore invalid reference entries; fall back to runtime-provided metadata if necessary
+                }
+            }
+
+            void AddReferenceFromAssembly(Assembly? assembly)
+            {
+                if (assembly == null || assembly.IsDynamic)
+                {
+                    return;
+                }
+
+                var identity = assembly.GetName().Name ?? assembly.FullName;
+                if (identity != null && !referenceAssemblyNames.Add(identity))
+                {
+                    return;
+                }
+
+                var reference = CreateMetadataReferenceFromAssembly(assembly);
+                if (reference != null)
+                {
+                    references.Add(reference);
+                }
+            }
+
             try
             {
                 var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
                 if (!string.IsNullOrWhiteSpace(tpa))
                 {
-                    var paths = tpa.Split(Path.PathSeparator);
-                    foreach (var p in paths)
+                    foreach (var path in tpa.Split(Path.PathSeparator))
                     {
-                        try
-                        {
-                            // Only include core framework assemblies to keep compile fast
-                            var fileName = Path.GetFileName(p);
-                            if (fileName != null && (fileName.StartsWith("System.") || fileName.StartsWith("Microsoft.") || fileName == "netstandard.dll" || fileName == "mscorlib.dll"))
-                            {
-                                references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(p));
-                            }
-                        }
-                        catch { /* ignore bad refs */ }
+                        AddReferenceIfExists(path);
                     }
                 }
             }
-            catch { /* ignore */ }
-
-            // Always add essential references
-            references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
-            references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(Console).Assembly.Location));
-
-            // Add references to Fifth.System and dotNetRDF via loaded assembly locations
-            try
+            catch
             {
-                var fifthSystemAsm = typeof(Fifth.System.KG).Assembly.Location;
-                if (!string.IsNullOrWhiteSpace(fifthSystemAsm) && File.Exists(fifthSystemAsm))
-                {
-                    references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(fifthSystemAsm));
-                }
+                // Best-effort only – the runtime may not expose TPA data in all environments
             }
-            catch { /* ignore if assembly not available */ }
+
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                AddReferenceFromAssembly(assembly);
+            }
 
             try
             {
-                var dotNetRdfAsm = typeof(VDS.RDF.IGraph).Assembly.Location;
-                if (!string.IsNullOrWhiteSpace(dotNetRdfAsm) && File.Exists(dotNetRdfAsm))
+                AddReferenceFromAssembly(Assembly.Load("netstandard"));
+            }
+            catch
+            {
+                // Ignore – not all runtimes expose netstandard facade
+            }
+
+            var packageLibDir = GetPackageLibDirectory();
+            if (Directory.Exists(packageLibDir))
+            {
+                foreach (var dllPath in Directory.EnumerateFiles(packageLibDir, "*.dll", SearchOption.TopDirectoryOnly))
                 {
-                    references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(dotNetRdfAsm));
+                    AddReferenceIfExists(dllPath);
                 }
             }
-            catch { /* ignore if assembly not available */ }
 
-            // Include local project/runtime dependencies if present (Fifth.System, VDS.RDF)
-            void TryAddRef(string path)
-            {
-                try { if (File.Exists(path)) references.Add(Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(path)); } catch { }
-            }
             var baseDir = Path.GetDirectoryName(options.Output) ?? Directory.GetCurrentDirectory();
-            // Typical location next to emitted exe
-            TryAddRef(Path.Combine(baseDir, "Fifth.System.dll"));
-            // Common dotNetRDF locations: next to exe or in NuGet cache not resolved here; try sibling bin
-            TryAddRef(Path.Combine(baseDir, "VDS.RDF.dll"));
+            AddReferenceIfExists(Path.Combine(baseDir, "Fifth.System.dll"));
+            AddReferenceIfExists(Path.Combine(baseDir, "dotNetRdf.dll"));
+            AddReferenceIfExists(Path.Combine(baseDir, "dotNetRdf.Client.dll"));
+            AddReferenceIfExists(Path.Combine(baseDir, "VDS.Common.dll"));
 
             // Create the compilation - emit as DLL for proper .NET Core format
             var assemblyName = Path.GetFileNameWithoutExtension(options.Output);
@@ -628,6 +653,92 @@ Examples:
             diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Roslyn emission error: {ex.Message}"));
             return (false, null);
         }
+    }
+
+    private static string GetPackageLibDirectory()
+    {
+        var baseDir = AppContext.BaseDirectory;
+        if (string.IsNullOrWhiteSpace(baseDir))
+        {
+            baseDir = Directory.GetCurrentDirectory();
+        }
+
+        return Path.GetFullPath(Path.Combine(baseDir, "..", "lib"));
+    }
+
+    private static void CopyDirectory(string sourceDir, string destinationDir, Func<string, bool>? skipFilePredicate, ref int filesCopied)
+    {
+        Directory.CreateDirectory(destinationDir);
+
+        foreach (var filePath in Directory.GetFiles(sourceDir))
+        {
+            var fileName = Path.GetFileName(filePath);
+            if (skipFilePredicate != null && skipFilePredicate(fileName))
+            {
+                continue;
+            }
+
+            var destPath = Path.Combine(destinationDir, fileName);
+            File.Copy(filePath, destPath, overwrite: true);
+            filesCopied++;
+        }
+
+        foreach (var dir in Directory.GetDirectories(sourceDir))
+        {
+            var destSubdir = Path.Combine(destinationDir, Path.GetFileName(dir));
+            CopyDirectory(dir, destSubdir, skipFilePredicate, ref filesCopied);
+        }
+    }
+
+    private static async Task TryCopyAssemblyAsync(Assembly assembly, string outputDir, string friendlyName, List<Diagnostic> diagnostics)
+    {
+        try
+        {
+            var assemblyPath = assembly.Location;
+            if (!string.IsNullOrWhiteSpace(assemblyPath) && File.Exists(assemblyPath))
+            {
+                var destination = Path.Combine(outputDir, Path.GetFileName(assemblyPath));
+                await Task.Run(() => File.Copy(assemblyPath, destination, overwrite: true));
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Copied {friendlyName} to output directory"));
+            }
+            else
+            {
+                diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"{friendlyName} assembly not found at: {assemblyPath}"));
+            }
+        }
+        catch (System.Exception ex)
+        {
+            diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Failed to copy {friendlyName}: {ex.Message}"));
+        }
+    }
+
+    private static Microsoft.CodeAnalysis.MetadataReference? CreateMetadataReferenceFromAssembly(Assembly assembly)
+    {
+        var location = assembly.Location;
+        if (!string.IsNullOrWhiteSpace(location) && File.Exists(location))
+        {
+            return Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(location);
+        }
+
+        try
+        {
+            unsafe
+            {
+                if (assembly.TryGetRawMetadata(out byte* metadata, out int length))
+                {
+                    var moduleMetadata = ModuleMetadata.CreateFromMetadata((IntPtr)metadata, length);
+                    var assemblyMetadata = AssemblyMetadata.Create(moduleMetadata);
+                    var display = assembly.GetName().Name ?? assembly.FullName ?? Guid.NewGuid().ToString();
+                    return assemblyMetadata.GetReference(display: display);
+                }
+            }
+        }
+        catch
+        {
+            // Some runtime assemblies (notably generated ones) do not expose raw metadata
+        }
+
+        return null;
     }
 
     /// <summary>
