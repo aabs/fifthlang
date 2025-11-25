@@ -125,6 +125,7 @@ jobs:
           curl -sSL https://dot.net/v1/dotnet-install.sh -o "$INSTALL_SCRIPT"
           chmod +x "$INSTALL_SCRIPT"
           "$INSTALL_SCRIPT" --channel 10.0 --quality preview --install-dir "$INSTALL_DIR"
+          "$INSTALL_SCRIPT" --channel 10.0 --quality preview --runtime dotnet --install-dir "$INSTALL_DIR"
           # Install net8 runtime so smoke tests can execute compiler outputs targeting 8.0
           "$INSTALL_SCRIPT" --channel 8.0 --runtime dotnet --install-dir "$INSTALL_DIR"
           echo "$INSTALL_DIR" >> "$GITHUB_PATH"
