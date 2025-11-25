@@ -82,7 +82,7 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
     shift || true
-end
+done
 
 if [[ -z "$PACKAGE_DIR" || -z "$OUTPUT_FILE" ]]; then
     error "Missing required arguments"
