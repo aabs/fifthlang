@@ -176,7 +176,7 @@ else
         TARGET_BASENAME=$(basename "$TARGET_ROOT")
         TMP_OUTPUT_WIN=$(to_windows_path "$TMP_OUTPUT")
         pwsh -NoLogo -NoProfile -Command "& {
-            param($SourceRoot, $FolderName, $Destination)
+            param([string]$SourceRoot,[string]$FolderName,[string]$Destination)
             $sourcePath = Join-Path $SourceRoot $FolderName
             if (Test-Path $Destination) { Remove-Item $Destination -Force }
             Compress-Archive -Path $sourcePath -DestinationPath $Destination -Force
@@ -198,7 +198,7 @@ else
         require_command pwsh
         TMP_OUTPUT_WIN=$(to_windows_path "$TMP_OUTPUT")
         pwsh -NoLogo -NoProfile -Command "& {
-            param($Archive)
+            param([string]$Archive)
             Add-Type -AssemblyName System.IO.Compression.FileSystem
             $zip = [System.IO.Compression.ZipFile]::OpenRead($Archive)
             $zip.Dispose()
