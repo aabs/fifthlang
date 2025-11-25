@@ -228,6 +228,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [[ '${{ matrix.framework }}' == 'net10.0' ]]; then
+            if [[ -z "${DOTNET_10_ROOT:-}" ]]; then
+                echo "::error::.NET 10 installation path (DOTNET_10_ROOT) not available" >&2
+                exit 1
+            fi
+            export DOTNET_ROOT="$DOTNET_10_ROOT"
+            export PATH="$DOTNET_ROOT:$PATH"
+            export DOTNET_MULTILEVEL_LOOKUP=0
+          fi
           ./scripts/test/smoke-test.sh \
             --package-path "${{ steps.build_release.outputs.package_path }}" \
             --test-dir "${{ runner.temp }}/smoke-${{ matrix.runtime }}-${{ matrix.framework }}"
