@@ -175,7 +175,8 @@ else
         TARGET_PARENT_WIN=$(to_windows_path "$(dirname "$TARGET_ROOT")")
         TARGET_BASENAME=$(basename "$TARGET_ROOT")
         TMP_OUTPUT_WIN=$(to_windows_path "$TMP_OUTPUT")
-        POWERSHELL_ZIP_COMMAND=$(cat <<'PWSH'
+        ZIP_SCRIPT=$(mktemp "${TMPDIR:-/tmp}/zip-script-XXXXXX.ps1")
+        cat <<'PWSH' > "$ZIP_SCRIPT"
 param(
     [string]$SourceRoot,
     [string]$FolderName,
@@ -185,10 +186,15 @@ $sourcePath = Join-Path $SourceRoot $FolderName
 if (Test-Path $Destination) { Remove-Item $Destination -Force }
 Compress-Archive -Path $sourcePath -DestinationPath $Destination -Force
 PWSH
-        )
         set +u
-        pwsh -NoLogo -NoProfile -Command "$POWERSHELL_ZIP_COMMAND" -SourceRoot "$TARGET_PARENT_WIN" -FolderName "$TARGET_BASENAME" -Destination "$TMP_OUTPUT_WIN"
+        pwsh -NoLogo -NoProfile -File "$ZIP_SCRIPT" -SourceRoot "$TARGET_PARENT_WIN" -FolderName "$TARGET_BASENAME" -Destination "$TMP_OUTPUT_WIN"
+        ZIP_STATUS=$?
+        rm -f "$ZIP_SCRIPT"
         set -u
+        if [[ "$ZIP_STATUS" -ne 0 ]]; then
+            error "Compress-Archive failed"
+            exit "$ZIP_STATUS"
+        fi
     else
         require_command zip
         require_command unzip
@@ -205,7 +211,8 @@ else
     if $IS_WINDOWS; then
         require_command pwsh
         TMP_OUTPUT_WIN=$(to_windows_path "$TMP_OUTPUT")
-        POWERSHELL_VALIDATE_COMMAND=$(cat <<'PWSH'
+        VALIDATE_SCRIPT=$(mktemp "${TMPDIR:-/tmp}/zip-validate-XXXXXX.ps1")
+        cat <<'PWSH' > "$VALIDATE_SCRIPT"
 param(
     [string]$Archive
 )
@@ -213,10 +220,15 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = [System.IO.Compression.ZipFile]::OpenRead($Archive)
 $zip.Dispose()
 PWSH
-        )
         set +u
-        pwsh -NoLogo -NoProfile -Command "$POWERSHELL_VALIDATE_COMMAND" -Archive "$TMP_OUTPUT_WIN"
+        pwsh -NoLogo -NoProfile -File "$VALIDATE_SCRIPT" -Archive "$TMP_OUTPUT_WIN"
+        VALIDATE_STATUS=$?
+        rm -f "$VALIDATE_SCRIPT"
         set -u
+        if [[ "$VALIDATE_STATUS" -ne 0 ]]; then
+            error "Zip validation failed"
+            exit "$VALIDATE_STATUS"
+        fi
     else
         unzip -tqq "$TMP_OUTPUT" >/dev/null
     fi
