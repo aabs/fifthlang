@@ -107,6 +107,26 @@ esac
 
 require_command python3
 
+OS_NAME=$(uname -s 2>/dev/null || echo "")
+IS_WINDOWS=false
+case "$OS_NAME" in
+    MINGW*|MSYS*|CYGWIN*|Windows_NT)
+        IS_WINDOWS=true
+        ;;
+esac
+
+to_windows_path() {
+    local path="$1"
+    if command -v cygpath >/dev/null 2>&1; then
+        cygpath -w "$path"
+    else
+        python3 - "$path" <<'PY'
+import os, sys
+print(os.path.abspath(sys.argv[1]).replace('/', '\\'))
+PY
+    fi
+}
+
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 
@@ -149,18 +169,43 @@ if [[ "$FORMAT" == "tar.gz" ]]; then
     log "Creating tar.gz archive at $OUTPUT_FILE_ABS"
     tar -C "$(dirname "$TARGET_ROOT")" -czf "$TMP_OUTPUT" "$(basename "$TARGET_ROOT")"
 else
-    require_command zip
-    require_command unzip
-    pushd "$(dirname "$TARGET_ROOT")" >/dev/null
-    log "Creating zip archive at $OUTPUT_FILE_ABS"
-    zip -qry "$TMP_OUTPUT" "$(basename "$TARGET_ROOT")"
-    popd >/dev/null
+    if $IS_WINDOWS; then
+        require_command pwsh
+        log "Creating zip archive at $OUTPUT_FILE_ABS (Compress-Archive)"
+        TARGET_PARENT_WIN=$(to_windows_path "$(dirname "$TARGET_ROOT")")
+        TARGET_BASENAME=$(basename "$TARGET_ROOT")
+        TMP_OUTPUT_WIN=$(to_windows_path "$TMP_OUTPUT")
+        pwsh -NoLogo -NoProfile -Command "& {
+            param($SourceRoot, $FolderName, $Destination)
+            $sourcePath = Join-Path $SourceRoot $FolderName
+            if (Test-Path $Destination) { Remove-Item $Destination -Force }
+            Compress-Archive -Path $sourcePath -DestinationPath $Destination -Force
+        }" -SourceRoot "$TARGET_PARENT_WIN" -FolderName "$TARGET_BASENAME" -Destination "$TMP_OUTPUT_WIN"
+    else
+        require_command zip
+        require_command unzip
+        pushd "$(dirname "$TARGET_ROOT")" >/dev/null
+        log "Creating zip archive at $OUTPUT_FILE_ABS"
+        zip -qry "$TMP_OUTPUT" "$(basename "$TARGET_ROOT")"
+        popd >/dev/null
+    fi
 fi
 
 if [[ "$FORMAT" == "tar.gz" ]]; then
     tar -tzf "$TMP_OUTPUT" >/dev/null
 else
-    unzip -tqq "$TMP_OUTPUT" >/dev/null
+    if $IS_WINDOWS; then
+        require_command pwsh
+        TMP_OUTPUT_WIN=$(to_windows_path "$TMP_OUTPUT")
+        pwsh -NoLogo -NoProfile -Command "& {
+            param($Archive)
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($Archive)
+            $zip.Dispose()
+        }" -Archive "$TMP_OUTPUT_WIN"
+    else
+        unzip -tqq "$TMP_OUTPUT" >/dev/null
+    fi
 fi
 
 mv "$TMP_OUTPUT" "$OUTPUT_FILE_ABS"
