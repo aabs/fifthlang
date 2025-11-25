@@ -224,29 +224,35 @@ VERSION_SIZE=$(file_size_bytes "$STAGING_DIR/VERSION.txt")
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 
-JSON_PAYLOAD=$(cat <<EOF
-{
-    "success": true,
-    "package_path": "${OUTPUT_PACKAGE}",
-    "package_size_bytes": ${PACKAGE_SIZE},
-    "runtime": "${RUNTIME}",
-    "framework": "${FRAMEWORK}",
-    "version": "${VERSION}",
-    "build_time_seconds": ${DURATION},
-    "artifacts": [
-        {"type": "executable", "path": "bin/${TARGET_EXE}", "size_bytes": ${BIN_SIZE}},
-        {"type": "document", "path": "README.md", "size_bytes": ${README_SIZE}},
-        {"type": "document", "path": "LICENSE", "size_bytes": ${LICENSE_SIZE}},
-        {"type": "metadata", "path": "VERSION.txt", "size_bytes": ${VERSION_SIZE}}
-    ],
-    "archive": ${ARCHIVE_JSON}
-}
-EOF
-)
+export OUTPUT_PACKAGE PACKAGE_SIZE RUNTIME FRAMEWORK VERSION DURATION TARGET_EXE BIN_SIZE README_SIZE LICENSE_SIZE VERSION_SIZE ARCHIVE_JSON JSON_OUTPUT
+python3 <<'PY'
+import json
+import os
+import sys
 
-if [[ -n "$JSON_OUTPUT" ]]; then
-        mkdir -p "$(dirname "$JSON_OUTPUT")"
-        printf '%s\n' "$JSON_PAYLOAD" > "$JSON_OUTPUT"
-else
-        printf '%s\n' "$JSON_PAYLOAD"
-fi
+payload = {
+    "success": True,
+    "package_path": os.environ["OUTPUT_PACKAGE"],
+    "package_size_bytes": int(os.environ["PACKAGE_SIZE"]),
+    "runtime": os.environ["RUNTIME"],
+    "framework": os.environ["FRAMEWORK"],
+    "version": os.environ["VERSION"],
+    "build_time_seconds": int(os.environ["DURATION"]),
+    "artifacts": [
+        {"type": "executable", "path": f"bin/{os.environ['TARGET_EXE']}", "size_bytes": int(os.environ["BIN_SIZE"])},
+        {"type": "document", "path": "README.md", "size_bytes": int(os.environ["README_SIZE"])},
+        {"type": "document", "path": "LICENSE", "size_bytes": int(os.environ["LICENSE_SIZE"])},
+        {"type": "metadata", "path": "VERSION.txt", "size_bytes": int(os.environ["VERSION_SIZE"])}
+    ],
+    "archive": json.loads(os.environ["ARCHIVE_JSON"]),
+}
+
+json_output = os.environ.get("JSON_OUTPUT", "")
+output_str = json.dumps(payload)
+if json_output:
+    os.makedirs(os.path.dirname(json_output), exist_ok=True)
+    with open(json_output, "w", encoding="utf-8") as handle:
+        handle.write(output_str)
+else:
+    sys.stdout.write(output_str + "\n")
+PY
