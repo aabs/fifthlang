@@ -182,6 +182,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [[ '${{ matrix.framework }}' == 'net10.0' ]]; then
+              if [[ -z "${DOTNET_10_ROOT:-}" ]]; then
+                  echo "::error::.NET 10 SDK path (DOTNET_10_ROOT) not available" >&2
+                  exit 1
+              fi
+              export DOTNET_ROOT="$DOTNET_10_ROOT"
+              export PATH="$DOTNET_ROOT:$PATH"
+              export DOTNET_MULTILEVEL_LOOKUP=0
+              export DOTNET_ROLL_FORWARD=LatestMajor
+              export DOTNET_ROLL_FORWARD_TO_PRERELEASE=1
+          fi
           DIST_DIR="${{ runner.temp }}/dist-${{ matrix.runtime }}-${{ matrix.framework }}"
           mkdir -p "$DIST_DIR"
           BUILD_OUTPUT_JSON="${{ runner.temp }}/build-${{ matrix.runtime }}-${{ matrix.framework }}.json"
