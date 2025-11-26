@@ -1,7 +1,7 @@
 alias ex as <http://example.org/>;
-testStore: store = sparql_store(<http://example.org/test>);
 
 main(): int {
+    testStore: store = sparql_store(<http://example.org/test>);
     g: graph = KG.CreateGraph();
     t: triple = <ex:s, ex:p, ex:o>;
     g += t;
