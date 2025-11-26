@@ -1,8 +1,9 @@
-store default = sparql_store(<http://example.org/test>);
+alias ex as <http://example.org/>;
 
 main(): int {
+    testStore: store = sparql_store(<http://example.org/test>);
     g: graph = KG.CreateGraph();
-    t: triple = <http://example.org/s> <http://example.org/p> "test";
+    t: triple = <ex:s, ex:p, ex:o>;
     g += t;
     return 0;
 }
