@@ -3,18 +3,18 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://fifth-lang.org/Development/release-process/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://fifth-lang.org/Blog/2025-11-16%20Announcing%20Fifth%20Lang/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Fifth Language Release Process - The Fifth Programming Language</title>
+    <title>2025 11 16 Announcing Fifth Lang - The Fifth Programming Language</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Fifth Language Release Process";
-        var mkdocs_page_input_path = "Development\\release-process.md";
-        var mkdocs_page_url = "/Development/release-process/";
+        var mkdocs_page_name = "2025 11 16 Announcing Fifth Lang";
+        var mkdocs_page_input_path = "Blog\\2025-11-16 Announcing Fifth Lang.md";
+        var mkdocs_page_url = "/Blog/2025-11-16%20Announcing%20Fifth%20Lang/";
       </script>
     
     <!--[if lt IE 9]>
@@ -46,12 +46,24 @@
                 </li>
               </ul>
               <p class="caption"><span class="caption-text">Blog</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../Blog/2025-09-16-graph-assertion-block/">Announcing Graph Assertion Blocks in Fifth</a>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../2025-09-16-graph-assertion-block/">Announcing Graph Assertion Blocks in Fifth</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../Blog/2025-11-16%20Announcing%20Fifth%20Lang/">2025 11 16 Announcing Fifth Lang</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">2025 11 16 Announcing Fifth Lang</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#what-fifth-offers-today">What Fifth Offers Today</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#status">Status</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#why-share-this">Why Share This?</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-involved">Get Involved</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#closing-thoughts">Closing Thoughts</a>
+    </li>
+    </ul>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../Blog/2025-11-28-release-packaging-pipeline/">A New Release Pipeline for Fifth</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../2025-11-28-release-packaging-pipeline/">A New Release Pipeline for Fifth</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Designs</span></p>
@@ -94,24 +106,8 @@
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Development</span></p>
-              <ul class="current">
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Fifth Language Release Process</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#triggers">Triggers</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#standard-release-procedure">Standard Release Procedure</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#manual-dispatch-workflow">Manual Dispatch Workflow</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#failure-recovery">Failure Recovery</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#addendum-opportunities-to-streamline-releases">Addendum: Opportunities to Streamline Releases</a>
-    </li>
-    </ul>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Development/release-process/">Fifth Language Release Process</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Getting Started</span></p>
@@ -166,8 +162,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
-          <li class="breadcrumb-item">Development</li>
-      <li class="breadcrumb-item active">Fifth Language Release Process</li>
+          <li class="breadcrumb-item">Blog</li>
+      <li class="breadcrumb-item active">2025 11 16 Announcing Fifth Lang</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -176,118 +172,46 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="fifth-language-release-process">Fifth Language Release Process</h1>
-<p>This document explains how we create official Fifth Compiler releases, what triggers the Release Packaging workflow, and how to keep the process predictable. It reflects the current automation defined in <code>.github/workflows/release.yml</code>.</p>
-<h2 id="overview">Overview</h2>
-<p>All release artifacts (platform-specific archives, metadata bundles, and checksum manifests) are produced by the <strong>Release Packaging</strong> GitHub Actions workflow. The workflow builds across Linux, macOS, and Windows with both .NET 8.0 and .NET 10.0 targets, validates the bundles via smoke tests, assembles metadata, and finally publishes a GitHub release with the generated archives and <code>SHA256SUMS</code> file.</p>
-<h2 id="triggers">Triggers</h2>
-<table>
-<thead>
-<tr>
-<th>Trigger</th>
-<th>When to use</th>
-<th>Effect</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Tag push</strong></td>
-<td>Push a tag matching <code>vX.Y.Z</code> or <code>vX.Y.Z-qualifier</code> (e.g., <code>v1.4.0</code>, <code>v1.4.1-beta1</code>) to any branch</td>
-<td>Starts Release Packaging using that commit. This is the normal production release path.</td>
-</tr>
-<tr>
-<td><strong>Manual dispatch</strong></td>
-<td>Use the <em>Run workflow</em> button in GitHub, supply <code>version</code> and optional <code>dry_run</code></td>
-<td>Builds artifacts for the provided version. If <code>dry_run=true</code>, packages and checksums are produced but the GitHub release step is skipped. Useful for rehearsals.</td>
-</tr>
-</tbody>
-</table>
-<h2 id="prerequisites">Prerequisites</h2>
-<ol>
-<li><strong>Clean repository</strong>: <code>scripts/release/version-info.sh</code> aborts when uncommitted changes are present unless <code>--allow-dirty</code> is passed. Keep the tree clean before tagging.</li>
-<li><strong>Passing CI</strong>: Ensure <code>dotnet build fifthlang.sln</code> and the full <code>dotnet test fifthlang.sln</code> suite complete successfully on the target branch.</li>
-<li><strong>Version agreement</strong>: Decide the semantic version (e.g., <code>1.5.0</code> or <code>1.5.0-rc1</code>). The workflow infers the version from the pushed tag, so double-check spelling before publishing.</li>
-<li><strong>Repository permissions</strong>: Only maintainers with push access to tags can trigger production releases. GitHub automatically supplies a <code>GITHUB_TOKEN</code> with <code>contents: write</code>, enabling <code>softprops/action-gh-release</code> to publish.</li>
-</ol>
-<h2 id="standard-release-procedure">Standard Release Procedure</h2>
-<ol>
-<li><strong>Stabilize the branch</strong></li>
-<li>Merge the desired changes into <code>master</code> (or a dedicated release branch) and make sure CI passes.</li>
-<li>
-<p>Run <code>just build-all</code> (or <code>dotnet build fifthlang.sln</code>) locally for a final sanity check.</p>
-</li>
-<li>
-<p><strong>Create and push the tag</strong></p>
-</li>
-<li>Choose the version identifier and create an annotated tag: <code>git tag -a v1.5.0 -m "Fifth 1.5.0"</code>.</li>
-<li>Push the tag (and any supporting branch): <code>git push origin v1.5.0</code>.</li>
-<li>
-<p>Tag pushes automatically enqueue the Release Packaging workflow.</p>
-</li>
-<li>
-<p><strong>Monitor the workflow</strong></p>
-</li>
-<li>
-<p>Track the workflow run in GitHub Actions. Key stages:</p>
+                <hr />
+<p>title: Announcing Fifth: A New Language For Knowledge Graphs
+summary: Fifth is a new experimental language built on .NET, designed to make working with knowledge graphs feel natural and expressive. It removes much of the boilerplate and friction typically involved in graph-centric development, offering clean syntax and built-in support for graph structures and queries. If you're exploring semantic models or graph-powered workflows in .NET, Fifth might be worth a look.
+authors:
+    - Andrew Matthews
+date: 2025-11-16</p>
+<hr />
+<h1 id="announcing-fifth-a-new-language-for-knowledge-graphs">Announcing Fifth: A New Language For Knowledge Graphs</h1>
+<p>For a long time I’ve found working with RDF, graphs, and SPARQL more awkward than it should be. While mainstream languages give us straightforward ways to handle lists, classes, and functions, the moment you step into semantic web technologies, the experience often feels bolted-on and cumbersome.</p>
+<p>I wanted to see if it was possible to design a language where RDF and SPARQL felt like natural parts of the syntax—no different from writing a loop or defining a class. That idea led to Fifth, a small language built on .NET. It’s strongly typed, multi-paradigm, and borrows familiar constructs from languages like C# and Erlang, but with RDF and SPARQL built in as first-class features.</p>
+<h2 id="what-fifth-offers-today">What Fifth Offers Today</h2>
 <ul>
-<li><strong>Build matrix</strong>: Each OS/runtime combination produces an archive and metadata JSON.</li>
-<li><strong>Verification</strong>: <code>scripts/test/smoke-test.sh</code> validates the packaged compiler.</li>
-<li><strong>Publish job</strong>: Aggregates metadata, verifies coverage (6 net8 + 6 net10 packages expected), generates <code>SHA256SUMS</code>, composes release notes, and runs <code>softprops/action-gh-release</code>.</li>
+<li>Classes, methods, properties, and control flow you’d expect from a general-purpose language.</li>
+<li>Function overloading with guard clauses and parameter destructuring.</li>
+<li>Native RDF primitives: graph, triple, store, query.</li>
+<li>Inline triple literals (<code>&lt;subject, predicate, object&gt;</code>).</li>
+<li>Multi-line TriG blocks for graph construction.</li>
+<li>Embedded SPARQL queries as literals (<code>?&lt;SELECT ...&gt;</code>).</li>
+<li>Operator syntax for clean graph and store manipulation.</li>
+<li>A working Roslyn-based compiler pipeline with IL emission.</li>
 </ul>
-</li>
-<li>
-<p><strong>Validate the published release</strong></p>
-</li>
-<li>Confirm the GitHub release page lists all <code>.tar.gz</code>/<code>.zip</code> artifacts and <code>SHA256SUMS</code>.</li>
-<li>
-<p>Optionally download a package and verify <code>shasum -c SHA256SUMS</code> to ensure integrity.</p>
-</li>
-<li>
-<p><strong>Announce</strong> (optional)</p>
-</li>
-<li>Update documentation, changelogs, or blog posts referencing the new version.</li>
-</ol>
-<h2 id="manual-dispatch-workflow">Manual Dispatch Workflow</h2>
-<p>When running the workflow manually (e.g., for a rehearsal):</p>
-<ol>
-<li>Navigate to <em>Actions → Release Packaging → Run workflow</em>.</li>
-<li>Supply the <code>version</code> input (e.g., <code>1.5.0-rc1</code>) and toggle <code>dry_run</code> if you want to skip publishing.</li>
-<li>The workflow builds exactly like the tag-triggered path but relies on the provided version string.</li>
-<li>Review the artifacts in the run summary or download them from the workflow’s artifacts section.</li>
-</ol>
-<h2 id="failure-recovery">Failure Recovery</h2>
+<h2 id="status">Status</h2>
+<p>Fifth is a <strong>working language</strong>, but it’s not mature or polished. Think of it as a prototype you can experiment with rather than something ready for production. It compiles, runs, and supports knowledge graph operations, but there are plenty of rough edges and missing features.</p>
+<h2 id="why-share-this">Why Share This?</h2>
+<p>The project isn’t intended to compete with established languages or claim any big theoretical advances. It’s simply an exploration of whether RDF and SPARQL can feel “native” in a programming language. If you’ve ever thought “<em>why is RDF integration so clunky?</em>”, Fifth might be interesting to try. I’m producing the language for my own satisfaction, but I would really love to know if you find it useful.</p>
+<h2 id="get-involved">Get Involved</h2>
 <ul>
-<li><strong>Package Build Failures</strong>: Fix the underlying issue (missing SDK, smoke test failure, etc.), push a new commit, re-tag (e.g., delete and recreate <code>v1.5.0</code>), and force-push the tag.</li>
-<li><strong>Publish Failures</strong>: Most publication issues stem from missing permissions or invalid release notes. After fixing the workflow, re-push the tag to rerun publishing (GitHub will overwrite the existing draft release).</li>
-<li><strong>Checksum Issues</strong>: If <code>SHA256SUMS</code> generation fails, inspect <code>scripts/build/generate-checksums.sh</code>. Once fixed, rerun the publish job by deleting/recreating the tag.</li>
+<li>The project is open-source: <a href="https://github.com/aabs/fifthlang">GitHub repo</a></li>
+<li>You can clone, build, and run simple programs today.</li>
+<li>Contributions, bug reports, and feature suggestions are VERY welcome.</li>
+<li>Even just trying it out and sharing what works—or doesn’t—would be valuable.</li>
 </ul>
-<h2 id="addendum-opportunities-to-streamline-releases">Addendum: Opportunities to Streamline Releases</h2>
-<ol>
-<li><strong><code>just</code> Helpers</strong></li>
-<li>Add recipes such as <code>just prepare-release VERSION=1.5.0</code> to run tests, check cleanliness, create the tag, and push it. This reduces manual steps and encodes best practices.</li>
-<li>
-<p>Another recipe (<code>just dry-run-release VERSION=1.5.0-rc1</code>) could trigger the workflow dispatch via GitHub CLI with <code>dry_run=true</code> for rehearsals.</p>
-</li>
-<li>
-<p><strong>GitFlow-style Branching</strong></p>
-</li>
-<li>Adopt <code>release/x.y.z</code> branches to stage fixes separate from <code>master</code>. When ready, finish the branch by tagging <code>vX.Y.Z</code> and merging back into both <code>master</code> and <code>develop</code>. This keeps stabilization work isolated and makes it easier to produce hotfixes.</li>
-<li>
-<p>GitFlow also clarifies responsibility: only changes merged into the release branch flow into the release, minimizing accidental scope creep.</p>
-</li>
-<li>
-<p><strong>Automated Tag Validation</strong></p>
-</li>
-<li>Extend the Justfile or a pre-push hook to validate that <code>git status</code> is clean and that <code>scripts/release/version-info.sh --format text</code> matches the intended version before allowing the tag push.</li>
-<li>Optionally script a <code>just release VERSION=1.5.0</code> command that wraps: calculcating changelog entries, creating the tag, pushing branch/tag, and opening the release page for verification.</li>
-</ol>
-<p>Implementing one or more of these ideas will reduce human error, keep the process repeatable, and free maintainers from rote tagging chores.</p>
+<h2 id="closing-thoughts">Closing Thoughts</h2>
+<p>Fifth is an experiment, but it’s already usable. If you’re curious about compilers, semantic web tech, or enjoy tinkering with new languages, please take a look. Feedback, ideas, and constructive criticism are all appreciated.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../../Designs/perf/baselines/" class="btn btn-neutral float-left" title="Baselines"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../../Getting-Started/knowledge-graphs/" class="btn btn-neutral float-right" title="Knowledge Graphs in Fifth">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../2025-09-16-graph-assertion-block/" class="btn btn-neutral float-left" title="Announcing Graph Assertion Blocks in Fifth"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../2025-11-28-release-packaging-pipeline/" class="btn btn-neutral float-right" title="A New Release Pipeline for Fifth">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -310,10 +234,10 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../../Designs/perf/baselines/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../2025-09-16-graph-assertion-block/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../../Getting-Started/knowledge-graphs/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../2025-11-28-release-packaging-pipeline/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
