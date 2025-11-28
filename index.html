@@ -58,12 +58,10 @@
     </li>
         </ul>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a>
         <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#prerequisites">Prerequisites</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a>
-    </li>
     <li class="toctree-l3"><a class="reference internal" href="#your-first-fifth-program">Your First Fifth Program</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#working-with-knowledge-graphs">Working with Knowledge Graphs</a>
@@ -154,6 +152,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Getting Started</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="Getting-Started/installation/">Installation</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="Getting-Started/knowledge-graphs/">Knowledge Graphs in Fifth</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="Getting-Started/learn5thInYMinutes/">learn5thInYMinutes</a>
@@ -241,7 +241,7 @@ Options:
   -?, -h, --help       Show help and usage information
 </code></pre>
 <h2 id="language-features">Language Features</h2>
-<p>Fifth uniquely combines imperative programming with first-class RDF and SPARQL support.  Mostly, it's a lot like C#, but it takes the syntax for Function overloading, Destructuring, and nested Guard Clauses from languages like Erlang.  For a tour of the language, take a look at the <a href="https://raw.githubusercontent.com/aabs/fifthlang/refs/heads/master/learn5thInYMinutes.md">Learn X=5th in Y Minutes Guide</a>.  </p>
+<p>Fifth uniquely combines imperative programming with first-class RDF and SPARQL support.  Mostly, it's a lot like C#, but it takes the syntax for Function overloading, Destructuring, and nested Guard Clauses from languages like Erlang.  For a tour of the language, take a look at the <a href="https://raw.githubusercontent.com/aabs/fifthlang/refs/heads/master/docs/Getting-Started/learn5thInYMinutes.md">Learn X=5th in Y Minutes Guide</a>.  </p>
 <h3 id="basic-language-features">Basic Language Features</h3>
 <ul>
 <li>Classes with methods and properties</li>
@@ -288,17 +288,20 @@ Options:
 <li>Incremental compilation: Faster rebuild times for large projects</li>
 </ul>
 <p>Full analysis available in <a href="Planning/architecture-review/architectural-review-2025/">architectural review</a>.</p>
-<h2 id="quick-start">Quick Start</h2>
-<h3 id="prerequisites">Prerequisites</h3>
-<ul>
-<li>.NET SDK 8.0+ (<a href="https://dotnet.microsoft.com/download">download</a>)</li>
-</ul>
-<h3 id="installation">Installation</h3>
-<p>Download the latest release from the <a href="https://github.com/aabs/fifthlang/releases">releases page</a> or build from source:</p>
+<h2 id="installation">Installation</h2>
+<p>Fifth provides pre-built, self-contained binaries for Linux, macOS, and Windows — no additional .NET runtime required.</p>
+<p><strong><a href="Getting-Started/installation/">→ Full Installation Guide</a></strong></p>
+<p>Quick download:
+1. Get the latest release from <a href="https://github.com/aabs/fifthlang/releases">GitHub Releases</a>
+2. Verify the checksum against <code>SHA256SUMS</code>
+3. Extract and add <code>bin/</code> to your PATH</p>
+<p>Or build from source:</p>
 <pre><code class="language-bash">git clone https://github.com/aabs/fifthlang.git
 cd fifthlang
 dotnet build fifthlang.sln
 </code></pre>
+<hr />
+<h2 id="quick-start">Quick Start</h2>
 <h3 id="your-first-fifth-program">Your First Fifth Program</h3>
 <p>Create a file <code>hello.5th</code>:</p>
 <pre><code class="language-fifth">main(): int {
@@ -384,6 +387,7 @@ dotnet run --project MyApp.5thproj
 <h2 id="documentation">Documentation</h2>
 <h3 id="getting-started">Getting Started</h3>
 <ul>
+<li><a href="Getting-Started/installation/">Installation Guide</a> - Download and install Fifth</li>
 <li><a href="Getting-Started/learn5thInYMinutes/">Learn Fifth in Y Minutes</a> - Quick language tour</li>
 <li><a href="Getting-Started/knowledge-graphs/">Knowledge Graphs Guide</a> - RDF/SPARQL features</li>
 <li><a href="examples/">Example Programs</a> - Real Fifth code</li>
@@ -483,5 +487,5 @@ test/
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2025-11-28 05:47:49.154148+00:00
+Build Date UTC : 2025-11-28 05:53:10.828518+00:00
 -->
