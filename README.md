@@ -154,13 +154,13 @@ See [Fifth.Sdk documentation](src/Fifth.Sdk/README.md) for more details.
 ---
 
 ## Roadmap
+- SPARQL integration into List Comprehensions. ([ideas](https://github.com/aabs/fifthlang/wiki/List-Comprehension-Syntax))
 
 ### Recently Completed
-- TriG literal expressions (spec 009) - Multi-line graph blocks
-- SPARQL literal expressions (spec 010) - Embedded queries
-- System KG types (spec 008) - Runtime graph operations
-- Roslyn backend (spec 006) - IL compilation pipeline
-### Recently Completed
+- Multi-platform release pipeline (spec 014)
+- Constructors (spec 013)
+- Generics (spec 012)
+- Query Application (spec 011)
 - TriG literal expressions (spec 009) - Multi-line graph blocks with TriG syntax
 - SPARQL literal expressions (spec 010) - Embedded SPARQL queries
 - System KG types (spec 008) - Runtime graph operations via Fifth.System.KG
