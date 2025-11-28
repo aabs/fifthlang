@@ -1512,7 +1512,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     public override IAstThing VisitColon_store_decl(FifthParser.Colon_store_declContext context)
     {
         var name = context.store_name?.Text ?? string.Empty;
-        // Build call: KG.ConnectToRemoteStore("<uri>") to honor declared endpoint
+        // Build call: KG.sparql_store("<uri>") to honor declared endpoint
+        // sparql_store returns Store wrapper (not raw IStorageProvider)
         var uriText = context.iri()?.GetText() ?? string.Empty; // e.g., "<http://host>"
         if (uriText.StartsWith("<") && uriText.EndsWith(">"))
         {
@@ -1531,7 +1532,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         {
             FunctionDef = null,
             InvocationArguments = [uriLiteral],
-            Annotations = new Dictionary<string, object> { ["FunctionName"] = "ConnectToRemoteStore" },
+            Annotations = new Dictionary<string, object> { ["FunctionName"] = "sparql_store" },
             Location = GetLocationDetails(context),
             Parent = null,
             Type = null
