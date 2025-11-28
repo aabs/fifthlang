@@ -6,9 +6,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
         
-        <link rel="canonical" href="https://fifth-lang.org/Getting-Started/knowledge-graphs/">
+        <link rel="canonical" href="https://fifth-lang.org/Blog/2025-11-28-release-packaging-pipeline/">
         <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>Knowledge Graphs in Fifth - The Fifth Programming Language</title>
+        <title>A Practical Release Pipeline for Fifth - The Fifth Programming Language</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
         <link href="../../css/fontawesome.min.css" rel="stylesheet">
         <link href="../../css/brands.min.css" rel="stylesheet">
@@ -38,15 +38,15 @@
                                 <a href="../.." class="nav-link">Fifth Language</a>
                             </li>
                             <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Blog</a>
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Blog</a>
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="../../Blog/2025-09-16-graph-assertion-block/" class="dropdown-item">Announcing Graph Assertion Blocks in Fifth</a>
+    <a href="../2025-09-16-graph-assertion-block/" class="dropdown-item">Announcing Graph Assertion Blocks in Fifth</a>
 </li>
                                     
 <li>
-    <a href="../../Blog/2025-11-28-release-packaging-pipeline/" class="dropdown-item">A Practical Release Pipeline for Fifth</a>
+    <a href="./" class="dropdown-item active" aria-current="page">A Practical Release Pipeline for Fifth</a>
 </li>
                                 </ul>
                             </li>
@@ -133,15 +133,15 @@
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="./" class="dropdown-item active" aria-current="page">Knowledge Graphs in Fifth</a>
+    <a href="../../Getting-Started/knowledge-graphs/" class="dropdown-item">Knowledge Graphs in Fifth</a>
 </li>
                                     
 <li>
-    <a href="../learn5thInYMinutes/" class="dropdown-item">learn5thInYMinutes</a>
+    <a href="../../Getting-Started/learn5thInYMinutes/" class="dropdown-item">learn5thInYMinutes</a>
 </li>
                                 </ul>
                             </li>
@@ -211,12 +211,12 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href="../../Development/release-process/" class="nav-link">
+                                <a rel="prev" href="../2025-09-16-graph-assertion-block/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../learn5thInYMinutes/" class="nav-link">
+                                <a rel="next" href="../../Designs/5thproj-implementation-summary/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -238,33 +238,37 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="1"><a href="#knowledge-graphs-in-fifth" class="nav-link">Knowledge Graphs in Fifth</a>
+            <li class="nav-item" data-bs-level="1"><a href="#a-practical-release-pipeline-for-fifth" class="nav-link">A Practical Release Pipeline for Fifth</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#canonical-store-declarations" class="nav-link">Canonical Store Declarations</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#graph-operations" class="nav-link">Graph Operations</a>
+            <li class="nav-item" data-bs-level="2"><a href="#what-the-workflow-does" class="nav-link">What the Workflow Does</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#triple-literals" class="nav-link">Triple Literals</a>
+            <li class="nav-item" data-bs-level="2"><a href="#what-it-does-not-do-yet" class="nav-link">What It Does Not Do (Yet)</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#literal-support-in-object-position" class="nav-link">Literal Support in Object Position</a>
+            <li class="nav-item" data-bs-level="2"><a href="#multi-target-coverage" class="nav-link">Multi-Target Coverage</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#built-in-functions" class="nav-link">Built-in Functions</a>
+            <li class="nav-item" data-bs-level="2"><a href="#contents-of-each-archive" class="nav-link">Contents of Each Archive</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#raw-api-quickstart-equivalent" class="nav-link">Raw API Quickstart (Equivalent)</a>
+            <li class="nav-item" data-bs-level="2"><a href="#download-verify-and-install" class="nav-link">Download, Verify, and Install</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#diagnostics" class="nav-link">Diagnostics</a>
+            <li class="nav-item" data-bs-level="2"><a href="#using-the-packaged-compiler" class="nav-link">Using the Packaged Compiler</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#expectations-for-early-releases" class="nav-link">Expectations for Early Releases</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#feedback" class="nav-link">Feedback</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -275,188 +279,135 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="knowledge-graphs-in-fifth">Knowledge Graphs in Fifth</h1>
-<p>This doc summarizes the canonical store declaration syntax and graph operations, and how they use the built-in <code>Fifth.System.KG</code> helpers.</p>
-<h2 id="canonical-store-declarations">Canonical Store Declarations</h2>
+<h1 id="a-practical-release-pipeline-for-fifth">A Practical Release Pipeline for Fifth</h1>
+<p>We recently finished the Release Packaging workflow for the Fifth compiler. This post walks through what the pipeline does, which platforms it targets, the guarantees it makes, and how to install the new artifacts without surprises.</p>
+<h2 id="what-the-workflow-does">What the Workflow Does</h2>
 <ul>
-<li>Use the colon form exclusively:</li>
-<li><code>name : store = sparql_store(&lt;http://example.org/store&gt;);</code></li>
-<li><code>store default = sparql_store(&lt;http://example.org/store&gt;);</code> (sets the default store)</li>
+<li>Builds the compiler on Linux, macOS, and Windows runners for both .NET 8.0 and .NET 10.0 targets (12 archives total when all succeed).</li>
+<li>Publishes self-contained binaries (no additional runtime required) plus a <code>lib/</code> folder with the reference assemblies that power IDE integration and SDK workflows.</li>
+<li>Runs layout checks and smoke tests for every successful build to ensure the packaged compiler can parse and compile a small Fifth sample before we ship it.</li>
+<li>Aggregates metadata for every build, enforces that we produced six <code>net8.0</code> and six <code>net10.0</code> archives, and emits a consolidated <code>SHA256SUMS</code> manifest so users can verify downloads.</li>
+<li>Creates a GitHub release with the archives, checksum file, and release notes drawn from the pipeline metadata.</li>
 </ul>
-<p>The <code>sparql_store</code> function is a built-in alias for connecting to a remote SPARQL endpoint. It returns a <code>VDS.RDF.Storage.IStorageProvider</code>.</p>
-<h2 id="graph-operations">Graph Operations</h2>
-<h3 id="creating-graphs">Creating Graphs</h3>
-<pre><code class="language-fifth">main(): int {
-    // Create an empty graph
-    g: graph = KG.CreateGraph();
-
-    // Add triples to the graph
-    g += &lt;http://ex/s, http://ex/p, &quot;o&quot;&gt;;
-    g += &lt;http://ex/s2, http://ex/p2, 42&gt;;
-
-    return g.CountTriples();
-}
-</code></pre>
-<h3 id="saving-to-stores">Saving to Stores</h3>
-<pre><code class="language-fifth">store default = sparql_store(&lt;http://example.org/store&gt;);
-
-main(): int {
-    g: graph = KG.CreateGraph();
-    g += &lt;http://ex/s, http://ex/p, &quot;o&quot;&gt;;
-
-    // Save graph to default store
-    default += g;
-
-    return 0;
-}
-</code></pre>
-<h2 id="triple-literals">Triple Literals</h2>
-<p>Fifth supports concise triple literal syntax for constructing individual RDF triples:</p>
-<pre><code class="language-fifth">// Basic triple literal syntax: &lt;subject, predicate, object&gt;
-personType: triple = &lt;ex:Person, rdf:type, rdfs:Class&gt;;
-age: triple = &lt;ex:Alice, ex:age, 42&gt;;
-</code></pre>
-<h3 id="triple-literal-syntax-rules">Triple Literal Syntax Rules</h3>
+<h2 id="what-it-does-not-do-yet">What It Does Not Do (Yet)</h2>
 <ul>
-<li><strong>Form</strong>: <code>&lt;subject, predicate, object&gt;</code> with exactly three comma-separated components</li>
-<li><strong>Subject/Predicate</strong>: Must be IRIs (either full <code>&lt;http://...&gt;</code> or prefixed <code>ex:name</code>)</li>
-<li><strong>Object</strong>: Can be an IRI, primitive literal (string, number, boolean), or variable reference</li>
+<li>No installers or package-manager feeds. Deliverables are <code>.tar.gz</code> (Linux/macOS) and <code>.zip</code> (Windows) archives only.</li>
+<li>No delta updates; every release is a full compiler distribution.</li>
+<li>No container images or VS Code extensions are published from this pipeline.</li>
+<li>The <code>net10.0</code> builds currently rely on preview SDKs. They exist so early adopters can validate future runtime behavior, but the <code>net8.0</code> packages remain the supported baseline.</li>
 </ul>
-<h3 id="list-expansion">List Expansion</h3>
-<p>Triple literals support list expansion in the object position:</p>
-<pre><code class="language-fifth">// List in object position expands to multiple triples
-labels: [triple] = &lt;ex:Alice, rdfs:label, [&quot;Alice&quot;, &quot;Ally&quot;]&gt;; 
-// Expands to two triples: &lt;ex:Alice, rdfs:label, &quot;Alice&quot;&gt; and &lt;ex:Alice, rdfs:label, &quot;Ally&quot;&gt;
-
-// Empty list produces warning and zero triples
-emptyLabels: [triple] = &lt;ex:Alice, ex:nothing, []&gt;; // Warning: TRPL004
-</code></pre>
-<p><strong>Note</strong>: Nested lists are not allowed and will produce a compile error (TRPL006).</p>
-<h3 id="triple-operations">Triple Operations</h3>
-<p>Triples compose with graphs using <code>+</code> and <code>-</code> operators:</p>
-<pre><code class="language-fifth">base: graph = KG.CreateGraph();
-base += &lt;ex:Alice, rdf:type, ex:Person&gt;;
-
-// Add a triple to a graph (returns new graph)
-extended: graph = base + &lt;ex:Alice, ex:age, 42&gt;;
-
-// Chaining operations
-g2: graph = base + personType + age;
-
-// Combine triples into a graph
-g3: graph = &lt;ex:s1, ex:p1, ex:o1&gt; + &lt;ex:s2, ex:p2, ex:o2&gt;;
-
-// Remove a triple from a graph
-g4: graph = extended - &lt;ex:Alice, ex:age, 42&gt;;
-</code></pre>
-<h3 id="mutating-assignment-operators">Mutating Assignment Operators</h3>
-<p>Triple literals support compound assignment operators for graphs:</p>
-<pre><code class="language-fifth">base: graph = KG.CreateGraph();
-base += &lt;ex:Alice, rdf:type, ex:Person&gt;;
-
-// Add triple to existing graph (mutating syntax, desugars to reassignment)
-base += &lt;ex:Alice, ex:age, 42&gt;;
-
-// Remove triple from graph
-base -= &lt;ex:Alice, ex:age, 42&gt;;
-</code></pre>
-<h3 id="triple-literals-with-graphs">Triple Literals with Graphs</h3>
-<p>Triple literals can be added to graphs using the += operator:</p>
-<pre><code class="language-fifth">g: graph = KG.CreateGraph();
-g += &lt;ex:Alice, rdf:type, ex:Person&gt;;  // Add triple to graph
-g += &lt;ex:Alice, ex:age, 42&gt;;
-</code></pre>
-<h3 id="escaping-in-serialization">Escaping in Serialization</h3>
-<p>When triple literals are serialized (e.g., in debugging or logging), special characters are escaped:
-- The characters <code>&gt;</code> and <code>,</code> inside string literal objects are preceded by a backslash
-- Exactly one space follows each comma
-- Example: <code>&lt;ex:s, ex:p, "value\, with comma"&gt;</code> </p>
-<h2 id="literal-support-in-object-position">Literal Support in Object Position</h2>
-<p>Triple literals accept object literals for:
-- Strings, booleans, chars
-- Signed/unsigned integers: <code>sbyte</code>, <code>byte</code>, <code>short</code>, <code>ushort</code>, <code>int</code>, <code>uint</code>, <code>long</code>, <code>ulong</code>
-- Floating point: <code>float</code>, <code>double</code>
-- Precise decimals: <code>decimal</code></p>
-<p>Literals are lowered to typed RDF literals using the appropriate XSD datatype (e.g., <code>xsd:int</code>, <code>xsd:decimal</code>).</p>
-<h2 id="built-in-functions">Built-in Functions</h2>
-<p>Graph operations use <code>Fifth.System.KG</code> functions:
-- <code>CreateGraph()</code>: Create an empty graph
-- <code>CreateUri(string)</code>: Create an IRI node
-- <code>CreateLiteral(value)</code>: Create a literal node
-- <code>CreateTriple(subject, predicate, object)</code>: Create a triple
-- <code>Assert(graph, triple)</code>: Add a triple to a graph
-- <code>SaveGraph(store, graph[, uri])</code>: Save graph to a store</p>
-<h2 id="raw-api-quickstart-equivalent">Raw API Quickstart (Equivalent)</h2>
-<p>You can also use the raw API directly:</p>
-<pre><code class="language-fifth">main(): int {
-    KG.SaveGraph(
-        KG.sparql_store(&quot;http://example.org/store&quot;),
-        KG.Assert(
-            KG.CreateGraph(),
-            KG.CreateTriple(
-                KG.CreateUri(KG.CreateGraph(), &quot;http://ex/s&quot;),
-                KG.CreateUri(KG.CreateGraph(), &quot;http://ex/p&quot;),
-                KG.CreateLiteral(KG.CreateGraph(), 1.23m)
-            )
-        ),
-        &quot;http://example.org/graph&quot;
-    );
-    return 0;
-}
-</code></pre>
-<p>See tests under <code>test/runtime-integration-tests/*GraphAssertionBlock*</code> for more examples.</p>
-<h2 id="diagnostics">Diagnostics</h2>
-<h3 id="triple-literal-diagnostics-trpl001-trpl006">Triple Literal Diagnostics (TRPL001-TRPL006)</h3>
-<p>The compiler emits specific diagnostic codes for triple literal errors:</p>
+<h2 id="multi-target-coverage">Multi-Target Coverage</h2>
 <table>
 <thead>
 <tr>
-<th>Code</th>
-<th>Severity</th>
-<th>Description</th>
-<th>Example</th>
+<th>Platform</th>
+<th>Architectures</th>
+<th>Runtimes</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>TRPL001</td>
-<td>Error</td>
-<td>Triple literal must have exactly three components (subject, predicate, object)</td>
-<td><code>&lt;ex:s, ex:p&gt;</code> (too few), <code>&lt;ex:s, ex:p, ex:o, ex:x&gt;</code> (too many)</td>
+<td>Linux</td>
+<td>x64, arm64</td>
+<td>net8.0, net10.0</td>
 </tr>
 <tr>
-<td>TRPL002</td>
-<td>Error</td>
-<td>Triple literal subject must be an IRI</td>
-<td>Using a string literal as subject</td>
+<td>macOS</td>
+<td>x64, arm64</td>
+<td>net8.0, net10.0</td>
 </tr>
 <tr>
-<td>TRPL003</td>
-<td>Error</td>
-<td>Triple literal predicate must be an IRI</td>
-<td>Using a number as predicate</td>
-</tr>
-<tr>
-<td>TRPL004</td>
-<td>Warning</td>
-<td>Triple literal with empty list object expands to zero triples</td>
-<td><code>&lt;ex:s, ex:p, []&gt;</code></td>
-</tr>
-<tr>
-<td>TRPL005</td>
-<td>Error</td>
-<td>Invalid type in triple literal object position</td>
-<td>Using unsupported types in object position</td>
-</tr>
-<tr>
-<td>TRPL006</td>
-<td>Error</td>
-<td>Nested lists are not allowed in triple literal object position (only single-level lists)</td>
-<td><code>&lt;ex:s, ex:p, [[ex:o1], ex:o2]&gt;</code></td>
+<td>Windows</td>
+<td>x64, arm64</td>
+<td>net8.0, net10.0</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Note</strong>: IRI-related errors (such as unresolved prefixes) continue to use existing diagnostic codes and are not specific to triple literals.</p></div>
+<p>Every archive follows the naming pattern <code>fifth-&lt;version&gt;-&lt;runtime&gt;-&lt;framework&gt;.&lt;tar.gz|zip&gt;</code>, for example <code>fifth-0.9.0-test-linux-x64-net8.0.tar.gz</code>.</p>
+<h2 id="contents-of-each-archive">Contents of Each Archive</h2>
+<pre><code>fifth-&lt;version&gt;/
+  bin/
+    fifth (or fifth.exe on Windows)
+  lib/
+    *.dll support libraries for IDE tooling and the SDK
+  LICENSE
+  README.md
+  VERSION.txt
+</code></pre>
+<p><code>bin/fifth</code> exposes the same CLI that the repository refers to as <code>fifthc</code>; the binary has been renamed only to distinguish it from the dotnet project name inside the source tree.</p>
+<h2 id="download-verify-and-install">Download, Verify, and Install</h2>
+<ol>
+<li><strong>Download an archive and the checksum manifest</strong> (replace variables as needed):</li>
+</ol>
+<pre><code class="language-bash">VERSION=0.9.0-test
+RUNTIME=linux-x64
+FRAMEWORK=net8.0
+curl -LO &quot;https://github.com/aabs/fifthlang/releases/download/v${VERSION}/fifth-${VERSION}-${RUNTIME}-${FRAMEWORK}.tar.gz&quot;
+curl -LO &quot;https://github.com/aabs/fifthlang/releases/download/v${VERSION}/SHA256SUMS&quot;
+</code></pre>
+<p>-2. <strong>Verify the checksum</strong>:</p>
+<ul>
+<li>Linux/macOS (GNU coreutils installed):</li>
+</ul>
+<pre><code class="language-bash">sha256sum --ignore-missing -c SHA256SUMS
+</code></pre>
+<ul>
+<li>macOS (BSD <code>shasum</code>):</li>
+</ul>
+<pre><code class="language-bash">grep &quot;fifth-${VERSION}-${RUNTIME}-${FRAMEWORK}.tar.gz&quot; SHA256SUMS | shasum -a 256 -c -
+</code></pre>
+<ul>
+<li>Windows PowerShell:</li>
+</ul>
+<pre><code class="language-powershell">$version = &quot;0.9.0-test&quot;
+$runtime = &quot;win-x64&quot;
+$framework = &quot;net8.0&quot;
+Get-FileHash &quot;.\fifth-$version-$runtime-$framework.zip&quot; -Algorithm SHA256
+Get-Content .\SHA256SUMS | Select-String &quot;fifth-$version-$runtime-$framework.zip&quot;
+</code></pre>
+<p>Compare the computed hash to the line from <code>SHA256SUMS</code>. Only proceed when they match.</p>
+<ol>
+<li>
+<p><strong>Extract</strong>:</p>
+</li>
+<li>
+<p>Linux/macOS:</p>
+</li>
+</ol>
+<pre><code class="language-bash">mkdir -p ~/opt/fifth/${VERSION}
+tar -xzf fifth-${VERSION}-${RUNTIME}-${FRAMEWORK}.tar.gz -C ~/opt/fifth/${VERSION}
+</code></pre>
+<ul>
+<li>Windows:</li>
+</ul>
+<pre><code class="language-powershell">$version = &quot;0.9.0-test&quot;
+$runtime = &quot;win-x64&quot;
+$framework = &quot;net8.0&quot;
+New-Item -ItemType Directory -Force -Path &quot;$env:USERPROFILE\fifth\$version&quot; | Out-Null
+Expand-Archive -Force -Path &quot;.\fifth-$version-$runtime-$framework.zip&quot; -DestinationPath &quot;$env:USERPROFILE\fifth\$version&quot;
+</code></pre>
+<ol>
+<li><strong>Update <code>PATH</code> (optional but recommended)</strong>:</li>
+</ol>
+<pre><code class="language-bash">export PATH=~/opt/fifth/${VERSION}/fifth-${VERSION}/bin:$PATH
+</code></pre>
+<p>On Windows, add <code>%USERPROFILE%\fifth\&lt;version&gt;\fifth-&lt;version&gt;\bin</code> to the user PATH via the System Properties dialog or <code>setx</code>.</p>
+<h2 id="using-the-packaged-compiler">Using the Packaged Compiler</h2>
+<p>Once extracted, invoke the compiler directly from the <code>bin</code> directory:</p>
+<pre><code class="language-bash">fifth --source hello.5th --output hello.exe
+fifth --command run --source hello.5th --output hello.exe --args &quot;--name Ada&quot;
+fifth --command lint --source src/
+</code></pre>
+<p>Because the archives are self-contained, no additional .NET runtime is required to run the binary. For larger projects you may still point IDE tooling at the <code>lib/</code> folder by referencing its path in <code>FifthCompilerPath</code> entries inside your <code>csproj</code> files (see <code>src/Fifth.Sdk/README.md</code>).</p>
+<h2 id="expectations-for-early-releases">Expectations for Early Releases</h2>
+<ul>
+<li>The smoke tests exercise small programs only; they do not cover every runtime combination or large project scenario. Treat <code>net10.0</code> builds as preview-quality until the upstream SDK stabilizes.</li>
+<li>If a package fails to build for a given platform, the publish job will halt. In that situation the release will not appear; we re-tag only after fixing the underlying issue.</li>
+<li>Releases currently target desktop/server environments. Mobile or WASM outputs are out of scope for this workflow.</li>
+</ul>
+<h2 id="feedback">Feedback</h2>
+<p>If you hit issues downloading, verifying, or running each target, please open a GitHub issue with the platform, archive name, and the relevant log output. The Release Packaging workflow surfaces its metadata in the GitHub Actions logs, so referencing the failing run ID helps us reproduce problems quickly.</p>
+<p>This incremental pipeline gives us predictable, verifiable deliverables without overstating their scope. As we gather feedback, we will evaluate package-manager feeds, container images, and additional automation around tagging to make releases even smoother.</p></div>
             </div>
         </div>
 

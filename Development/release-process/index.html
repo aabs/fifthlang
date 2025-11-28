@@ -6,9 +6,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
         
-        <link rel="canonical" href="https://fifth-lang.org/Getting-Started/knowledge-graphs/">
+        <link rel="canonical" href="https://fifth-lang.org/Development/release-process/">
         <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>Knowledge Graphs in Fifth - The Fifth Programming Language</title>
+        <title>Fifth Language Release Process - The Fifth Programming Language</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
         <link href="../../css/fontawesome.min.css" rel="stylesheet">
         <link href="../../css/brands.min.css" rel="stylesheet">
@@ -124,24 +124,24 @@
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Development</a>
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Development</a>
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="../../Development/release-process/" class="dropdown-item">Fifth Language Release Process</a>
+    <a href="./" class="dropdown-item active" aria-current="page">Fifth Language Release Process</a>
 </li>
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Getting Started</a>
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="./" class="dropdown-item active" aria-current="page">Knowledge Graphs in Fifth</a>
+    <a href="../../Getting-Started/knowledge-graphs/" class="dropdown-item">Knowledge Graphs in Fifth</a>
 </li>
                                     
 <li>
-    <a href="../learn5thInYMinutes/" class="dropdown-item">learn5thInYMinutes</a>
+    <a href="../../Getting-Started/learn5thInYMinutes/" class="dropdown-item">learn5thInYMinutes</a>
 </li>
                                 </ul>
                             </li>
@@ -211,12 +211,12 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href="../../Development/release-process/" class="nav-link">
+                                <a rel="prev" href="../../Designs/perf/baselines/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../learn5thInYMinutes/" class="nav-link">
+                                <a rel="next" href="../../Getting-Started/knowledge-graphs/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -238,33 +238,33 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="1"><a href="#knowledge-graphs-in-fifth" class="nav-link">Knowledge Graphs in Fifth</a>
+            <li class="nav-item" data-bs-level="1"><a href="#fifth-language-release-process" class="nav-link">Fifth Language Release Process</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#canonical-store-declarations" class="nav-link">Canonical Store Declarations</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#graph-operations" class="nav-link">Graph Operations</a>
+            <li class="nav-item" data-bs-level="2"><a href="#overview" class="nav-link">Overview</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#triple-literals" class="nav-link">Triple Literals</a>
+            <li class="nav-item" data-bs-level="2"><a href="#triggers" class="nav-link">Triggers</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#literal-support-in-object-position" class="nav-link">Literal Support in Object Position</a>
+            <li class="nav-item" data-bs-level="2"><a href="#prerequisites" class="nav-link">Prerequisites</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#built-in-functions" class="nav-link">Built-in Functions</a>
+            <li class="nav-item" data-bs-level="2"><a href="#standard-release-procedure" class="nav-link">Standard Release Procedure</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#raw-api-quickstart-equivalent" class="nav-link">Raw API Quickstart (Equivalent)</a>
+            <li class="nav-item" data-bs-level="2"><a href="#manual-dispatch-workflow" class="nav-link">Manual Dispatch Workflow</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#diagnostics" class="nav-link">Diagnostics</a>
+            <li class="nav-item" data-bs-level="2"><a href="#failure-recovery" class="nav-link">Failure Recovery</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#addendum-opportunities-to-streamline-releases" class="nav-link">Addendum: Opportunities to Streamline Releases</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -275,188 +275,112 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="knowledge-graphs-in-fifth">Knowledge Graphs in Fifth</h1>
-<p>This doc summarizes the canonical store declaration syntax and graph operations, and how they use the built-in <code>Fifth.System.KG</code> helpers.</p>
-<h2 id="canonical-store-declarations">Canonical Store Declarations</h2>
-<ul>
-<li>Use the colon form exclusively:</li>
-<li><code>name : store = sparql_store(&lt;http://example.org/store&gt;);</code></li>
-<li><code>store default = sparql_store(&lt;http://example.org/store&gt;);</code> (sets the default store)</li>
-</ul>
-<p>The <code>sparql_store</code> function is a built-in alias for connecting to a remote SPARQL endpoint. It returns a <code>VDS.RDF.Storage.IStorageProvider</code>.</p>
-<h2 id="graph-operations">Graph Operations</h2>
-<h3 id="creating-graphs">Creating Graphs</h3>
-<pre><code class="language-fifth">main(): int {
-    // Create an empty graph
-    g: graph = KG.CreateGraph();
-
-    // Add triples to the graph
-    g += &lt;http://ex/s, http://ex/p, &quot;o&quot;&gt;;
-    g += &lt;http://ex/s2, http://ex/p2, 42&gt;;
-
-    return g.CountTriples();
-}
-</code></pre>
-<h3 id="saving-to-stores">Saving to Stores</h3>
-<pre><code class="language-fifth">store default = sparql_store(&lt;http://example.org/store&gt;);
-
-main(): int {
-    g: graph = KG.CreateGraph();
-    g += &lt;http://ex/s, http://ex/p, &quot;o&quot;&gt;;
-
-    // Save graph to default store
-    default += g;
-
-    return 0;
-}
-</code></pre>
-<h2 id="triple-literals">Triple Literals</h2>
-<p>Fifth supports concise triple literal syntax for constructing individual RDF triples:</p>
-<pre><code class="language-fifth">// Basic triple literal syntax: &lt;subject, predicate, object&gt;
-personType: triple = &lt;ex:Person, rdf:type, rdfs:Class&gt;;
-age: triple = &lt;ex:Alice, ex:age, 42&gt;;
-</code></pre>
-<h3 id="triple-literal-syntax-rules">Triple Literal Syntax Rules</h3>
-<ul>
-<li><strong>Form</strong>: <code>&lt;subject, predicate, object&gt;</code> with exactly three comma-separated components</li>
-<li><strong>Subject/Predicate</strong>: Must be IRIs (either full <code>&lt;http://...&gt;</code> or prefixed <code>ex:name</code>)</li>
-<li><strong>Object</strong>: Can be an IRI, primitive literal (string, number, boolean), or variable reference</li>
-</ul>
-<h3 id="list-expansion">List Expansion</h3>
-<p>Triple literals support list expansion in the object position:</p>
-<pre><code class="language-fifth">// List in object position expands to multiple triples
-labels: [triple] = &lt;ex:Alice, rdfs:label, [&quot;Alice&quot;, &quot;Ally&quot;]&gt;; 
-// Expands to two triples: &lt;ex:Alice, rdfs:label, &quot;Alice&quot;&gt; and &lt;ex:Alice, rdfs:label, &quot;Ally&quot;&gt;
-
-// Empty list produces warning and zero triples
-emptyLabels: [triple] = &lt;ex:Alice, ex:nothing, []&gt;; // Warning: TRPL004
-</code></pre>
-<p><strong>Note</strong>: Nested lists are not allowed and will produce a compile error (TRPL006).</p>
-<h3 id="triple-operations">Triple Operations</h3>
-<p>Triples compose with graphs using <code>+</code> and <code>-</code> operators:</p>
-<pre><code class="language-fifth">base: graph = KG.CreateGraph();
-base += &lt;ex:Alice, rdf:type, ex:Person&gt;;
-
-// Add a triple to a graph (returns new graph)
-extended: graph = base + &lt;ex:Alice, ex:age, 42&gt;;
-
-// Chaining operations
-g2: graph = base + personType + age;
-
-// Combine triples into a graph
-g3: graph = &lt;ex:s1, ex:p1, ex:o1&gt; + &lt;ex:s2, ex:p2, ex:o2&gt;;
-
-// Remove a triple from a graph
-g4: graph = extended - &lt;ex:Alice, ex:age, 42&gt;;
-</code></pre>
-<h3 id="mutating-assignment-operators">Mutating Assignment Operators</h3>
-<p>Triple literals support compound assignment operators for graphs:</p>
-<pre><code class="language-fifth">base: graph = KG.CreateGraph();
-base += &lt;ex:Alice, rdf:type, ex:Person&gt;;
-
-// Add triple to existing graph (mutating syntax, desugars to reassignment)
-base += &lt;ex:Alice, ex:age, 42&gt;;
-
-// Remove triple from graph
-base -= &lt;ex:Alice, ex:age, 42&gt;;
-</code></pre>
-<h3 id="triple-literals-with-graphs">Triple Literals with Graphs</h3>
-<p>Triple literals can be added to graphs using the += operator:</p>
-<pre><code class="language-fifth">g: graph = KG.CreateGraph();
-g += &lt;ex:Alice, rdf:type, ex:Person&gt;;  // Add triple to graph
-g += &lt;ex:Alice, ex:age, 42&gt;;
-</code></pre>
-<h3 id="escaping-in-serialization">Escaping in Serialization</h3>
-<p>When triple literals are serialized (e.g., in debugging or logging), special characters are escaped:
-- The characters <code>&gt;</code> and <code>,</code> inside string literal objects are preceded by a backslash
-- Exactly one space follows each comma
-- Example: <code>&lt;ex:s, ex:p, "value\, with comma"&gt;</code> </p>
-<h2 id="literal-support-in-object-position">Literal Support in Object Position</h2>
-<p>Triple literals accept object literals for:
-- Strings, booleans, chars
-- Signed/unsigned integers: <code>sbyte</code>, <code>byte</code>, <code>short</code>, <code>ushort</code>, <code>int</code>, <code>uint</code>, <code>long</code>, <code>ulong</code>
-- Floating point: <code>float</code>, <code>double</code>
-- Precise decimals: <code>decimal</code></p>
-<p>Literals are lowered to typed RDF literals using the appropriate XSD datatype (e.g., <code>xsd:int</code>, <code>xsd:decimal</code>).</p>
-<h2 id="built-in-functions">Built-in Functions</h2>
-<p>Graph operations use <code>Fifth.System.KG</code> functions:
-- <code>CreateGraph()</code>: Create an empty graph
-- <code>CreateUri(string)</code>: Create an IRI node
-- <code>CreateLiteral(value)</code>: Create a literal node
-- <code>CreateTriple(subject, predicate, object)</code>: Create a triple
-- <code>Assert(graph, triple)</code>: Add a triple to a graph
-- <code>SaveGraph(store, graph[, uri])</code>: Save graph to a store</p>
-<h2 id="raw-api-quickstart-equivalent">Raw API Quickstart (Equivalent)</h2>
-<p>You can also use the raw API directly:</p>
-<pre><code class="language-fifth">main(): int {
-    KG.SaveGraph(
-        KG.sparql_store(&quot;http://example.org/store&quot;),
-        KG.Assert(
-            KG.CreateGraph(),
-            KG.CreateTriple(
-                KG.CreateUri(KG.CreateGraph(), &quot;http://ex/s&quot;),
-                KG.CreateUri(KG.CreateGraph(), &quot;http://ex/p&quot;),
-                KG.CreateLiteral(KG.CreateGraph(), 1.23m)
-            )
-        ),
-        &quot;http://example.org/graph&quot;
-    );
-    return 0;
-}
-</code></pre>
-<p>See tests under <code>test/runtime-integration-tests/*GraphAssertionBlock*</code> for more examples.</p>
-<h2 id="diagnostics">Diagnostics</h2>
-<h3 id="triple-literal-diagnostics-trpl001-trpl006">Triple Literal Diagnostics (TRPL001-TRPL006)</h3>
-<p>The compiler emits specific diagnostic codes for triple literal errors:</p>
+<h1 id="fifth-language-release-process">Fifth Language Release Process</h1>
+<p>This document explains how we create official Fifth Compiler releases, what triggers the Release Packaging workflow, and how to keep the process predictable. It reflects the current automation defined in <code>.github/workflows/release.yml</code>.</p>
+<h2 id="overview">Overview</h2>
+<p>All release artifacts (platform-specific archives, metadata bundles, and checksum manifests) are produced by the <strong>Release Packaging</strong> GitHub Actions workflow. The workflow builds across Linux, macOS, and Windows with both .NET 8.0 and .NET 10.0 targets, validates the bundles via smoke tests, assembles metadata, and finally publishes a GitHub release with the generated archives and <code>SHA256SUMS</code> file.</p>
+<h2 id="triggers">Triggers</h2>
 <table>
 <thead>
 <tr>
-<th>Code</th>
-<th>Severity</th>
-<th>Description</th>
-<th>Example</th>
+<th>Trigger</th>
+<th>When to use</th>
+<th>Effect</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>TRPL001</td>
-<td>Error</td>
-<td>Triple literal must have exactly three components (subject, predicate, object)</td>
-<td><code>&lt;ex:s, ex:p&gt;</code> (too few), <code>&lt;ex:s, ex:p, ex:o, ex:x&gt;</code> (too many)</td>
+<td><strong>Tag push</strong></td>
+<td>Push a tag matching <code>vX.Y.Z</code> or <code>vX.Y.Z-qualifier</code> (e.g., <code>v1.4.0</code>, <code>v1.4.1-beta1</code>) to any branch</td>
+<td>Starts Release Packaging using that commit. This is the normal production release path.</td>
 </tr>
 <tr>
-<td>TRPL002</td>
-<td>Error</td>
-<td>Triple literal subject must be an IRI</td>
-<td>Using a string literal as subject</td>
-</tr>
-<tr>
-<td>TRPL003</td>
-<td>Error</td>
-<td>Triple literal predicate must be an IRI</td>
-<td>Using a number as predicate</td>
-</tr>
-<tr>
-<td>TRPL004</td>
-<td>Warning</td>
-<td>Triple literal with empty list object expands to zero triples</td>
-<td><code>&lt;ex:s, ex:p, []&gt;</code></td>
-</tr>
-<tr>
-<td>TRPL005</td>
-<td>Error</td>
-<td>Invalid type in triple literal object position</td>
-<td>Using unsupported types in object position</td>
-</tr>
-<tr>
-<td>TRPL006</td>
-<td>Error</td>
-<td>Nested lists are not allowed in triple literal object position (only single-level lists)</td>
-<td><code>&lt;ex:s, ex:p, [[ex:o1], ex:o2]&gt;</code></td>
+<td><strong>Manual dispatch</strong></td>
+<td>Use the <em>Run workflow</em> button in GitHub, supply <code>version</code> and optional <code>dry_run</code></td>
+<td>Builds artifacts for the provided version. If <code>dry_run=true</code>, packages and checksums are produced but the GitHub release step is skipped. Useful for rehearsals.</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Note</strong>: IRI-related errors (such as unresolved prefixes) continue to use existing diagnostic codes and are not specific to triple literals.</p></div>
+<h2 id="prerequisites">Prerequisites</h2>
+<ol>
+<li><strong>Clean repository</strong>: <code>scripts/release/version-info.sh</code> aborts when uncommitted changes are present unless <code>--allow-dirty</code> is passed. Keep the tree clean before tagging.</li>
+<li><strong>Passing CI</strong>: Ensure <code>dotnet build fifthlang.sln</code> and the full <code>dotnet test fifthlang.sln</code> suite complete successfully on the target branch.</li>
+<li><strong>Version agreement</strong>: Decide the semantic version (e.g., <code>1.5.0</code> or <code>1.5.0-rc1</code>). The workflow infers the version from the pushed tag, so double-check spelling before publishing.</li>
+<li><strong>Repository permissions</strong>: Only maintainers with push access to tags can trigger production releases. GitHub automatically supplies a <code>GITHUB_TOKEN</code> with <code>contents: write</code>, enabling <code>softprops/action-gh-release</code> to publish.</li>
+</ol>
+<h2 id="standard-release-procedure">Standard Release Procedure</h2>
+<ol>
+<li><strong>Stabilize the branch</strong></li>
+<li>Merge the desired changes into <code>master</code> (or a dedicated release branch) and make sure CI passes.</li>
+<li>
+<p>Run <code>just build-all</code> (or <code>dotnet build fifthlang.sln</code>) locally for a final sanity check.</p>
+</li>
+<li>
+<p><strong>Create and push the tag</strong></p>
+</li>
+<li>Choose the version identifier and create an annotated tag: <code>git tag -a v1.5.0 -m "Fifth 1.5.0"</code>.</li>
+<li>Push the tag (and any supporting branch): <code>git push origin v1.5.0</code>.</li>
+<li>
+<p>Tag pushes automatically enqueue the Release Packaging workflow.</p>
+</li>
+<li>
+<p><strong>Monitor the workflow</strong></p>
+</li>
+<li>
+<p>Track the workflow run in GitHub Actions. Key stages:</p>
+<ul>
+<li><strong>Build matrix</strong>: Each OS/runtime combination produces an archive and metadata JSON.</li>
+<li><strong>Verification</strong>: <code>scripts/test/smoke-test.sh</code> validates the packaged compiler.</li>
+<li><strong>Publish job</strong>: Aggregates metadata, verifies coverage (6 net8 + 6 net10 packages expected), generates <code>SHA256SUMS</code>, composes release notes, and runs <code>softprops/action-gh-release</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Validate the published release</strong></p>
+</li>
+<li>Confirm the GitHub release page lists all <code>.tar.gz</code>/<code>.zip</code> artifacts and <code>SHA256SUMS</code>.</li>
+<li>
+<p>Optionally download a package and verify <code>shasum -c SHA256SUMS</code> to ensure integrity.</p>
+</li>
+<li>
+<p><strong>Announce</strong> (optional)</p>
+</li>
+<li>Update documentation, changelogs, or blog posts referencing the new version.</li>
+</ol>
+<h2 id="manual-dispatch-workflow">Manual Dispatch Workflow</h2>
+<p>When running the workflow manually (e.g., for a rehearsal):</p>
+<ol>
+<li>Navigate to <em>Actions → Release Packaging → Run workflow</em>.</li>
+<li>Supply the <code>version</code> input (e.g., <code>1.5.0-rc1</code>) and toggle <code>dry_run</code> if you want to skip publishing.</li>
+<li>The workflow builds exactly like the tag-triggered path but relies on the provided version string.</li>
+<li>Review the artifacts in the run summary or download them from the workflow’s artifacts section.</li>
+</ol>
+<h2 id="failure-recovery">Failure Recovery</h2>
+<ul>
+<li><strong>Package Build Failures</strong>: Fix the underlying issue (missing SDK, smoke test failure, etc.), push a new commit, re-tag (e.g., delete and recreate <code>v1.5.0</code>), and force-push the tag.</li>
+<li><strong>Publish Failures</strong>: Most publication issues stem from missing permissions or invalid release notes. After fixing the workflow, re-push the tag to rerun publishing (GitHub will overwrite the existing draft release).</li>
+<li><strong>Checksum Issues</strong>: If <code>SHA256SUMS</code> generation fails, inspect <code>scripts/build/generate-checksums.sh</code>. Once fixed, rerun the publish job by deleting/recreating the tag.</li>
+</ul>
+<h2 id="addendum-opportunities-to-streamline-releases">Addendum: Opportunities to Streamline Releases</h2>
+<ol>
+<li><strong><code>just</code> Helpers</strong></li>
+<li>Add recipes such as <code>just prepare-release VERSION=1.5.0</code> to run tests, check cleanliness, create the tag, and push it. This reduces manual steps and encodes best practices.</li>
+<li>
+<p>Another recipe (<code>just dry-run-release VERSION=1.5.0-rc1</code>) could trigger the workflow dispatch via GitHub CLI with <code>dry_run=true</code> for rehearsals.</p>
+</li>
+<li>
+<p><strong>GitFlow-style Branching</strong></p>
+</li>
+<li>Adopt <code>release/x.y.z</code> branches to stage fixes separate from <code>master</code>. When ready, finish the branch by tagging <code>vX.Y.Z</code> and merging back into both <code>master</code> and <code>develop</code>. This keeps stabilization work isolated and makes it easier to produce hotfixes.</li>
+<li>
+<p>GitFlow also clarifies responsibility: only changes merged into the release branch flow into the release, minimizing accidental scope creep.</p>
+</li>
+<li>
+<p><strong>Automated Tag Validation</strong></p>
+</li>
+<li>Extend the Justfile or a pre-push hook to validate that <code>git status</code> is clean and that <code>scripts/release/version-info.sh --format text</code> matches the intended version before allowing the tag push.</li>
+<li>Optionally script a <code>just release VERSION=1.5.0</code> command that wraps: calculcating changelog entries, creating the tag, pushing branch/tag, and opening the release page for verification.</li>
+</ol>
+<p>Implementing one or more of these ideas will reduce human error, keep the process repeatable, and free maintainers from rote tagging chores.</p></div>
             </div>
         </div>
 
