@@ -3,18 +3,18 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://fifth-lang.org/Blog/2025-11-28-release-packaging-pipeline/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://fifth-lang.org/Getting-Started/installation/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>A New Release Pipeline for Fifth - The Fifth Programming Language</title>
+    <title>Installation - The Fifth Programming Language</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "A New Release Pipeline for Fifth";
-        var mkdocs_page_input_path = "Blog\\2025-11-28-release-packaging-pipeline.md";
-        var mkdocs_page_url = "/Blog/2025-11-28-release-packaging-pipeline/";
+        var mkdocs_page_name = "Installation";
+        var mkdocs_page_input_path = "Getting-Started\\installation.md";
+        var mkdocs_page_url = "/Getting-Started/installation/";
       </script>
     
     <!--[if lt IE 9]>
@@ -46,30 +46,12 @@
                 </li>
               </ul>
               <p class="caption"><span class="caption-text">Blog</span></p>
-              <ul class="current">
-                  <li class="toctree-l1"><a class="reference internal" href="../2025-09-16-graph-assertion-block/">Announcing Graph Assertion Blocks in Fifth</a>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Blog/2025-09-16-graph-assertion-block/">Announcing Graph Assertion Blocks in Fifth</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../2025-11-16%20Announcing%20Fifth%20Lang/">Announcing Fifth - A New Language For Knowledge Graphs</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Blog/2025-11-16%20Announcing%20Fifth%20Lang/">Announcing Fifth - A New Language For Knowledge Graphs</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">A New Release Pipeline for Fifth</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#what-the-workflow-does">What the Workflow Does</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#what-it-does-not-do-yet">What It Does Not Do (Yet)</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#multi-target-coverage">Multi-Target Coverage</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#contents-of-each-archive">Contents of Each Archive</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#download-verify-and-install">Download, Verify, and Install</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#using-the-packaged-compiler">Using the Packaged Compiler</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#expectations-for-early-releases">Expectations for Early Releases</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#feedback">Feedback</a>
-    </li>
-    </ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Blog/2025-11-28-release-packaging-pipeline/">A New Release Pipeline for Fifth</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Designs</span></p>
@@ -117,12 +99,60 @@
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Getting Started</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../Getting-Started/installation/">Installation</a>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Installation</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#supported-platforms">Supported Platforms</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#download">Download</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#verify-your-download">Verify Your Download</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#linux-gnu-coreutils">Linux (GNU coreutils)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#macos-bsd-shasum">macOS (BSD shasum)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#windows-powershell">Windows (PowerShell)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#install">Install</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#linux-macos">Linux / macOS</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#windows">Windows</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#archive-contents">Archive Contents</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#verify-installation">Verify Installation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#build-from-source">Build from Source</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#prerequisites">Prerequisites</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#build-steps">Build Steps</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#command-not-found-after-installation">"command not found" after installation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#permission-denied-linuxmacos">Permission denied (Linux/macOS)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#windows-defender-smartscreen-warning">Windows Defender SmartScreen warning</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a>
+    </li>
+    </ul>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../Getting-Started/knowledge-graphs/">Knowledge Graphs in Fifth</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../knowledge-graphs/">Knowledge Graphs in Fifth</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../Getting-Started/learn5thInYMinutes/">learn5thInYMinutes</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../learn5thInYMinutes/">learn5thInYMinutes</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Planning</span></p>
@@ -170,8 +200,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
-          <li class="breadcrumb-item">Blog</li>
-      <li class="breadcrumb-item active">A New Release Pipeline for Fifth</li>
+          <li class="breadcrumb-item">Getting Started</li>
+      <li class="breadcrumb-item active">Installation</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -180,24 +210,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="a-practical-release-pipeline-for-fifth">A Practical Release Pipeline for Fifth</h1>
-<p>We recently finished the Release Packaging workflow for the Fifth compiler. This post walks through what the pipeline does, which platforms it targets, the guarantees it makes, and how to install the new artifacts without surprises.</p>
-<h2 id="what-the-workflow-does">What the Workflow Does</h2>
-<ul>
-<li>Builds the compiler on Linux, macOS, and Windows runners for both .NET 8.0 and .NET 10.0 targets (12 archives total when all succeed).</li>
-<li>Publishes self-contained binaries (no additional runtime required) plus a <code>lib/</code> folder with the reference assemblies that power IDE integration and SDK workflows.</li>
-<li>Runs layout checks and smoke tests for every successful build to ensure the packaged compiler can parse and compile a small Fifth sample before we ship it.</li>
-<li>Aggregates metadata for every build, enforces that we produced six <code>net8.0</code> and six <code>net10.0</code> archives, and emits a consolidated <code>SHA256SUMS</code> manifest so users can verify downloads.</li>
-<li>Creates a GitHub release with the archives, checksum file, and release notes drawn from the pipeline metadata.</li>
-</ul>
-<h2 id="what-it-does-not-do-yet">What It Does Not Do (Yet)</h2>
-<ul>
-<li>No installers or package-manager feeds. Deliverables are <code>.tar.gz</code> (Linux/macOS) and <code>.zip</code> (Windows) archives only.</li>
-<li>No delta updates; every release is a full compiler distribution.</li>
-<li>No container images or VS Code extensions are published from this pipeline.</li>
-<li>The <code>net10.0</code> builds currently rely on preview SDKs. They exist so early adopters can validate future runtime behavior, but the <code>net8.0</code> packages remain the supported baseline.</li>
-</ul>
-<h2 id="multi-target-coverage">Multi-Target Coverage</h2>
+                <h1 id="installation">Installation</h1>
+<p>Fifth provides pre-built, self-contained binaries for Linux, macOS, and Windows. No additional .NET runtime is required to run the compiler.</p>
+<h2 id="supported-platforms">Supported Platforms</h2>
 <table>
 <thead>
 <tr>
@@ -224,8 +239,84 @@
 </tr>
 </tbody>
 </table>
-<p>Every archive follows the naming pattern <code>fifth-&lt;version&gt;-&lt;runtime&gt;-&lt;framework&gt;.&lt;tar.gz|zip&gt;</code>, for example <code>fifth-0.9.0-test-linux-x64-net8.0.tar.gz</code>.</p>
-<h2 id="contents-of-each-archive">Contents of Each Archive</h2>
+<p>The <code>net8.0</code> packages are the supported baseline. The <code>net10.0</code> builds rely on preview SDKs and are provided for early adopters to validate future runtime behavior.</p>
+<hr />
+<h2 id="download">Download</h2>
+<p>Download the latest release from the <a href="https://github.com/aabs/fifthlang/releases">GitHub Releases page</a>.</p>
+<p>Archives follow the naming pattern:</p>
+<pre><code>fifth-&lt;version&gt;-&lt;runtime&gt;-&lt;framework&gt;.&lt;tar.gz|zip&gt;
+</code></pre>
+<p>For example: <code>fifth-0.9.0-linux-x64-net8.0.tar.gz</code></p>
+<hr />
+<h2 id="verify-your-download">Verify Your Download</h2>
+<p>Each release includes a <code>SHA256SUMS</code> file for checksum verification.</p>
+<h3 id="linux-gnu-coreutils">Linux (GNU coreutils)</h3>
+<pre><code class="language-bash">VERSION=0.9.0
+RUNTIME=linux-x64
+FRAMEWORK=net8.0
+
+curl -LO &quot;https://github.com/aabs/fifthlang/releases/download/v${VERSION}/fifth-${VERSION}-${RUNTIME}-${FRAMEWORK}.tar.gz&quot;
+curl -LO &quot;https://github.com/aabs/fifthlang/releases/download/v${VERSION}/SHA256SUMS&quot;
+
+sha256sum --ignore-missing -c SHA256SUMS
+</code></pre>
+<h3 id="macos-bsd-shasum">macOS (BSD shasum)</h3>
+<pre><code class="language-bash">VERSION=0.9.0
+RUNTIME=osx-x64
+FRAMEWORK=net8.0
+
+curl -LO &quot;https://github.com/aabs/fifthlang/releases/download/v${VERSION}/fifth-${VERSION}-${RUNTIME}-${FRAMEWORK}.tar.gz&quot;
+curl -LO &quot;https://github.com/aabs/fifthlang/releases/download/v${VERSION}/SHA256SUMS&quot;
+
+grep &quot;fifth-${VERSION}-${RUNTIME}-${FRAMEWORK}.tar.gz&quot; SHA256SUMS | shasum -a 256 -c -
+</code></pre>
+<h3 id="windows-powershell">Windows (PowerShell)</h3>
+<pre><code class="language-powershell">$version = &quot;0.9.0&quot;
+$runtime = &quot;win-x64&quot;
+$framework = &quot;net8.0&quot;
+
+Invoke-WebRequest -Uri &quot;https://github.com/aabs/fifthlang/releases/download/v$version/fifth-$version-$runtime-$framework.zip&quot; -OutFile &quot;fifth-$version-$runtime-$framework.zip&quot;
+Invoke-WebRequest -Uri &quot;https://github.com/aabs/fifthlang/releases/download/v$version/SHA256SUMS&quot; -OutFile &quot;SHA256SUMS&quot;
+
+# Compare the hashes
+Get-FileHash &quot;.\fifth-$version-$runtime-$framework.zip&quot; -Algorithm SHA256
+Get-Content .\SHA256SUMS | Select-String &quot;fifth-$version-$runtime-$framework.zip&quot;
+</code></pre>
+<p>Only proceed when the computed hash matches the line from <code>SHA256SUMS</code>.</p>
+<hr />
+<h2 id="install">Install</h2>
+<h3 id="linux-macos">Linux / macOS</h3>
+<pre><code class="language-bash">VERSION=0.9.0
+RUNTIME=linux-x64  # or osx-x64, osx-arm64, linux-arm64
+FRAMEWORK=net8.0
+
+# Create installation directory
+mkdir -p ~/opt/fifth/${VERSION}
+
+# Extract
+tar -xzf fifth-${VERSION}-${RUNTIME}-${FRAMEWORK}.tar.gz -C ~/opt/fifth/${VERSION}
+
+# Add to PATH (add this to your ~/.bashrc, ~/.zshrc, or ~/.config/fish/config.fish)
+export PATH=~/opt/fifth/${VERSION}/fifth-${VERSION}/bin:$PATH
+</code></pre>
+<h3 id="windows">Windows</h3>
+<pre><code class="language-powershell">$version = &quot;0.9.0&quot;
+$runtime = &quot;win-x64&quot;  # or win-arm64
+$framework = &quot;net8.0&quot;
+
+# Create installation directory
+New-Item -ItemType Directory -Force -Path &quot;$env:USERPROFILE\fifth\$version&quot; | Out-Null
+
+# Extract
+Expand-Archive -Force -Path &quot;.\fifth-$version-$runtime-$framework.zip&quot; -DestinationPath &quot;$env:USERPROFILE\fifth\$version&quot;
+</code></pre>
+<p>Add <code>%USERPROFILE%\fifth\&lt;version&gt;\fifth-&lt;version&gt;\bin</code> to your user PATH via <strong>System Properties &gt; Environment Variables</strong>, or use:</p>
+<pre><code class="language-powershell">$newPath = &quot;$env:USERPROFILE\fifth\$version\fifth-$version\bin&quot;
+[Environment]::SetEnvironmentVariable(&quot;PATH&quot;, &quot;$env:PATH;$newPath&quot;, &quot;User&quot;)
+</code></pre>
+<hr />
+<h2 id="archive-contents">Archive Contents</h2>
+<p>Each archive contains:</p>
 <pre><code>fifth-&lt;version&gt;/
   bin/
     fifth (or fifth.exe on Windows)
@@ -235,86 +326,51 @@
   README.md
   VERSION.txt
 </code></pre>
-<p><code>bin/fifth</code> exposes the same CLI that the repository refers to as <code>fifthc</code>; the binary has been renamed only to distinguish it from the dotnet project name inside the source tree.</p>
-<h2 id="download-verify-and-install">Download, Verify, and Install</h2>
-<ol>
-<li><strong>Download an archive and the checksum manifest</strong> (replace variables as needed):</li>
-</ol>
-<pre><code class="language-bash">VERSION=0.9.0-test
-RUNTIME=linux-x64
-FRAMEWORK=net8.0
-curl -LO &quot;https://github.com/aabs/fifthlang/releases/download/v${VERSION}/fifth-${VERSION}-${RUNTIME}-${FRAMEWORK}.tar.gz&quot;
-curl -LO &quot;https://github.com/aabs/fifthlang/releases/download/v${VERSION}/SHA256SUMS&quot;
+<p>The <code>bin/fifth</code> binary is the Fifth compiler. The <code>lib/</code> folder contains support libraries for IDE tooling and SDK integration.</p>
+<hr />
+<h2 id="verify-installation">Verify Installation</h2>
+<p>After installation, verify the compiler is working:</p>
+<pre><code class="language-bash">fifth --version
+fifth --help
 </code></pre>
-<p>-2. <strong>Verify the checksum</strong>:</p>
+<hr />
+<h2 id="build-from-source">Build from Source</h2>
+<p>If you prefer to build from source or need to work on the compiler itself:</p>
+<h3 id="prerequisites">Prerequisites</h3>
 <ul>
-<li>Linux/macOS (GNU coreutils installed):</li>
+<li><a href="https://dotnet.microsoft.com/download">.NET SDK 8.0+</a></li>
+<li>Java 17+ (for ANTLR grammar compilation)</li>
 </ul>
-<pre><code class="language-bash">sha256sum --ignore-missing -c SHA256SUMS
+<h3 id="build-steps">Build Steps</h3>
+<pre><code class="language-bash">git clone https://github.com/aabs/fifthlang.git
+cd fifthlang
+dotnet restore fifthlang.sln
+dotnet build fifthlang.sln
 </code></pre>
+<p>The build may take 1-2 minutes on first run. See <a href="https://github.com/aabs/fifthlang/blob/master/AGENTS.md">AGENTS.md</a> for detailed development instructions.</p>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="command-not-found-after-installation">"command not found" after installation</h3>
+<p>Ensure the <code>bin</code> directory is in your PATH and restart your terminal session.</p>
+<h3 id="permission-denied-linuxmacos">Permission denied (Linux/macOS)</h3>
+<p>Make the binary executable:</p>
+<pre><code class="language-bash">chmod +x ~/opt/fifth/${VERSION}/fifth-${VERSION}/bin/fifth
+</code></pre>
+<h3 id="windows-defender-smartscreen-warning">Windows Defender SmartScreen warning</h3>
+<p>The binaries are not code-signed. Click "More info" then "Run anyway" if you trust the download (verify the checksum first).</p>
+<hr />
+<h2 id="next-steps">Next Steps</h2>
 <ul>
-<li>macOS (BSD <code>shasum</code>):</li>
+<li><a href="../learn5thInYMinutes/">Learn Fifth in Y Minutes</a> — Quick language tour</li>
+<li><a href="../knowledge-graphs/">Knowledge Graphs Guide</a> — RDF/SPARQL features</li>
+<li><a href="examples/">Example Programs</a> — Real Fifth code</li>
 </ul>
-<pre><code class="language-bash">grep &quot;fifth-${VERSION}-${RUNTIME}-${FRAMEWORK}.tar.gz&quot; SHA256SUMS | shasum -a 256 -c -
-</code></pre>
-<ul>
-<li>Windows PowerShell:</li>
-</ul>
-<pre><code class="language-powershell">$version = &quot;0.9.0-test&quot;
-$runtime = &quot;win-x64&quot;
-$framework = &quot;net8.0&quot;
-Get-FileHash &quot;.\fifth-$version-$runtime-$framework.zip&quot; -Algorithm SHA256
-Get-Content .\SHA256SUMS | Select-String &quot;fifth-$version-$runtime-$framework.zip&quot;
-</code></pre>
-<p>Compare the computed hash to the line from <code>SHA256SUMS</code>. Only proceed when they match.</p>
-<ol>
-<li>
-<p><strong>Extract</strong>:</p>
-</li>
-<li>
-<p>Linux/macOS:</p>
-</li>
-</ol>
-<pre><code class="language-bash">mkdir -p ~/opt/fifth/${VERSION}
-tar -xzf fifth-${VERSION}-${RUNTIME}-${FRAMEWORK}.tar.gz -C ~/opt/fifth/${VERSION}
-</code></pre>
-<ul>
-<li>Windows:</li>
-</ul>
-<pre><code class="language-powershell">$version = &quot;0.9.0-test&quot;
-$runtime = &quot;win-x64&quot;
-$framework = &quot;net8.0&quot;
-New-Item -ItemType Directory -Force -Path &quot;$env:USERPROFILE\fifth\$version&quot; | Out-Null
-Expand-Archive -Force -Path &quot;.\fifth-$version-$runtime-$framework.zip&quot; -DestinationPath &quot;$env:USERPROFILE\fifth\$version&quot;
-</code></pre>
-<ol>
-<li><strong>Update <code>PATH</code> (optional but recommended)</strong>:</li>
-</ol>
-<pre><code class="language-bash">export PATH=~/opt/fifth/${VERSION}/fifth-${VERSION}/bin:$PATH
-</code></pre>
-<p>On Windows, add <code>%USERPROFILE%\fifth\&lt;version&gt;\fifth-&lt;version&gt;\bin</code> to the user PATH via the System Properties dialog or <code>setx</code>.</p>
-<h2 id="using-the-packaged-compiler">Using the Packaged Compiler</h2>
-<p>Once extracted, invoke the compiler directly from the <code>bin</code> directory:</p>
-<pre><code class="language-bash">fifth --source hello.5th --output hello.exe
-fifth --command run --source hello.5th --output hello.exe --args &quot;--name Ada&quot;
-fifth --command lint --source src/
-</code></pre>
-<p>Because the archives are self-contained, no additional .NET runtime is required to run the binary. For larger projects you may still point IDE tooling at the <code>lib/</code> folder by referencing its path in <code>FifthCompilerPath</code> entries inside your <code>csproj</code> files (see <code>src/Fifth.Sdk/README.md</code>).</p>
-<h2 id="expectations-for-early-releases">Expectations for Early Releases</h2>
-<ul>
-<li>The smoke tests exercise small programs only; they do not cover every runtime combination or large project scenario. Treat <code>net10.0</code> builds as preview-quality until the upstream SDK stabilizes.</li>
-<li>If a package fails to build for a given platform, the publish job will halt. In that situation the release will not appear; we re-tag only after fixing the underlying issue.</li>
-<li>Releases currently target desktop/server environments. Mobile or WASM outputs are out of scope for this workflow.</li>
-</ul>
-<h2 id="feedback">Feedback</h2>
-<p>If you hit issues downloading, verifying, or running each target, please open a GitHub issue with the platform, archive name, and the relevant log output. The Release Packaging workflow surfaces its metadata in the GitHub Actions logs, so referencing the failing run ID helps us reproduce problems quickly.</p>
-<p>This incremental pipeline gives us predictable, verifiable deliverables without overstating their scope. As we gather feedback, we will evaluate package-manager feeds, container images, and additional automation around tagging to make releases even smoother.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../2025-11-16%20Announcing%20Fifth%20Lang/" class="btn btn-neutral float-left" title="Announcing Fifth - A New Language For Knowledge Graphs"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../../Designs/5thproj-implementation-summary/" class="btn btn-neutral float-right" title=".5thproj MSBuild Project Type Implementation Summary">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../../Development/release-process/" class="btn btn-neutral float-left" title="Fifth Language Release Process"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../knowledge-graphs/" class="btn btn-neutral float-right" title="Knowledge Graphs in Fifth">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -337,10 +393,10 @@ fifth --command lint --source src/
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../2025-11-16%20Announcing%20Fifth%20Lang/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../../Development/release-process/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../../Designs/5thproj-implementation-summary/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../knowledge-graphs/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

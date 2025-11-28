@@ -1,3 +1,11 @@
+---
+title: Announcing Graph Assertion Blocks in Fifth
+summary: Graph Assertion Blocks (<{ ... }>) are a new Fifth language construct that lets ordinary code produce knowledge graph facts automatically, with support for both statement-form (auto-persist to default store) and expression-form (explicit control over when and where to persist).
+authors:
+    - Andrew Matthews
+date: 2025-06-16
+---
+
 # Announcing Graph Assertion Blocks in Fifth
 
 Today we’re excited to announce Graph Assertion Blocks — a new, first-class construct in Fifth that lets your ordinary code produce knowledge graph facts with zero boilerplate. Wherever you can use a regular block, you can now write a Graph Assertion Block delimited by `<{` and `}>`. While the block runs, mutations to assertable objects are accumulated as assertions; on completion, you either get a graph value you can assign or persist, or, when used as a standalone statement, those assertions are written to the default knowledge graph.
@@ -8,7 +16,9 @@ TL;DR
 - As an expression: yields a graph value; persist it explicitly with `store += graphValue` or assign it to a graph variable.
 - Nested blocks, deterministic scoping, set semantics, and clear exception behavior.
 
----
+# **UPDATE**:
+
+GABs have been discontinued.  Felt like a bad idea compared to providing a set of RDF and SPARQL literals and operators.
 
 ## What’s New
 

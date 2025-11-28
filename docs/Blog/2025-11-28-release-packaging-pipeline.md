@@ -1,3 +1,10 @@
+---
+title: A New Release Pipeline for Fifth
+summary: This post describes Fifth's new GitHub Actions release pipeline that builds self-contained compiler binaries across Linux, macOS, and Windows for both .NET 8.0 and .NET 10.0, complete with checksums and smoke tests to ensure every download works out of the box.
+authors:
+    - Andrew Matthews
+date: 2025-11-25
+---
 # A Practical Release Pipeline for Fifth
 
 We recently finished the Release Packaging workflow for the Fifth compiler. This post walks through what the pipeline does, which platforms it targets, the guarantees it makes, and how to install the new artifacts without surprises.

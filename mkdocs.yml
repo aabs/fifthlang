@@ -1,2 +1,8 @@
 site_name: The Fifth Programming Language
 site_url: https://fifth-lang.org
+theme:
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - rust

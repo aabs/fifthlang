@@ -33,7 +33,7 @@ Options:
 
 ## Language Features
 
-Fifth uniquely combines imperative programming with first-class RDF and SPARQL support.  Mostly, it's a lot like C#, but it takes the syntax for Function overloading, Destructuring, and nested Guard Clauses from languages like Erlang.  For a tour of the language, take a look at the [Learn X=5th in Y Minutes Guide](https://raw.githubusercontent.com/aabs/fifthlang/refs/heads/master/learn5thInYMinutes.md).  
+Fifth uniquely combines imperative programming with first-class RDF and SPARQL support.  Mostly, it's a lot like C#, but it takes the syntax for Function overloading, Destructuring, and nested Guard Clauses from languages like Erlang.  For a tour of the language, take a look at the [Learn X=5th in Y Minutes Guide](https://raw.githubusercontent.com/aabs/fifthlang/refs/heads/master/docs/Getting-Started/learn5thInYMinutes.md).  
 
 ### Basic Language Features
 - Classes with methods and properties
@@ -79,20 +79,27 @@ See our [architectural roadmap](Planning/architecture-review/NEXT-STEPS.md) for 
 
 Full analysis available in [architectural review](Planning/architecture-review/architectural-review-2025.md).
 
-## Quick Start
+## Installation
 
-### Prerequisites
-- .NET SDK 8.0+ ([download](https://dotnet.microsoft.com/download))
+Fifth provides pre-built, self-contained binaries for Linux, macOS, and Windows — no additional .NET runtime required.
 
-### Installation
+**[→ Full Installation Guide](Getting-Started/installation.md)**
 
-Download the latest release from the [releases page](https://github.com/aabs/fifthlang/releases) or build from source:
+Quick download:
+1. Get the latest release from [GitHub Releases](https://github.com/aabs/fifthlang/releases)
+2. Verify the checksum against `SHA256SUMS`
+3. Extract and add `bin/` to your PATH
 
+Or build from source:
 ```bash
 git clone https://github.com/aabs/fifthlang.git
 cd fifthlang
 dotnet build fifthlang.sln
 ```
+
+---
+
+## Quick Start
 
 ### Your First Fifth Program
 
@@ -198,6 +205,7 @@ See [roadmap details](Planning/architecture-review/NEXT-STEPS.md) and [issue tem
 ## Documentation
 
 ### Getting Started
+- [Installation Guide](Getting-Started/installation.md) - Download and install Fifth
 - [Learn Fifth in Y Minutes](Getting-Started/learn5thInYMinutes.md) - Quick language tour
 - [Knowledge Graphs Guide](Getting-Started/knowledge-graphs.md) - RDF/SPARQL features
 - [Example Programs](examples/) - Real Fifth code
