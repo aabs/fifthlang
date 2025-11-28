@@ -154,7 +154,11 @@ See [Fifth.Sdk documentation](src/Fifth.Sdk/README.md) for more details.
 ---
 
 ## Roadmap
+- Introduction of Dataset and separation of datasets and stores.
+- Graph/Dataset Destructuring Into Object Instances
 - SPARQL integration into List Comprehensions. ([ideas](https://github.com/aabs/fifthlang/wiki/List-Comprehension-Syntax))
+- MSBUILD SDK Support for full Visual Studio integration with Project Templates published via Nuget.
+- Inference Support
 
 ### Recently Completed
 - Multi-platform release pipeline (spec 014)
