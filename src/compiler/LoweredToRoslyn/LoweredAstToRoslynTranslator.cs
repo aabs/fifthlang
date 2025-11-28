@@ -1524,7 +1524,9 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             "Boolean" => "bool",
             "datetime" => "System.DateTimeOffset",
             "graph" => "VDS.RDF.IGraph",
-            "triple" => "VDS.RDF.Triple",
+            "triple" => "Fifth.System.Triple",
+            "store" => "Fifth.System.Store",
+            "Store" => "Fifth.System.Store",
             "void" => "void",
             "var" => "var",
             _ => fifthTypeName // Keep custom types as-is

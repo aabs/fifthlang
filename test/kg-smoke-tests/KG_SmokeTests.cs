@@ -33,10 +33,12 @@ public class KG_SmokeTests
         var result = await compiler.CompileAsync(options);
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
 
-        File.Exists(outPath).Should().BeTrue();
+        // Compiler always outputs .dll files (cross-platform)
+        var dllPath = Path.ChangeExtension(outPath, ".dll");
+        File.Exists(dllPath).Should().BeTrue();
 
         // Generate runtimeconfig.json to run with 'dotnet'
-        var runtimeConfigPath = Path.ChangeExtension(outPath, ".runtimeconfig.json");
+        var runtimeConfigPath = Path.ChangeExtension(dllPath, ".runtimeconfig.json");
         var runtimeConfigJson = """
                 {
                     "runtimeOptions": {
@@ -50,7 +52,7 @@ public class KG_SmokeTests
                 """;
         await File.WriteAllTextAsync(runtimeConfigPath, runtimeConfigJson);
 
-        // Copy dependencies next to the exe (Fifth.System and dotNetRDF)
+        // Copy dependencies next to the dll (Fifth.System and dotNetRDF)
         // Resolve repo root (where fifthlang.sln lives)
         static string FindRepoRoot()
         {
@@ -73,7 +75,7 @@ public class KG_SmokeTests
         {
             foreach (var dll in Directory.EnumerateFiles(systemBin, "*.dll"))
             {
-                var dest = Path.Combine(Path.GetDirectoryName(outPath)!, Path.GetFileName(dll));
+                var dest = Path.Combine(Path.GetDirectoryName(dllPath)!, Path.GetFileName(dll));
                 try { File.Copy(dll, dest, overwrite: true); } catch { /* ignore */ }
             }
         }
@@ -84,12 +86,12 @@ public class KG_SmokeTests
         var psi = new System.Diagnostics.ProcessStartInfo
         {
             FileName = "dotnet",
-            Arguments = $"exec --depsfile \"{systemDeps}\" --runtimeconfig \"{runtimeConfigPath}\" --additionalprobingpath \"{nugetCache}\" \"{outPath}\"",
+            Arguments = $"exec --depsfile \"{systemDeps}\" --runtimeconfig \"{runtimeConfigPath}\" --additionalprobingpath \"{nugetCache}\" \"{dllPath}\"",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true,
-            WorkingDirectory = Path.GetDirectoryName(outPath)!
+            WorkingDirectory = Path.GetDirectoryName(dllPath)!
         };
         using var p = System.Diagnostics.Process.Start(psi)!;
         var stdOut = await p.StandardOutput.ReadToEndAsync();
@@ -125,7 +127,9 @@ public class KG_SmokeTests
         var result = await compiler.CompileAsync(options);
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
 
-        File.Exists(outPath).Should().BeTrue();
+        // Compiler always outputs .dll files (cross-platform)
+        var dllPath = Path.ChangeExtension(outPath, ".dll");
+        File.Exists(dllPath).Should().BeTrue();
     }
 
     [Fact]
@@ -155,7 +159,9 @@ public class KG_SmokeTests
         var result = await compiler.CompileAsync(options);
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
 
-        File.Exists(outPath).Should().BeTrue();
+        // Compiler always outputs .dll files (cross-platform)
+        var dllPath = Path.ChangeExtension(outPath, ".dll");
+        File.Exists(dllPath).Should().BeTrue();
     }
 
     [Fact]
@@ -185,7 +191,9 @@ public class KG_SmokeTests
         var result = await compiler.CompileAsync(options);
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
 
-        File.Exists(outPath).Should().BeTrue();
+        // Compiler always outputs .dll files (cross-platform)
+        var dllPath = Path.ChangeExtension(outPath, ".dll");
+        File.Exists(dllPath).Should().BeTrue();
     }
 
     [Fact]
@@ -215,7 +223,9 @@ public class KG_SmokeTests
         var result = await compiler.CompileAsync(options);
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
 
-        File.Exists(outPath).Should().BeTrue();
+        // Compiler always outputs .dll files (cross-platform)
+        var dllPath = Path.ChangeExtension(outPath, ".dll");
+        File.Exists(dllPath).Should().BeTrue();
     }
 
     [Fact]
@@ -252,6 +262,8 @@ public class KG_SmokeTests
         var result = await compiler.CompileAsync(options);
         result.Success.Should().BeTrue($"Compilation should succeed. Diagnostics:\n{string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"))}");
 
-        File.Exists(outPath).Should().BeTrue();
+        // Compiler always outputs .dll files (cross-platform)
+        var dllPath = Path.ChangeExtension(outPath, ".dll");
+        File.Exists(dllPath).Should().BeTrue();
     }
 }
