@@ -2,130 +2,130 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://fifth-lang.org/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Blog/2025-09-16-graph-assertion-block/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Blog/2025-11-16%20Announcing%20Fifth%20Lang/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Blog/2025-11-28-release-packaging-pipeline/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/5thproj-implementation-summary/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/fifth-sdk-readme/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/misc/AST_REWRITER_DESIGN/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/misc/debugging/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/misc/destructuring-lowering-migration/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/misc/generics-implementation-summary/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/misc/migration-exception-handling/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/misc/namespace-import-directives-research/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/misc/syntax-samples-readme/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/misc/syntax-testcases-bulleted/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/misc/syntax-testplan/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/misc/triple-diagnostics-refactor/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/misc/vscode-devkit-tests/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Designs/perf/baselines/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Development/release-process/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Getting-Started/installation/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Getting-Started/knowledge-graphs/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Getting-Started/learn5thInYMinutes/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Planning/architecture-review/NEXT-STEPS/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Planning/architecture-review/architectural-review-2025/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Planning/architecture-review/arch-review-issues/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Planning/architecture-review/arch-review-issues/ISSUE-001-error-recovery/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Planning/architecture-review/arch-review-issues/ISSUE-002-lsp-implementation/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Planning/architecture-review/arch-review-issues/ISSUE-003-incremental-compilation/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Planning/architecture-review/arch-review-issues/ISSUE-004-diagnostic-system/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Planning/architecture-review/arch-review-issues/ISSUE-005-composable-pipeline/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Planning/architecture-review/arch-review-issues/ISSUE-006-symbol-table/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
     <url>
          <loc>https://fifth-lang.org/Planning/architecture-review/arch-review-issues/ISSUE-007-testing-architecture/</loc>
-         <lastmod>2025-11-28</lastmod>
+         <lastmod>2025-11-29</lastmod>
     </url>
 </urlset>
