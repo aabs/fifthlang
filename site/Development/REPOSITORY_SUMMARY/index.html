@@ -3,18 +3,18 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://fifth-lang.org/Development/release-process/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://fifth-lang.org/Development/REPOSITORY_SUMMARY/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Fifth Language Release Process - The Fifth Programming Language</title>
+    <title>Repository Analysis: Fifth Language (fifthlang) - The Fifth Programming Language</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Fifth Language Release Process";
-        var mkdocs_page_input_path = "Development\\release-process.md";
-        var mkdocs_page_url = "/Development/release-process/";
+        var mkdocs_page_name = "Repository Analysis: Fifth Language (fifthlang)";
+        var mkdocs_page_input_path = "Development\\REPOSITORY_SUMMARY.md";
+        var mkdocs_page_url = "/Development/REPOSITORY_SUMMARY/";
       </script>
     
     <!--[if lt IE 9]>
@@ -97,25 +97,49 @@
               </ul>
               <p class="caption"><span class="caption-text">Development</span></p>
               <ul class="current">
-                  <li class="toctree-l1"><a class="reference internal" href="../REPOSITORY_SUMMARY/">Repository Analysis: Fifth Language (fifthlang)</a>
-                  </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Fifth Language Release Process</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Repository Analysis: Fifth Language (fifthlang)</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#triggers">Triggers</a>
+    <li class="toctree-l2"><a class="reference internal" href="#architecture">Architecture</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#compilation-pipeline">Compilation Pipeline</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a>
+    <li class="toctree-l3"><a class="reference internal" href="#transformation-phases">Transformation Phases</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#standard-release-procedure">Standard Release Procedure</a>
+        </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#manual-dispatch-workflow">Manual Dispatch Workflow</a>
+    <li class="toctree-l2"><a class="reference internal" href="#key-components">Key Components</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#srcparser">src/parser/</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#failure-recovery">Failure Recovery</a>
+    <li class="toctree-l3"><a class="reference internal" href="#srcast-model">src/ast-model/</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#addendum-opportunities-to-streamline-releases">Addendum: Opportunities to Streamline Releases</a>
+    <li class="toctree-l3"><a class="reference internal" href="#srcast-generated">src/ast-generated/</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#srcast_generator">src/ast_generator/</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#srccompiler">src/compiler/</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#srcfifthlangsystem">src/fifthlang.system/</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#srcfifthsdk">src/Fifth.Sdk/</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#technologies-used">Technologies Used</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#data-flow">Data Flow</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#team-and-ownership">Team and Ownership</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#repository-statistics">Repository Statistics</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#project-status">Project Status</a>
     </li>
     </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release-process/">Fifth Language Release Process</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Getting Started</span></p>
@@ -173,7 +197,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">Development</li>
-      <li class="breadcrumb-item active">Fifth Language Release Process</li>
+      <li class="breadcrumb-item active">Repository Analysis: Fifth Language (fifthlang)</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -182,118 +206,202 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="fifth-language-release-process">Fifth Language Release Process</h1>
-<p>This document explains how we create official Fifth Compiler releases, what triggers the Release Packaging workflow, and how to keep the process predictable. It reflects the current automation defined in <code>.github/workflows/release.yml</code>.</p>
+                <h1 id="repository-analysis-fifth-language-fifthlang">Repository Analysis: Fifth Language (fifthlang)</h1>
 <h2 id="overview">Overview</h2>
-<p>All release artifacts (platform-specific archives, metadata bundles, and checksum manifests) are produced by the <strong>Release Packaging</strong> GitHub Actions workflow. The workflow builds across Linux, macOS, and Windows with both .NET 8.0 and .NET 10.0 targets, validates the bundles via smoke tests, assembles metadata, and finally publishes a GitHub release with the generated archives and <code>SHA256SUMS</code> file.</p>
-<h2 id="triggers">Triggers</h2>
+<p>Fifth is an experimental .NET programming language that uniquely bridges imperative systems programming with native knowledge graph and semantic web capabilities. The language provides first-class support for RDF triples, SPARQL queries, and graph operations while maintaining familiar C#-like syntax enhanced with Erlang-inspired function overloading and pattern matching.</p>
+<p>The compiler is written in C# targeting .NET 8.0, using ANTLR 4.8 for parsing, and Roslyn for IL code generation. The project is in active pre-release development, with a comprehensive test suite and multi-platform release pipeline.</p>
+<h2 id="architecture">Architecture</h2>
+<h3 id="compilation-pipeline">Compilation Pipeline</h3>
+<p>Fifth follows a multi-pass compilation architecture:</p>
+<pre><code>Source (.5th) → Lexer → Parser → Parse Tree → AST Builder → High-Level AST
+                                                                ↓
+                                              Language Transformations (18+ passes)
+                                                                ↓
+                                                          Lowered AST
+                                                                ↓
+                                                    IL Transformation
+                                                                ↓
+                                              Roslyn Code Generation → .NET Assembly
+</code></pre>
+<h3 id="transformation-phases">Transformation Phases</h3>
+<p>The compiler implements a sophisticated lowering pipeline with dedicated visitors/rewriters:</p>
+<ol>
+<li><strong>Tree Linkage</strong> - Establishes parent-child AST relationships</li>
+<li><strong>Builtin Injection</strong> - Injects built-in function definitions</li>
+<li><strong>Constructor Insertion</strong> - Adds default constructors where needed</li>
+<li><strong>Symbol Table Building</strong> - Constructs scoping information</li>
+<li><strong>Property Expansion</strong> - Transforms property syntax to field access</li>
+<li><strong>Overload Gathering/Transforming</strong> - Handles function overloading with guards</li>
+<li><strong>Destructuring</strong> - Processes pattern matching and destructuring</li>
+<li><strong>Type Annotation</strong> - Performs type inference and annotation</li>
+<li><strong>SPARQL/TriG Lowering</strong> - Transforms graph literals and queries</li>
+<li><strong>Query Application</strong> - Handles SPARQL query execution semantics</li>
+<li><strong>Unary/Augmented Assignment Lowering</strong> - Operator desugaring</li>
+</ol>
+<h2 id="key-components">Key Components</h2>
+<h3 id="srcparser"><code>src/parser/</code></h3>
+<p>ANTLR-based lexer and parser with split grammar design:
+- <code>FifthLexer.g4</code> - Token definitions, keywords, literals
+- <code>FifthParser.g4</code> - Syntactic grammar rules
+- <code>AstBuilderVisitor.cs</code> - Transforms parse tree to high-level AST</p>
+<h3 id="srcast-model"><code>src/ast-model/</code></h3>
+<p>Core AST definitions using discriminated unions (Dunet):
+- <code>AstMetamodel.cs</code> - High-level AST node definitions
+- <code>ILMetamodel.cs</code> - IL-level AST for code generation</p>
+<h3 id="srcast-generated"><code>src/ast-generated/</code></h3>
+<p>Auto-generated code from the AST generator (never edit manually):
+- <code>builders.generated.cs</code> - Builder pattern classes
+- <code>visitors.generated.cs</code> - Visitor pattern implementations
+- <code>rewriter.generated.cs</code> - AST rewriter infrastructure
+- <code>typeinference.generated.cs</code> - Type inference support</p>
+<h3 id="srcast_generator"><code>src/ast_generator/</code></h3>
+<p>Code generator that produces AST infrastructure from metamodel definitions. Uses RazorLight for template-based code generation.</p>
+<h3 id="srccompiler"><code>src/compiler/</code></h3>
+<p>Main compiler orchestration and transformation pipeline:
+- <code>ParserManager.cs</code> - Orchestrates compilation phases
+- <code>Compiler.cs</code> - Entry point and CLI
+- <code>LanguageTransformations/</code> - 32 transformation visitors/rewriters
+- <code>LoweredToRoslyn/</code> - Roslyn code generation translator</p>
+<h3 id="srcfifthlangsystem"><code>src/fifthlang.system/</code></h3>
+<p>Runtime library providing knowledge graph operations:
+- <code>KnowledgeGraphs.cs</code> - Graph, Triple, Store, Query wrappers
+- Integration with dotNetRDF for RDF/SPARQL support</p>
+<h3 id="srcfifthsdk"><code>src/Fifth.Sdk/</code></h3>
+<p>MSBuild SDK for <code>.5thproj</code> project file support, enabling dotnet CLI integration.</p>
+<h2 id="technologies-used">Technologies Used</h2>
 <table>
 <thead>
 <tr>
-<th>Trigger</th>
-<th>When to use</th>
-<th>Effect</th>
+<th>Category</th>
+<th>Technologies</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Tag push</strong></td>
-<td>Push a tag matching <code>vX.Y.Z</code> or <code>vX.Y.Z-qualifier</code> (e.g., <code>v1.4.0</code>, <code>v1.4.1-beta1</code>) to any branch</td>
-<td>Starts Release Packaging using that commit. This is the normal production release path.</td>
+<td><strong>Language</strong></td>
+<td>C# 14, .NET 8.0</td>
 </tr>
 <tr>
-<td><strong>Manual dispatch</strong></td>
-<td>Use the <em>Run workflow</em> button in GitHub, supply <code>version</code> and optional <code>dry_run</code></td>
-<td>Builds artifacts for the provided version. If <code>dry_run=true</code>, packages and checksums are produced but the GitHub release step is skipped. Useful for rehearsals.</td>
+<td><strong>Parsing</strong></td>
+<td>ANTLR 4.8 (split lexer/parser grammar)</td>
+</tr>
+<tr>
+<td><strong>Code Generation</strong></td>
+<td>Roslyn (Microsoft.CodeAnalysis)</td>
+</tr>
+<tr>
+<td><strong>RDF/SPARQL</strong></td>
+<td>dotNetRDF</td>
+</tr>
+<tr>
+<td><strong>Testing</strong></td>
+<td>xUnit, FluentAssertions</td>
+</tr>
+<tr>
+<td><strong>Code Gen Templates</strong></td>
+<td>RazorLight</td>
+</tr>
+<tr>
+<td><strong>Discriminated Unions</strong></td>
+<td>Dunet</td>
+</tr>
+<tr>
+<td><strong>Value Objects</strong></td>
+<td>Vogen</td>
+</tr>
+<tr>
+<td><strong>Build</strong></td>
+<td>MSBuild, just (Justfile)</td>
+</tr>
+<tr>
+<td><strong>CI/CD</strong></td>
+<td>GitHub Actions</td>
 </tr>
 </tbody>
 </table>
-<h2 id="prerequisites">Prerequisites</h2>
-<ol>
-<li><strong>Clean repository</strong>: <code>scripts/release/version-info.sh</code> aborts when uncommitted changes are present unless <code>--allow-dirty</code> is passed. Keep the tree clean before tagging.</li>
-<li><strong>Passing CI</strong>: Ensure <code>dotnet build fifthlang.sln</code> and the full <code>dotnet test fifthlang.sln</code> suite complete successfully on the target branch.</li>
-<li><strong>Version agreement</strong>: Decide the semantic version (e.g., <code>1.5.0</code> or <code>1.5.0-rc1</code>). The workflow infers the version from the pushed tag, so double-check spelling before publishing.</li>
-<li><strong>Repository permissions</strong>: Only maintainers with push access to tags can trigger production releases. GitHub automatically supplies a <code>GITHUB_TOKEN</code> with <code>contents: write</code>, enabling <code>softprops/action-gh-release</code> to publish.</li>
-</ol>
-<h2 id="standard-release-procedure">Standard Release Procedure</h2>
-<ol>
-<li><strong>Stabilize the branch</strong></li>
-<li>Merge the desired changes into <code>master</code> (or a dedicated release branch) and make sure CI passes.</li>
-<li>
-<p>Run <code>just build-all</code> (or <code>dotnet build fifthlang.sln</code>) locally for a final sanity check.</p>
-</li>
-<li>
-<p><strong>Create and push the tag</strong></p>
-</li>
-<li>Choose the version identifier and create an annotated tag: <code>git tag -a v1.5.0 -m "Fifth 1.5.0"</code>.</li>
-<li>Push the tag (and any supporting branch): <code>git push origin v1.5.0</code>.</li>
-<li>
-<p>Tag pushes automatically enqueue the Release Packaging workflow.</p>
-</li>
-<li>
-<p><strong>Monitor the workflow</strong></p>
-</li>
-<li>
-<p>Track the workflow run in GitHub Actions. Key stages:</p>
+<h2 id="data-flow">Data Flow</h2>
+<pre><code>Fifth Source Code (.5th)
+        ↓
+    ANTLR Lexer
+        ↓ tokens
+    ANTLR Parser
+        ↓ parse tree
+  AstBuilderVisitor
+        ↓ High-Level AST
+Language Transformation Pipeline (18+ passes)
+        ↓ Lowered AST
+ IL Transformation
+        ↓ IL-Level AST
+LoweredAstToRoslynTranslator
+        ↓ Roslyn SyntaxTree
+    Roslyn Compilation
+        ↓
+  .NET Assembly (.dll/.exe)
+</code></pre>
+<h2 id="team-and-ownership">Team and Ownership</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Primary Maintainer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Language Design</td>
+<td>Andrew Matthews</td>
+</tr>
+<tr>
+<td>Compiler Core</td>
+<td>Andrew Matthews</td>
+</tr>
+<tr>
+<td>Knowledge Graph Integration</td>
+<td>Andrew Matthews</td>
+</tr>
+<tr>
+<td>CI/CD &amp; Release Pipeline</td>
+<td>Andrew Matthews</td>
+</tr>
+<tr>
+<td>AI-Assisted Development</td>
+<td>copilot-swe-agent[bot]</td>
+</tr>
+</tbody>
+</table>
+<p>The project demonstrates a novel human-AI collaboration model, with GitHub Copilot's coding agent contributing approximately 44% of commits since August 2025, primarily implementing features from detailed specifications written by the human maintainer.</p>
+<h2 id="repository-statistics">Repository Statistics</h2>
 <ul>
-<li><strong>Build matrix</strong>: Each OS/runtime combination produces an archive and metadata JSON.</li>
-<li><strong>Verification</strong>: <code>scripts/test/smoke-test.sh</code> validates the packaged compiler.</li>
-<li><strong>Publish job</strong>: Aggregates metadata, verifies coverage (6 net8 + 6 net10 packages expected), generates <code>SHA256SUMS</code>, composes release notes, and runs <code>softprops/action-gh-release</code>.</li>
+<li><strong>Total Commits</strong>: 811</li>
+<li><strong>Project Start</strong>: September 21, 2024</li>
+<li><strong>Completed Specifications</strong>: 14 features</li>
+<li><strong>Language Transformations</strong>: 32 visitors/rewriters</li>
+<li><strong>Test Projects</strong>: 8</li>
+<li><strong>Supported Platforms</strong>: Linux, macOS, Windows (x64, arm64)</li>
+<li><strong>Target Runtimes</strong>: .NET 8.0, .NET 10.0 (preview)</li>
 </ul>
-</li>
-<li>
-<p><strong>Validate the published release</strong></p>
-</li>
-<li>Confirm the GitHub release page lists all <code>.tar.gz</code>/<code>.zip</code> artifacts and <code>SHA256SUMS</code>.</li>
-<li>
-<p>Optionally download a package and verify <code>shasum -c SHA256SUMS</code> to ensure integrity.</p>
-</li>
-<li>
-<p><strong>Announce</strong> (optional)</p>
-</li>
-<li>Update documentation, changelogs, or blog posts referencing the new version.</li>
-</ol>
-<h2 id="manual-dispatch-workflow">Manual Dispatch Workflow</h2>
-<p>When running the workflow manually (e.g., for a rehearsal):</p>
-<ol>
-<li>Navigate to <em>Actions → Release Packaging → Run workflow</em>.</li>
-<li>Supply the <code>version</code> input (e.g., <code>1.5.0-rc1</code>) and toggle <code>dry_run</code> if you want to skip publishing.</li>
-<li>The workflow builds exactly like the tag-triggered path but relies on the provided version string.</li>
-<li>Review the artifacts in the run summary or download them from the workflow’s artifacts section.</li>
-</ol>
-<h2 id="failure-recovery">Failure Recovery</h2>
-<ul>
-<li><strong>Package Build Failures</strong>: Fix the underlying issue (missing SDK, smoke test failure, etc.), push a new commit, re-tag (e.g., delete and recreate <code>v1.5.0</code>), and force-push the tag.</li>
-<li><strong>Publish Failures</strong>: Most publication issues stem from missing permissions or invalid release notes. After fixing the workflow, re-push the tag to rerun publishing (GitHub will overwrite the existing draft release).</li>
-<li><strong>Checksum Issues</strong>: If <code>SHA256SUMS</code> generation fails, inspect <code>scripts/build/generate-checksums.sh</code>. Once fixed, rerun the publish job by deleting/recreating the tag.</li>
-</ul>
-<h2 id="addendum-opportunities-to-streamline-releases">Addendum: Opportunities to Streamline Releases</h2>
-<ol>
-<li><strong><code>just</code> Helpers</strong></li>
-<li>Add recipes such as <code>just prepare-release VERSION=1.5.0</code> to run tests, check cleanliness, create the tag, and push it. This reduces manual steps and encodes best practices.</li>
-<li>
-<p>Another recipe (<code>just dry-run-release VERSION=1.5.0-rc1</code>) could trigger the workflow dispatch via GitHub CLI with <code>dry_run=true</code> for rehearsals.</p>
-</li>
-<li>
-<p><strong>GitFlow-style Branching</strong></p>
-</li>
-<li>Adopt <code>release/x.y.z</code> branches to stage fixes separate from <code>master</code>. When ready, finish the branch by tagging <code>vX.Y.Z</code> and merging back into both <code>master</code> and <code>develop</code>. This keeps stabilization work isolated and makes it easier to produce hotfixes.</li>
-<li>
-<p>GitFlow also clarifies responsibility: only changes merged into the release branch flow into the release, minimizing accidental scope creep.</p>
-</li>
-<li>
-<p><strong>Automated Tag Validation</strong></p>
-</li>
-<li>Extend the Justfile or a pre-push hook to validate that <code>git status</code> is clean and that <code>scripts/release/version-info.sh --format text</code> matches the intended version before allowing the tag push.</li>
-<li>Optionally script a <code>just release VERSION=1.5.0</code> command that wraps: calculcating changelog entries, creating the tag, pushing branch/tag, and opening the release page for verification.</li>
-</ol>
-<p>Implementing one or more of these ideas will reduce human error, keep the process repeatable, and free maintainers from rote tagging chores.</p>
+<h2 id="project-status">Project Status</h2>
+<p><strong>Stage</strong>: Active Development | Experimental | Pre-release</p>
+<p>The language is functional for basic programs and knowledge graph operations. Key completed features include:
+- Full .NET IL compilation via Roslyn backend
+- Exception handling (try/catch/finally)
+- Generics support
+- Constructor functions
+- TriG literal expressions for graph data
+- SPARQL literal expressions for queries
+- Query application with result types
+- Multi-platform release packaging</p>
+<p><strong>Roadmap priorities</strong>:
+- Language Server Protocol (LSP) support
+- Parser error recovery for IDE integration
+- Incremental compilation
+- Package manager feeds (NuGet)</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../REPOSITORY_SUMMARY/" class="btn btn-neutral float-left" title="Repository Analysis: Fifth Language (fifthlang)"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../../Getting-Started/installation/" class="btn btn-neutral float-right" title="Installation">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../../Designs/perf/baselines/" class="btn btn-neutral float-left" title="Baselines"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../release-process/" class="btn btn-neutral float-right" title="Fifth Language Release Process">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -316,10 +424,10 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../REPOSITORY_SUMMARY/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../../Designs/perf/baselines/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../../Getting-Started/installation/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../release-process/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
