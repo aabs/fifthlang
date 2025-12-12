@@ -35,3 +35,4 @@
   - Generator is a tabular SELECT result.
   - Projection/constraint referencing rules must be consistent and unambiguous.
   - Breaking change to existing comprehensions requires release-note documentation.
+  - Existing general list comprehensions remain supported; only keywords change (`in`→`from`, such-that→`where`), and SPARQL comprehensions are an alternate form.

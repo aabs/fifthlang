@@ -97,12 +97,15 @@ As a Fifth developer, I want clear, actionable compilation errors when a SPARQL 
 - **FR-010**: If a projection or constraint references a target property that does not exist on the projected type, compilation MUST fail with an error identifying the unknown property.
 - **FR-011**: If the source result contains no matching rows, the comprehension MUST evaluate to an empty list of the projected type.
 - **FR-012**: Any breaking change to existing comprehension syntax MUST be documented as part of the release notes for the version that introduces this feature.
+- **FR-013**: The existing (general) list comprehension capability MUST be preserved with equivalent behavior, but with keyword updates: `in` is replaced by `from`, and the existing “such-that” filter marker is replaced by `where`.
+- **FR-014**: The general list comprehension form and the SPARQL Comprehension form MUST be supported as alternate forms of the list comprehension feature.
 
 ### Assumptions & Dependencies
 
 - A “tabular result” is defined as the output of a SPARQL SELECT query.
 - Users will provide projected types whose properties can be assigned from the available result bindings.
 - The language will define a single, consistent way to reference projected values inside constraint expressions.
+- Comprehensions will continue to exist for non-SPARQL sources; SPARQL Comprehensions extend (rather than replace) comprehension usage.
 
 ### Key Entities *(include if feature involves data)*
 
