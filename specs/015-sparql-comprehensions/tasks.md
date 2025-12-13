@@ -44,8 +44,8 @@
 - [x] T018 [P] [US2] Add parser test for multiple constraints in `test/syntax-parser-tests/SyntaxParserTests.cs`
 - [ ] T019 [US2] Enforce boolean constraint typing in `src/compiler/LanguageTransformations/SparqlComprehensionValidationVisitor.cs` (extend T011 implementation)
 - [x] T020 [US2] Implement constraint evaluation in `src/compiler/LanguageTransformations/ListComprehensionLoweringRewriter.cs` (extend T014 implementation) (Documented in lowering pass - full runtime support pending)
-- [ ] T021 [US2] Add runtime integration `.5th` sample demonstrating constraints filter rows in `test/runtime-integration-tests/TestPrograms/Comprehensions/sparql-constraints.5th`
-- [ ] T022 [US2] Add runtime integration test to compile+run the sample and assert filtered output in `test/runtime-integration-tests/ComprehensionRuntimeTests.cs`
+- [x] T021 [US2] Add runtime integration `.5th` sample demonstrating constraints filter rows in `test/runtime-integration-tests/TestPrograms/Comprehensions/constraints-filter.5th`
+- [x] T022 [US2] Add runtime integration test to compile+run the sample and assert filtered output in `test/runtime-integration-tests/ComprehensionRuntimeTests.cs`
 
 ## Phase 5: User Story 3 (P3) — Clear errors for invalid comprehensions
 
