@@ -106,8 +106,9 @@ public static class SparqlSelectIntrospection
                 else if (query.Variables != null)
                 {
                     // Extract variable names (remove ? prefix)
+                    // query.Variables contains SparqlVariable objects - convert to strings
                     projectedVars = query.Variables
-                        .Select(v => v.TrimStart('?', '$'))
+                        .Select(v => v.ToString().TrimStart(new[] { '?', '$' }))
                         .ToList();
                 }
             }
@@ -128,7 +129,7 @@ public static class SparqlSelectIntrospection
                 ErrorMessage = $"Failed to parse SPARQL query: {ex.Message}"
             };
         }
-        catch (Exception ex)
+        catch (System.Exception ex)
         {
             return new IntrospectionResult
             {

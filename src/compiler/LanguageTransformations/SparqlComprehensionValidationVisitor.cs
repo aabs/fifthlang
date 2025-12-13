@@ -85,8 +85,8 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
             FifthType.TType t => t.Name.ToString().StartsWith("List<") || 
                                   t.Name.ToString() == "List" ||
                                   t.Name.ToString() == "Result", // Tabular SELECT result
-            FifthType.TGenericType gt => gt.Generic.ToString().StartsWith("List") ||
-                                           gt.Generic.ToString() == "Result",
+            FifthType.TListOf _ => true,
+            FifthType.TArrayOf _ => true,
             _ => false
         };
         
@@ -107,7 +107,7 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
     private void ValidateSparqlComprehension(ListComprehension ctx, SparqlLiteralExpression sparqlSource, List<Diagnostic> diagnostics)
     {
         // Introspect the SPARQL query to get form and projected variables
-        var introspection = compiler.LanguageTransformations.SparqlSelectIntrospection.IntrospectQuery(sparqlSource.QueryText);
+        var introspection = compiler.LanguageTransformations.SparqlSelectIntrospection.IntrospectQuery(sparqlSource.SparqlText);
         
         if (!introspection.Success)
         {
@@ -146,29 +146,29 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
         ListComprehension ctx,
         List<Diagnostic> diagnostics)
     {
-        if (objProj.Fields == null)
+        if (objProj.PropertyInitialisers == null)
         {
             return;
         }
         
-        foreach (var field in objProj.Fields)
+        foreach (var propInit in objProj.PropertyInitialisers)
         {
-            if (field.Value == null)
+            if (propInit.RHS == null)
             {
                 continue;
             }
             
             // Check if initializer is a SPARQL variable reference
             // In the AST, SPARQL vars appear as VarRefExp with name starting with ?
-            if (field.Value is VarRefExp varRef)
+            if (propInit.RHS is VarRefExp varRef)
             {
-                var varName = varRef.Name;
+                var varName = varRef.VarName;
                 
                 // Check if it's a SPARQL variable (starts with ?)
                 if (varName.StartsWith("?"))
                 {
                     // Remove ? prefix for comparison
-                    var cleanVarName = varName.TrimStart('?');
+                    var cleanVarName = varName.TrimStart(new[] { '?' });
                     
                     // Validate variable exists in SELECT projection
                     if (!compiler.LanguageTransformations.SparqlSelectIntrospection.HasProjectedVariable(introspection, cleanVarName))
@@ -194,7 +194,7 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
                     compiler.ComprehensionDiagnostics.InvalidObjectProjectionBinding,
                     compiler.ComprehensionDiagnostics.FormatInvalidObjectProjectionBinding(),
                     DiagnosticSeverity.Error,
-                    field.Value,
+                    propInit.RHS,
                     diagnostics);
             }
         }
