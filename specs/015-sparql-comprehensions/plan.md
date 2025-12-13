@@ -49,7 +49,7 @@ Gates (from `.specify/memory/constitution.md`):
 - **Test-first / end-to-end required**: add parser + runtime integration tests that compile and execute Fifth code using the new syntax.
 - **Grammar integrity**: update `FifthLexer.g4` / `FifthParser.g4` and `AstBuilderVisitor.cs` together.
 - **Prefer lowering passes**: implement comprehensions via AST transformations (not translator-only special cases).
-- **Breaking change**: rejecting legacy `in`/`#` comprehension syntax must be covered by tests and release notes.
+- **Breaking change**: rejecting legacy `in`/`#` comprehension syntax must be covered by updated tests, a migration note, and a minor/major SemVer bump decision (constitution XI). Note: the repo release workflow generates GitHub release notes automatically.
 
 Status: PASS for planning.
 
@@ -114,7 +114,7 @@ Post-design constitution check: still PASS (no generator edits; plan uses AST lo
 
 - Update `FifthLexer.g4`:
   - introduce `FROM: 'from'` token (taking care of interactions with existing `WHERE` token)
-  - remove/retire `IN`/`SUCH_THAT` for list comprehensions (legacy forms rejected)
+  - reject legacy comprehension forms (`in` and `#`) with a clear parse/compile error (FR-013)
 - Update `FifthParser.g4`:
   - implement the new comprehension grammar (projection + `from` generator + optional `where` constraint list)
   - reuse existing `object_instantiation_expression` for object projections
@@ -166,4 +166,5 @@ For SPARQL tabular results, lowering will require a stable way to enumerate rows
 
 ### 2.6 Docs / release note
 
-- Ensure release note covers the breaking change (FR-012/FR-013). (Location depends on the repo’s release process docs.)
+- Add an in-repo migration note describing `in/#` → `from/where` with examples.
+- Ensure the release tag uses an appropriate SemVer bump (minor/major) per `docs/Development/release-process.md` and constitution XI.

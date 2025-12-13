@@ -17,27 +17,39 @@ This feature adds a list-comprehension form that can map a tabular SPARQL SELECT
 ## Example: Project objects from a SELECT result
 
 ```fifth
-class Person {
+class Person{
+    Id: Uri;
+    Age: int;
     Name: string;
 }
 
-store default = sparql_store(<http://example.org/store>);
 
 main(): int {
-    // Execute a SELECT query (tabular result)
-    res: result = ?<
-        SELECT ?name
-        WHERE { ?s <http://example.org/name> ?name . }
-    > <- default;
+    g: graph = @< 
+        @prefix : <http://tempuri.org/etc/>.
+        :andrew :age 56;
+                :name "Andrew Matthews" .
+        :kerry :age 55;
+                :name "Kerry Matthews" .
+    >;
 
-    // Project rows into typed objects
-    people: [Person] = [
-        new Person() { Name = ?name }
-        from res
-        // Constraint syntax is finalized in planning; recommended: `it.<prop>`
-        where it.Name != nil
-    ];
+    // create a query over the graph
+    r: query = ?<
+    PREFIX : <http://tempuri.org/etc/>
 
+    SELECT ?p ?age ?name
+    WHERE
+    {
+        ?p :age ?age;
+        :name ?name .
+    }>;
+
+    // now build a list of Person objects by applying the query to the graph and filtering the results
+
+    people: [Person] = [new Person(){Id = ?p, Age = ?age,  Name = ?name } // <-- projection
+                        from r <- g                                       // <-- generator
+                        where it.Age < 21, it.Age > 12                    // <-- constraints
+                    ];
     return 0;
 }
 ```
@@ -51,4 +63,5 @@ main(): int {
 ## Notes
 
 - Legacy list comprehension syntax using `in` and `#` is rejected (breaking change).
+- Migration guidance: see [migration.md](migration.md).
 - Multiple `where` constraints are AND-ed.

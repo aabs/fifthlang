@@ -98,7 +98,7 @@ As a Fifth developer, I want clear, actionable compilation errors when a SPARQL 
 - **FR-010**: If a projection or constraint references a target property that does not exist on the projected type, compilation MUST fail with an error identifying the unknown property.
 - **FR-011**: If the source result contains no matching rows, the comprehension MUST evaluate to an empty list of the projected type.
 - **FR-011a**: If a projection or constraint references an unbound/missing SPARQL variable value in a row, evaluation MUST fail with a clear runtime error identifying the missing variable.
-- **FR-012**: Any breaking change to existing comprehension syntax MUST be documented as part of the release notes for the version that introduces this feature.
+- **FR-012**: Any breaking change MUST follow the constitution's breaking-change process: it MUST include (a) a migration note describing what changed and how to update code, (b) updated tests reflecting the new behavior, and (c) a minor/major SemVer bump decision as appropriate.
 - **FR-013**: The existing (general) list comprehension capability MUST be preserved with equivalent behavior, but with keyword updates: `in` is replaced by `from`, and the existing “such-that” filter marker `#` is replaced by `where`. The legacy `in` and `#` forms MUST be rejected with a clear parse/compile error.
 - **FR-014**: The general list comprehension form and the SPARQL Comprehension form MUST be supported as alternate forms of the list comprehension feature.
 
@@ -181,8 +181,9 @@ SPARQL_VARNAME: '?' IDENTIFIER ;
 
 ### Referencing Projected Properties within Constraints
 
-- For variable projections, constraints reference the projected variable name.
-- For object-instantiation projections, constraints reference projected properties (exact reference syntax and scoping rules must be defined during planning).
+- For variable projections, constraints reference the projected variable name (e.g., `[x from xs where x > 0]`).
+- For object-instantiation projections, constraints reference projected properties via an implicit `it` value of the projected type (e.g., `where it.Age < 21, it.Age > 12`).
+- In object-instantiation projections, `it.PropName` refers to the value that would be assigned to `PropName` for the current row. If the referenced value is unbound/missing for a row, evaluation MUST fail with the same clear runtime error described in **FR-011a**.
 
 ## Success Criteria *(mandatory)*
 
