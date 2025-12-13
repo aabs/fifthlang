@@ -1,0 +1,6 @@
+// This file should fail to parse: legacy 'in' syntax
+main(): int { 
+    xs: [int] = [1, 2, 3]; 
+    ys: [int] = [x in xs]; 
+    return 0; 
+}

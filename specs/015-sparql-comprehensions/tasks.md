@@ -53,8 +53,8 @@
 
 **Independent Test Criteria**: Negative samples fail compilation with a stable diagnostic code/message category.
 
-- [ ] T023 [US3] Implement diagnostic codes/messages per `specs/015-sparql-comprehensions/contracts/diagnostics.md` in `src/compiler/LanguageTransformations/ComprehensionDiagnostics.cs`
-- [ ] T024 [US3] Add negative parser/compile samples in `test/runtime-integration-tests/TestPrograms/Syntax/Invalid/` (legacy `in`/`#`, non-SELECT generator, unknown `?varName`)
+- [x] T023 [US3] Implement diagnostic codes/messages per `specs/015-sparql-comprehensions/contracts/diagnostics.md` in `src/compiler/LanguageTransformations/ComprehensionDiagnostics.cs`
+- [x] T024 [US3] Add negative parser/compile samples in `test/runtime-integration-tests/TestPrograms/Syntax/Invalid/` (legacy `in`/`#`, non-SELECT generator, unknown `?varName`)
 - [ ] T025 [US3] Add tests asserting diagnostics surfaced via `src/compiler/CompilationResult.cs` diagnostics stream in `test/runtime-integration-tests/ComprehensionDiagnosticsTests.cs`
 
 ## Phase 6: Polish & Cross-Cutting

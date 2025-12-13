@@ -1,0 +1,6 @@
+// This file should fail to parse: legacy '#' constraint syntax
+main(): int { 
+    xs: [int] = [1, 2, 3]; 
+    ys: [int] = [x in xs # x > 0]; 
+    return 0; 
+}
