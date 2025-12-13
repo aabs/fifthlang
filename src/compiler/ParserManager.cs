@@ -42,11 +42,12 @@ public static class FifthParserManager
         TypeAnnotation = 25,
         QueryApplicationTypeCheck = 26,
         QueryApplicationLowering = 27,
+        ListComprehensionLowering = 28,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
         // All must be >= TypeAnnotation to ensure that block executes and the lowering runs.
-        All = QueryApplicationLowering  // Update to include query application
+        All = ListComprehensionLowering  // Update to include list comprehension lowering
     }
 
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, AnalysisPhase upTo = AnalysisPhase.All)
@@ -355,6 +356,14 @@ public static class FifthParserManager
         if (upTo >= AnalysisPhase.QueryApplicationLowering)
         {
             var rewriter = new QueryApplicationLoweringRewriter();
+            var result = rewriter.Rewrite(ast);
+            ast = result.Node;
+        }
+
+        // Lower list comprehensions to imperative loops with list allocation and append
+        if (upTo >= AnalysisPhase.ListComprehensionLowering)
+        {
+            var rewriter = new ListComprehensionLoweringRewriter();
             var result = rewriter.Rewrite(ast);
             ast = result.Node;
         }

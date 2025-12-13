@@ -27,7 +27,7 @@
 - [ ] T011 [US1] Add comprehension validator pass in `src/compiler/LanguageTransformations/SparqlComprehensionValidationVisitor.cs` (generator is tabular SELECT; object projection RHS is `?varName`; `?varName` exists in SELECT projection)
 - [ ] T012 [US1] Integrate comprehension validation into pipeline in `src/compiler/ParserManager.cs`
 - [ ] T013 [US1] Implement runtime row binding access helpers in `src/fifthlang.system/TabularResultBindings.cs`
-- [ ] T014 [US1] Implement comprehension lowering for SPARQL tabular results in `src/compiler/LanguageTransformations/ListComprehensionLoweringRewriter.cs`
+- [x] T014 [US1] Implement comprehension lowering for SPARQL tabular results in `src/compiler/LanguageTransformations/ListComprehensionLoweringRewriter.cs`
 - [ ] T015 [US1] Add runtime integration `.5th` program exercising object projection from SELECT in `test/runtime-integration-tests/TestPrograms/Comprehensions/sparql-object-projection.5th`
 - [ ] T016 [US1] Add runtime integration test to compile+run the sample in `test/runtime-integration-tests/ComprehensionRuntimeTests.cs`
 - [ ] T031 [US1] Add runtime integration `.5th` program where the SELECT yields zero rows and comprehension returns an empty list in `test/runtime-integration-tests/TestPrograms/Comprehensions/sparql-empty-result.5th` (FR-011 / SC-003)
