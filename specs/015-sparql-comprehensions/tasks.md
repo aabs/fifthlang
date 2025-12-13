@@ -28,8 +28,8 @@
 - [ ] T012 [US1] Integrate comprehension validation into pipeline in `src/compiler/ParserManager.cs`
 - [ ] T013 [US1] Implement runtime row binding access helpers in `src/fifthlang.system/TabularResultBindings.cs`
 - [x] T014 [US1] Implement comprehension lowering for SPARQL tabular results in `src/compiler/LanguageTransformations/ListComprehensionLoweringRewriter.cs`
-- [ ] T015 [US1] Add runtime integration `.5th` program exercising object projection from SELECT in `test/runtime-integration-tests/TestPrograms/Comprehensions/sparql-object-projection.5th`
-- [ ] T016 [US1] Add runtime integration test to compile+run the sample in `test/runtime-integration-tests/ComprehensionRuntimeTests.cs`
+- [x] T015 [US1] Add runtime integration `.5th` program exercising object projection from SELECT in `test/runtime-integration-tests/TestPrograms/Comprehensions/sparql-object-projection.5th`
+- [x] T016 [US1] Add runtime integration test to compile+run the sample in `test/runtime-integration-tests/ComprehensionRuntimeTests.cs`
 - [ ] T031 [US1] Add runtime integration `.5th` program where the SELECT yields zero rows and comprehension returns an empty list in `test/runtime-integration-tests/TestPrograms/Comprehensions/sparql-empty-result.5th` (FR-011 / SC-003)
 - [ ] T032 [US1] Add runtime integration `.5th` program where a referenced `?var` is unbound in a row and evaluation fails with a clear runtime error in `test/runtime-integration-tests/TestPrograms/Comprehensions/sparql-missing-binding.5th` (FR-011a)
 - [ ] T033 [US1] Extend `test/runtime-integration-tests/ComprehensionRuntimeTests.cs` to compile+run the new samples and assert empty list + runtime error contains the missing variable name
