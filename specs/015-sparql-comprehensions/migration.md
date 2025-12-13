@@ -33,9 +33,15 @@ After (comma-separated constraints, AND-ed):
 
 This change is breaking for any code using `in`/`#` list comprehensions.
 
-Decision: **TBD (minor vs major)**
+**Decision**: MINOR bump (pre-1.0 project, syntax evolution expected)
 
-Rationale (to be filled in when tagging a release):
+**Rationale**:
 
-- Constitution XI requires a minor/major bump as appropriate.
-- The release workflow infers the version from the pushed tag (see `docs/Development/release-process.md`).
+Per Constitution XI and `docs/Development/release-process.md`:
+- Fifth is currently pre-1.0 (active development phase)
+- Breaking changes in pre-1.0 projects are acceptable as MINOR bumps
+- The new syntax is more explicit and enables future SPARQL comprehensions
+- Migration path is clear and well-documented
+- If Fifth were post-1.0, this would require a MAJOR bump
+
+**Release workflow**: The version is inferred from the pushed tag (see release process docs). When tagging the next release that includes this feature, use a MINOR version bump (e.g., 0.8.0 → 0.9.0).

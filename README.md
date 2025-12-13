@@ -25,7 +25,8 @@ More docs [here](https://fifth-lang.org) including [installation](https://fifth-
 - Multiple module support with namespaces
 - Namespace imports with aliasing support
 - Type system: Primitives, classes, lists, Arrays
-- List comprehensions with filtering
+- List comprehensions with projection and filtering: `[expr from var in source where constraint]`
+  - **Breaking change**: Legacy `in`/`#` syntax replaced with `from`/`where` (see [migration guide](specs/015-sparql-comprehensions/migration.md))
 
 ### Knowledge Graph Primitives
 - Native RDF types: `graph`, `triple`, `store`, `query` are built-in language primitives
@@ -45,7 +46,7 @@ More docs [here](https://fifth-lang.org) including [installation](https://fifth-
 - Control flow statements (if/else, while)
 - Exception handling with try/catch/finally
 - Function overloading with parameter guards
-- List comprehensions
+- List comprehensions with new `from`/`where` syntax: `[projection from var in source where constraints]`
 - Knowledge graph operations (TriG literals, SPARQL literals, graph operations)
 - Comprehensive test suite (TUnit + FluentAssertions)
 
