@@ -96,4 +96,68 @@ public class ComprehensionRuntimeTests : RuntimeTestBase
         // Assert
         File.Exists(executablePath).Should().BeTrue("Comprehension test program should compile");
     }
+
+    [Fact]
+    public async Task Comprehension_WithEmptySource_ShouldCompile()
+    {
+        // Arrange
+        var sourceCode = """
+            main(): int {
+                empty: [int] = [];
+                result: [int] = [x * 2 from x in empty];
+                return 0;
+            }
+            """;
+
+        // Act
+        var executablePath = await CompileSourceAsync(sourceCode);
+        
+        // Assert
+        File.Exists(executablePath).Should().BeTrue("Comprehension with empty source should compile");
+    }
+
+    [Fact]
+    public async Task Comprehension_WithEmptySourceFromFile_ShouldCompile()
+    {
+        // Arrange
+        var testProgramPath = Path.Combine("TestPrograms", "Comprehensions", "empty-source.5th");
+        
+        // Act
+        var executablePath = await CompileFileAsync(testProgramPath);
+        
+        // Assert
+        File.Exists(executablePath).Should().BeTrue("Empty source comprehension test should compile");
+    }
+
+    [Fact]
+    public async Task Comprehension_WithConstraintsFilteringAllItems_ShouldCompile()
+    {
+        // Arrange
+        var sourceCode = """
+            main(): int {
+                numbers: [int] = [1, 2, 3, 4, 5];
+                result: [int] = [x from x in numbers where x > 10];
+                return 0;
+            }
+            """;
+
+        // Act
+        var executablePath = await CompileSourceAsync(sourceCode);
+        
+        // Assert
+        File.Exists(executablePath).Should().BeTrue("Comprehension with constraints filtering all items should compile");
+    }
+
+    [Fact]
+    public async Task Comprehension_FilteredEmptyResultFromFile_ShouldCompile()
+    {
+        // Arrange
+        var testProgramPath = Path.Combine("TestPrograms", "Comprehensions", "filtered-empty-result.5th");
+        
+        // Act
+        var executablePath = await CompileFileAsync(testProgramPath);
+        
+        // Assert
+        File.Exists(executablePath).Should().BeTrue("Filtered empty result comprehension test should compile");
+    }
 }

@@ -30,9 +30,9 @@
 - [x] T014 [US1] Implement comprehension lowering for SPARQL tabular results in `src/compiler/LanguageTransformations/ListComprehensionLoweringRewriter.cs`
 - [x] T015 [US1] Add runtime integration `.5th` program exercising object projection from SELECT in `test/runtime-integration-tests/TestPrograms/Comprehensions/sparql-object-projection.5th`
 - [x] T016 [US1] Add runtime integration test to compile+run the sample in `test/runtime-integration-tests/ComprehensionRuntimeTests.cs`
-- [ ] T031 [US1] Add runtime integration `.5th` program where the SELECT yields zero rows and comprehension returns an empty list in `test/runtime-integration-tests/TestPrograms/Comprehensions/sparql-empty-result.5th` (FR-011 / SC-003)
-- [ ] T032 [US1] Add runtime integration `.5th` program where a referenced `?var` is unbound in a row and evaluation fails with a clear runtime error in `test/runtime-integration-tests/TestPrograms/Comprehensions/sparql-missing-binding.5th` (FR-011a)
-- [ ] T033 [US1] Extend `test/runtime-integration-tests/ComprehensionRuntimeTests.cs` to compile+run the new samples and assert empty list + runtime error contains the missing variable name
+- [x] T031 [US1] Add runtime integration `.5th` program where the SELECT yields zero rows and comprehension returns an empty list in `test/runtime-integration-tests/TestPrograms/Comprehensions/sparql-empty-result.5th` (FR-011 / SC-003)
+- [x] T032 [US1] Add runtime integration `.5th` program where a referenced `?var` is unbound in a row and evaluation fails with a clear runtime error in `test/runtime-integration-tests/TestPrograms/Comprehensions/sparql-missing-binding.5th` (FR-011a)
+- [x] T033 [US1] Extend `test/runtime-integration-tests/ComprehensionRuntimeTests.cs` to compile+run the new samples and assert empty list + runtime error contains the missing variable name
 
 ## Phase 4: User Story 2 (P2) — Filter rows with constraints
 
@@ -40,8 +40,8 @@
 
 **Independent Test Criteria**: Same program produces different results with/without constraints; multiple constraints behave as logical AND.
 
-- [ ] T017 [US2] Extend grammar to parse multiple constraints (comma-separated) in `src/parser/grammar/FifthParser.g4` (if not already covered by T008)
-- [ ] T018 [P] [US2] Add parser test for multiple constraints in `test/syntax-parser-tests/SyntaxParserTests.cs`
+- [x] T017 [US2] Extend grammar to parse multiple constraints (comma-separated) in `src/parser/grammar/FifthParser.g4` (if not already covered by T008)
+- [x] T018 [P] [US2] Add parser test for multiple constraints in `test/syntax-parser-tests/SyntaxParserTests.cs`
 - [ ] T019 [US2] Enforce boolean constraint typing in `src/compiler/LanguageTransformations/SparqlComprehensionValidationVisitor.cs` (extend T011 implementation)
 - [ ] T020 [US2] Implement constraint evaluation in `src/compiler/LanguageTransformations/ListComprehensionLoweringRewriter.cs` (extend T014 implementation)
 - [ ] T021 [US2] Add runtime integration `.5th` sample demonstrating constraints filter rows in `test/runtime-integration-tests/TestPrograms/Comprehensions/sparql-constraints.5th`
@@ -62,7 +62,7 @@
 - [ ] T026 [P] Update docs to mention breaking change (`in`/`#` rejected) and link to the migration note (T029)
 - [ ] T027 Run sample validator: `scripts/validate-examples.fish` (ensure grammar compliance)
 - [ ] T028 Run regression gate: `dotnet build fifthlang.sln` and `dotnet test fifthlang.sln`
-- [ ] T029 Add migration note doc `specs/015-sparql-comprehensions/migration.md` covering `in/#` → `from/where` (before/after examples + guidance)
+- [x] T029 Add migration note doc `specs/015-sparql-comprehensions/migration.md` covering `in/#` → `from/where` (before/after examples + guidance)
 - [ ] T030 Record SemVer bump decision (minor vs major) in `specs/015-sparql-comprehensions/migration.md` with rationale (constitution XI + `docs/Development/release-process.md`)
 
 ## Dependencies & Execution Order
