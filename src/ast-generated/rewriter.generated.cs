@@ -1196,10 +1196,21 @@ public class DefaultAstRewriter : IAstRewriter
     public virtual RewriteResult VisitListComprehension(ListComprehension ctx)
     {
         var prologue = new List<Statement>();
-        var rrMembershipConstraint = Rewrite((AstThing)ctx.MembershipConstraint);
-        prologue.AddRange(rrMembershipConstraint.Prologue);
+        List<ast.Expression> tmpConstraints = [];
+        foreach (var item in ctx.Constraints)
+        {
+            var rr = Rewrite(item);
+            tmpConstraints.Add((ast.Expression)rr.Node);
+            prologue.AddRange(rr.Prologue);
+        }
+        var rrProjection = Rewrite((AstThing)ctx.Projection);
+        prologue.AddRange(rrProjection.Prologue);
+        var rrSource = Rewrite((AstThing)ctx.Source);
+        prologue.AddRange(rrSource.Prologue);
         var rebuilt = ctx with {
-         MembershipConstraint = (ast.Expression)rrMembershipConstraint.Node
+         Projection = (ast.Expression)rrProjection.Node
+        ,Source = (ast.Expression)rrSource.Node
+        ,Constraints = tmpConstraints
         };
         return new RewriteResult(rebuilt, prologue);
     }

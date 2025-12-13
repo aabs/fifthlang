@@ -149,9 +149,9 @@ list_body: list_literal | list_comprehension;
 list_literal: expressionList?;
 
 list_comprehension:
-	varname = var_name IN source = expression (
-		SUCH_THAT constraint = expression
-	);
+	projection = expression FROM varname = var_name IN source = expression (
+		WHERE constraints += expression (COMMA constraints += expression)*
+	)?;
 
 type_spec:
 	L_BRACKET type_spec R_BRACKET  # list_type_spec

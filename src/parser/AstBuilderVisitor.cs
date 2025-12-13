@@ -888,9 +888,25 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var b = new ListComprehensionBuilder()
             .WithAnnotations([]);
-        b.WithMembershipConstraint((Expression)Visit(context.constraint))
-            .WithVarName(context.var_name().GetText())
-            .WithSourceName(context.source.GetText());
+        
+        // Set the projection expression (what to produce for each item)
+        b.WithProjection((Expression)Visit(context.projection));
+        
+        // Set the source expression (what to iterate over)
+        b.WithSource((Expression)Visit(context.source));
+        
+        // Set the iteration variable name
+        b.WithVarName(context.varname.GetText());
+        
+        // Add all where constraints (if any)
+        if (context._constraints != null && context._constraints.Count > 0)
+        {
+            foreach (var constraint in context._constraints)
+            {
+                b.AddingItemToConstraints((Expression)Visit(constraint));
+            }
+        }
+        
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }

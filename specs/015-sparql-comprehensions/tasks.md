@@ -4,15 +4,15 @@
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Confirm baseline builds/tests pass (repo root): `dotnet build fifthlang.sln` and `dotnet test test/syntax-parser-tests/syntax-parser-tests.csproj`
-- [ ] T002 [P] Add new `.5th` sample fixtures folder `test/runtime-integration-tests/TestPrograms/Comprehensions/`
-- [ ] T003 [P] Add parser sample `.5th` for new comprehension syntax in `src/parser/grammar/test_samples/list_comprehension_from_where.5th`
+- [x] T001 Confirm baseline builds/tests pass (repo root): `dotnet build fifthlang.sln` and `dotnet test test/syntax-parser-tests/syntax-parser-tests.csproj`
+- [x] T002 [P] Add new `.5th` sample fixtures folder `test/runtime-integration-tests/TestPrograms/Comprehensions/`
+- [x] T003 [P] Add parser sample `.5th` for new comprehension syntax in `src/parser/grammar/test_samples/list_comprehension_from_where.5th`
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T004 Update AST contract: redesign `ListComprehension` in `src/ast-model/AstMetamodel.cs` (Projection/Source/Constraints)
-- [ ] T005 Regenerate AST code: run `just run-generator` (or `dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated`)
-- [ ] T006 Update AST builder to construct new comprehension shape in `src/parser/AstBuilderVisitor.cs`
+- [x] T004 Update AST contract: redesign `ListComprehension` in `src/ast-model/AstMetamodel.cs` (Projection/Source/Constraints)
+- [x] T005 Regenerate AST code: run `just run-generator` (or `dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated`)
+- [x] T006 Update AST builder to construct new comprehension shape in `src/parser/AstBuilderVisitor.cs`
 
 ## Phase 3: User Story 1 (P1) — Project objects from SPARQL results
 

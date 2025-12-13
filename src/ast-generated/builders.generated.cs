@@ -2635,35 +2635,47 @@ public class ListLiteralBuilder : IBuilder<ast.ListLiteral>
 }
 public class ListComprehensionBuilder : IBuilder<ast.ListComprehension>
 {
+    private ast.Expression _Projection;
+    private ast.Expression _Source;
     private System.String _VarName;
-    private System.String _SourceName;
-    private ast.Expression _MembershipConstraint;
+    private List<ast.Expression> _Constraints = [];
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ListComprehension Build()
     {
         return new ast.ListComprehension(){
-             VarName = this._VarName // from ListComprehension
-           , SourceName = this._SourceName // from ListComprehension
-           , MembershipConstraint = this._MembershipConstraint // from ListComprehension
+             Projection = this._Projection // from ListComprehension
+           , Source = this._Source // from ListComprehension
+           , VarName = this._VarName // from ListComprehension
+           , Constraints = this._Constraints // from ListComprehension
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
+    public ListComprehensionBuilder WithProjection(ast.Expression value){
+        _Projection = value;
+        return this;
+    }
+
+    public ListComprehensionBuilder WithSource(ast.Expression value){
+        _Source = value;
+        return this;
+    }
+
     public ListComprehensionBuilder WithVarName(System.String value){
         _VarName = value;
         return this;
     }
 
-    public ListComprehensionBuilder WithSourceName(System.String value){
-        _SourceName = value;
+    public ListComprehensionBuilder WithConstraints(List<ast.Expression> value){
+        _Constraints = value;
         return this;
     }
 
-    public ListComprehensionBuilder WithMembershipConstraint(ast.Expression value){
-        _MembershipConstraint = value;
+    public ListComprehensionBuilder AddingItemToConstraints(ast.Expression value){
+        _Constraints  ??= [];
+        _Constraints.Add(value);
         return this;
     }
-
     public ListComprehensionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
