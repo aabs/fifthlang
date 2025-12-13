@@ -43,11 +43,12 @@ public static class FifthParserManager
         QueryApplicationTypeCheck = 26,
         QueryApplicationLowering = 27,
         ListComprehensionLowering = 28,
+        ListComprehensionValidation = 29,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
         // All must be >= TypeAnnotation to ensure that block executes and the lowering runs.
-        All = ListComprehensionLowering  // Update to include list comprehension lowering
+        All = ListComprehensionValidation  // Update to include list comprehension validation
     }
 
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, AnalysisPhase upTo = AnalysisPhase.All)
@@ -358,6 +359,19 @@ public static class FifthParserManager
             var rewriter = new QueryApplicationLoweringRewriter();
             var result = rewriter.Rewrite(ast);
             ast = result.Node;
+        }
+
+        // Validate SPARQL comprehensions BEFORE lowering
+        // This ensures we validate the original comprehension AST structure
+        if (upTo >= AnalysisPhase.ListComprehensionValidation)
+        {
+            var validator = new Fifth.LangProcessingPhases.SparqlComprehensionValidationVisitor(diagnostics);
+            ast = validator.Visit(ast);
+            
+            if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
+            {
+                return null;
+            }
         }
 
         // Lower list comprehensions to imperative loops with list allocation and append
