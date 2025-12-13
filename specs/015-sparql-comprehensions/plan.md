@@ -23,12 +23,6 @@ Phase 0/1 artifacts:
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
-
 **Language/Version**: C# 14 on .NET SDK 8.0.118 (global.json)  
 **Primary Dependencies**: ANTLR4.Runtime, generated ANTLR parsers, dotNetRDF (`VDS.RDF.*`)  
 **Storage**: N/A (in-memory AST + in-memory/runtime RDF store abstractions)  

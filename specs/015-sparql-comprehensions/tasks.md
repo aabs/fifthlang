@@ -20,7 +20,7 @@
 
 **Independent Test Criteria**: A Fifth program can run a SELECT query and evaluate a comprehension into a `[Person]` list with correct property values.
 
-- [ ] T007 [US1] Update lexer tokens for new comprehension keywords in `src/parser/grammar/FifthLexer.g4` (add `FROM`, remove/retire `IN`/`SUCH_THAT` for this context)
+- [ ] T007 [US1] Update lexer tokens for new comprehension keywords in `src/parser/grammar/FifthLexer.g4` (add `FROM`; ensure legacy `in`/`#` comprehension forms are rejected with a clear parse/compile error per FR-013)
 - [ ] T008 [US1] Update list comprehension grammar in `src/parser/grammar/FifthParser.g4` (projection + `from` + optional `where` constraint list)
 - [ ] T009 [P] [US1] Add parser tests for new comprehension form in `test/syntax-parser-tests/SyntaxParserTests.cs` (var projection + object projection cases)
 - [ ] T010 [US1] Add compile-time SPARQL SELECT parsing helper in `src/compiler/LanguageTransformations/SparqlSelectIntrospection.cs` (extract projected vars)
@@ -87,4 +87,4 @@ Dependency graph:
 
 ## MVP Scope Suggestion
 
-- MVP = US1 only: complete T001–T016, then validate with runtime integration tests.
+- MVP = US1 only: complete T001–T016 and T031–T033, then validate with runtime integration tests.

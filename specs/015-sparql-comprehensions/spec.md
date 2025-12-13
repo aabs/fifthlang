@@ -78,11 +78,6 @@ As a Fifth developer, I want clear, actionable compilation errors when a SPARQL 
 
 ## Requirements *(mandatory)*
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right functional requirements.
--->
-
 ### Functional Requirements
 
 - **FR-001**: The language MUST support a list comprehension form (“SPARQL Comprehension”) that produces a list from a tabular SPARQL SELECT query result.
@@ -130,7 +125,7 @@ Is replaced by the following breaking change:
 ```antlr
 list_comprehension:
   lcomp_projection FROM source = lcomp_generator (
-    WHERE constraint = lcomp_constraint_list
+    WHERE constraints = lcomp_constraint_list
   )?;
 
 // a projection can be either a simple variable taken from an enumerable,
@@ -186,11 +181,6 @@ SPARQL_VARNAME: '?' IDENTIFIER ;
 - In object-instantiation projections, `it.PropName` refers to the value that would be assigned to `PropName` for the current row. If the referenced value is unbound/missing for a row, evaluation MUST fail with the same clear runtime error described in **FR-011a**.
 
 ## Success Criteria *(mandatory)*
-
-<!--
-  ACTION REQUIRED: Define measurable success criteria.
-  These must be technology-agnostic and measurable.
--->
 
 ### Measurable Outcomes
 
