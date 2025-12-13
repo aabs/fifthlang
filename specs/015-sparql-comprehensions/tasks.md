@@ -60,7 +60,7 @@
 ## Phase 6: Polish & Cross-Cutting
 
 - [x] T026 [P] Update docs to mention breaking change (`in`/`#` rejected) and link to the migration note (T029)
-- [ ] T027 Run sample validator: `scripts/validate-examples.fish` (ensure grammar compliance)
+- [x] T027 Run sample validator: `scripts/validate-examples.fish` (ensure grammar compliance)
 - [x] T028 Run regression gate: `dotnet build fifthlang.sln` and `dotnet test fifthlang.sln`
 - [x] T029 Add migration note doc `specs/015-sparql-comprehensions/migration.md` covering `in/#` → `from/where` (before/after examples + guidance)
 - [x] T030 Record SemVer bump decision (minor vs major) in `specs/015-sparql-comprehensions/migration.md` with rationale (constitution XI + `docs/Development/release-process.md`)

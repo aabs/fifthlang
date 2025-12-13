@@ -1,1 +1,1 @@
-main(): int { xs: [int]; ys: [int]; ys = [x in xs # x > 0]; return 0; }
+main(): int { xs: [int]; ys: [int]; ys = [x from x in xs where x > 0]; return 0; }
