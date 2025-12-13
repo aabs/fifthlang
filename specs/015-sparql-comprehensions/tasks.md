@@ -20,9 +20,9 @@
 
 **Independent Test Criteria**: A Fifth program can run a SELECT query and evaluate a comprehension into a `[Person]` list with correct property values.
 
-- [ ] T007 [US1] Update lexer tokens for new comprehension keywords in `src/parser/grammar/FifthLexer.g4` (add `FROM`; ensure legacy `in`/`#` comprehension forms are rejected with a clear parse/compile error per FR-013)
-- [ ] T008 [US1] Update list comprehension grammar in `src/parser/grammar/FifthParser.g4` (projection + `from` + optional `where` constraint list)
-- [ ] T009 [P] [US1] Add parser tests for new comprehension form in `test/syntax-parser-tests/SyntaxParserTests.cs` (var projection + object projection cases)
+- [x] T007 [US1] Update lexer tokens for new comprehension keywords in `src/parser/grammar/FifthLexer.g4` (add `FROM`; ensure legacy `in`/`#` comprehension forms are rejected with a clear parse/compile error per FR-013)
+- [x] T008 [US1] Update list comprehension grammar in `src/parser/grammar/FifthParser.g4` (projection + `from` + optional `where` constraint list)
+- [x] T009 [P] [US1] Add parser tests for new comprehension form in `test/syntax-parser-tests/SyntaxParserTests.cs` (var projection + object projection cases)
 - [ ] T010 [US1] Add compile-time SPARQL SELECT parsing helper in `src/compiler/LanguageTransformations/SparqlSelectIntrospection.cs` (extract projected vars)
 - [ ] T011 [US1] Add comprehension validator pass in `src/compiler/LanguageTransformations/SparqlComprehensionValidationVisitor.cs` (generator is tabular SELECT; object projection RHS is `?varName`; `?varName` exists in SELECT projection)
 - [ ] T012 [US1] Integrate comprehension validation into pipeline in `src/compiler/ParserManager.cs`
