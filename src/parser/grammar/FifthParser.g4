@@ -294,8 +294,7 @@ sparqlLiteral:
 
 // Content tokens from SPARQL_LITERAL_MODE
 sparqlLiteralContent:
-    SPARQL_TEXT
-    | SPARQL_VAR                   // SPARQL variable like ?name, ?age
+    SPARQL_CONTENT                 // Raw SPARQL text (no tokenization of SPARQL syntax)
     | SPARQL_SINGLE_OPEN_BRACE    // Single { (not part of interpolation)
     | SPARQL_SINGLE_CLOSE_BRACE   // Single } (not part of interpolation)
     | sparqlInterpolation;        // {{ expression }}

@@ -312,16 +312,9 @@ mode SPARQL_LITERAL_MODE;
 // This transitions to DEFAULT_MODE to parse the expression
 SPARQL_INTERP_START: '{{' -> pushMode(DEFAULT_MODE);
 
-// Interpolation end is already defined in DEFAULT_MODE as TRIG_INTERP_END
-// which is defined as '}}' -> popMode; so it will work for SPARQL too
-
-// SPARQL variable - explicitly match ?varName patterns  
-// This must come before SPARQL_TEXT to take precedence
-SPARQL_VAR: '?'[a-zA-Z_][a-zA-Z0-9_]*;
-
-// Any other character sequence that doesn't start with >, {, }, or ?
-// Note: ? is handled by SPARQL_VAR above
-SPARQL_TEXT: (~[>{}?])+;
+// ANY content that doesn't start with >, {, or }}
+// This captures SPARQL query text as-is without trying to parse SPARQL syntax
+SPARQL_CONTENT: (~[>{}])+;
 
 // Single braces (not part of interpolation)
 SPARQL_SINGLE_OPEN_BRACE: '{';
