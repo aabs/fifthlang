@@ -317,7 +317,7 @@ SPARQL_INTERP_START: '{{' -> pushMode(DEFAULT_MODE);
 
 // SPARQL variable - explicitly match ?varName patterns  
 // This must come before SPARQL_TEXT to take precedence
-SPARQL_VAR: '?' [a-zA-Z_][a-zA-Z0-9_]*;
+SPARQL_VAR: '?'[a-zA-Z_][a-zA-Z0-9_]*;
 
 // Any other character sequence that doesn't start with >, {, }, or ?
 // Note: ? is handled by SPARQL_VAR above
