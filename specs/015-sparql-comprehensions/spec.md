@@ -87,7 +87,8 @@ As a Fifth developer, I want clear, actionable compilation errors when a SPARQL 
 - **FR-005**: The generator source expression MUST typecheck to a tabular (SELECT) SPARQL query result; using results of other SPARQL query forms MUST be rejected at compile time.
 - **FR-006**: A SPARQL Comprehension MAY include zero or more constraints; when present, all constraints MUST be satisfied for a row to be included.
 - **FR-007**: Each constraint expression MUST evaluate to a boolean outcome; otherwise compilation MUST fail with an error.
-- **FR-008**: The language MUST provide a way to reference SPARQL result bindings inside the object-instantiation projection via `?varName` (see `SPARQL_VARNAME` in Grammar).
+- **FR-008**: The language MUST provide a way to reference SPARQL result bindings inside the object-instantiation projection via property access on the iteration variable (e.g., `x.age` for the SPARQL variable `?age`, where `x` is the iteration variable declared in the `from` clause).
+- **FR-008a**: Variable references using the `?varName` syntax MUST be rejected in comprehension projections and constraints with a compile-time error.
 - **FR-009**: If a projection references a SPARQL variable that is not available in the generator result, compilation MUST fail with an error identifying the unknown variable.
 - **FR-009a**: The compiler MUST use the SPARQL grammar (see Assumptions & Dependencies) to extract the set of projected SPARQL variables for SELECT queries and MUST validate variable usage in comprehensions at compile time (not runtime).
 - **FR-010**: If a projection or constraint references a target property that does not exist on the projected type, compilation MUST fail with an error identifying the unknown property.
@@ -101,7 +102,8 @@ As a Fifth developer, I want clear, actionable compilation errors when a SPARQL 
 
 - A “tabular result” is defined as the output of a SPARQL SELECT query.
 - Users will provide projected types whose properties can be assigned from the available result bindings.
-- SPARQL variables referenced in object projections use `?varName` syntax.
+- SPARQL variables referenced in object projections use property access syntax on the iteration variable (e.g., `x.varName` where `x` is the iteration variable and `varName` corresponds to SPARQL variable `?varName`).
+- The iteration variable in the `from` clause represents each result row, and property access on that variable is shorthand for accessing the row binding for that SPARQL variable.
 - Comprehensions will continue to exist for non-SPARQL sources; SPARQL Comprehensions extend (rather than replace) comprehension usage.
 
 - **Compile-time SPARQL introspection**: The type checker and language transformation phases MAY parse SPARQL queries at compile time using the ANTLR grammar in `src/parser/grammar/SparqlParser.g4`.

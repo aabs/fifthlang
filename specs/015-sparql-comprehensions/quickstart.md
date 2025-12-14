@@ -12,7 +12,8 @@ This feature adds a list-comprehension form that can map a tabular SPARQL SELECT
 
 - Projection options:
   - Variable projection: `<varName>`
-  - Object projection: `new TypeName() { Prop1 = ?var1, Prop2 = ?var2 }`
+  - Object projection: `new TypeName() { Prop1 = x.var1, Prop2 = x.var2 }`
+  - Note: `x` is the iteration variable declared in the `from` clause
 
 ## Example: Project objects from a SELECT result
 
@@ -45,10 +46,11 @@ main(): int {
     }>;
 
     // now build a list of Person objects by applying the query to the graph and filtering the results
+    // Note: x represents each result row, and x.property accesses the value of ?property in that row
 
-    people: [Person] = [new Person(){Id = ?p, Age = ?age,  Name = ?name } // <-- projection
-                        from r <- g                                       // <-- generator
-                        where it.Age < 21, it.Age > 12                    // <-- constraints
+    people: [Person] = [new Person(){Id = x.p, Age = x.age, Name = x.name} // <-- projection
+                        from x in r <- g                                    // <-- generator (x is the iteration variable)
+                        where x.age < 21, x.age > 12                        // <-- constraints
                     ];
     return 0;
 }
@@ -57,8 +59,9 @@ main(): int {
 ## Errors you can expect
 
 - Non-SELECT query used as generator → compile-time error (generator must be tabular SELECT).
-- Using a `?var` that is not projected by the SELECT query → compile-time error.
-- If a row has an unbound value for a referenced `?var` → runtime error when the value is accessed.
+- Using `x.property` where `property` is not projected by the SELECT query → compile-time error.
+- Using `?var` notation in comprehensions → compile-time error (must use property access `x.var` instead).
+- If a row has an unbound value for a referenced property → runtime error when the value is accessed.
 
 ## Notes
 
