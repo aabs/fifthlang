@@ -25,6 +25,9 @@ import IriLexerFragments;
     
     // Track nesting depth of angle brackets in TriG literals
     private int trigAngleBracketDepth = 0;
+    
+    // Track nesting depth of angle brackets in SPARQL literals
+    private int sparqlAngleBracketDepth = 0;
 }
 
 // Keywords
@@ -312,13 +315,21 @@ mode SPARQL_LITERAL_MODE;
 // This transitions to DEFAULT_MODE to parse the expression
 SPARQL_INTERP_START: '{{' -> pushMode(DEFAULT_MODE);
 
-// ANY content that doesn't start with >, {, or }}
-// This captures SPARQL query text as-is without trying to parse SPARQL syntax
-SPARQL_CONTENT: (~[>{}])+;
-
-// Single braces (not part of interpolation)
+// Match single braces that are NOT part of interpolation
+// These must come before SPARQL_CONTENT for precedence
 SPARQL_SINGLE_OPEN_BRACE: '{';
 SPARQL_SINGLE_CLOSE_BRACE: '}';
 
-// Closing angle bracket - ends the SPARQL literal
-SPARQL_CLOSE_ANGLE: '>' -> popMode;
+// Opening angle bracket - increment nesting depth
+SPARQL_OPEN_ANGLE: '<' {sparqlAngleBracketDepth++;};
+
+// Closing angle bracket - check nesting depth
+// Only pop mode when depth is 0 (outermost closing >)
+SPARQL_CLOSE_ANGLE: '>' {sparqlAngleBracketDepth == 0}? {sparqlAngleBracketDepth = 0;} -> popMode;
+
+// Other closing angle brackets are nested content - decrement depth
+SPARQL_CLOSE_ANGLE_CONTENT: '>' {sparqlAngleBracketDepth--;};
+
+// ANY other content (now includes characters that aren't special)
+// This captures SPARQL query text as-is without trying to parse SPARQL syntax
+SPARQL_CONTENT: ~[<>{}]+;
