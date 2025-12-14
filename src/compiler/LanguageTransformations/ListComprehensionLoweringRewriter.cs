@@ -43,6 +43,22 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
     /// </summary>
     private string FreshTempName(string prefix = "tmp") => $"__{prefix}_comprehension_{_tempCounter++}";
 
+    public override RewriteResult VisitVarDeclStatement(VarDeclStatement ctx)
+    {
+        // If the initial value is a ListComprehension without a proper type, 
+        // propagate the variable's type to it before rewriting
+        if (ctx.InitialValue is ListComprehension lc && 
+            ctx.VariableDecl.Type is FifthType.TListOf listType)
+        {
+            // Create a new ListComprehension with the correct type
+            var typedComprehension = lc with { Type = listType };
+            var typedVarDecl = ctx with { InitialValue = typedComprehension };
+            return base.VisitVarDeclStatement(typedVarDecl);
+        }
+        
+        return base.VisitVarDeclStatement(ctx);
+    }
+
     public override RewriteResult VisitListComprehension(ListComprehension ctx)
     {
         // Full lowering implementation: Transform comprehensions to imperative code
@@ -85,19 +101,47 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
         prologue.Add(sourceTempDeclStmt);
         
         // Step 3: Create temporary variable for result list (initially empty)
+        // Extract element type from list comprehension type
         var resultTempName = FreshTempName("result");
-        var elementType = ctx.Type ?? new FifthType.TType() { Name = TypeName.From("object") };
+        FifthType elementType;
+        FifthType listType;
+        
+        if (ctx.Type is FifthType.TListOf listOf)
+        {
+            elementType = listOf.ElementType;
+            listType = listOf;  // Use the original list type
+        }
+        else if (ctx.Type != null)
+        {
+            // Fallback: ctx.Type is not a TListOf, use projection type if available
+            elementType = ctx.Projection.Type ?? new FifthType.TType() { Name = TypeName.From("object") };
+            listType = new FifthType.TListOf(elementType)
+            {
+                Name = TypeName.From($"[{elementType.Name}]")
+            };
+        }
+        else
+        {
+            // No type info available - use object as fallback
+            elementType = new FifthType.TType() { Name = TypeName.From("object") };
+            listType = new FifthType.TListOf(elementType)
+            {
+                Name = TypeName.From("[object]")
+            };
+        }
+        
         var resultTempDecl = new VariableDecl
         {
             Name = resultTempName,
-            TypeName = ctx.Type?.Name ?? TypeName.From("list"),
+            TypeName = elementType.Name,
             Visibility = Visibility.Private,
-            CollectionType = CollectionType.List
+            CollectionType = CollectionType.List,
+            Type = listType  // Set the full list type
         };
         var emptyList = new ListLiteral
         {
             ElementExpressions = new List<Expression>(),
-            Type = elementType
+            Type = listType  // Set the list type, not element type
         };
         var resultTempDeclStmt = new VarDeclStatement
         {
@@ -206,13 +250,14 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
         };
         prologue.Add(foreachStmt);
         
-        // Step 9: Return reference to result variable
-        // Note: This demonstrates the lowering pattern, but actual list append
-        // functionality requires integration with Fifth.System runtime operations
+        // Step 9: Return reference to result variable wrapped in list type
         var resultRef = new VarRefExp
         {
             VarName = resultTempName,
-            Type = elementType
+            Type = new FifthType.TListOf(elementType) 
+            { 
+                Name = TypeName.From($"[{elementType.Name}]")
+            }
         };
         
         return new RewriteResult(resultRef, prologue);

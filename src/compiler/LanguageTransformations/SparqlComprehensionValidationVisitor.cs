@@ -221,6 +221,7 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
             bool isBooleanType = constraint.Type switch
             {
                 FifthType.TType t => t.Name.ToString() == "bool" || t.Name.ToString() == "Boolean",
+                FifthType.TDotnetType dt => dt.Name.ToString() == "bool" || dt.Name.ToString() == "Boolean" || dt.TheType == typeof(bool),
                 _ => false
             };
             

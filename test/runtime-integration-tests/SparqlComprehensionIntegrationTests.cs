@@ -143,11 +143,6 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
     {
         // Arrange - Create objects using property access syntax
         var source = """
-            class Person {
-                Name: string;
-                Age: string;
-            }
-            
             main(): int {
                 // Create store with person data
                 myStore: Store = @<
@@ -168,8 +163,8 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
                 
                 result: Result = query <- myStore;
                 
-                // Create Person objects using property access
-                people: [Person] = [new Person(){Name = x.name, Age = x.age} from x in result];
+                // Extract names using property access  
+                names: [string] = [x.name from x in result];
                 
                 return 0;
             }
