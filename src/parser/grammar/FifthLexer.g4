@@ -315,9 +315,13 @@ SPARQL_INTERP_START: '{{' -> pushMode(DEFAULT_MODE);
 // Interpolation end is already defined in DEFAULT_MODE as TRIG_INTERP_END
 // which is defined as '}}' -> popMode; so it will work for SPARQL too
 
-// Any character sequence that doesn't start with > or {
-// SPARQL queries don't use angle brackets for nesting like TriG does
-SPARQL_TEXT: ~[>{}]+;
+// SPARQL variable - explicitly match ?varName patterns  
+// This must come before SPARQL_TEXT to take precedence
+SPARQL_VAR: '?' [a-zA-Z_][a-zA-Z0-9_]*;
+
+// Any other character sequence that doesn't start with >, {, }, or ?
+// Note: ? is handled by SPARQL_VAR above
+SPARQL_TEXT: (~[>{}?])+;
 
 // Single braces (not part of interpolation)
 SPARQL_SINGLE_OPEN_BRACE: '{';
