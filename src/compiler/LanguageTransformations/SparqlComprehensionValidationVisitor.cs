@@ -12,9 +12,10 @@ namespace Fifth.LangProcessingPhases;
 /// Validates:
 /// 1. Generator type is list or tabular SELECT result
 /// 2. For SPARQL generators: query is SELECT (not ASK/CONSTRUCT/DESCRIBE)
-/// 3. For SPARQL object projections: property values are SPARQL variables (?varName)
-/// 4. For SPARQL object projections: referenced variables exist in SELECT projection
+/// 3. For SPARQL object projections: property values use property access syntax (x.propertyName)
+/// 4. For SPARQL object projections: referenced properties exist in SELECT projection
 /// 5. Constraints are boolean expressions
+/// 6. Rejects ?variable syntax (must use x.property instead)
 /// 
 /// Emits diagnostic codes LCOMP001-006 for validation failures.
 /// </summary>
@@ -137,8 +138,9 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
     
     /// <summary>
     /// Validates SPARQL object projection:
-    /// - Property values must be SPARQL variable references (?varName)
-    /// - Referenced variables must exist in SELECT projection
+    /// - Property values must be property access on iteration variable (x.propertyName)
+    /// - Referenced properties must exist in SELECT projection
+    /// - Rejects ?variable syntax (must use x.property instead)
     /// </summary>
     private void ValidateSparqlObjectProjection(
         ObjectInitializerExp objProj, 
@@ -158,45 +160,39 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
                 continue;
             }
             
-            // Check if initializer is a SPARQL variable reference
-            // In the AST, SPARQL vars appear as VarRefExp with name starting with ?
-            if (propInit.RHS is VarRefExp varRef)
+            // Reject ?variable syntax (old syntax no longer supported)
+            if (propInit.RHS is VarRefExp varRef && varRef.VarName.StartsWith("?"))
             {
-                var varName = varRef.VarName;
-                
-                // Check if it's a SPARQL variable (starts with ?)
-                if (varName.StartsWith("?"))
-                {
-                    // Remove ? prefix for comparison
-                    var cleanVarName = varName.TrimStart(new[] { '?' });
-                    
-                    // Validate variable exists in SELECT projection
-                    if (!compiler.LanguageTransformations.SparqlSelectIntrospection.HasProjectedVariable(introspection, cleanVarName))
-                    {
-                        var availableVars = introspection.IsSelectStar 
-                            ? "*" 
-                            : string.Join(", ", introspection.ProjectedVariables.Select(v => "?" + v));
-                        
-                        EmitDiagnostic(
-                            compiler.ComprehensionDiagnostics.UnknownSparqlVariable,
-                            compiler.ComprehensionDiagnostics.FormatUnknownSparqlVariable(varName, availableVars),
-                            DiagnosticSeverity.Error,
-                            varRef,
-                            diagnostics);
-                    }
-                }
-            }
-            else
-            {
-                // For SPARQL object projections, we require direct SPARQL variable bindings
-                // (not arbitrary expressions, literals, or function calls)
                 EmitDiagnostic(
                     compiler.ComprehensionDiagnostics.InvalidObjectProjectionBinding,
-                    compiler.ComprehensionDiagnostics.FormatInvalidObjectProjectionBinding(),
+                    "SPARQL variable references using '?variable' syntax are not allowed. Use property access syntax instead (e.g., 'x.age' where x is the iteration variable).",
                     DiagnosticSeverity.Error,
-                    propInit.RHS,
+                    varRef,
                     diagnostics);
+                continue;
             }
+            
+            // Check if initializer is property access (e.g., x.age)
+            if (propInit.RHS is PropertyAccessExp propAccess)
+            {
+                // Validate the property name exists in SELECT projection
+                var propertyName = propAccess.PropertyName;
+                
+                if (!compiler.LanguageTransformations.SparqlSelectIntrospection.HasProjectedVariable(introspection, propertyName))
+                {
+                    var availableVars = introspection.IsSelectStar 
+                        ? "*" 
+                        : string.Join(", ", introspection.ProjectedVariables);
+                    
+                    EmitDiagnostic(
+                        compiler.ComprehensionDiagnostics.UnknownProperty,
+                        compiler.ComprehensionDiagnostics.FormatUnknownProperty(propertyName, availableVars),
+                        DiagnosticSeverity.Error,
+                        propAccess,
+                        diagnostics);
+                }
+            }
+            // Allow other expressions for now (e.g., simple variable references, method calls for transformation)
         }
     }
     

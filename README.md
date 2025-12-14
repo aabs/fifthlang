@@ -26,7 +26,10 @@ More docs [here](https://fifth-lang.org) including [installation](https://fifth-
 - Namespace imports with aliasing support
 - Type system: Primitives, classes, lists, Arrays
 - List comprehensions with projection and filtering: `[expr from var in source where constraint]`
-  - **Breaking change**: Legacy `in`/`#` syntax replaced with `from`/`where` (see [migration guide](specs/015-sparql-comprehensions/migration.md))
+  - **Breaking change**: Legacy `in`/`#` syntax replaced with `from`/`where` syntax
+  - **SPARQL comprehensions**: Use property access on iteration variable (e.g., `[x.age from x in query <- store]`)
+  - SPARQL variables accessed as properties: `x.propertyName` instead of `?variable`
+  - See [migration guide](specs/015-sparql-comprehensions/migration.md) for full details
 
 ### Knowledge Graph Primitives
 - Native RDF types: `graph`, `triple`, `store`, `query` are built-in language primitives
