@@ -172,24 +172,27 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
                 continue;
             }
             
-            // Check if initializer is property access (e.g., x.age)
-            if (propInit.RHS is PropertyAccessExp propAccess)
+            // Check if initializer is member access (e.g., x.age)
+            if (propInit.RHS is MemberAccessExp memberAccess)
             {
-                // Validate the property name exists in SELECT projection
-                var propertyName = propAccess.PropertyName;
-                
-                if (!compiler.LanguageTransformations.SparqlSelectIntrospection.HasProjectedVariable(introspection, propertyName))
+                // Extract property name from RHS (should be VarRefExp)
+                if (memberAccess.RHS is VarRefExp memberName)
                 {
-                    var availableVars = introspection.IsSelectStar 
-                        ? "*" 
-                        : string.Join(", ", introspection.ProjectedVariables);
+                    var propertyName = memberName.VarName;
                     
-                    EmitDiagnostic(
-                        compiler.ComprehensionDiagnostics.UnknownProperty,
-                        compiler.ComprehensionDiagnostics.FormatUnknownProperty(propertyName, availableVars),
-                        DiagnosticSeverity.Error,
-                        propAccess,
-                        diagnostics);
+                    if (!compiler.LanguageTransformations.SparqlSelectIntrospection.HasProjectedVariable(introspection, propertyName))
+                    {
+                        var availableVars = introspection.IsSelectStar 
+                            ? "*" 
+                            : string.Join(", ", introspection.ProjectedVariables);
+                        
+                        EmitDiagnostic(
+                            compiler.ComprehensionDiagnostics.UnknownProperty,
+                            compiler.ComprehensionDiagnostics.FormatUnknownProperty(propertyName, availableVars),
+                            DiagnosticSeverity.Error,
+                            memberAccess,
+                            diagnostics);
+                    }
                 }
             }
             // Allow other expressions for now (e.g., simple variable references, method calls for transformation)
