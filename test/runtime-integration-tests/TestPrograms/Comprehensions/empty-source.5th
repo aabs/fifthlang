@@ -1,0 +1,11 @@
+// Test comprehension with empty source list
+// Should return an empty list
+
+main(): int {
+    // Test with empty list
+    empty: [int] = [];
+    result: [int] = [x * 2 from x in empty];
+    
+    // result should be an empty list
+    return 0;
+}

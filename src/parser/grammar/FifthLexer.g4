@@ -45,6 +45,7 @@ EXTENDS     : 'extends';
 FALLTHROUGH : 'fallthrough' /*-> mode(NLSEMI)*/;
 FINALLY     : 'finally';
 FOR         : 'for';
+FROM        : 'from';
 FUNC        : 'func';
 GO          : 'go';
 GOTO        : 'goto';
