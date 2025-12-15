@@ -37,11 +37,53 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
 {
     private static readonly FifthType Void = new FifthType.TVoidType() { Name = TypeName.From("void") };
     private int _tempCounter = 0;
+    private string? _currentLoopVar = null;  // Track the current SPARQL row loop variable
+    private bool _isResultIteration = false; // Track if we're in a Result iteration context
 
     /// <summary>
     /// Generate a fresh temporary variable name
     /// </summary>
     private string FreshTempName(string prefix = "tmp") => $"__{prefix}_comprehension_{_tempCounter++}";
+
+    /// <summary>
+    /// Override MemberAccessExp to transform x.property into TabularResultBindings.GetBindingAsString(row, "property")
+    /// when x is the SPARQL row loop variable.
+    /// </summary>
+    public override RewriteResult VisitMemberAccessExp(MemberAccessExp ctx)
+    {
+        // Check if this is a property access on the SPARQL row loop variable
+        if (_isResultIteration && 
+            ctx.LHS is VarRefExp varRef && 
+            varRef.VarName == _currentLoopVar &&
+            ctx.RHS is VarRefExp propertyName)
+        {
+            // Transform x.property to TabularResultBindings.GetBindingAsString(x, "property")
+            var getBindingCall = new FuncCallExp
+            {
+                FunctionDef = null,
+                InvocationArguments = new List<Expression>
+                {
+                    varRef,  // The row variable
+                    new StringLiteralExp 
+                    { 
+                        Value = propertyName.VarName,
+                        Type = new FifthType.TType() { Name = TypeName.From("string") }
+                    }
+                },
+                Type = new FifthType.TType() { Name = TypeName.From("string") },
+                Annotations = new Dictionary<string, object>
+                {
+                    ["ExternalType"] = typeof(Fifth.System.TabularResultBindings),
+                    ["ExternalMethodName"] = "GetBindingAsString"
+                }
+            };
+            
+            return new RewriteResult(getBindingCall, new List<Statement>());
+        }
+        
+        // Otherwise, use default behavior
+        return base.VisitMemberAccessExp(ctx);
+    }
 
     public override RewriteResult VisitVarDeclStatement(VarDeclStatement ctx)
     {
@@ -52,8 +94,15 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
         {
             // Create a new ListComprehension with the correct type
             var typedComprehension = lc with { Type = listType };
-            var typedVarDecl = ctx with { InitialValue = typedComprehension };
-            return base.VisitVarDeclStatement(typedVarDecl);
+            
+            // Rewrite the typed comprehension
+            var result = Rewrite(typedComprehension);
+            
+            // Create new VarDeclStatement with the rewritten expression
+            var newVarDecl = ctx with { InitialValue = (Expression)result.Node };
+            
+            // Return the new statement with prologue from comprehension
+            return new RewriteResult(newVarDecl, result.Prologue);
         }
         
         return base.VisitVarDeclStatement(ctx);
@@ -63,18 +112,19 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
     {
         // Full lowering implementation: Transform comprehensions to imperative code
         // 
-        // Transform:
-        //   [projection from varname in source where constraint1, constraint2]
+        // For SPARQL Result sources:
+        //   [projection from varname in result where constraint1, constraint2]
         // 
         // Into:
         //   {
-        //     temp_result = []
+        //     temp_result_list = []
         //     temp_source = source
-        //     foreach varname in temp_source:
+        //     temp_rows = Fifth.System.TabularResultBindings.EnumerateRows(temp_source)
+        //     foreach row in temp_rows:
+        //       // Map x.property to TabularResultBindings.GetBindingAsString(row, "property")
         //       if constraint1 && constraint2:
         //         temp_append_result = projection
-        //         // Note: actual list append would require Fifth.System integration
-        //     result = temp_result
+        //     result = temp_result_list
         //   }
         
         var prologue = new List<Statement>();
@@ -84,6 +134,11 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
         prologue.AddRange(sourceResult.Prologue);
         var sourceExpr = (Expression)sourceResult.Node;
         
+        // Check if source is a Result type (from SPARQL query application)
+        bool isResultSource = (sourceExpr.Type?.Name.Value == "Result") ||
+                              (sourceExpr.Type is FifthType.TDotnetType dt && 
+                               dt.TheType == typeof(Fifth.System.Result));
+        
         // Step 2: Create temporary variable for source (to evaluate once)
         var sourceTempName = FreshTempName("source");
         var sourceTempDecl = new VariableDecl
@@ -91,7 +146,8 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
             Name = sourceTempName,
             TypeName = sourceExpr.Type?.Name ?? TypeName.From("object"),
             Visibility = Visibility.Private,
-            CollectionType = CollectionType.SingleInstance
+            CollectionType = CollectionType.SingleInstance,
+            Type = sourceExpr.Type
         };
         var sourceTempDeclStmt = new VarDeclStatement
         {
@@ -99,6 +155,63 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
             InitialValue = sourceExpr
         };
         prologue.Add(sourceTempDeclStmt);
+        
+        // Step 2.5: If source is Result, extract rows using TabularResultBindings.EnumerateRows
+        Expression collectionToIterate;
+        if (isResultSource)
+        {
+            var rowsTempName = FreshTempName("rows");
+            var enumerateRowsCall = new FuncCallExp
+            {
+                FunctionDef = null,
+                InvocationArguments = new List<Expression>
+                {
+                    new VarRefExp
+                    {
+                        VarName = sourceTempName,
+                        Type = sourceExpr.Type
+                    }
+                },
+                Type = new FifthType.TDotnetType(typeof(IEnumerable<VDS.RDF.Query.ISparqlResult>))
+                {
+                    Name = TypeName.From("IEnumerable<ISparqlResult>")
+                },
+                Annotations = new Dictionary<string, object>
+                {
+                    ["ExternalType"] = typeof(Fifth.System.TabularResultBindings),
+                    ["ExternalMethodName"] = "EnumerateRows"
+                }
+            };
+            
+            var rowsTempDecl = new VariableDecl
+            {
+                Name = rowsTempName,
+                TypeName = TypeName.From("IEnumerable<ISparqlResult>"),
+                Visibility = Visibility.Private,
+                CollectionType = CollectionType.SingleInstance,
+                Type = enumerateRowsCall.Type
+            };
+            var rowsTempDeclStmt = new VarDeclStatement
+            {
+                VariableDecl = rowsTempDecl,
+                InitialValue = enumerateRowsCall
+            };
+            prologue.Add(rowsTempDeclStmt);
+            
+            collectionToIterate = new VarRefExp
+            {
+                VarName = rowsTempName,
+                Type = enumerateRowsCall.Type
+            };
+        }
+        else
+        {
+            collectionToIterate = new VarRefExp
+            {
+                VarName = sourceTempName,
+                Type = sourceExpr.Type
+            };
+        }
         
         // Step 3: Create temporary variable for result list (initially empty)
         // Extract element type from list comprehension type
@@ -150,7 +263,13 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
         };
         prologue.Add(resultTempDeclStmt);
         
-        // Step 4: Rewrite projection expression
+        // Step 4: Set context for SPARQL row iteration and rewrite projection/constraints
+        var previousLoopVar = _currentLoopVar;
+        var previousIsResult = _isResultIteration;
+        _currentLoopVar = ctx.VarName;
+        _isResultIteration = isResultSource;
+        
+        // Rewrite projection expression with SPARQL row context
         var projectionResult = Rewrite(ctx.Projection);
         var projectionExpr = (Expression)projectionResult.Node;
         
@@ -179,6 +298,10 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
                 }
             }
         }
+        
+        // Restore context
+        _currentLoopVar = previousLoopVar;
+        _isResultIteration = previousIsResult;
         
         // Step 6: Create statement to store projection result
         // Note: Actual list append would require Fifth.System list operations
@@ -231,17 +354,17 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
         var loopVarDecl = new VariableDecl
         {
             Name = ctx.VarName,
-            TypeName = TypeName.From("object"), // Type inference would determine this
+            TypeName = isResultSource ? TypeName.From("ISparqlResult") : TypeName.From("object"),
             Visibility = Visibility.Private,
-            CollectionType = CollectionType.SingleInstance
+            CollectionType = CollectionType.SingleInstance,
+            Type = isResultSource ? new FifthType.TDotnetType(typeof(VDS.RDF.Query.ISparqlResult))
+            {
+                Name = TypeName.From("ISparqlResult")
+            } : null
         };
         var foreachStmt = new ForeachStatement
         {
-            Collection = new VarRefExp
-            {
-                VarName = sourceTempName,
-                Type = sourceExpr.Type
-            },
+            Collection = collectionToIterate,
             LoopVariable = loopVarDecl,
             Body = new BlockStatement
             {
