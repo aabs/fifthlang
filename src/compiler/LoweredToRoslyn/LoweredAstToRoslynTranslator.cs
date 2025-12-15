@@ -400,6 +400,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             ExpStatement expStmt => TranslateExpStatement(expStmt),
             IfElseStatement ifStmt => TranslateIfElseStatement(ifStmt),
             WhileStatement whileStmt => TranslateWhileStatement(whileStmt),
+            ForeachStatement foreachStmt => TranslateForeachStatement(foreachStmt),
             AssignmentStatement assignStmt => TranslateAssignmentStatement(assignStmt),
             TryStatement tryStmt => TranslateTryStatement(tryStmt),
             ThrowStatement throwStmt => TranslateThrowStatement(throwStmt),
@@ -496,6 +497,23 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         var body = BuildBlockStatement(whileStmt.Body);
 
         return WhileStatement(condition, body);
+    }
+
+    private StatementSyntax TranslateForeachStatement(ForeachStatement foreachStmt)
+    {
+        // Generate: foreach (var loopVar in collection) { body }
+        var loopVarName = SanitizeIdentifier(foreachStmt.LoopVariable.Name.ToString());
+        var loopVarTypeName = ExtractTypeName(foreachStmt.LoopVariable.Type);
+        var loopVarType = ParseTypeName(loopVarTypeName);
+        
+        var collection = TranslateExpression(foreachStmt.Collection);
+        var body = BuildBlockStatement(foreachStmt.Body);
+        
+        return ForEachStatement(
+            loopVarType,
+            Identifier(loopVarName),
+            collection,
+            body);
     }
 
     private StatementSyntax TranslateAssignmentStatement(AssignmentStatement assignStmt)
