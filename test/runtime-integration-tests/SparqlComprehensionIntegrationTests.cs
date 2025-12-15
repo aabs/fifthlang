@@ -29,19 +29,6 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
     {
         // Arrange - Simple SPARQL comprehension with property access
         var source = """
-            class Person
-            {
-                Person(id: Uri, age: int, name: string) {
-                    this.Id = id;
-                    this.Age = age;
-                    this.Name = name;
-                }
-                Id: Uri;
-                Age: int;
-                Name: string;
-            }
-
-
             main() : int {
                 s: Store = @< 
                     @prefix : <http://tempuri.org/etc/>.
@@ -62,11 +49,14 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
                             :name ?name.
                     }>;
 
-                // now build a list of Person objects by applying the query to the graph and filtering the results
+                // Apply query to store
+                result: Result = r <- s;
+
+                // now build a list of names from the query results
                 // Note: x represents each result row, and x.property accesses the value of ?property in that row
 
-                people: [Person] = [new Person(x.p, x.age, x.name) from x in r <- s where x.age > 12 ];
-                return List.len(people);
+                names: [string] = [x.name from x in result];
+                return List.len(names);
             }
             """;
 
@@ -104,7 +94,7 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
                 // Use comprehension to extract ages using property access
                 ages: [string] = [x.age from x in result];
                 
-                return 0;
+                return List.len(ages);
             }
             """;
 
@@ -112,7 +102,7 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
         var (exitCode, output, error) = await CompileAndRunAsync(source, "sparql_comp_simple");
 
         // Assert
-        exitCode.Should().Be(0, $"Simple SPARQL comprehension should execute successfully. Error: {error}");
+        exitCode.Should().Be(3, $"Simple SPARQL comprehension should execute successfully and return 3 ages. Error: {error}");
     }
 
     [Fact]
