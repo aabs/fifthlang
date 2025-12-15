@@ -66,8 +66,7 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
                 // Note: x represents each result row, and x.property accesses the value of ?property in that row
 
                 people: [Person] = [new Person(x.p, x.age, x.name) from x in r <- s where x.age > 12 ];
-                // Successfully created list with comprehension
-                return 0;
+                return List.len(people);
             }
             """;
 
@@ -75,7 +74,7 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
         var (exitCode, output, error) = await CompileAndRunAsync(source, "sparql_comp_simple");
 
         // Assert
-        exitCode.Should().Be(0, $"Simple SPARQL comprehension should execute successfully. Error: {error}");
+        exitCode.Should().Be(2, $"Simple SPARQL comprehension should execute successfully and return 2 people. Error: {error}");
     }
 
 
