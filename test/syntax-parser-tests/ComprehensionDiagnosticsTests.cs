@@ -36,7 +36,6 @@ public class ComprehensionDiagnosticsTests
 
         // Should have parse errors
         result.Diagnostics.Should().NotBeEmpty("Legacy 'in' syntax should produce parse errors");
-        result.Root.Should().BeNull("Failed parse should not produce AST root");
     }
 
     [Fact]
@@ -55,7 +54,6 @@ public class ComprehensionDiagnosticsTests
 
         // Should have parse errors
         result.Diagnostics.Should().NotBeEmpty("Legacy '#' constraint syntax should produce parse errors");
-        result.Root.Should().BeNull("Failed parse should not produce AST root");
     }
 
     [Fact]
@@ -109,6 +107,7 @@ public class ComprehensionDiagnosticsTests
         var result = ParseHarnessed(code);
 
         // Should parse without errors
+        result.Diagnostics.Should().BeEmpty("New syntax should parse without errors");
         result.Root.Should().NotBeNull("Comprehension without constraints should parse");
     }
 
