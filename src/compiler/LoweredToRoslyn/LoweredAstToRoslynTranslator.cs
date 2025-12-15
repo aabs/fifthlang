@@ -110,7 +110,8 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             UsingDirective(IdentifierName("System")),
             UsingDirective(IdentifierName("System.Collections.Generic")),
             UsingDirective(IdentifierName("Fifth.System")),
-            UsingDirective(IdentifierName("VDS.RDF"))
+            UsingDirective(IdentifierName("VDS.RDF")),
+            UsingDirective(IdentifierName("VDS.RDF.Query"))
         };
 
         // Get namespace name (or use a default)
