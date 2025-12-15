@@ -303,21 +303,27 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
         _currentLoopVar = previousLoopVar;
         _isResultIteration = previousIsResult;
         
-        // Step 6: Create statement to store projection result
-        // Note: Actual list append would require Fifth.System list operations
-        // For now, we evaluate and store the projection to demonstrate the pattern
-        var projTempName = FreshTempName("proj");
-        var projTempDecl = new VariableDecl
+        // Step 6: Create call to Add() method to append projection to result list
+        // This generates: resultList.Add(projection)
+        var addCall = new FuncCallExp
         {
-            Name = projTempName,
-            TypeName = projectionExpr.Type?.Name ?? TypeName.From("object"),
-            Visibility = Visibility.Private,
-            CollectionType = CollectionType.SingleInstance
+            FunctionDef = null,
+            InvocationArguments = new List<Expression> { projectionExpr },
+            Type = Void,
+            Annotations = new Dictionary<string, object>
+            {
+                ["ExternalMethodName"] = "Add",
+                ["IsInstanceMethod"] = true,
+                ["Target"] = new VarRefExp
+                {
+                    VarName = resultTempName,
+                    Type = listType
+                }
+            }
         };
-        var projTempDeclStmt = new VarDeclStatement
+        var addCallStmt = new ExpStatement
         {
-            VariableDecl = projTempDecl,
-            InitialValue = projectionExpr
+            RHS = addCall
         };
         
         // Step 7: Build loop body (with optional constraint check)
@@ -329,13 +335,13 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
         
         if (combinedConstraint != null)
         {
-            // Wrap projection evaluation in if statement
+            // Wrap Add call in if statement
             var ifStmt = new IfElseStatement
             {
                 Condition = combinedConstraint,
                 ThenBlock = new BlockStatement
                 {
-                    Statements = new List<Statement> { projTempDeclStmt }
+                    Statements = new List<Statement> { addCallStmt }
                 },
                 ElseBlock = new BlockStatement
                 {
@@ -346,8 +352,8 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
         }
         else
         {
-            // No constraint, just evaluate projection
-            loopBodyStatements.Add(projTempDeclStmt);
+            // No constraint, just Add to list
+            loopBodyStatements.Add(addCallStmt);
         }
         
         // Step 8: Create foreach loop

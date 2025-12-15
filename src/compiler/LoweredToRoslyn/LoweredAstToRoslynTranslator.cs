@@ -934,6 +934,38 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private ExpressionSyntax TranslateFuncCallExpression(FuncCallExp funcCall)
     {
+        // Instance method call (e.g., list.Add(item))?
+        if (funcCall.Annotations != null &&
+            funcCall.Annotations.TryGetValue("IsInstanceMethod", out var isInstanceObj) && 
+            isInstanceObj is bool isInstance && isInstance &&
+            funcCall.Annotations.TryGetValue("Target", out var targetObj) && targetObj is Expression targetExpr)
+        {
+            string methodName;
+            if (funcCall.Annotations.TryGetValue("ExternalMethodName", out var extNameObj) && extNameObj is string extMethod)
+            {
+                methodName = SanitizeIdentifier(extMethod);
+            }
+            else
+            {
+                methodName = "UnknownMethod";
+            }
+
+            var argList = new List<ArgumentSyntax>();
+            foreach (var arg in funcCall.InvocationArguments)
+            {
+                argList.Add(Argument(TranslateExpression(arg)));
+            }
+
+            // Emit instance method call: target.Method(args)
+            var targetSyntax = TranslateExpression(targetExpr);
+            return InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        targetSyntax,
+                        IdentifierName(methodName)))
+                .WithArgumentList(ArgumentList(SeparatedList(argList)));
+        }
+        
         // External (static) call annotated by TreeLinkageVisitor?
         if (funcCall.Annotations != null &&
             funcCall.Annotations.TryGetValue("ExternalType", out var extTypeObj) && extTypeObj is Type extType)
