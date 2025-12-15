@@ -188,4 +188,12 @@ public sealed class Store
         }
         return this;
     }
+
+    public void operator +=(Graph g2)
+    {
+        if (g2 == null) throw new ArgumentNullException(nameof(g2));
+
+        AddGraphInPlace(g2);
+    }
+
 }

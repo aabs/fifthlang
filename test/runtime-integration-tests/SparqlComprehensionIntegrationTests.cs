@@ -1,4 +1,6 @@
+using System.Xml.Linq;
 using FluentAssertions;
+using VDS.RDF.Query.Algebra;
 using Xunit;
 
 namespace runtime_integration_tests;
@@ -22,6 +24,59 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
         var result = await ExecuteAsync(exe);
         return (result.ExitCode, result.StandardOutput, result.StandardError);
     }
+    [Fact]
+    public async Task SparqlComprehension_ObjectInstantiation_ShouldExecuteSuccessfully()
+    {
+        // Arrange - Simple SPARQL comprehension with property access
+        var source = """
+            class Person
+            {
+                Person(id: Uri, age: int, name: string) {
+                    this.Id = id;
+                    this.Age = age;
+                    this.Name = name;
+                }
+                Id: Uri;
+                Age: int;
+                Name: string;
+            }
+
+
+            main() : int {
+                s: Store = @< 
+                    @prefix : <http://tempuri.org/etc/>.
+                    :andrew :age 56;
+                            :name "Andrew Matthews" .
+                    :kerry :age 55;
+                            :name "Kerry Matthews" .
+                >;
+
+                // create a query over the graph
+                r: Query = ?<
+                    PREFIX : <http://tempuri.org/etc/>
+
+                    SELECT ?p ?age ?name
+                    WHERE
+                    {
+                        ?p :age ?age;
+                            :name ?name.
+                    }>;
+
+                // now build a list of Person objects by applying the query to the graph and filtering the results
+                // Note: x represents each result row, and x.property accesses the value of ?property in that row
+
+                people: [Person] = [new Person(x.p, x.age, x.name) from x in r <- s where x.age > 12 ];
+                return List.len(people);
+            }
+            """;
+
+        // Act
+        var (exitCode, output, error) = await CompileAndRunAsync(source, "sparql_comp_simple");
+
+        // Assert
+        exitCode.Should().Be(2, $"Simple SPARQL comprehension should execute successfully. Error: {error}");
+    }
+
 
     [Fact]
     public async Task SparqlComprehension_SimpleProjection_ExecutesSuccessfully()

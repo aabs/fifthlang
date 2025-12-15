@@ -38,3 +38,14 @@ public static class Math
     }
 
 }
+
+public static class  List
+{
+    // len gives the length of any ienumerable
+    [BuiltinFunction]
+    public static int len<T>(IEnumerable<T> list)
+    {
+        if (list == null) throw new ArgumentNullException(nameof(list));
+        return list.Count();
+    }
+}
