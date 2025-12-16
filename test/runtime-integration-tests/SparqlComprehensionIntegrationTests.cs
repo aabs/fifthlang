@@ -130,9 +130,9 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
                 
                 // Use comprehension with constraint - filter by age using property access
                 // Note: age values are strings from SPARQL, so comparison needs conversion
-                adults: [string] = [x.age from x in result where x.age > "25"];
+                adults: [string] = [x.age from x in result where int.Parse(x.age) > 25];
                 
-                return 0;
+                return List.len(adults);
             }
             """;
 
@@ -140,7 +140,7 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
         var (exitCode, output, error) = await CompileAndRunAsync(source, "sparql_comp_constraint");
 
         // Assert
-        exitCode.Should().Be(0, $"SPARQL comprehension with constraint should execute. Error: {error}");
+        exitCode.Should().Be(2, $"SPARQL comprehension with constraint should execute. Error: {error}");
     }
 
     [Fact]
@@ -247,9 +247,9 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
                 result: Result = query <- myStore;
                 
                 // Filter with multiple constraints using property access
-                filtered: [string] = [x.value from x in result where x.value > "20", x.value < "60"];
+                filtered: [string] = [x.value from x in result where int.Parse(x.value) > 20, int.Parse(x.value) < 60];
                 
-                return 0;
+                return List.len(filtered);
             }
             """;
 
@@ -257,7 +257,7 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
         var (exitCode, output, error) = await CompileAndRunAsync(source, "sparql_comp_complex_constraints");
 
         // Assert
-        exitCode.Should().Be(0, $"SPARQL comprehension with complex constraints should execute. Error: {error}");
+        exitCode.Should().Be(2, $"SPARQL comprehension with complex constraints should execute. Error: {error}");
     }
 
     [Fact]
@@ -316,9 +316,9 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
                 result: Result = query <- myStore;
                 
                 // Constraint that filters everything
-                filtered: [string] = [x.age from x in result where x.age > "100"];
+                filtered: [string] = [x.age from x in result where int.Parse(x.age) > 100];
                 
-                return 0;
+                return List.len(filtered);
             }
             """;
 
@@ -444,7 +444,7 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
         // Assert
         exitCode.Should().Be(0, $"Complex SPARQL comprehension should execute. Error: {error}");
     }
-    
+
     [Fact]
     public async Task SparqlComprehension_ValidatesListPopulation_ByIteratingResults()
     {
@@ -483,7 +483,7 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
         // Assert - If exit code is 3, comprehension executed successfully
         exitCode.Should().Be(3, $"List population validation should work. Error: {error}");
     }
-    
+
     [Fact]
     public async Task SparqlComprehension_WithMultipleResults_PopulatesListCorrectly()
     {
@@ -524,7 +524,7 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
         // Assert
         exitCode.Should().Be(5, $"Comprehension with multiple results should populate list. Error: {error}");
     }
-    
+
     [Fact]
     public async Task SparqlComprehension_WithConstraint_FiltersAndPopulatesCorrectly()
     {
@@ -550,10 +550,10 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
                 result: Result = query <- myStore;
                 
                 // Filter: only values > "20" (should get 3 results: 25, 30, 45)
-                filtered: [string] = [x.num from x in result where x.num > "20"];
+                filtered: [string] = [x.num from x in result where int.Parse(x.num) > 20];
                 
                 // If filtering worked correctly, we got 3 items
-                return 3;
+                return List.len(filtered);
             }
             """;
 

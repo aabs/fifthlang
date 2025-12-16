@@ -20,6 +20,34 @@ public sealed class Store
         _tripleStore = tripleStore;
     }
 
+    private Store CloneForImmutableOperations()
+    {
+        if (_tripleStore == null)
+            throw new InvalidOperationException("Immutable store operators are only supported for in-memory stores");
+
+        var cloneTripleStore = new VDS.RDF.TripleStore();
+
+        foreach (var existingGraph in _tripleStore.Graphs)
+        {
+            var graphCopy = CloneGraph(existingGraph);
+            cloneTripleStore.Add(graphCopy, true);
+        }
+
+        return new Store(new InMemoryManager(cloneTripleStore), cloneTripleStore);
+    }
+
+    private static VDS.RDF.Graph CloneGraph(VDS.RDF.IGraph source)
+    {
+        var copy = new VDS.RDF.Graph
+        {
+            BaseUri = source.BaseUri
+        };
+
+        copy.NamespaceMap.Import(source.NamespaceMap);
+        copy.Assert(source.Triples);
+        return copy;
+    }
+
     /// <summary>
     /// Creates a new in-memory store.
     /// </summary>
@@ -163,8 +191,13 @@ public sealed class Store
     /// Mutating addition: saves graph to store and returns the store.
     /// Store is modified in place.
     /// </summary>
+    /// <remarks>
+    /// The C# compiler rewrites <c>store += graph</c> into <c>store = store + graph</c>.
+    /// Call this method explicitly whenever you need real mutation semantics.
+    /// </remarks>
     public Store AddGraphInPlace(Graph graph)
     {
+        if (graph == null) throw new ArgumentNullException(nameof(graph));
         SaveGraph(graph);
         return this;
     }
@@ -173,6 +206,9 @@ public sealed class Store
     /// Mutating subtraction: removes graph from store and returns the store.
     /// Store is modified in place.
     /// </summary>
+    /// <remarks>
+    /// See <see cref="AddGraphInPlace"/> for the rationale behind explicit mutation helpers.
+    /// </remarks>
     public Store RemoveGraphInPlace(Graph graph)
     {
         if (graph == null) throw new ArgumentNullException(nameof(graph));
@@ -189,11 +225,24 @@ public sealed class Store
         return this;
     }
 
-    public void operator +=(Graph g2)
+    public static Store operator +(Store store, Graph graph)
     {
-        if (g2 == null) throw new ArgumentNullException(nameof(g2));
+        if (store == null) throw new ArgumentNullException(nameof(store));
+        if (graph == null) throw new ArgumentNullException(nameof(graph));
 
-        AddGraphInPlace(g2);
+        var clone = store.CloneForImmutableOperations();
+        clone.AddGraphInPlace(graph);
+        return clone;
+    }
+
+    public static Store operator -(Store store, Graph graph)
+    {
+        if (store == null) throw new ArgumentNullException(nameof(store));
+        if (graph == null) throw new ArgumentNullException(nameof(graph));
+
+        var clone = store.CloneForImmutableOperations();
+        clone.RemoveGraphInPlace(graph);
+        return clone;
     }
 
 }
