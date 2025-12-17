@@ -67,6 +67,59 @@ public class SparqlComprehensionIntegrationTests : RuntimeTestBase
         exitCode.Should().Be(2, $"Simple SPARQL comprehension should execute successfully and return 2 people. Error: {error}");
     }
 
+    [Fact]
+    public async Task SparqlComprehension_SimpleProjection_IteratesAllResults()
+    {
+        // Arrange - Simple SPARQL comprehension with property access
+        var source = """
+            class Person {
+                Person(id: string, age: int, name: string) {
+                    this.Id = id;
+                    this.Age = age;
+                    this.Name = name;
+                }
+                Id: string;
+                Age: int;
+                Name: string;
+            }
+
+            main(): int {
+                // Create store with test data
+                myStore: Store = @<
+                    @prefix : <http://tempuri.org/etc/>.
+                    :andrew :age 56;
+                            :name "Andrew Matthews" .
+                    :kerry :age 55;
+                            :name "Kerry Matthews" .
+                >;
+                
+                // Execute SELECT query
+                query: Query = ?<
+                    PREFIX : <http://tempuri.org/etc/>
+                    SELECT ?p ?age ?name
+                    WHERE {
+                        ?p :age ?age ;
+                           :name ?name .
+                    }
+                >;
+                
+                result: Result = query <- myStore;
+                
+                // Use comprehension to extract ages using property access
+                people: [Person] = [new Person(x.p, int.Parse(x.age), x.name) from x in result];
+
+                IO.write(people[0].Name);
+                IO.write(people[1].Name);
+                return 0;
+            }
+            """;
+
+        // Act
+        var (exitCode, output, error) = await CompileAndRunAsync(source, "sparql_comp_simple");
+        output.Should().Contain("Andrew Matthews").And.Contain("Kerry Matthews");
+        // Assert
+        exitCode.Should().Be(0, $"Simple SPARQL comprehension should execute successfully and return 0. Error: {error}");
+    }
 
     [Fact]
     public async Task SparqlComprehension_SimpleProjection_ExecutesSuccessfully()
