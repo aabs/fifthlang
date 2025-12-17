@@ -52,8 +52,8 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
     public override RewriteResult VisitMemberAccessExp(MemberAccessExp ctx)
     {
         // Check if this is a property access on the SPARQL row loop variable
-        if (_isResultIteration && 
-            ctx.LHS is VarRefExp varRef && 
+        if (_isResultIteration &&
+            ctx.LHS is VarRefExp varRef &&
             varRef.VarName == _currentLoopVar &&
             ctx.RHS is VarRefExp propertyName)
         {
@@ -64,8 +64,8 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
                 InvocationArguments = new List<Expression>
                 {
                     varRef,  // The row variable
-                    new StringLiteralExp 
-                    { 
+                    new StringLiteralExp
+                    {
                         Value = propertyName.VarName,
                         Type = new FifthType.TType() { Name = TypeName.From("string") }
                     }
@@ -77,10 +77,10 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
                     ["ExternalMethodName"] = "GetBindingAsString"
                 }
             };
-            
+
             return new RewriteResult(getBindingCall, new List<Statement>());
         }
-        
+
         // Otherwise, use default behavior
         return base.VisitMemberAccessExp(ctx);
     }
@@ -89,22 +89,22 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
     {
         // If the initial value is a ListComprehension without a proper type, 
         // propagate the variable's type to it before rewriting
-        if (ctx.InitialValue is ListComprehension lc && 
+        if (ctx.InitialValue is ListComprehension lc &&
             ctx.VariableDecl.Type is FifthType.TListOf listType)
         {
             // Create a new ListComprehension with the correct type
             var typedComprehension = lc with { Type = listType };
-            
+
             // Rewrite the typed comprehension
             var result = Rewrite(typedComprehension);
-            
+
             // Create new VarDeclStatement with the rewritten expression
             var newVarDecl = ctx with { InitialValue = (Expression)result.Node };
-            
+
             // Return the new statement with prologue from comprehension
             return new RewriteResult(newVarDecl, result.Prologue);
         }
-        
+
         return base.VisitVarDeclStatement(ctx);
     }
 
@@ -126,19 +126,19 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
         //         temp_append_result = projection
         //     result = temp_result_list
         //   }
-        
+
         var prologue = new List<Statement>();
-        
+
         // Step 1: Rewrite source expression and collect its prologue
         var sourceResult = Rewrite(ctx.Source);
         prologue.AddRange(sourceResult.Prologue);
         var sourceExpr = (Expression)sourceResult.Node;
-        
+
         // Check if source is a Result type (from SPARQL query application)
         bool isResultSource = (sourceExpr.Type?.Name.Value == "Result") ||
-                              (sourceExpr.Type is FifthType.TDotnetType dt && 
+                              (sourceExpr.Type is FifthType.TDotnetType dt &&
                                dt.TheType == typeof(Fifth.System.Result));
-        
+
         // Step 2: Create temporary variable for source (to evaluate once)
         var sourceTempName = FreshTempName("source");
         var sourceTempDecl = new VariableDecl
@@ -155,7 +155,7 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
             InitialValue = sourceExpr
         };
         prologue.Add(sourceTempDeclStmt);
-        
+
         // Step 2.5: If source is Result, extract rows using TabularResultBindings.EnumerateRows
         Expression collectionToIterate;
         if (isResultSource)
@@ -182,7 +182,7 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
                     ["ExternalMethodName"] = "EnumerateRows"
                 }
             };
-            
+
             var rowsTempDecl = new VariableDecl
             {
                 Name = rowsTempName,
@@ -197,7 +197,7 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
                 InitialValue = enumerateRowsCall
             };
             prologue.Add(rowsTempDeclStmt);
-            
+
             collectionToIterate = new VarRefExp
             {
                 VarName = rowsTempName,
@@ -212,13 +212,13 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
                 Type = sourceExpr.Type
             };
         }
-        
+
         // Step 3: Create temporary variable for result list (initially empty)
         // Extract element type from list comprehension type
         var resultTempName = FreshTempName("result");
         FifthType elementType;
         FifthType listType;
-        
+
         if (ctx.Type is FifthType.TListOf listOf)
         {
             elementType = listOf.ElementType;
@@ -242,7 +242,7 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
                 Name = TypeName.From("[object]")
             };
         }
-        
+
         var resultTempDecl = new VariableDecl
         {
             Name = resultTempName,
@@ -262,17 +262,17 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
             InitialValue = emptyList
         };
         prologue.Add(resultTempDeclStmt);
-        
+
         // Step 4: Set context for SPARQL row iteration and rewrite projection/constraints
         var previousLoopVar = _currentLoopVar;
         var previousIsResult = _isResultIteration;
         _currentLoopVar = ctx.VarName;
         _isResultIteration = isResultSource;
-        
+
         // Rewrite projection expression with SPARQL row context
         var projectionResult = Rewrite(ctx.Projection);
         var projectionExpr = (Expression)projectionResult.Node;
-        
+
         // Step 5: Build constraint expression (AND all constraints together)
         Expression? combinedConstraint = null;
         if (ctx.Constraints != null && ctx.Constraints.Count > 0)
@@ -281,7 +281,7 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
             {
                 var constraintResult = Rewrite(constraint);
                 var constraintExpr = (Expression)constraintResult.Node;
-                
+
                 if (combinedConstraint == null)
                 {
                     combinedConstraint = constraintExpr;
@@ -298,11 +298,11 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
                 }
             }
         }
-        
+
         // Restore context
         _currentLoopVar = previousLoopVar;
         _isResultIteration = previousIsResult;
-        
+
         // Step 6: Create call to Add() method to append projection to result list
         // This generates: resultList.Add(projection)
         var addCall = new FuncCallExp
@@ -325,14 +325,14 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
         {
             RHS = addCall
         };
-        
+
         // Step 7: Build loop body (with optional constraint check)
         var loopBodyStatements = new List<Statement>();
         if (projectionResult.Prologue.Count > 0)
         {
             loopBodyStatements.AddRange(projectionResult.Prologue);
         }
-        
+
         if (combinedConstraint != null)
         {
             // Wrap Add call in if statement
@@ -355,18 +355,34 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
             // No constraint, just Add to list
             loopBodyStatements.Add(addCallStmt);
         }
-        
+
         // Step 8: Create foreach loop
+        // Determine the type of the loop variable based on the collection being iterated
+        FifthType loopVarType;
+        TypeName loopVarTypeName;
+
+        if (isResultSource)
+        {
+            loopVarType = new FifthType.TDotnetType(typeof(VDS.RDF.Query.ISparqlResult))
+            {
+                Name = TypeName.From("ISparqlResult")
+            };
+            loopVarTypeName = TypeName.From("ISparqlResult");
+        }
+        else
+        {
+            // For regular list iteration, the loop variable type is the element type
+            loopVarType = elementType;
+            loopVarTypeName = elementType.Name;
+        }
+
         var loopVarDecl = new VariableDecl
         {
             Name = ctx.VarName,
-            TypeName = isResultSource ? TypeName.From("ISparqlResult") : TypeName.From("object"),
+            TypeName = loopVarTypeName,
             Visibility = Visibility.Private,
             CollectionType = CollectionType.SingleInstance,
-            Type = isResultSource ? new FifthType.TDotnetType(typeof(VDS.RDF.Query.ISparqlResult))
-            {
-                Name = TypeName.From("ISparqlResult")
-            } : null
+            Type = loopVarType
         };
         var foreachStmt = new ForeachStatement
         {
@@ -378,17 +394,17 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
             }
         };
         prologue.Add(foreachStmt);
-        
+
         // Step 9: Return reference to result variable wrapped in list type
         var resultRef = new VarRefExp
         {
             VarName = resultTempName,
-            Type = new FifthType.TListOf(elementType) 
-            { 
+            Type = new FifthType.TListOf(elementType)
+            {
                 Name = TypeName.From($"[{elementType.Name}]")
             }
         };
-        
+
         return new RewriteResult(resultRef, prologue);
     }
 }
