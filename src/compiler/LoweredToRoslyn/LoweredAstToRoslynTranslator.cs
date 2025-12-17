@@ -110,7 +110,8 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             UsingDirective(IdentifierName("System")),
             UsingDirective(IdentifierName("System.Collections.Generic")),
             UsingDirective(IdentifierName("Fifth.System")),
-            UsingDirective(IdentifierName("VDS.RDF"))
+            UsingDirective(IdentifierName("VDS.RDF")),
+            UsingDirective(IdentifierName("VDS.RDF.Query"))
         };
 
         // Get namespace name (or use a default)
@@ -399,6 +400,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             ExpStatement expStmt => TranslateExpStatement(expStmt),
             IfElseStatement ifStmt => TranslateIfElseStatement(ifStmt),
             WhileStatement whileStmt => TranslateWhileStatement(whileStmt),
+            ForeachStatement foreachStmt => TranslateForeachStatement(foreachStmt),
             AssignmentStatement assignStmt => TranslateAssignmentStatement(assignStmt),
             TryStatement tryStmt => TranslateTryStatement(tryStmt),
             ThrowStatement throwStmt => TranslateThrowStatement(throwStmt),
@@ -495,6 +497,23 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         var body = BuildBlockStatement(whileStmt.Body);
 
         return WhileStatement(condition, body);
+    }
+
+    private StatementSyntax TranslateForeachStatement(ForeachStatement foreachStmt)
+    {
+        // Generate: foreach (var loopVar in collection) { body }
+        var loopVarName = SanitizeIdentifier(foreachStmt.LoopVariable.Name.ToString());
+        var loopVarTypeName = ExtractTypeName(foreachStmt.LoopVariable.Type);
+        var loopVarType = ParseTypeName(loopVarTypeName);
+        
+        var collection = TranslateExpression(foreachStmt.Collection);
+        var body = BuildBlockStatement(foreachStmt.Body);
+        
+        return ForEachStatement(
+            loopVarType,
+            Identifier(loopVarName),
+            collection,
+            body);
     }
 
     private StatementSyntax TranslateAssignmentStatement(AssignmentStatement assignStmt)
@@ -933,6 +952,38 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private ExpressionSyntax TranslateFuncCallExpression(FuncCallExp funcCall)
     {
+        // Instance method call (e.g., list.Add(item))?
+        if (funcCall.Annotations != null &&
+            funcCall.Annotations.TryGetValue("IsInstanceMethod", out var isInstanceObj) && 
+            isInstanceObj is bool isInstance && isInstance &&
+            funcCall.Annotations.TryGetValue("Target", out var targetObj) && targetObj is Expression targetExpr)
+        {
+            string methodName;
+            if (funcCall.Annotations.TryGetValue("ExternalMethodName", out var extNameObj) && extNameObj is string extMethod)
+            {
+                methodName = SanitizeIdentifier(extMethod);
+            }
+            else
+            {
+                methodName = "UnknownMethod";
+            }
+
+            var argList = new List<ArgumentSyntax>();
+            foreach (var arg in funcCall.InvocationArguments)
+            {
+                argList.Add(Argument(TranslateExpression(arg)));
+            }
+
+            // Emit instance method call: target.Method(args)
+            var targetSyntax = TranslateExpression(targetExpr);
+            return InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        targetSyntax,
+                        IdentifierName(methodName)))
+                .WithArgumentList(ArgumentList(SeparatedList(argList)));
+        }
+        
         // External (static) call annotated by TreeLinkageVisitor?
         if (funcCall.Annotations != null &&
             funcCall.Annotations.TryGetValue("ExternalType", out var extTypeObj) && extTypeObj is Type extType)

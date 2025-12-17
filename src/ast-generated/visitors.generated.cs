@@ -1137,8 +1137,12 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
     }
     public virtual ListComprehension VisitListComprehension(ListComprehension ctx)
     {
+        List<ast.Expression> tmpConstraints = [];
+        tmpConstraints.AddRange(ctx.Constraints.Select(x => (ast.Expression)Visit(x)));
      return ctx with {
-         MembershipConstraint = (ast.Expression)Visit((AstThing)ctx.MembershipConstraint)
+         Projection = (ast.Expression)Visit((AstThing)ctx.Projection)
+        ,Source = (ast.Expression)Visit((AstThing)ctx.Source)
+        ,Constraints = tmpConstraints
         };
     }
     public virtual Atom VisitAtom(Atom ctx)

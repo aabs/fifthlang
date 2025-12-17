@@ -1,0 +1,11 @@
+// Test comprehension where constraints filter out all items
+// Should return an empty list
+
+main(): int {
+    // Test with constraints that filter everything out
+    numbers: [int] = [1, 2, 3, 4, 5];
+    result: [int] = [x from x in numbers where x > 10];
+    
+    // result should be an empty list
+    return 0;
+}

@@ -149,9 +149,9 @@ list_body: list_literal | list_comprehension;
 list_literal: expressionList?;
 
 list_comprehension:
-	varname = var_name IN source = expression (
-		SUCH_THAT constraint = expression
-	);
+	projection = expression FROM varname = var_name IN source = expression (
+		WHERE constraints += expression (COMMA constraints += expression)*
+	)?;
 
 type_spec:
 	L_BRACKET type_spec R_BRACKET  # list_type_spec
@@ -294,10 +294,12 @@ sparqlLiteral:
 
 // Content tokens from SPARQL_LITERAL_MODE
 sparqlLiteralContent:
-    SPARQL_TEXT
-    | SPARQL_SINGLE_OPEN_BRACE    // Single { (not part of interpolation)
-    | SPARQL_SINGLE_CLOSE_BRACE   // Single } (not part of interpolation)
-    | sparqlInterpolation;        // {{ expression }}
+    SPARQL_CONTENT                     // Raw SPARQL text (no tokenization of SPARQL syntax)
+    | SPARQL_OPEN_ANGLE                // Opening angle bracket in IRIs
+    | SPARQL_CLOSE_ANGLE_CONTENT       // Closing angle bracket in IRIs (not the final one)
+    | SPARQL_SINGLE_OPEN_BRACE         // Single { (not part of interpolation)
+    | SPARQL_SINGLE_CLOSE_BRACE        // Single } (not part of interpolation)
+    | sparqlInterpolation;             // {{ expression }}
 
 // Interpolation: {{ expression }}
 // After SPARQL_INTERP_START, we're in DEFAULT_MODE and can parse any expression

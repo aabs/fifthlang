@@ -1,0 +1,27 @@
+// Test: Constraints filter rows
+// Tests that where clauses properly filter items from the source list
+
+main(): int {
+    // Test 1: Single constraint filters correctly
+    numbers: [int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    evens: [int] = [x from x in numbers where x % 2 == 0];
+    // Expected: [2, 4, 6, 8, 10]
+    
+    // Test 2: Multiple constraints (AND behavior)
+    inRange: [int] = [x from x in numbers where x > 3, x < 8];
+    // Expected: [4, 5, 6, 7]
+    
+    // Test 3: Constraint that filters all items
+    none: [int] = [x from x in numbers where x > 100];
+    // Expected: []
+    
+    // Test 4: Constraint with projection
+    doubled: [int] = [x * 2 from x in numbers where x < 4];
+    // Expected: [2, 4, 6]
+    
+    // Test 5: Three constraints
+    complex: [int] = [x from x in numbers where x > 2, x < 9, x % 2 == 1];
+    // Expected: [3, 5, 7]
+    
+    return 0;
+}

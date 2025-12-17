@@ -1,0 +1,16 @@
+// Test sample for new list comprehension syntax with from/where keywords
+// This demonstrates the new comprehension form that replaces legacy in/# syntax
+
+main(): int {
+    // Simple list comprehension with from
+    numbers: [int] = [1, 2, 3, 4, 5];
+    doubled: [int] = [x * 2 from x in numbers];
+    
+    // Comprehension with where constraint
+    evens: [int] = [x from x in numbers where x % 2 == 0];
+    
+    // Multiple constraints (AND-ed)
+    filtered: [int] = [x from x in numbers where x > 2, x < 5];
+    
+    return 0;
+}

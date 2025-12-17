@@ -1,0 +1,19 @@
+// Simple list comprehension test with new from/where syntax
+// Tests basic variable projection and filtering
+
+main(): int {
+    // Test 1: Simple projection
+    numbers: [int] = [1, 2, 3, 4, 5];
+    doubled: [int] = [x * 2 from x in numbers];
+    
+    // Test 2: Single where constraint
+    evens: [int] = [x from x in numbers where x % 2 == 0];
+    
+    // Test 3: Multiple where constraints
+    filtered: [int] = [x from x in numbers where x > 1, x < 5];
+    
+    // Test 4: Complex projection with constraint
+    transformed: [int] = [x * 2 + 1 from x in numbers where x > 2];
+    
+    return 0;
+}

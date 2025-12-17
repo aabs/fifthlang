@@ -1169,9 +1169,29 @@ public record ListLiteral : List
 
 public record ListComprehension : List
 {
+    /// <summary>
+    /// The projection expression - what value to produce for each item.
+    /// Can be a VarRefExp, ObjectInstantiationExp, or any expression.
+    /// </summary>
+    public required Expression Projection { get; init; }
+    
+    /// <summary>
+    /// The source expression to iterate over.
+    /// For general comprehensions: any list/enumerable expression.
+    /// For SPARQL comprehensions: expression whose type is a tabular SELECT result.
+    /// </summary>
+    public required Expression Source { get; init; }
+    
+    /// <summary>
+    /// The iteration variable name (e.g., "x" in "x from nums").
+    /// </summary>
     public required string VarName { get; init; }
-    public required string SourceName { get; init; }
-    public Expression? MembershipConstraint { get; init; }
+    
+    /// <summary>
+    /// Zero or more where constraints (AND-ed together).
+    /// Each constraint must evaluate to boolean.
+    /// </summary>
+    public List<Expression> Constraints { get; init; } = new();
 }
 
 public record Atom : Expression
