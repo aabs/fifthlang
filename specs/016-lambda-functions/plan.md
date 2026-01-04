@@ -85,6 +85,7 @@ test/
     - Run `just run-generator` to update AST classes.
 - [ ] **Parser Implementation**:
     - Update `src/parser/AstBuilderVisitor.cs` to handle new grammar rules and build `LambdaExp` and `FunctionType`.
+    - Enforce explicit parameter types and block body syntax `{ ... }`.
 - [ ] **Parser Tests**:
     - Add syntax tests in `test/syntax-parser-tests/` to verify parsing of LFs and function types.
 
@@ -96,7 +97,8 @@ test/
 
 ## Phase 3: Lowering & Transformations
 - [ ] **Closure Conversion Pass**:
-    - Create `src/compiler/LanguageTransformations/ClosureConversionRewriter.cs`.
+    - Create `src/compiler/LanguageTransformations/Closure including `this` capture.
+    - Validate constraints: no shadowing, read-only capturesConversionRewriter.cs`.
     - Implement variable capture analysis (free variables).
     - Generate closure classes/structs.
     - Rewrite `LambdaExp` to closure instantiation.

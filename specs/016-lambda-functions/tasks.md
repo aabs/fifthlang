@@ -22,6 +22,7 @@
   - [ ] **File**: `src/parser/grammar/FifthLexer.g4`
 - [ ] **1.5. Update Parser** <!-- id: 3 -->
   - [ ] Add `lambda_function` rule (including `constraint_clause`).
+  - [ ] Enforce block body syntax `{ ... }` (no expression bodies).
   - [ ] Add `function_type_signature` rule.
   - [ ] Update `expression` rule to include lambdas.
   - [ ] **File**: `src/parser/grammar/FifthParser.g4`
@@ -49,7 +50,9 @@
   - [ ] Test capturing modified variables (by value).
   - [ ] **File**: `test/runtime-integration-tests/ClosureTests.cs`
 - [ ] **3.3. Closure Conversion Analysis** <!-- id: 9 -->
-  - [ ] Implement `FreeVariableAnalysisVisitor` to identify captured variables.
+  - [ ] Implement `FreeVariableAnalysisVisitor` to identify captured variables and `this`.
+  - [ ] Validate no shadowing of outer variables.
+  - [ ] Validate captured variables are not reassigned (read-only).
   - [ ] **File**: `src/compiler/LanguageTransformations/FreeVariableAnalysisVisitor.cs`
 - [ ] **3.4. Closure Conversion Rewriter** <!-- id: 10 -->
   - [ ] Implement `ClosureConversionRewriter` (inherits `DefaultAstRewriter`).

@@ -73,6 +73,7 @@ As a functional programmer, I want to be able to capture variables referenced in
 
 1. **Given** a local variable `factor` and an LF capturing it, **When** the LF is invoked, **Then** it uses the value of `factor` captured at the point of creation.
 2. **Given** a mutable variable captured by an LF, **When** the original variable changes after capture, **Then** the LF uses the *copied* value (capture-by-value semantics).
+3. **Given** a lambda defined within an instance method that references an instance field, **When** the lambda is invoked, **Then** it can access the field via the captured `this` reference.
 
 ---
 
@@ -107,6 +108,10 @@ As a functional programmer, I want to define Generic LFs and use recursive funct
 - **FR-006**: The system MUST support generic lambda functions and HOFs.
 - **FR-007**: The system MUST implement Tail Call Optimisation (TCO) for self-recursive functions (transform to loop).
 - **FR-008**: The system MUST enforce a limit on the number of lambda parameters (default 8).
+- **FR-009**: The system MUST enforce that captured variables are read-only within the lambda body (cannot be reassigned).
+- **FR-010**: The system MUST require explicit type annotations for all lambda parameters (no inference).
+- **FR-011**: The system MUST require lambda bodies to be defined as blocks `{ ... }` (no expression bodies).
+- **FR-012**: The system MUST disallow lambda parameters from shadowing variables in the enclosing scope.
 
 ### Non-Goals
 
@@ -145,6 +150,11 @@ As a functional programmer, I want to define Generic LFs and use recursive funct
 - Q: Recursive Lambda Syntax → A: By variable name only (capture variable).
 - Q: Closure Equality → A: Reference Equality.
 - Q: Void Return Handling → A: Use `void` keyword mapping to `TVoidType`.
+- Q: Capture `this` reference? → A: Yes, capture `this` by value automatically if instance members are referenced.
+- Q: Mutability of captured variables? → A: Read-only; captured variables cannot be reassigned within the lambda.
+- Q: Parameter Type Inference? → A: No, explicit types are required for all lambda parameters.
+- Q: Lambda Body Syntax? → A: Block body only `{ ... }`; no expression-bodied lambdas.
+- Q: Variable Shadowing? → A: Disallowed; lambda parameters cannot shadow variables from the enclosing scope.
 
 ## Technical Specification & Implementation Details
 
