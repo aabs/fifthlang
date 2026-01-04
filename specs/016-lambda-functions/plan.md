@@ -91,7 +91,7 @@ test/
 ## Phase 2: Runtime Support
 - [ ] **Runtime Interfaces**:
     - Define `IClosure` interfaces (generic variants) in `src/fifthlang.system/` or a new runtime project.
-    - Define `IAction` interfaces for void-returning LFs.
+    - Define `IActionClosure` interfaces for void-returning LFs.
     - Define standard `Closure` base classes if needed.
 
 ## Phase 3: Lowering & Transformations
@@ -100,20 +100,20 @@ test/
     - Implement variable capture analysis (free variables).
     - Generate closure classes/structs.
     - Rewrite `LambdaExp` to closure instantiation.
-    - Handle `void` return types using `IAction`.
+    - Handle `void` return types using `IActionClosure`.
 - [ ] **Defunctionalisation Pass**:
     - Create `src/compiler/LanguageTransformations/DefunctionalisationRewriter.cs`.
-    - Replace `FunctionType` usages with `IClosure<...>` or `IAction<...>`.
+    - Replace `FunctionType` usages with `IClosure<...>` or `IActionClosure<...>`.
     - Rewrite function calls `f(...)` to `f.Apply(...)`.
 - [ ] **TCO Pass (Self-Recursion)**:
-    - Create `src/compiler/LanguageTransformations/TailCallOptimizer.cs`.
+    - Create `src/compiler/LanguageTransformations/TailCallOptimizationRewriter.cs`.
     - Detect self-recursive tail calls.
     - Rewrite to `while` loops.
 
 ## Phase 4: Code Generation (Roslyn)
 - [ ] **Roslyn Backend Updates**:
-    - Update `src/code_generator/RoslynCompiler.cs` (or relevant emitter).
-    - Handle `IClosure`/`IAction` types.
+    - Update `src/compiler/LoweredToRoslyn/LoweredAstToRoslynTranslator.cs`.
+    - Handle `IClosure`/`IActionClosure` types.
     - Emit generated closure classes.
     - Emit `WorkerFunctionDef` and `WrapperFunctionDef`.
     - Map `void` return to `void` in C#.

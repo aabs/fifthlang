@@ -196,11 +196,11 @@ public interface IClosure<T1, T2>
 // ... and so on for higher arities
 
 // For void-returning functions (mapped from TVoidType)
-public interface IAction
+public interface IActionClosure
 {
     void Apply();
 }
-public interface IAction<T>
+public interface IActionClosure<T>
 {
     void Apply(T t);
 }
