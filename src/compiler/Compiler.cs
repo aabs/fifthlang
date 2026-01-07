@@ -287,7 +287,12 @@ Examples:
         }
         catch (System.Exception ex)
         {
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Transform error: {ex.Message}"));
+            var errorMsg = $"Transform error: {ex.Message}\nStack trace:\n{ex.StackTrace}";
+            if (ex.InnerException != null)
+            {
+                errorMsg += $"\n\nInner exception: {ex.InnerException.Message}\nInner stack trace:\n{ex.InnerException.StackTrace}";
+            }
+            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, errorMsg));
             return null;
         }
     }

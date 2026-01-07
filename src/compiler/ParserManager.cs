@@ -64,7 +64,10 @@ public static class FifthParserManager
         try
         {
             if (upTo >= AnalysisPhase.TreeLink)
+            {
+                if (DebugHelpers.DebugEnabled) DebugHelpers.DebugLog("=== Running TreeLinkageVisitor ===");
                 ast = new TreeLinkageVisitor().Visit(ast);
+            }
         }
         catch (System.Exception ex)
         {
@@ -73,6 +76,7 @@ public static class FifthParserManager
                 DebugHelpers.DebugLog($"TreeLinkageVisitor failed with: {ex.Message}");
                 DebugHelpers.DebugLog($"Stack trace: {ex.StackTrace}");
             }
+            diagnostics?.Add(new compiler.Diagnostic(compiler.DiagnosticLevel.Error, $"TreeLinkageVisitor failed: {ex.Message}\nStack: {ex.StackTrace}"));
             throw;
         }
 

@@ -254,10 +254,19 @@ public sealed class LambdaClosureConversionRewriter : DefaultAstRewriter
         {
             if (string.Equals(vr.VarName, captureName, StringComparison.Ordinal) && vr.Type != null)
             {
-                var inferred = vr.Type.Name.Value;
-                if (!string.IsNullOrWhiteSpace(inferred) && !string.Equals(inferred, "unknown", StringComparison.Ordinal))
+                try
                 {
-                    return inferred;
+                    var inferred = vr.Type.Name.Value;
+                    if (!string.IsNullOrWhiteSpace(inferred) && !string.Equals(inferred, "unknown", StringComparison.Ordinal))
+                    {
+                        return inferred;
+                    }
+                }
+                catch (System.InvalidOperationException ex) when (ex.Message.Contains("uninitialized"))
+                {
+                    // Type exists but Name is uninitialized - skip this reference and try others
+                    // This can happen when type annotation creates a FifthType without initializing Name
+                    continue;
                 }
             }
         }
