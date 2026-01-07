@@ -222,14 +222,6 @@ public interface IActionClosure<T>
 
 - **FunctionType**: Represents `[params] -> return`.
     - *Note*: `FifthType.TFunc` should be updated to support multiple input types or `FunctionType` should map to it appropriately.
-- **ClosureApplyExp**: Represents `closure.Apply(args)`.
-    ```csharp
-    public record ClosureApplyExp : Expression
-    {
-        public required Expression ClosureInstance { get; init; }
-        public required List<Expression> Arguments { get; init; }
-    }
-    ```
 - **WorkerFunctionDef**: Internal defunctionalised function taking `IClosure<>`.
     ```csharp
     public record WorkerFunctionDef : FunctionDef
@@ -286,9 +278,9 @@ The pipeline is: `Parse Tree → AST → Closure Conversion → Defunctionalisat
 - **Action**:
     - Compute captured variables.
     - Generate closure class with `Apply` method.
-    - Replace `LambdaExp` with `NewClosureInstanceExp`.
-    - Replace function calls `f(x)` with `ClosureApplyExp`.
-- **Output**: `NewClosureInstanceExp` instantiating the generated closure class.
+    - Replace `LambdaExp` with `ObjectInitializerExp` (or equivalent object instantiation).
+    - Replace function calls `f(x)` with `FuncCallExp` or `MemberAccessExp` calling `.Apply(...)` on the closure instance.
+- **Output**: `ObjectInitializerExp` instantiating the generated closure class.
 
 #### 2. Defunctionalisation
 - **Input**: Function definitions with function-typed parameters.

@@ -8,8 +8,6 @@
 - [ ] **1.1. Update AST Metamodel** <!-- id: 6 -->
   - [ ] Add `LambdaExp` (captures, body, generic parameters, constraints).
   - [ ] Add `FunctionType` (inputs, output).
-  - [ ] Add `ClosureApplyExp` (closure instance, args).
-  - [ ] Add `NewClosureInstanceExp` (generated class, captured values).
   - [ ] **File**: `src/ast-model/AstMetamodel.cs`
 - [ ] **1.2. Regenerate AST** <!-- id: 7 -->
   - [ ] Run `just run-generator`.
@@ -57,11 +55,10 @@
 - [ ] **3.4. Closure Conversion Rewriter** <!-- id: 10 -->
   - [ ] Implement `ClosureConversionRewriter` (inherits `DefaultAstRewriter`).
   - [ ] Generate `ClassDef` for closures (handling generics).
-  - [ ] Replace `LambdaExp` with `NewClosureInstanceExp`.
+  - [ ] Replace `LambdaExp` with explicit object instantiation (using `ObjectInitializerExp` or similar).
+  - [ ] Replace invocations with standard method calls to `.Apply(...)`.
   - [ ] **File**: `src/compiler/LanguageTransformations/ClosureConversionRewriter.cs`
 - [ ] **3.5. Roslyn Generator Updates** <!-- id: 13 -->
-  - [ ] Handle `NewClosureInstanceExp` (emit `new ClosureClass(...)`).
-  - [ ] Handle `ClosureApplyExp` (emit `.Apply(...)`).
   - [ ] Ensure `IClosure` interfaces are referenced correctly.
   - [ ] **File**: `src/compiler/LoweredToRoslyn/LoweredAstToRoslynTranslator.cs`
 

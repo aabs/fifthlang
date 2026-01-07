@@ -92,6 +92,8 @@ Type Constraint
 
 LFs require lowering transformations to convert them into simpler Fifth AST nodes. The lowering involves the creation of a Closure class with 1) a field for each of the captured variables referenced in the body of the LF, 2) a ctor taking a value for each captured variable to assign to the fields and 3) An `Apply` function based on the body of the LF but with the closure's fields substituted for the free-variable references.  
 
+**Note**: This implementation reuses existing AST nodes for object instantiation (`ObjectInitializerExp` or equivalent) and method invocation (`MemberAccessExp` / `FuncCallExp`). No new AST node types like `NewClosureInstanceExp` or `ClosureApplyExp` are required; the feature is fully realized by lowering to standard language constructs.
+
 Each HOF is transformed into a simpler (non-higher-order) form accepting and returning instances of the Closure class instead.  At the call-site expression, a new instance of the closure class is created (with copies of the current values of each of the captured variables), and passed as an argument to the altered HOF.
 ### Constraints and invariants at a conceptual level.
 

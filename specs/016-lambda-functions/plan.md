@@ -77,7 +77,6 @@ test/
     - Modify `src/ast-model/AstMetamodel.cs`:
         - Add `FunctionType` (Type).
         - Add `LambdaExp` (Expression).
-        - Add `ClosureApplyExp` (Expression).
         - Add `WorkerFunctionDef` (Definition).
         - Add `WrapperFunctionDef` (Definition).
     - Update `src/ast-model/TypeSystem/FifthType.cs`:
@@ -97,16 +96,17 @@ test/
 
 ## Phase 3: Lowering & Transformations
 - [ ] **Closure Conversion Pass**:
-    - Create `src/compiler/LanguageTransformations/Closure including `this` capture.
-    - Validate constraints: no shadowing, read-only capturesConversionRewriter.cs`.
-    - Implement variable capture analysis (free variables).
+    - Create `src/compiler/LanguageTransformations/ClosureConversionRewriter.cs`.
+    - Implement variable capture analysis (free variables) including `this`.
+    - Validate constraints: no shadowing, read-only captures.
     - Generate closure classes/structs.
-    - Rewrite `LambdaExp` to closure instantiation.
+    - Rewrite `LambdaExp` to closure instantiation (using `ObjectInitializerExp` or equivalent).
+    - Rewrite function calls `f(...)` to `.Apply(...)` calls using standard method invocation.
     - Handle `void` return types using `IActionClosure`.
 - [ ] **Defunctionalisation Pass**:
     - Create `src/compiler/LanguageTransformations/DefunctionalisationRewriter.cs`.
     - Replace `FunctionType` usages with `IClosure<...>` or `IActionClosure<...>`.
-    - Rewrite function calls `f(...)` to `f.Apply(...)`.
+    - Rewrite function signatures and calls.
 - [ ] **TCO Pass (Self-Recursion)**:
     - Create `src/compiler/LanguageTransformations/TailCallOptimizationRewriter.cs`.
     - Detect self-recursive tail calls.
