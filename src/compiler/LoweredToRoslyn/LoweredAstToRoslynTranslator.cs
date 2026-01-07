@@ -29,6 +29,12 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     // Track class-level property/field names for the current class being translated
     private HashSet<string> _classMembers = new HashSet<string>();
 
+    // Track the current containing class name for expression translation decisions
+    private string? _currentContainingClassName;
+
+    // Track top-level (module) function names so closure classes can qualify them as Program.<fn>
+    private HashSet<string> _moduleLevelFunctionNames = new HashSet<string>(StringComparer.Ordinal);
+
     /// <summary>
     /// Translate AssemblyDef (from IBackendTranslator interface)
     /// </summary>
@@ -104,6 +110,11 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private SyntaxTree BuildSyntaxTreeFromModule(ModuleDef module, MappingTable mapping)
     {
+        _moduleLevelFunctionNames = module.Functions
+            .OfType<FunctionDef>()
+            .Select(f => SanitizeIdentifier(f.Name.ToString() == "main" ? "Main" : f.Name.ToString()))
+            .ToHashSet(StringComparer.Ordinal);
+
         // Create using directives
         var usingDirectives = new[]
         {
@@ -145,11 +156,16 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         var program = ClassDeclaration("Program")
             .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword));
 
+        var priorContaining = _currentContainingClassName;
+        _currentContainingClassName = "Program";
+
         foreach (var funcDef in module.Functions.OfType<FunctionDef>())
         {
             var methodDecl = BuildMethodDeclaration(funcDef, mapping);
             program = program.AddMembers(methodDecl);
         }
+
+        _currentContainingClassName = priorContaining;
 
         // Ensure there is a suitable entry point even if the pipeline failed to surface a 'main'.
         // Detect presence of a generated Main method on the Program class to be robust to Name.ToString() differences.
@@ -183,6 +199,8 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private ClassDeclarationSyntax BuildClassDeclaration(ClassDef classDef, MappingTable mapping)
     {
+        var priorContaining = _currentContainingClassName;
+
         // Clear and populate class members (properties and fields) to prevent shadowing
         _classMembers.Clear();
         foreach (var member in classDef.MemberDefs)
@@ -198,6 +216,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         }
 
         var className = SanitizeIdentifier(classDef.Name.ToString());
+        _currentContainingClassName = className;
         var classDecl = ClassDeclaration(className)
             .AddModifiers(Token(SyntaxKind.PublicKeyword));
 
@@ -265,6 +284,8 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 classDecl = classDecl.AddMembers(fieldDecl);
             }
         }
+
+        _currentContainingClassName = priorContaining;
 
         return classDecl;
     }
@@ -1051,7 +1072,24 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             arguments.Add(Argument(argExpr));
         }
 
-        return InvocationExpression(IdentifierName(funcName))
+        ExpressionSyntax callee;
+
+        // If we're inside a non-Program class (e.g., a generated lambda closure),
+        // module-level functions live on the static Program class.
+        var inProgram = string.Equals(_currentContainingClassName, "Program", StringComparison.Ordinal);
+        if (!inProgram && _moduleLevelFunctionNames.Contains(funcName))
+        {
+            callee = MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                IdentifierName("Program"),
+                IdentifierName(funcName));
+        }
+        else
+        {
+            callee = IdentifierName(funcName);
+        }
+
+        return InvocationExpression(callee)
             .WithArgumentList(ArgumentList(SeparatedList(arguments)));
     }
 

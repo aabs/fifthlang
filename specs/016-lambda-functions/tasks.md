@@ -69,14 +69,17 @@
   - [x] **File**: `src/compiler/LoweredToRoslyn/LoweredAstToRoslynTranslator.cs`
 
 ## Phase 4: Higher Order Functions (TDD)
-- [ ] **4.1. US2: HOF Tests** <!-- id: 15 -->
-  - [ ] Test passing lambdas to functions.
-  - [ ] Test returning lambdas from functions.
-  - [ ] **File**: `test/runtime-integration-tests/HofTests.cs`
-- [ ] **4.2. Defunctionalisation** <!-- id: 11 -->
-  - [ ] Implement `DefunctionalisationRewriter`.
-  - [ ] Transform HOF signatures to use `IClosure`/`IActionClosure`.
-  - [ ] **File**: `src/compiler/LanguageTransformations/DefunctionalisationRewriter.cs`
+- [x] **4.1. US2: HOF Tests** <!-- id: 15 -->
+  - [x] Test passing lambdas to functions.
+    - Covered by existing tests in `test/runtime-integration-tests/LambdaRuntimeTests.cs`.
+  - [x] Test returning lambdas from functions.
+  - [x] Test composing lambdas and returning a new lambda.
+  - [x] **File**: `test/runtime-integration-tests/HofTests.cs`
+- [x] **4.2. Defunctionalisation** <!-- id: 11 -->
+  - [x] Implement `DefunctionalisationRewriter`.
+  - [x] Transform HOF signatures to use `IClosure`/`IActionClosure`.
+  - [x] Wire into compiler pipeline as the final analysis phase.
+  - [x] **Files**: `src/compiler/LanguageTransformations/DefunctionalisationRewriter.cs`, `src/compiler/ParserManager.cs`
 
 ## Phase 5: Advanced Features (TDD)
 - [ ] **5.1. US4: Advanced Tests** <!-- id: 17 -->

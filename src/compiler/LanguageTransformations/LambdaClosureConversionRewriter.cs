@@ -254,7 +254,23 @@ public sealed class LambdaClosureConversionRewriter : DefaultAstRewriter
         {
             if (string.Equals(vr.VarName, captureName, StringComparison.Ordinal) && vr.Type != null)
             {
-                return vr.Type.Name.Value;
+                var inferred = vr.Type.Name.Value;
+                if (!string.IsNullOrWhiteSpace(inferred) && !string.Equals(inferred, "unknown", StringComparison.Ordinal))
+                {
+                    return inferred;
+                }
+            }
+        }
+
+        // Fallback: use the declared type from the resolved symbol (param/local) at the lambda body scope.
+        var scope = apply.Body.NearestScope();
+        if (scope != null && scope.TryResolveByName(captureName, out var entry) && entry != null)
+        {
+            if (TryGetTypeName(entry.OriginatingAstThing, out var declared) &&
+                !string.IsNullOrWhiteSpace(declared) &&
+                !string.Equals(declared, "unknown", StringComparison.Ordinal))
+            {
+                return declared;
             }
         }
 

@@ -46,11 +46,12 @@ public static class FifthParserManager
         ListComprehensionValidation = 29,
         LambdaValidation = 30,
         LambdaClosureConversion = 31,
+        Defunctionalisation = 32,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
         // All must be >= TypeAnnotation to ensure that block executes and the lowering runs.
-        All = LambdaClosureConversion
+        All = Defunctionalisation
     }
 
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, AnalysisPhase upTo = AnalysisPhase.All)
@@ -408,6 +409,19 @@ public static class FifthParserManager
             ast = result.Node;
 
             // Relink after rewriting so downstream components (e.g., codegen) see consistent parents.
+            ast = new TreeLinkageVisitor().Visit(ast);
+        }
+
+        // Defunctionalise higher-order function types into runtime closure interface types.
+        // This runs at the end of analysis so earlier phases (type inference, resolution) can still
+        // operate on Fifth-native function type syntax.
+        if (upTo >= AnalysisPhase.Defunctionalisation)
+        {
+            var rewriter = new compiler.LanguageTransformations.DefunctionalisationRewriter();
+            var result = rewriter.Rewrite(ast);
+            ast = result.Node;
+
+            // Relink after type rewrites to keep parent pointers consistent for codegen.
             ast = new TreeLinkageVisitor().Visit(ast);
         }
 
