@@ -9,7 +9,8 @@ namespace compiler.LanguageTransformations;
 public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
 {
     private readonly Stack<AstThing> parents = new();
-    private readonly HashSet<FunctionDef> visitedFunctions = new();
+    // Use ReferenceEqualityComparer to avoid GetHashCode on FunctionDef (which has circular parent pointers)
+    private readonly HashSet<FunctionDef> visitedFunctions = new(ReferenceEqualityComparer.Instance);
     // Debug helpers (DebugEnabled and DebugLog) are provided by the shared DebugHelpers class imported above.
 
     #region Helpers

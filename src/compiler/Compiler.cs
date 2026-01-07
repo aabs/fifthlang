@@ -287,6 +287,25 @@ Examples:
         }
         catch (System.Exception ex)
         {
+            // Log full exception chain to stderr for debugging
+            Console.Error.WriteLine("=== COMPILER CAUGHT EXCEPTION ===");
+            Console.Error.WriteLine($"Message: {ex.Message}");
+            Console.Error.WriteLine($"Type: {ex.GetType().FullName}");
+            Console.Error.WriteLine($"Stack: {ex.StackTrace}");
+
+            var innerEx = ex.InnerException;
+            int depth = 1;
+            while (innerEx != null)
+            {
+                Console.Error.WriteLine($"\n=== INNER EXCEPTION #{depth} ===");
+                Console.Error.WriteLine($"Message: {innerEx.Message}");
+                Console.Error.WriteLine($"Type: {innerEx.GetType().FullName}");
+                Console.Error.WriteLine($"Stack: {innerEx.StackTrace}");
+                innerEx = innerEx.InnerException;
+                depth++;
+            }
+            Console.Error.WriteLine("=== END EXCEPTION CHAIN ===\n");
+
             var errorMsg = $"Transform error: {ex.Message}\nStack trace:\n{ex.StackTrace}";
             if (ex.InnerException != null)
             {

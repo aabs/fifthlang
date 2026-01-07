@@ -192,6 +192,7 @@ public partial struct AssemblyName;
 public partial struct MemberName;
 
 [Ignore, ValueObject<string>]
+[Instance("anonymous", "", "For anonymous namespaces")]
 public partial struct NamespaceName;
 
 [Ignore, ValueObject<string>]
@@ -1174,19 +1175,19 @@ public record ListComprehension : List
     /// Can be a VarRefExp, ObjectInstantiationExp, or any expression.
     /// </summary>
     public required Expression Projection { get; init; }
-    
+
     /// <summary>
     /// The source expression to iterate over.
     /// For general comprehensions: any list/enumerable expression.
     /// For SPARQL comprehensions: expression whose type is a tabular SELECT result.
     /// </summary>
     public required Expression Source { get; init; }
-    
+
     /// <summary>
     /// The iteration variable name (e.g., "x" in "x from nums").
     /// </summary>
     public required string VarName { get; init; }
-    
+
     /// <summary>
     /// Zero or more where constraints (AND-ed together).
     /// Each constraint must evaluate to boolean.

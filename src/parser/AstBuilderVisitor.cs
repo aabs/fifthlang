@@ -676,6 +676,9 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             .WithVersion("0.0.0.0")
             ;
         var mb = new ModuleDefBuilder();
+        // Set default anonymous namespace (required field in ModuleDef)
+        mb.WithNamespaceDecl(NamespaceName.anonymous);
+
         if (context._classes.Count == 0)
         {
             mb.WithClasses([]);
