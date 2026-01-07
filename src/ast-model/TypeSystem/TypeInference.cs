@@ -82,7 +82,10 @@ public class TypeSystem : ITypeSystem
     /// <param name="tout">The output type.</param>
     /// <returns>The created function arrow.</returns>
     public static Arrow newArrow(string op, BaseType tin, BaseType tout)
-        => new(tin, tout) { Name = TypeName.From(op) };
+        => new([tin], tout) { Name = TypeName.From(op) };
+
+    public static Arrow newArrow(string op, BaseType[] tins, BaseType tout)
+        => new(tins.ToList(), tout) { Name = TypeName.From(op) };
 
     /// <summary>
     /// Builds a function arrow based on the input types, output type, and operator.
@@ -93,13 +96,12 @@ public class TypeSystem : ITypeSystem
     /// <returns>The built function arrow.</returns>
     public Arrow Build(BaseType[] inputTypes, BaseType outputType, string op)
     {
-        var result = inputTypes switch
+        if (inputTypes.Length == 0)
         {
-        [] => newArrow(op, Void, outputType),
-        [BaseType t] => newArrow(op, t, outputType),
-        [BaseType t1, ..] => newArrow(op, t1, Build(inputTypes[1..], outputType, "")),
-        };
-        return result;
+            return newArrow(op, [Void], outputType);
+        }
+
+        return newArrow(op, inputTypes, outputType);
     }
 
     /// <summary>
@@ -136,7 +138,7 @@ public class TypeSystem : ITypeSystem
     /// <returns>The updated type system.</returns>
     public TypeSystem WithOperation(BaseType tInLHS, BaseType tInRHS, BaseType tOut, string operation)
     {
-        Arrows.Add(newArrow(operation, tInLHS, newArrow("", tInRHS, tOut)));
+        Arrows.Add(newArrow(operation, [tInLHS, tInRHS], tOut));
         return this;
     }
 
@@ -165,25 +167,12 @@ public class TypeSystem : ITypeSystem
             return InferResultType([Void], @operator, arrows);
         }
 
-        var matches = from a in arrows where @operator == a.Name && a.InputType == inputTypes[0] select a;
-        foreach (var a in matches)
-        {
-            if (inputTypes.Length == 1)
-            {
-                return a.OutputType;
-            }
+        var matches = from a in arrows
+                      where @operator == a.Name
+                      && a.InputTypes.SequenceEqual(inputTypes)
+                      select a;
 
-            if (a.OutputType is Arrow a2)
-            {
-                var result = InferResultType(inputTypes[1..], "", new List<Arrow> { a2 });
-                if (result != null)
-                {
-                    return result;
-                }
-            }
-        }
-
-        return null;
+        return matches.Select(a => a.OutputType).FirstOrDefault();
     }
 }
 

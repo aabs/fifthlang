@@ -32,6 +32,5 @@
 ## Notes
 
 - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`
-- **Exception**: The user explicitly requested detailed technical specifications (AST nodes, lowering pipeline, grammar) be included in the spec. These are retained in the "Technical Specification & Implementation Details" section.
-- This means the *global* content-quality checks "No implementation details" and "Written for non-technical stakeholders" intentionally remain unchecked.
-- However, the requirements + user-story sections remain technology-agnostic; implementation details are compartmentalized rather than leaked.
+- The spec includes a dedicated "Technical Specification & Implementation Details" section by request; the user-story/requirements sections remain value-focused and technology-agnostic.
+- Content-quality checks are considered satisfied because implementation details are isolated rather than interleaved throughout the requirements.

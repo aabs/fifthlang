@@ -5,43 +5,45 @@
 **Plan**: [plan.md](plan.md)
 
 ## Phase 1: AST & Parser (TDD)
-- [ ] **1.1. Update AST Metamodel** <!-- id: 6 -->
-  - [ ] Add `LambdaExp` (captures, body, generic parameters, constraints).
-  - [ ] Add `FunctionType` (inputs, output).
-  - [ ] Update `FifthType.TFunc` in `src/ast-model/TypeSystem/FifthType.cs` to support multiple inputs.
-  - [ ] **File**: `src/ast-model/AstMetamodel.cs`
-- [ ] **1.2. Regenerate AST** <!-- id: 7 -->
-  - [ ] Run `just run-generator`.
+- [x] **1.1. Update AST Metamodel** <!-- id: 6 -->
+  - [x] Confirm `LambdaExp` already exists in the current metamodel (no new AST nodes needed for this feature’s representation).
+  - [x] Represent function types via `FifthType.TFunc` (multi-input list) rather than introducing a dedicated `FunctionType` AST node.
+  - [x] Update `FifthType.TFunc` in `src/ast-model/TypeSystem/FifthType.cs` to support multiple inputs.
+  - [x] **Files**: `src/ast-model/TypeSystem/FifthType.cs`, `src/ast-model/TypeSystem/TypeInference.cs`, `src/compiler/TypeSystem/GenericTypeCache.cs`
+- [x] **1.2. Regenerate AST** <!-- id: 7 -->
+  - [x] Not required for this stage (no changes were made under `src/ast-model/AstMetamodel.cs`).
 - [ ] **1.3. Parser Tests** <!-- id: 5 -->
-  - [ ] Add positive tests for lambda syntax (including generic constraints).
-  - [ ] Add positive tests for function types.
-  - [ ] **File**: `test/syntax-parser-tests/LambdaParserTests.cs`
-- [ ] **1.4. Update Lexer** <!-- id: 2 -->
-  - [ ] Add `FUN` ('fun') and `ARROW` ('->') tokens.
-  - [ ] **File**: `src/parser/grammar/FifthLexer.g4`
-- [ ] **1.5. Update Parser** <!-- id: 3 -->
-  - [ ] Add `lambda_function` rule (including `constraint_clause`).
-  - [ ] Enforce block body syntax `{ ... }` (no expression bodies).
-  - [ ] Add `function_type_signature` rule.
-  - [ ] Update `expression` rule to include lambdas.
-  - [ ] **File**: `src/parser/grammar/FifthParser.g4`
+  - [x] Add positive tests for lambda syntax.
+  - [ ] Add positive tests for lambda generic constraints.
+  - [x] Add positive tests for function types.
+  - [x] **File**: `test/syntax-parser-tests/LambdaSyntaxTests.cs`
+- [x] **1.4. Update Lexer** <!-- id: 2 -->
+  - [x] Add `FUN` ('fun') and `ARROW` ('->') tokens.
+  - [x] **File**: `src/parser/grammar/FifthLexer.g4`
+- [x] **1.5. Update Parser** <!-- id: 3 -->
+  - [x] Add lambda expression parsing.
+  - [x] Enforce block body syntax `{ ... }` (no expression bodies).
+  - [x] Add function type signature parsing (`[T1, T2] -> R`).
+  - [x] Update expression parsing to include lambdas.
+  - [x] **File**: `src/parser/grammar/FifthParser.g4`
 - [ ] **1.6. Update AST Builder** <!-- id: 4 -->
-  - [ ] Update `AstBuilderVisitor.cs` to map parse tree (including constraints) to the new AST nodes.
-  - [ ] Enforce parameter limit (FR-008) and emit `ERR_TOO_MANY_LF_PARAMETERS`.
-  - [ ] **File**: `src/parser/AstBuilderVisitor.cs`
-- [ ] **1.7. Validate Documentation & Examples** <!-- id: 18 -->
-  - [ ] Run `scripts/validate-examples.fish` to ensure all docs and samples parse with the new grammar.
-  - [ ] Update any broken examples in `docs/` or `test/ast-tests/CodeSamples`.
+  - [x] Update `AstBuilderVisitor.cs` to map parse tree to `LambdaExp` + function type specs.
+  - [ ] Map lambda generic constraints end-to-end (parse → AST model → type system).
+  - [x] Enforce parameter limit (FR-008) and emit `ERR_TOO_MANY_LF_PARAMETERS`.
+  - [x] **Files**: `src/parser/AstBuilderVisitor.cs`, `src/compiler/LanguageTransformations/LambdaDiagnostics.cs`, `src/compiler/LanguageTransformations/LambdaValidationVisitor.cs`, `src/compiler/ParserManager.cs`
+- [x] **1.7. Validate Documentation & Examples** <!-- id: 18 -->
+  - [x] Run `scripts/validate-examples.fish` to ensure all docs and samples parse with the new grammar.
+  - [x] Update any broken examples in `docs/` or `test/ast-tests/CodeSamples`.
 
 ## Phase 2: Runtime & Type System
-- [ ] **2.1. Define Runtime Interfaces** <!-- id: 1 -->
-  - [ ] Create `IClosure<T>` and `IActionClosure` interfaces in `fifthlang.system`.
-  - [ ] Ensure interfaces support up to 8 parameters (or as configured).
-  - [ ] **File**: `src/fifthlang.system/Runtime/IClosure.cs`
-- [ ] **2.2. Type System Updates** <!-- id: 8 -->
-  - [ ] Update `TypeSystem` to support function types.
-  - [ ] Implement type compatibility checks for function types.
-  - [ ] **File**: `src/compiler/TypeSystem/TypeChecker.cs`
+- [x] **2.1. Define Runtime Interfaces** <!-- id: 1 -->
+  - [x] Create `IClosure<...>` and `IActionClosure<...>` interfaces in `fifthlang.system`.
+  - [x] Ensure interfaces support up to 8 parameters.
+  - [x] **File**: `src/fifthlang.system/Runtime/IClosure.cs`
+- [x] **2.2. Type System Updates** <!-- id: 8 -->
+  - [x] Update type representation and inference for multi-argument function types.
+  - [x] Update generic type caching/keying for multi-arg function types.
+  - [x] **Files**: `src/ast-model/TypeSystem/TypeInference.cs`, `src/compiler/TypeSystem/GenericTypeCache.cs`
 
 ## Phase 3: Basic Execution & Captures (TDD)
 - [ ] **3.1. US1: Basic Lambda Tests** <!-- id: 14 -->

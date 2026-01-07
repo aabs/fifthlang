@@ -44,11 +44,12 @@ public static class FifthParserManager
         QueryApplicationLowering = 27,
         ListComprehensionLowering = 28,
         ListComprehensionValidation = 29,
+        LambdaValidation = 30,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
         // All must be >= TypeAnnotation to ensure that block executes and the lowering runs.
-        All = ListComprehensionValidation  // Update to include list comprehension validation
+        All = LambdaValidation
     }
 
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, AnalysisPhase upTo = AnalysisPhase.All)
@@ -367,7 +368,7 @@ public static class FifthParserManager
         {
             var validator = new Fifth.LangProcessingPhases.SparqlComprehensionValidationVisitor(diagnostics);
             ast = validator.Visit(ast);
-            
+
             if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
             {
                 return null;
@@ -380,6 +381,16 @@ public static class FifthParserManager
             var rewriter = new ListComprehensionLoweringRewriter();
             var result = rewriter.Rewrite(ast);
             ast = result.Node;
+        }
+
+        // Validate lambda functions (arity limits, etc.)
+        if (upTo >= AnalysisPhase.LambdaValidation)
+        {
+            ast = new LambdaValidationVisitor(diagnostics).Visit(ast);
+            if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
+            {
+                return null;
+            }
         }
 
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);

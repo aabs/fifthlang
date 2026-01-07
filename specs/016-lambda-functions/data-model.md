@@ -12,7 +12,7 @@ partial record TFunc(List<FifthType> InputTypes, FifthType OutputType);
 ```
 *Note: Updated from `TFunc(FifthType InputType, FifthType OutputType)` to support multiple inputs.*
 
-### New Expressions (`src/ast-model/AstMetamodel.cs`)
+### Existing Expressions (modified) (`src/ast-model/AstMetamodel.cs`)
 
 #### `LambdaExp`
 Represents an anonymous function definition.
@@ -30,15 +30,8 @@ public partial record LambdaExp : Expression
 }
 ```
 
-#### `ClosureApplyExp`
-Represents the invocation of a closure.
-```csharp
-public partial record ClosureApplyExp : Expression
-{
-    public required Expression ClosureInstance { get; init; }
-    public required List<Expression> Arguments { get; init; }
-}
-```
+#### Closure application (no new AST node)
+Closure invocation is represented using the existing call/member-access expression forms by lowering Fifth function application syntax `f(x, y)` into an `.Apply(x, y)` call on the closure instance.
 
 ### New Definitions (`src/ast-model/AstMetamodel.cs`)
 

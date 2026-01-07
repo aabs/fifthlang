@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
@@ -75,6 +76,20 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
         // Fall back to UnknownType if the type cannot be resolved
         return new FifthType.UnknownType() { Name = TypeName.From(typeName) };
+    }
+
+    private FifthType ResolveTypeFromSpec(FifthParser.Type_specContext typeSpec)
+    {
+        var (typeName, collectionType) = ParseTypeSpec(typeSpec);
+
+        // If ParseTypeSpec registered a function type (or some other non-collection type), prefer registry lookup.
+        var resolved = ResolveTypeFromName(typeName.Value);
+        if (resolved is not FifthType.UnknownType)
+        {
+            return resolved;
+        }
+
+        return CreateTypeFromSpec(typeName, collectionType);
     }
 
     /// <summary>
@@ -749,7 +764,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitFunction_declaration(FifthParser.Function_declarationContext context)
     {
-        var returnType = ResolveTypeFromName(context.type_name().GetText());
+        var returnType = ResolveTypeFromSpec(context.result_type);
 
         var b = new FunctionDefBuilder();
         b.WithName(MemberName.From(context.function_name().GetText()))
@@ -888,16 +903,16 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     {
         var b = new ListComprehensionBuilder()
             .WithAnnotations([]);
-        
+
         // Set the projection expression (what to produce for each item)
         b.WithProjection((Expression)Visit(context.projection));
-        
+
         // Set the source expression (what to iterate over)
         b.WithSource((Expression)Visit(context.source));
-        
+
         // Set the iteration variable name
         b.WithVarName(context.varname.GetText());
-        
+
         // Add all where constraints (if any)
         if (context._constraints != null && context._constraints.Count > 0)
         {
@@ -906,7 +921,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 b.AddingItemToConstraints((Expression)Visit(constraint));
             }
         }
-        
+
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
     }
@@ -1256,12 +1271,13 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitParamdecl(FifthParser.ParamdeclContext context)
     {
+        var (typeName, collectionType) = ParseTypeSpec(context.type_spec());
         var b = new ParamDefBuilder()
                 .WithVisibility(Visibility.Public)
                 .WithAnnotations([])
                 .WithName(context.var_name().GetText())
-                .WithTypeName(TypeName.From(context.type_name().GetText()))
-                .WithCollectionType(CollectionType.SingleInstance)
+            .WithTypeName(typeName)
+            .WithCollectionType(collectionType)
             ;
         if (context.destructuring_decl() is not null)
         {
@@ -1280,6 +1296,65 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
         return result;
+    }
+
+    public override IAstThing VisitLambda_expression(FifthParser.Lambda_expressionContext context)
+    {
+        var returnType = ResolveTypeFromSpec(context.return_type);
+
+        var applyFuncBuilder = new FunctionDefBuilder();
+        applyFuncBuilder
+            .WithName(MemberName.From("Apply"))
+            .WithBody((BlockStatement)VisitBlock(context.function_body().block()))
+            .WithReturnType(returnType)
+            .WithAnnotations([])
+            .WithVisibility(Visibility.Public)
+            .WithIsStatic(false)
+            .WithIsConstructor(false);
+
+        // Parse type parameters if present
+        if (context.type_parameter_list() != null)
+        {
+            var typeParams = ParseTypeParameterList(context.type_parameter_list());
+            foreach (var tp in typeParams)
+            {
+                applyFuncBuilder.AddingItemToTypeParameters(tp);
+            }
+        }
+
+        foreach (var paramCtx in context.plain_paramdecl())
+        {
+            var (typeName, collectionType) = ParseTypeSpec(paramCtx.type_spec());
+            var param = new ParamDefBuilder()
+                .WithVisibility(Visibility.Public)
+                .WithAnnotations([])
+                .WithName(paramCtx.var_name().GetText())
+                .WithTypeName(typeName)
+                .WithCollectionType(collectionType)
+                .Build() with
+            {
+                Location = GetLocationDetails(paramCtx),
+                Type = Void
+            };
+            applyFuncBuilder.AddingItemToParams(param);
+        }
+
+        var applyFunc = applyFuncBuilder.Build() with { Location = GetLocationDetails(context), Type = Void };
+
+        var functor = new FunctorDefBuilder()
+            .WithInvocationFuncDev(applyFunc)
+            .WithAnnotations([])
+            .Build() with
+        { Location = GetLocationDetails(context), Type = Void };
+
+        return new LambdaExp
+        {
+            FunctorDef = functor,
+            Annotations = [],
+            Location = GetLocationDetails(context),
+            Parent = null,
+            Type = new FifthType.UnknownType { Name = TypeName.anonymous }
+        };
     }
 
     public override IAstThing VisitProperty_declaration(FifthParser.Property_declarationContext context)
@@ -1339,6 +1414,24 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
     private (TypeName, CollectionType) ParseTypeSpec(FifthParser.Type_specContext typeSpec)
     {
         // Check which alternative this is
+        if (typeSpec is FifthParser.Type_func_specContext typeFuncSpec)
+        {
+            var functionType = typeFuncSpec.function_type_spec();
+
+            var inputTypes = (functionType._input_types ?? [])
+                .Select(ResolveTypeFromSpec)
+                .ToList();
+            var outputType = ResolveTypeFromSpec(functionType.output_type);
+
+            // Use the textual representation as the canonical name for lookup via TypeRegistry.
+            var signatureName = TypeName.From(typeSpec.GetText());
+
+            // Ensure the TypeRegistry is initialized and register this function type.
+            TypeRegistry.DefaultRegistry.RegisterPrimitiveTypes();
+            TypeRegistry.DefaultRegistry.Register(new FifthType.TFunc(inputTypes, outputType) { Name = signatureName });
+
+            return (signatureName, CollectionType.SingleInstance);
+        }
         if (typeSpec is FifthParser.Base_type_specContext baseType)
         {
             // Simple identifier

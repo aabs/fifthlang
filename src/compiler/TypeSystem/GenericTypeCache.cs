@@ -11,7 +11,7 @@ namespace compiler.TypeSystem;
 public class GenericTypeCache
 {
     private const int MaxCacheSize = 10_000;
-    
+
     private readonly ConcurrentDictionary<string, CacheEntry> _cache = new();
     private readonly LinkedList<string> _lruList = new();
     private readonly object _lruLock = new();
@@ -95,11 +95,11 @@ public class GenericTypeCache
             tVoidType => "void",
             tDotnetType => tDotnetType.TheType.FullName ?? tDotnetType.TheType.Name,
             tType => type.Name.Value,
-            tFunc => $"({GetTypeKey(tFunc.InputType)})->{GetTypeKey(tFunc.OutputType)}",
+            tFunc => $"([{string.Join(",", tFunc.InputTypes.Select(GetTypeKey))}])->{GetTypeKey(tFunc.OutputType)}",
             tArrayOf => $"{GetTypeKey(tArrayOf.ElementType)}[]",
             tListOf => $"[{GetTypeKey(tListOf.ElementType)}]",
             tGenericParameter => $"T:{tGenericParameter.ParameterName.Value}",
-            tGenericInstance => 
+            tGenericInstance =>
             {
                 var args = string.Join(",", tGenericInstance.TypeArguments.Select(GetTypeKey));
                 return $"{tGenericInstance.GenericTypeDefinition.Value}<{args}>";

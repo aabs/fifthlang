@@ -131,6 +131,16 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitParamdecl([NotNull] FifthParser.ParamdeclContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.plain_paramdecl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterPlain_paramdecl([NotNull] FifthParser.Plain_paramdeclContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.plain_paramdecl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitPlain_paramdecl([NotNull] FifthParser.Plain_paramdeclContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.destructuring_decl"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -477,6 +487,18 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitBase_type_spec([NotNull] FifthParser.Base_type_specContext context);
 	/// <summary>
+	/// Enter a parse tree produced by the <c>type_func_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterType_func_spec([NotNull] FifthParser.Type_func_specContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>type_func_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitType_func_spec([NotNull] FifthParser.Type_func_specContext context);
+	/// <summary>
 	/// Enter a parse tree produced by the <c>list_type_spec</c>
 	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// </summary>
@@ -488,6 +510,16 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitList_type_spec([NotNull] FifthParser.List_type_specContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.function_type_spec"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterFunction_type_spec([NotNull] FifthParser.Function_type_specContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.function_type_spec"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitFunction_type_spec([NotNull] FifthParser.Function_type_specContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.expressionList"/>.
 	/// </summary>
@@ -686,6 +718,16 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitOperand([NotNull] FifthParser.OperandContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.lambda_expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterLambda_expression([NotNull] FifthParser.Lambda_expressionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.lambda_expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitLambda_expression([NotNull] FifthParser.Lambda_expressionContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.tripleExpression"/>.
 	/// </summary>
