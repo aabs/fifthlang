@@ -505,10 +505,10 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         var loopVarName = SanitizeIdentifier(foreachStmt.LoopVariable.Name.ToString());
         var loopVarTypeName = ExtractTypeName(foreachStmt.LoopVariable.Type);
         var loopVarType = ParseTypeName(loopVarTypeName);
-        
+
         var collection = TranslateExpression(foreachStmt.Collection);
         var body = BuildBlockStatement(foreachStmt.Body);
-        
+
         return ForEachStatement(
             loopVarType,
             Identifier(loopVarName),
@@ -954,7 +954,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     {
         // Instance method call (e.g., list.Add(item))?
         if (funcCall.Annotations != null &&
-            funcCall.Annotations.TryGetValue("IsInstanceMethod", out var isInstanceObj) && 
+            funcCall.Annotations.TryGetValue("IsInstanceMethod", out var isInstanceObj) &&
             isInstanceObj is bool isInstance && isInstance &&
             funcCall.Annotations.TryGetValue("Target", out var targetObj) && targetObj is Expression targetExpr)
         {
@@ -983,7 +983,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                         IdentifierName(methodName)))
                 .WithArgumentList(ArgumentList(SeparatedList(argList)));
         }
-        
+
         // External (static) call annotated by TreeLinkageVisitor?
         if (funcCall.Annotations != null &&
             funcCall.Annotations.TryGetValue("ExternalType", out var extTypeObj) && extTypeObj is Type extType)
@@ -1535,6 +1535,30 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     {
         if (fifthTypeName == null) return "object";
 
+        // Handle function types: [T1, T2] -> R
+        // Map to runtime closure interfaces: IClosure<..., R> or IActionClosure<...>
+        if (TryParseFunctionType(fifthTypeName, out var inputTypes, out var outputType))
+        {
+            var mappedInputs = inputTypes.Select(MapTypeName).ToList();
+            var mappedOutput = MapTypeName(outputType);
+
+            if (string.Equals(outputType.Trim(), "void", StringComparison.Ordinal))
+            {
+                if (mappedInputs.Count == 0)
+                {
+                    return "Fifth.System.Runtime.IActionClosure";
+                }
+                return $"Fifth.System.Runtime.IActionClosure<{string.Join(", ", mappedInputs)}>";
+            }
+
+            if (mappedInputs.Count == 0)
+            {
+                return $"Fifth.System.Runtime.IClosure<{mappedOutput}>";
+            }
+
+            return $"Fifth.System.Runtime.IClosure<{string.Join(", ", mappedInputs)}, {mappedOutput}>";
+        }
+
         // Handle list/array types - Fifth uses [T] syntax, C# uses T[]
         // Examples: [int] -> int[], [[int]] -> int[][]
         if (fifthTypeName.StartsWith("[") && fifthTypeName.EndsWith("]"))
@@ -1582,6 +1606,85 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             "var" => "var",
             _ => fifthTypeName // Keep custom types as-is
         };
+    }
+
+    private static bool TryParseFunctionType(string input, out List<string> inputTypes, out string outputType)
+    {
+        inputTypes = [];
+        outputType = string.Empty;
+
+        var s = input.Trim();
+        var arrowIndex = s.IndexOf("->", StringComparison.Ordinal);
+        if (arrowIndex < 0)
+        {
+            return false;
+        }
+
+        var left = s.Substring(0, arrowIndex).Trim();
+        var right = s.Substring(arrowIndex + 2).Trim();
+
+        if (!left.StartsWith("[", StringComparison.Ordinal) || !left.EndsWith("]", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var args = left.Substring(1, left.Length - 2).Trim();
+        outputType = right;
+
+        if (string.IsNullOrWhiteSpace(args))
+        {
+            return true;
+        }
+
+        foreach (var part in SplitTopLevelCommaSeparated(args))
+        {
+            var t = part.Trim();
+            if (!string.IsNullOrWhiteSpace(t))
+            {
+                inputTypes.Add(t);
+            }
+        }
+
+        return true;
+    }
+
+    private static IEnumerable<string> SplitTopLevelCommaSeparated(string s)
+    {
+        var start = 0;
+        var angle = 0;
+        var square = 0;
+
+        for (var i = 0; i < s.Length; i++)
+        {
+            var ch = s[i];
+            switch (ch)
+            {
+                case '<':
+                    angle++;
+                    break;
+                case '>':
+                    angle = Math.Max(0, angle - 1);
+                    break;
+                case '[':
+                    square++;
+                    break;
+                case ']':
+                    square = Math.Max(0, square - 1);
+                    break;
+                case ',':
+                    if (angle == 0 && square == 0)
+                    {
+                        yield return s.Substring(start, i - start);
+                        start = i + 1;
+                    }
+                    break;
+            }
+        }
+
+        if (start <= s.Length)
+        {
+            yield return s.Substring(start);
+        }
     }
 
     private TypeSyntax CreateTypeSyntax(string typeName, ast.CollectionType collectionType)
@@ -1886,6 +1989,28 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 var baseTypeName = SanitizeIdentifier(genericInstance.GenericTypeDefinition.ToString());
                 var typeArgs = string.Join(", ", genericInstance.TypeArguments.Select(ExtractTypeName));
                 return $"{baseTypeName}<{typeArgs}>";
+
+            case FifthType.TFunc func:
+                // Map to runtime closure interfaces
+                if (func.OutputType is FifthType.TVoidType)
+                {
+                    if (func.InputTypes.Count == 0)
+                    {
+                        return "Fifth.System.Runtime.IActionClosure";
+                    }
+                    var inArgs = string.Join(", ", func.InputTypes.Select(ExtractTypeName));
+                    return $"Fifth.System.Runtime.IActionClosure<{inArgs}>";
+                }
+                else
+                {
+                    var ret = ExtractTypeName(func.OutputType);
+                    if (func.InputTypes.Count == 0)
+                    {
+                        return $"Fifth.System.Runtime.IClosure<{ret}>";
+                    }
+                    var inArgs = string.Join(", ", func.InputTypes.Select(ExtractTypeName));
+                    return $"Fifth.System.Runtime.IClosure<{inArgs}, {ret}>";
+                }
         }
 
         // Fallback: try to use the Name property

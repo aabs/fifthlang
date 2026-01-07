@@ -46,27 +46,27 @@
   - [x] **Files**: `src/ast-model/TypeSystem/TypeInference.cs`, `src/compiler/TypeSystem/GenericTypeCache.cs`
 
 ## Phase 3: Basic Execution & Captures (TDD)
-- [ ] **3.1. US1: Basic Lambda Tests** <!-- id: 14 -->
-  - [ ] Test definition, assignment, and invocation.
-  - [ ] **File**: `test/runtime-integration-tests/LambdaTests.cs`
-- [ ] **3.2. US3: Capture Tests** <!-- id: 16 -->
-  - [ ] Test capturing local variables.
-  - [ ] Test capturing modified variables (by value).
-  - [ ] **File**: `test/runtime-integration-tests/ClosureTests.cs`
-- [ ] **3.3. Closure Conversion Analysis** <!-- id: 9 -->
-  - [ ] Implement `FreeVariableAnalysisVisitor` to identify captured variables and `this`.
-  - [ ] Validate no shadowing of outer variables.
-  - [ ] Validate captured variables are not reassigned (read-only).
-  - [ ] **File**: `src/compiler/LanguageTransformations/FreeVariableAnalysisVisitor.cs`
-- [ ] **3.4. Closure Conversion Rewriter** <!-- id: 10 -->
-  - [ ] Implement `ClosureConversionRewriter` (inherits `DefaultAstRewriter`).
-  - [ ] Generate `ClassDef` for closures (handling generics).
-  - [ ] Replace `LambdaExp` with explicit object instantiation (using `ObjectInitializerExp` or similar).
-  - [ ] Replace invocations with standard method calls to `.Apply(...)`.
-  - [ ] **File**: `src/compiler/LanguageTransformations/ClosureConversionRewriter.cs`
-- [ ] **3.5. Roslyn Generator Updates** <!-- id: 13 -->
-  - [ ] Ensure `IClosure` interfaces are referenced correctly.
-  - [ ] **File**: `src/compiler/LoweredToRoslyn/LoweredAstToRoslynTranslator.cs`
+- [x] **3.1. US1: Basic Lambda Tests** <!-- id: 14 -->
+  - [x] Test definition, assignment, and invocation.
+  - [x] **File**: `test/runtime-integration-tests/LambdaRuntimeTests.cs`
+- [x] **3.2. US3: Capture Tests** <!-- id: 16 -->
+  - [x] Test capturing local variables.
+  - [x] Test capturing modified variables (by value).
+  - [ ] Add negative tests for capture rules (shadowing, assignment-to-captured).
+  - [x] **File**: `test/runtime-integration-tests/LambdaRuntimeTests.cs`
+- [x] **3.3. Capture Validation Analysis** <!-- id: 9 -->
+  - [x] Validate no shadowing of outer variables.
+  - [x] Validate captured variables are not reassigned (read-only).
+  - [x] **Files**: `src/compiler/LanguageTransformations/LambdaCaptureValidationVisitor.cs`, `src/compiler/LanguageTransformations/LambdaClosureDiagnostics.cs`
+- [x] **3.4. Closure Conversion Rewriter** <!-- id: 10 -->
+  - [x] Implement closure conversion (inherits `DefaultAstRewriter`).
+  - [x] Generate `ClassDef` for closures.
+  - [x] Replace `LambdaExp` with object instantiation via `ObjectInitializerExp` (no new AST nodes).
+  - [x] Rewrite function-value calls `f(x)` into `.Apply(x)` using `MemberAccessExp` + `FuncCallExp`.
+  - [x] **File**: `src/compiler/LanguageTransformations/LambdaClosureConversionRewriter.cs`
+- [x] **3.5. Roslyn Generator Updates** <!-- id: 13 -->
+  - [x] Ensure `FifthType.TFunc` maps to `IClosure` / `IActionClosure` interfaces.
+  - [x] **File**: `src/compiler/LoweredToRoslyn/LoweredAstToRoslynTranslator.cs`
 
 ## Phase 4: Higher Order Functions (TDD)
 - [ ] **4.1. US2: HOF Tests** <!-- id: 15 -->

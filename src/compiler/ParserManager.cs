@@ -45,11 +45,12 @@ public static class FifthParserManager
         ListComprehensionLowering = 28,
         ListComprehensionValidation = 29,
         LambdaValidation = 30,
+        LambdaClosureConversion = 31,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
         // All must be >= TypeAnnotation to ensure that block executes and the lowering runs.
-        All = LambdaValidation
+        All = LambdaClosureConversion
     }
 
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, AnalysisPhase upTo = AnalysisPhase.All)
@@ -391,6 +392,23 @@ public static class FifthParserManager
             {
                 return null;
             }
+        }
+
+        // Validate lambda capture constraints, then lower lambdas to closure classes + Apply calls.
+        if (upTo >= AnalysisPhase.LambdaClosureConversion)
+        {
+            ast = new compiler.LanguageTransformations.LambdaCaptureValidationVisitor(diagnostics).Visit(ast);
+            if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
+            {
+                return null;
+            }
+
+            var rewriter = new compiler.LanguageTransformations.LambdaClosureConversionRewriter();
+            var result = rewriter.Rewrite(ast);
+            ast = result.Node;
+
+            // Relink after rewriting so downstream components (e.g., codegen) see consistent parents.
+            ast = new TreeLinkageVisitor().Visit(ast);
         }
 
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);
