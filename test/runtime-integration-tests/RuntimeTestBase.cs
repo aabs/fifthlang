@@ -90,7 +90,13 @@ public abstract class RuntimeTestBase : IDisposable
 
         if (!result.Success)
         {
-            var diagnosticsText = string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"));
+            static string FormatDiagnostic(compiler.Diagnostic d)
+            {
+                var codePrefix = string.IsNullOrWhiteSpace(d.Code) ? "" : $"{d.Code}: ";
+                return $"{d.Level}: {codePrefix}{d.Message}";
+            }
+
+            var diagnosticsText = string.Join("\n", result.Diagnostics.Select(FormatDiagnostic));
             throw new InvalidOperationException($"Compilation failed for source:\n{sourceCode}\n\nDiagnostics:\n{diagnosticsText}");
         }
 
@@ -128,7 +134,13 @@ public abstract class RuntimeTestBase : IDisposable
 
         if (!result.Success)
         {
-            var diagnosticsText = string.Join("\n", result.Diagnostics.Select(d => $"{d.Level}: {d.Message}"));
+            static string FormatDiagnostic(compiler.Diagnostic d)
+            {
+                var codePrefix = string.IsNullOrWhiteSpace(d.Code) ? "" : $"{d.Code}: ";
+                return $"{d.Level}: {codePrefix}{d.Message}";
+            }
+
+            var diagnosticsText = string.Join("\n", result.Diagnostics.Select(FormatDiagnostic));
             throw new InvalidOperationException($"Compilation failed for file: {sourceFilePath}\n\nDiagnostics:\n{diagnosticsText}");
         }
         File.Exists(outputFile).Should().BeTrue("Executable should be created");
@@ -214,7 +226,7 @@ public abstract class RuntimeTestBase : IDisposable
         var nugetPackages = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
         var dotNetRdfDll = Path.Combine(nugetPackages, "dotnetrdf.core", "3.4.0", "lib", "netstandard2.0", "dotNetRdf.dll");
         var vdsCommonDll = Path.Combine(nugetPackages, "vds.common", "3.0.0", "lib", "netstandard2.0", "VDS.Common.dll");
-        
+
         if (File.Exists(dotNetRdfDll))
         {
             try { File.Copy(dotNetRdfDll, Path.Combine(exeDir, "dotNetRdf.dll"), overwrite: true); } catch { /* ignore */ }

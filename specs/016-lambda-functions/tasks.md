@@ -52,7 +52,7 @@
 - [x] **3.2. US3: Capture Tests** <!-- id: 16 -->
   - [x] Test capturing local variables.
   - [x] Test capturing modified variables (by value).
-  - [ ] Add negative tests for capture rules (shadowing, assignment-to-captured).
+  - [x] Add negative tests for capture rules (shadowing, assignment-to-captured).
   - [x] **File**: `test/runtime-integration-tests/LambdaRuntimeTests.cs`
 - [x] **3.3. Capture Validation Analysis** <!-- id: 9 -->
   - [x] Validate no shadowing of outer variables.

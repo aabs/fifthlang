@@ -59,4 +59,45 @@ public class LambdaRuntimeTests : RuntimeTestBase
         result.ExitCode.Should().Be(42);
         result.StandardError.Should().BeEmpty();
     }
+
+    [Fact]
+    public async Task Lambda_ShadowingOuterVar_ShouldFailWithDiagnostic()
+    {
+        // Lambda parameter shadows outer variable - should fail compilation
+        var sourceCode = """
+            main(): int {
+                y: int = 10;
+                f : [int] -> int = fun(y: int): int { return y + 1; };
+                return f(5);
+            }
+            """;
+
+        // Act & Assert
+        var act = async () => await CompileSourceAsync(sourceCode);
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .Where(ex => ex.Message.Contains("ERR_LF_SHADOWING_NOT_ALLOWED") &&
+                        ex.Message.Contains("shadows an outer variable"));
+    }
+
+    [Fact]
+    public async Task Lambda_AssigningCapturedVar_ShouldFailWithDiagnostic()
+    {
+        // Lambda assigns to captured variable - should fail compilation
+        var sourceCode = """
+            main(): int {
+                y: int = 10;
+                f : [int] -> int = fun(x: int): int {
+                    y = x + 1;
+                    return y;
+                };
+                return f(5);
+            }
+            """;
+
+        // Act & Assert
+        var act = async () => await CompileSourceAsync(sourceCode);
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .Where(ex => ex.Message.Contains("ERR_LF_CAPTURED_VARIABLE_ASSIGNED") &&
+                        ex.Message.Contains("captures are read-only"));
+    }
 }
