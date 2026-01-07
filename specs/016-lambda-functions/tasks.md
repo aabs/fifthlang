@@ -8,6 +8,7 @@
 - [ ] **1.1. Update AST Metamodel** <!-- id: 6 -->
   - [ ] Add `LambdaExp` (captures, body, generic parameters, constraints).
   - [ ] Add `FunctionType` (inputs, output).
+  - [ ] Update `FifthType.TFunc` in `src/ast-model/TypeSystem/FifthType.cs` to support multiple inputs.
   - [ ] **File**: `src/ast-model/AstMetamodel.cs`
 - [ ] **1.2. Regenerate AST** <!-- id: 7 -->
   - [ ] Run `just run-generator`.
@@ -28,6 +29,9 @@
   - [ ] Update `AstBuilderVisitor.cs` to map parse tree (including constraints) to the new AST nodes.
   - [ ] Enforce parameter limit (FR-008) and emit `ERR_TOO_MANY_LF_PARAMETERS`.
   - [ ] **File**: `src/parser/AstBuilderVisitor.cs`
+- [ ] **1.7. Validate Documentation & Examples** <!-- id: 18 -->
+  - [ ] Run `scripts/validate-examples.fish` to ensure all docs and samples parse with the new grammar.
+  - [ ] Update any broken examples in `docs/` or `test/ast-tests/CodeSamples`.
 
 ## Phase 2: Runtime & Type System
 - [ ] **2.1. Define Runtime Interfaces** <!-- id: 1 -->
