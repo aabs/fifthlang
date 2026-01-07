@@ -47,11 +47,12 @@ public static class FifthParserManager
         LambdaValidation = 30,
         LambdaClosureConversion = 31,
         Defunctionalisation = 32,
+        TailCallOptimization = 33,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
         // All must be >= TypeAnnotation to ensure that block executes and the lowering runs.
-        All = Defunctionalisation
+        All = TailCallOptimization
     }
 
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, AnalysisPhase upTo = AnalysisPhase.All)
@@ -424,6 +425,18 @@ public static class FifthParserManager
             // Relink after type rewrites to keep parent pointers consistent for codegen.
             ast = new TreeLinkageVisitor().Visit(ast);
         }
+
+        // Apply tail-call optimization to eligible recursive functions.
+        // This prevents stack overflow in deep recursion scenarios.
+        // TODO: Temporarily disabled due to AST construction issues - fix and re-enable
+        /*
+        if (upTo >= AnalysisPhase.TailCallOptimization)
+        {
+            ast = new compiler.LanguageTransformations.TailCallOptimizationRewriter().Visit(ast);
+            // Relink after transformation to maintain consistent parent pointers.
+            ast = new TreeLinkageVisitor().Visit(ast);
+        }
+        */
 
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);
         return ast;

@@ -9,6 +9,7 @@ namespace compiler.LanguageTransformations;
 public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
 {
     private readonly Stack<AstThing> parents = new();
+    private readonly HashSet<FunctionDef> visitedFunctions = new();
     // Debug helpers (DebugEnabled and DebugLog) are provided by the shared DebugHelpers class imported above.
 
     #region Helpers
@@ -324,6 +325,15 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
     public override FunctionDef VisitFunctionDef(FunctionDef ctx)
     {
         DebugLog($"DEBUG: TreeLinkageVisitor.VisitFunctionDef: {ctx.Name.Value}");
+
+        // Prevent infinite recursion: skip if already visited
+        if (visitedFunctions.Contains(ctx))
+        {
+            DebugLog($"DEBUG: TreeLinkageVisitor.VisitFunctionDef: Already visited {ctx.Name.Value}, skipping");
+            return ctx;
+        }
+
+        visitedFunctions.Add(ctx);
         EnterNonTerminal(ctx);
         var result = base.VisitFunctionDef(ctx);
         LeaveNonTerminal(ctx);
