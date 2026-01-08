@@ -81,7 +81,7 @@ public class FunctionRuntimeTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty("No errors should occur");
     }
 
-    [Fact(Skip = "Test hangs during compilation - needs investigation (multiple recursive calls in one expression)")]
+    [Fact]
     public async Task RecursiveFunction_ShouldComputeFibonacci()
     {
         // Arrange

@@ -796,6 +796,11 @@ public record LambdaExp : Expression
 
 public record FuncCallExp : Expression
 {
+    /// <summary>
+    /// Reference to the resolved function definition. Marked [IgnoreDuringVisit] to prevent infinite
+    /// recursion when visiting recursive functions (e.g., fibonacci calls itself multiple times).
+    /// </summary>
+    [IgnoreDuringVisit]
     public FunctionDef FunctionDef { get; set; }
     public List<Expression> InvocationArguments { get; set; }
     /// <summary>
@@ -811,6 +816,11 @@ public record FuncCallExp : Expression
 public record BaseConstructorCall : AstThing
 {
     public required List<Expression> Arguments { get; set; } = [];
+    /// <summary>
+    /// Reference to the resolved constructor. Marked [IgnoreDuringVisit] to prevent infinite
+    /// recursion when visiting constructor chains.
+    /// </summary>
+    [IgnoreDuringVisit]
     public FunctionDef? ResolvedConstructor { get; set; }
 }
 

@@ -919,8 +919,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         List<ast.Expression> tmpInvocationArguments = [];
         tmpInvocationArguments.AddRange(ctx.InvocationArguments.Select(x => (ast.Expression)Visit(x)));
      return ctx with {
-         FunctionDef = (ast.FunctionDef)Visit((AstThing)ctx.FunctionDef)
-        ,InvocationArguments = tmpInvocationArguments
+         InvocationArguments = tmpInvocationArguments
         };
     }
     public virtual BaseConstructorCall VisitBaseConstructorCall(BaseConstructorCall ctx)
@@ -929,7 +928,6 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
         tmpArguments.AddRange(ctx.Arguments.Select(x => (ast.Expression)Visit(x)));
      return ctx with {
          Arguments = tmpArguments
-        ,ResolvedConstructor = (ast.FunctionDef)Visit((AstThing)ctx.ResolvedConstructor)
         };
     }
     public virtual Int8LiteralExp VisitInt8LiteralExp(Int8LiteralExp ctx)
