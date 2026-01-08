@@ -309,11 +309,15 @@ public sealed class LambdaClosureConversionRewriter : DefaultAstRewriter
     private static MethodDef BuildCaptureConstructor(LambdaExp lambda, string className, List<(string Name, string TypeName)> captures)
     {
         var ctorParams = new List<ParamDef>();
+        var captureParams = new List<(string FieldName, string ParamName, string TypeName)>();
         foreach (var cap in captures)
         {
+            var paramName = $"__cap_{cap.Name}";
+            captureParams.Add((cap.Name, paramName, cap.TypeName));
+
             ctorParams.Add(new ParamDef
             {
-                Name = cap.Name,
+                Name = paramName,
                 TypeName = TypeName.From(cap.TypeName),
                 CollectionType = CollectionType.SingleInstance,
                 Visibility = Visibility.Public,
@@ -327,13 +331,13 @@ public sealed class LambdaClosureConversionRewriter : DefaultAstRewriter
         }
 
         var stmts = new List<Statement>();
-        foreach (var cap in captures)
+        foreach (var cap in captureParams)
         {
             stmts.Add(new AssignmentStatement
             {
                 LValue = new VarRefExp
                 {
-                    VarName = cap.Name,
+                    VarName = cap.FieldName,
                     VariableDecl = null,
                     Annotations = [],
                     Location = lambda.Location,
@@ -342,7 +346,7 @@ public sealed class LambdaClosureConversionRewriter : DefaultAstRewriter
                 },
                 RValue = new VarRefExp
                 {
-                    VarName = cap.Name,
+                    VarName = cap.ParamName,
                     VariableDecl = null,
                     Annotations = [],
                     Location = lambda.Location,

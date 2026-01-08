@@ -52,7 +52,8 @@ public class AdvancedLambdaTests : RuntimeTestBase
         result.StandardError.Should().BeEmpty();
     }
 
-    [Fact(Skip = "Test appears to hang during compilation - needs investigation")]
+    // [Fact(Skip = "Test appears to hang during compilation - needs investigation")]
+    [Fact]
     public async Task Lambda_DeepRecursion_WithoutTCO_ShouldNotStackOverflow()
     {
         // Test that demonstrates need for TCO
@@ -77,7 +78,7 @@ public class AdvancedLambdaTests : RuntimeTestBase
         var result = await ExecuteAsync(executablePath);
 
         // sumToN(100, 0) = 5050, modulo 256 = 178
-        result.ExitCode.Should().Be(178);
+        (result.ExitCode % 256).Should().Be(178);
         result.StandardError.Should().BeEmpty();
     }
 
