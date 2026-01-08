@@ -77,8 +77,8 @@ public class AdvancedLambdaTests : RuntimeTestBase
         var executablePath = await CompileSourceAsync(sourceCode);
         var result = await ExecuteAsync(executablePath);
 
-        // sumToN(100, 0) = 5050, modulo 256 = 178
-        (result.ExitCode % 256).Should().Be(178);
+        // sumToN(100, 0) = 5050, modulo 256 = 186
+        (result.ExitCode % 256).Should().Be(186);
         result.StandardError.Should().BeEmpty();
     }
 
