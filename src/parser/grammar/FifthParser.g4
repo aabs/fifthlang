@@ -181,10 +181,10 @@ expressionList:
 	expressions += expression (COMMA expressions += expression)*;
 
 expression:
-	lhs = expression DOT rhs = expression					# exp_member_access
-	| lhs = expression index								# exp_index
-	| funcname = IDENTIFIER L_PAREN expressionList? R_PAREN	# exp_funccall
-	| expression unary_op = (PLUS_PLUS | MINUS_MINUS)		# exp_unary_postfix
+	lhs = expression DOT rhs = expression											# exp_member_access
+	| lhs = expression index														# exp_index
+	| funcname = IDENTIFIER type_parameter_list? L_PAREN expressionList? R_PAREN	# exp_funccall
+	| expression unary_op = (PLUS_PLUS | MINUS_MINUS)								# exp_unary_postfix
 	| unary_op = (
 		PLUS
 		| MINUS

@@ -437,6 +437,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         {
             FunctionDef = null, // Will be resolved during linking phase
             InvocationArguments = arguments,
+            TypeArguments = new List<FifthType>(), // Empty for now, filled during type inference
             // Store the function name in annotations temporarily
             Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
             Location = GetLocationDetails(context),

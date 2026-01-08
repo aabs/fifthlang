@@ -798,6 +798,11 @@ public record FuncCallExp : Expression
 {
     public FunctionDef FunctionDef { get; set; }
     public List<Expression> InvocationArguments { get; set; }
+    /// <summary>
+    /// Explicit type arguments for generic function calls (e.g., identity<int>(x))
+    /// Empty list if no type arguments provided (will be inferred)
+    /// </summary>
+    public List<FifthType> TypeArguments { get; set; } = [];
 }
 
 /// <summary>
