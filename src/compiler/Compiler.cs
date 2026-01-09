@@ -359,8 +359,6 @@ Examples:
 
     private async Task CopyRuntimeDependenciesAsync(string outputPath, List<Diagnostic> diagnostics)
     {
-        diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"CopyRuntimeDependenciesAsync called with output: {outputPath}"));
-
         try
         {
             var outputDir = Path.GetDirectoryName(outputPath);
@@ -370,15 +368,10 @@ Examples:
                 outputDir = Directory.GetCurrentDirectory();
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Using current directory for dependencies: {outputDir}"));
             }
-            else
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Output directory: {outputDir}"));
-            }
 
             var packageLibDir = GetPackageLibDirectory();
             if (Directory.Exists(packageLibDir))
             {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Copying dependencies from package lib directory: {packageLibDir}"));
                 var filesCopied = 0;
                 await Task.Run(() =>
                 {
@@ -388,11 +381,10 @@ Examples:
                         return lower == "compiler" || lower == "compiler.exe" || lower == "compiler.dll";
                     }, ref filesCopied);
                 });
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Copied {filesCopied} runtime dependency files"));
                 return;
             }
 
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Package lib directory not found at {packageLibDir}; falling back to assembly locations"));
+            // diagnostics.Add(new Diagnostic(DiagnosticLevel.Warning, $"Package lib directory not found at {packageLibDir}; falling back to assembly locations"));
 
             // Fallback path for developer builds where lib directory may not exist yet
             await TryCopyAssemblyAsync(typeof(Fifth.System.KG).Assembly, outputDir, "Fifth.System.dll", diagnostics);
@@ -724,7 +716,7 @@ Examples:
             {
                 var destination = Path.Combine(outputDir, Path.GetFileName(assemblyPath));
                 await Task.Run(() => File.Copy(assemblyPath, destination, overwrite: true));
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Copied {friendlyName} to output directory"));
+                // diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Copied {friendlyName} to output directory"));
             }
             else
             {
