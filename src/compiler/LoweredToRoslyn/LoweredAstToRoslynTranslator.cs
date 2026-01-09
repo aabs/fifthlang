@@ -124,6 +124,9 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             UsingDirective(IdentifierName("System")),
             UsingDirective(IdentifierName("System.Collections.Generic")),
             UsingDirective(IdentifierName("Fifth.System")),
+            UsingDirective(IdentifierName("Fifth.System.List")).WithStaticKeyword(Token(SyntaxKind.StaticKeyword)),
+            UsingDirective(IdentifierName("Fifth.System.IO")).WithStaticKeyword(Token(SyntaxKind.StaticKeyword)),
+            UsingDirective(IdentifierName("Fifth.System.Math")).WithStaticKeyword(Token(SyntaxKind.StaticKeyword)),
             UsingDirective(IdentifierName("VDS.RDF")),
             UsingDirective(IdentifierName("VDS.RDF.Query"))
         };
