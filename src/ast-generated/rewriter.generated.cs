@@ -836,11 +836,8 @@ public class DefaultAstRewriter : IAstRewriter
             tmpInvocationArguments.Add((ast.Expression)rr.Node);
             prologue.AddRange(rr.Prologue);
         }
-        var rrFunctionDef = Rewrite((AstThing)ctx.FunctionDef);
-        prologue.AddRange(rrFunctionDef.Prologue);
         var rebuilt = ctx with {
-         FunctionDef = (ast.FunctionDef)rrFunctionDef.Node
-        ,InvocationArguments = tmpInvocationArguments
+         InvocationArguments = tmpInvocationArguments
         };
         return new RewriteResult(rebuilt, prologue);
     }
@@ -854,11 +851,8 @@ public class DefaultAstRewriter : IAstRewriter
             tmpArguments.Add((ast.Expression)rr.Node);
             prologue.AddRange(rr.Prologue);
         }
-        var rrResolvedConstructor = Rewrite((AstThing)ctx.ResolvedConstructor);
-        prologue.AddRange(rrResolvedConstructor.Prologue);
         var rebuilt = ctx with {
          Arguments = tmpArguments
-        ,ResolvedConstructor = (ast.FunctionDef)rrResolvedConstructor.Node
         };
         return new RewriteResult(rebuilt, prologue);
     }

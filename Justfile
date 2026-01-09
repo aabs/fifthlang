@@ -129,6 +129,14 @@ install-cli: build-compiler
 	printf "Fifth language compiler is now available as 'fifth' in your PATH\n"
 	printf "Usage: fifth [options] <source-file>\n"
 
+install-cli-quick:
+	printf "Creating symlink to compiler in ~/bin as 'fifth'...\n"
+	mkdir -p ~/bin
+	rm -f ~/bin/fifth || true
+	ln -s "$(pwd)/src/compiler/bin/Debug/net8.0/compiler" ~/bin/fifth
+	printf "Fifth language compiler is now available as 'fifth' in your PATH\n"
+	printf "Usage: fifth [options] <source-file>\n"
+
 # Help text is generated from comments above each recipe; use `just --summary` for a concise list
 help:
 	@just --list

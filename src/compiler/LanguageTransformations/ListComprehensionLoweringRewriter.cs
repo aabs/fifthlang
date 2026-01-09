@@ -371,9 +371,21 @@ public class ListComprehensionLoweringRewriter : DefaultAstRewriter
         }
         else
         {
-            // For regular list iteration, the loop variable type is the element type
-            loopVarType = elementType;
-            loopVarTypeName = elementType.Name;
+            // Determine loop variable type from the source collection type
+            if (sourceExpr.Type is FifthType.TListOf sourceListType)
+            {
+                loopVarType = sourceListType.ElementType;
+            }
+            else if (sourceExpr.Type is FifthType.TArrayOf sourceArrayType)
+            {
+                loopVarType = sourceArrayType.ElementType;
+            }
+            else
+            {
+                // Fallback to unknown/dynamic
+                loopVarType = new FifthType.UnknownType() { Name = TypeName.From("unknown") };
+            }
+            loopVarTypeName = loopVarType.Name;
         }
 
         var loopVarDecl = new VariableDecl

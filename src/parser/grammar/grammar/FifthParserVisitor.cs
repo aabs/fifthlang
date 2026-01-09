@@ -92,6 +92,12 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitParamdecl([NotNull] FifthParser.ParamdeclContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.plain_paramdecl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPlain_paramdecl([NotNull] FifthParser.Plain_paramdeclContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.destructuring_decl"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -145,6 +151,12 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitType_parameter([NotNull] FifthParser.Type_parameterContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.type_argument_list"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitType_argument_list([NotNull] FifthParser.Type_argument_listContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.constraint_clause"/>.
 	/// </summary>
@@ -299,12 +311,25 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitBase_type_spec([NotNull] FifthParser.Base_type_specContext context);
 	/// <summary>
+	/// Visit a parse tree produced by the <c>type_func_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitType_func_spec([NotNull] FifthParser.Type_func_specContext context);
+	/// <summary>
 	/// Visit a parse tree produced by the <c>list_type_spec</c>
 	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitList_type_spec([NotNull] FifthParser.List_type_specContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.function_type_spec"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFunction_type_spec([NotNull] FifthParser.Function_type_specContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.expressionList"/>.
 	/// </summary>
@@ -421,6 +446,12 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitOperand([NotNull] FifthParser.OperandContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.lambda_expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLambda_expression([NotNull] FifthParser.Lambda_expressionContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.tripleExpression"/>.
 	/// </summary>

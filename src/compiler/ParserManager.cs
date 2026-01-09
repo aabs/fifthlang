@@ -44,11 +44,57 @@ public static class FifthParserManager
         QueryApplicationLowering = 27,
         ListComprehensionLowering = 28,
         ListComprehensionValidation = 29,
+        LambdaValidation = 30,
+        LambdaClosureConversion = 31,
+        Defunctionalisation = 32,
+        TailCallOptimization = 33,
         // All should run through the graph/triple operator lowering so downstream backends never
         // see raw '+'/'-' between graphs/triples.
         // IMPORTANT: Since GraphTripleOperatorLowering runs inside the TypeAnnotation phase block,
         // All must be >= TypeAnnotation to ensure that block executes and the lowering runs.
-        All = ListComprehensionValidation  // Update to include list comprehension validation
+        All = TailCallOptimization
+    }
+
+    // Helper to wrap phase execution with detailed error tracking
+    private static AstThing ExecutePhase(string phaseName, AstThing ast, Func<AstThing, AstThing> phaseFunc, List<compiler.Diagnostic>? diagnostics = null)
+    {
+        try
+        {
+            return phaseFunc(ast);
+        }
+        catch (System.Exception ex)
+        {
+            var errorMsg = $"Phase '{phaseName}' failed: {ex.GetType().Name}: {ex.Message}";
+            if (ex.InnerException != null)
+            {
+                errorMsg += $"\nInner: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}";
+            }
+
+            // Log to Console.Error immediately for debugging
+            System.Console.Error.WriteLine($"===========================================");
+            System.Console.Error.WriteLine($"PHASE FAILURE DETECTED: {phaseName}");
+            System.Console.Error.WriteLine($"Exception Type: {ex.GetType().FullName}");
+            System.Console.Error.WriteLine($"Message: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                System.Console.Error.WriteLine($"Inner Exception: {ex.InnerException.GetType().FullName}");
+                System.Console.Error.WriteLine($"Inner Message: {ex.InnerException.Message}");
+            }
+            System.Console.Error.WriteLine($"Stack Trace:\n{ex.StackTrace}");
+            System.Console.Error.WriteLine($"===========================================");
+
+            diagnostics?.Add(new compiler.Diagnostic(compiler.DiagnosticLevel.Error, errorMsg));
+
+            if (DebugHelpers.DebugEnabled)
+            {
+                DebugHelpers.DebugLog($"=== PHASE FAILURE: {phaseName} ===");
+                DebugHelpers.DebugLog($"Exception: {ex.GetType().Name}");
+                DebugHelpers.DebugLog($"Message: {ex.Message}");
+                DebugHelpers.DebugLog($"Stack: {ex.StackTrace}");
+            }
+
+            throw new System.Exception($"Phase '{phaseName}' failed", ex);
+        }
     }
 
     public static AstThing ApplyLanguageAnalysisPhases(AstThing ast, List<compiler.Diagnostic>? diagnostics = null, AnalysisPhase upTo = AnalysisPhase.All)
@@ -60,7 +106,9 @@ public static class FifthParserManager
         try
         {
             if (upTo >= AnalysisPhase.TreeLink)
+            {
                 ast = new TreeLinkageVisitor().Visit(ast);
+            }
         }
         catch (System.Exception ex)
         {
@@ -69,28 +117,29 @@ public static class FifthParserManager
                 DebugHelpers.DebugLog($"TreeLinkageVisitor failed with: {ex.Message}");
                 DebugHelpers.DebugLog($"Stack trace: {ex.StackTrace}");
             }
+            diagnostics?.Add(new compiler.Diagnostic(compiler.DiagnosticLevel.Error, $"TreeLinkageVisitor failed: {ex.Message}\nStack: {ex.StackTrace}"));
             throw;
         }
 
         if (upTo >= AnalysisPhase.Builtins)
-            ast = new BuiltinInjectorVisitor().Visit(ast);
+            ast = ExecutePhase("BuiltinInjector", ast, a => new BuiltinInjectorVisitor().Visit(a), diagnostics);
 
         if (upTo >= AnalysisPhase.ClassCtors)
         {
-            ast = new ClassCtorInserter(diagnostics).Visit(ast);
+            ast = ExecutePhase("ClassCtorInserter", ast, a => new ClassCtorInserter(diagnostics).Visit(a), diagnostics);
             // Re-link tree after inserting constructors as they are new nodes with null parents
-            ast = new TreeLinkageVisitor().Visit(ast);
+            ast = ExecutePhase("TreeRelinkAfterClassCtor", ast, a => new TreeLinkageVisitor().Visit(a), diagnostics);
         }
 
         if (upTo >= AnalysisPhase.ConstructorValidation)
-            ast = new SemanticAnalysis.ConstructorValidator(diagnostics).Visit(ast);
+            ast = ExecutePhase("ConstructorValidator", ast, a => new SemanticAnalysis.ConstructorValidator(diagnostics).Visit(a), diagnostics);
 
         if (upTo >= AnalysisPhase.SymbolTableInitial)
-            ast = new SymbolTableBuilderVisitor().Visit(ast);
+            ast = ExecutePhase("SymbolTableInitial", ast, a => new SymbolTableBuilderVisitor().Visit(a), diagnostics);
 
         // Constructor resolution happens AFTER symbol table is built so we can look up class definitions
         if (upTo >= AnalysisPhase.ConstructorResolution)
-            ast = new SemanticAnalysis.ConstructorResolver(diagnostics).Visit(ast);
+            ast = ExecutePhase("ConstructorResolver", ast, a => new SemanticAnalysis.ConstructorResolver(diagnostics).Visit(a), diagnostics);
 
         // Definite assignment analysis happens AFTER constructor resolution
         if (upTo >= AnalysisPhase.DefiniteAssignment)
@@ -122,11 +171,11 @@ public static class FifthParserManager
 
         // Register type parameters in scope after symbol table building (T030)
         if (upTo >= AnalysisPhase.SymbolTableInitial)
-            ast = new TypeParameterResolutionVisitor().Visit(ast);
+            ast = ExecutePhase("TypeParameterResolution", ast, a => new TypeParameterResolutionVisitor().Visit(a), diagnostics);
 
         // Infer generic type arguments after type parameter resolution (T045)
         if (upTo >= AnalysisPhase.SymbolTableInitial)
-            ast = new GenericTypeInferenceVisitor().Visit(ast);
+            ast = ExecutePhase("GenericTypeInference", ast, a => new GenericTypeInferenceVisitor().Visit(a), diagnostics);
 
         try
         {
@@ -145,12 +194,12 @@ public static class FifthParserManager
 
         if (upTo >= AnalysisPhase.DestructurePatternFlatten)
         {
-            ast = new DestructuringVisitor().Visit(ast);
-            ast = new DestructuringConstraintPropagator().Visit(ast);
+            ast = ExecutePhase("DestructuringVisitor", ast, a => new DestructuringVisitor().Visit(a), diagnostics);
+            ast = ExecutePhase("DestructuringConstraintPropagator", ast, a => new DestructuringConstraintPropagator().Visit(a), diagnostics);
         }
 
         if (upTo >= AnalysisPhase.OverloadGroup)
-            ast = new OverloadGatheringVisitor().Visit(ast);
+            ast = ExecutePhase("OverloadGathering", ast, a => new OverloadGatheringVisitor().Visit(a), diagnostics);
 
         if (upTo >= AnalysisPhase.GuardValidation)
         {
@@ -172,13 +221,6 @@ public static class FifthParserManager
             }
         }
 
-        // Generate guard and subclause functions using collected constraints on grouped overloads
-        // Debug: Check main method before OverloadTransformingVisitor
-        if (ast is AssemblyDef asmBefore)
-        {
-            var mainMethod = asmBefore.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
-        }
-
         // If diagnostics list was provided and contains errors, short-circuit to allow caller to handle failures
         if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
         {
@@ -187,13 +229,7 @@ public static class FifthParserManager
         }
 
         if (upTo >= AnalysisPhase.OverloadTransform)
-            ast = new OverloadTransformingVisitor().Visit(ast);
-
-        // Debug: Check main method after OverloadTransformingVisitor
-        if (ast is AssemblyDef asmAfter)
-        {
-            var mainMethod2 = asmAfter.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
-        }
+            ast = ExecutePhase("OverloadTransforming", ast, a => new OverloadTransformingVisitor().Visit(a), diagnostics);
 
         // Resolve property references in destructuring (still needed for property resolution)
         if (upTo >= AnalysisPhase.DestructuringLowering)
@@ -250,25 +286,25 @@ public static class FifthParserManager
         // reliable decisions (graph+graph, graph+triple, etc.).
 
         if (upTo >= AnalysisPhase.SymbolTableFinal)
-            ast = new SymbolTableBuilderVisitor().Visit(ast);
+            ast = ExecutePhase("SymbolTableFinalBeforeTypeAnnotation", ast, a => new SymbolTableBuilderVisitor().Visit(a), diagnostics);
 
         if (upTo >= AnalysisPhase.VarRefResolver)
-            ast = new VarRefResolverVisitor().Visit(ast);
+            ast = ExecutePhase("VarRefResolver", ast, a => new VarRefResolverVisitor().Visit(a), diagnostics);
 
         if (upTo >= AnalysisPhase.TypeAnnotation)
         {
             var typeAnnotationVisitor = new TypeAnnotationVisitor();
-            ast = typeAnnotationVisitor.Visit(ast);
+            ast = ExecutePhase("TypeAnnotation", ast, a => typeAnnotationVisitor.Visit(a), diagnostics);
 
             // Rebuild symbol table after type annotation to ensure all references point to
             // the updated AST nodes with proper types and CollectionType information.
             // This fixes the stale reference issue where the symbol table contains old nodes
             // from before type annotation transformed the immutable AST.
-            ast = new SymbolTableBuilderVisitor().Visit(ast);
+            ast = ExecutePhase("SymbolTableRebuildAfterTypeAnnotation", ast, a => new SymbolTableBuilderVisitor().Visit(a), diagnostics);
 
             // Lower augmented assignments (+= and -=) AFTER type annotation so we can use type information
             if (upTo >= AnalysisPhase.AugmentedAssignmentLowering)
-                ast = new AugmentedAssignmentLoweringRewriter().Visit(ast);
+                ast = ExecutePhase("AugmentedAssignmentLowering", ast, a => new AugmentedAssignmentLoweringRewriter().Visit(a), diagnostics);
 
             // Collect type checking errors (only Error severity, not Info)
             if (diagnostics != null)
@@ -367,7 +403,7 @@ public static class FifthParserManager
         {
             var validator = new Fifth.LangProcessingPhases.SparqlComprehensionValidationVisitor(diagnostics);
             ast = validator.Visit(ast);
-            
+
             if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
             {
                 return null;
@@ -381,6 +417,66 @@ public static class FifthParserManager
             var result = rewriter.Rewrite(ast);
             ast = result.Node;
         }
+
+        // Validate lambda functions (arity limits, etc.)
+        if (upTo >= AnalysisPhase.LambdaValidation)
+        {
+            ast = new LambdaValidationVisitor(diagnostics).Visit(ast);
+            if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
+            {
+                return null;
+            }
+        }
+
+        // Validate lambda capture constraints, then lower lambdas to closure classes + Apply calls.
+        if (upTo >= AnalysisPhase.LambdaClosureConversion)
+        {
+            ast = ExecutePhase("LambdaCaptureValidation", ast, a =>
+                new compiler.LanguageTransformations.LambdaCaptureValidationVisitor(diagnostics).Visit(a), diagnostics);
+
+            if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
+            {
+                return null;
+            }
+
+            ast = ExecutePhase("LambdaClosureConversion", ast, a =>
+            {
+                var rewriter = new compiler.LanguageTransformations.LambdaClosureConversionRewriter();
+                var result = rewriter.Rewrite(a);
+                return result.Node;
+            }, diagnostics);
+
+            // Relink after rewriting so downstream components (e.g., codegen) see consistent parents.
+            ast = ExecutePhase("TreeRelinkAfterLambda", ast, a => new TreeLinkageVisitor().Visit(a), diagnostics);
+        }
+
+        // Defunctionalise higher-order function types into runtime closure interface types.
+        // This runs at the end of analysis so earlier phases (type inference, resolution) can still
+        // operate on Fifth-native function type syntax.
+        if (upTo >= AnalysisPhase.Defunctionalisation)
+        {
+            ast = ExecutePhase("Defunctionalisation", ast, a =>
+            {
+                var rewriter = new compiler.LanguageTransformations.DefunctionalisationRewriter();
+                var result = rewriter.Rewrite(a);
+                return result.Node;
+            }, diagnostics);
+
+            // Relink after type rewrites to keep parent pointers consistent for codegen.
+            ast = ExecutePhase("TreeRelinkAfterDefunc", ast, a => new TreeLinkageVisitor().Visit(a), diagnostics);
+        }
+
+        // Apply tail-call optimization to eligible recursive functions.
+        // This prevents stack overflow in deep recursion scenarios.
+        // TODO: Temporarily disabled due to AST construction issues - fix and re-enable
+        /*
+        if (upTo >= AnalysisPhase.TailCallOptimization)
+        {
+            ast = new compiler.LanguageTransformations.TailCallOptimizationRewriter().Visit(ast);
+            // Relink after transformation to maintain consistent parent pointers.
+            ast = new TreeLinkageVisitor().Visit(ast);
+        }
+        */
 
         //ast = new DumpTreeVisitor(Console.Out).Visit(ast);
         return ast;

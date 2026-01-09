@@ -156,6 +156,18 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitParamdecl([NotNull] FifthParser.ParamdeclContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.plain_paramdecl"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterPlain_paramdecl([NotNull] FifthParser.Plain_paramdeclContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.plain_paramdecl"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitPlain_paramdecl([NotNull] FifthParser.Plain_paramdeclContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.destructuring_decl"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
@@ -263,6 +275,18 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitType_parameter([NotNull] FifthParser.Type_parameterContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.type_argument_list"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterType_argument_list([NotNull] FifthParser.Type_argument_listContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.type_argument_list"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitType_argument_list([NotNull] FifthParser.Type_argument_listContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.constraint_clause"/>.
 	/// <para>The default implementation does nothing.</para>
@@ -570,6 +594,20 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitBase_type_spec([NotNull] FifthParser.Base_type_specContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by the <c>type_func_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterType_func_spec([NotNull] FifthParser.Type_func_specContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>type_func_spec</c>
+	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitType_func_spec([NotNull] FifthParser.Type_func_specContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by the <c>list_type_spec</c>
 	/// labeled alternative in <see cref="FifthParser.type_spec"/>.
 	/// <para>The default implementation does nothing.</para>
@@ -583,6 +621,18 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitList_type_spec([NotNull] FifthParser.List_type_specContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.function_type_spec"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterFunction_type_spec([NotNull] FifthParser.Function_type_specContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.function_type_spec"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitFunction_type_spec([NotNull] FifthParser.Function_type_specContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.expressionList"/>.
 	/// <para>The default implementation does nothing.</para>
@@ -815,6 +865,18 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitOperand([NotNull] FifthParser.OperandContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.lambda_expression"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterLambda_expression([NotNull] FifthParser.Lambda_expressionContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.lambda_expression"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitLambda_expression([NotNull] FifthParser.Lambda_expressionContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.tripleExpression"/>.
 	/// <para>The default implementation does nothing.</para>

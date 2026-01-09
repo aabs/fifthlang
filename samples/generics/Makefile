@@ -2,9 +2,9 @@
 # Assumes 'fifth' compiler is installed and available on PATH
 
 FIFTH = fifth
-SOURCE = main.5th
+SOURCE = test_map_debug.5th
 DIR_OUTPUT = build
-OUTPUT = $(DIR_OUTPUT)/main.dll
+OUTPUT = $(DIR_OUTPUT)/test_map_debug.dll
 
 .PHONY: all build run clean
 
@@ -14,7 +14,7 @@ all: build
 prepare:
 	mkdir -p $(DIR_OUTPUT)
 
-build: prepare
+build: clean prepare
 	$(FIFTH) --command build --source $(SOURCE) --output $(OUTPUT)
 
 run: build
@@ -22,4 +22,4 @@ run: build
 
 clean:
 	rm -rf $(DIR_OUTPUT)
-	rm -rf build_debug_roslyn
+	# rm -rf build_debug_roslyn

@@ -11,7 +11,7 @@ namespace compiler.TypeSystem;
 public class GenericTypeCache
 {
     private const int MaxCacheSize = 10_000;
-    
+
     private readonly ConcurrentDictionary<string, CacheEntry> _cache = new();
     private readonly LinkedList<string> _lruList = new();
     private readonly object _lruLock = new();
@@ -53,9 +53,24 @@ public class GenericTypeCache
         }
 
         // Create new instantiation
+        // Build type argument name string with defensive checks for uninitialized Names
+        var typeArgNames = new List<string>();
+        foreach (var typeArg in typeArguments)
+        {
+            try
+            {
+                typeArgNames.Add(typeArg.Name.Value);
+            }
+            catch (System.InvalidOperationException ex) when (ex.Message.Contains("uninitialized"))
+            {
+                // Type argument has uninitialized Name - use placeholder
+                typeArgNames.Add($"<uninit:{typeArg.GetType().Name}>");
+            }
+        }
+
         var instantiatedType = new FifthType.TGenericInstance(genericTypeDefinition, typeArguments)
         {
-            Name = TypeName.From($"{genericTypeDefinition.Value}<{string.Join(", ", typeArguments.Select(t => t.Name.Value))}>")
+            Name = TypeName.From($"{genericTypeDefinition.Value}<{string.Join(", ", typeArgNames)}>")
         };
 
         // Add to cache with LRU tracking
@@ -95,11 +110,11 @@ public class GenericTypeCache
             tVoidType => "void",
             tDotnetType => tDotnetType.TheType.FullName ?? tDotnetType.TheType.Name,
             tType => type.Name.Value,
-            tFunc => $"({GetTypeKey(tFunc.InputType)})->{GetTypeKey(tFunc.OutputType)}",
+            tFunc => $"([{string.Join(",", tFunc.InputTypes.Select(GetTypeKey))}])->{GetTypeKey(tFunc.OutputType)}",
             tArrayOf => $"{GetTypeKey(tArrayOf.ElementType)}[]",
             tListOf => $"[{GetTypeKey(tListOf.ElementType)}]",
             tGenericParameter => $"T:{tGenericParameter.ParameterName.Value}",
-            tGenericInstance => 
+            tGenericInstance =>
             {
                 var args = string.Join(",", tGenericInstance.TypeArguments.Select(GetTypeKey));
                 return $"{tGenericInstance.GenericTypeDefinition.Value}<{args}>";

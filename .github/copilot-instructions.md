@@ -255,6 +255,7 @@ Always build the full solution rather than individual projects to ensure proper 
 - In-memory RDF triple stores via dotNetRDF (`ITripleStore`, `TripleStore`) (011-query-application-result-type)
 - C# 14 / .NET 8.0 (host), Fifth language surface (compiler target) + Antlr4.Runtime.Standard, RazorLight (for AST gen templates), TUnit + FluentAssertions, dunet, Vogen (001-constructor-functions)
 - N/A (in-memory AST + type tables) (001-constructor-functions)
+- C# 14, .NET 8.0 + ANTLR 4.8, Microsoft.CodeAnalysis (Roslyn), TUnit, FluentAssertions, Dunet, Vogen (016-lambda-functions)
 
 ## Recent Changes
 - 005-implementation-of-try: Added C# (compiler implementation), Fifth language surface; .NET SDK 8.0.x (global.json pins 8.0.118) + Antlr4.Runtime.Standard, RazorLight, System.CommandLine, TUnit, FluentAssertions, dunet, Vogen; Roslyn (for IL or backend equivalence tests)

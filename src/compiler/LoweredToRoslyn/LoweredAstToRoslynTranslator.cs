@@ -29,6 +29,15 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     // Track class-level property/field names for the current class being translated
     private HashSet<string> _classMembers = new HashSet<string>();
 
+    // Track the current containing class name for expression translation decisions
+    private string? _currentContainingClassName;
+
+    // Track top-level (module) function names so closure classes can qualify them as Program.<fn>
+    private HashSet<string> _moduleLevelFunctionNames = new HashSet<string>(StringComparer.Ordinal);
+
+    // Track the return type of the current function being translated
+    private FifthType? _currentReturnType;
+
     /// <summary>
     /// Translate AssemblyDef (from IBackendTranslator interface)
     /// </summary>
@@ -104,12 +113,20 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private SyntaxTree BuildSyntaxTreeFromModule(ModuleDef module, MappingTable mapping)
     {
+        _moduleLevelFunctionNames = module.Functions
+            .OfType<FunctionDef>()
+            .Select(f => SanitizeIdentifier(f.Name.ToString() == "main" ? "Main" : f.Name.ToString()))
+            .ToHashSet(StringComparer.Ordinal);
+
         // Create using directives
         var usingDirectives = new[]
         {
             UsingDirective(IdentifierName("System")),
             UsingDirective(IdentifierName("System.Collections.Generic")),
             UsingDirective(IdentifierName("Fifth.System")),
+            UsingDirective(IdentifierName("Fifth.System.List")).WithStaticKeyword(Token(SyntaxKind.StaticKeyword)),
+            UsingDirective(IdentifierName("Fifth.System.IO")).WithStaticKeyword(Token(SyntaxKind.StaticKeyword)),
+            UsingDirective(IdentifierName("Fifth.System.Math")).WithStaticKeyword(Token(SyntaxKind.StaticKeyword)),
             UsingDirective(IdentifierName("VDS.RDF")),
             UsingDirective(IdentifierName("VDS.RDF.Query"))
         };
@@ -145,11 +162,16 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         var program = ClassDeclaration("Program")
             .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword));
 
+        var priorContaining = _currentContainingClassName;
+        _currentContainingClassName = "Program";
+
         foreach (var funcDef in module.Functions.OfType<FunctionDef>())
         {
             var methodDecl = BuildMethodDeclaration(funcDef, mapping);
             program = program.AddMembers(methodDecl);
         }
+
+        _currentContainingClassName = priorContaining;
 
         // Ensure there is a suitable entry point even if the pipeline failed to surface a 'main'.
         // Detect presence of a generated Main method on the Program class to be robust to Name.ToString() differences.
@@ -183,6 +205,8 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private ClassDeclarationSyntax BuildClassDeclaration(ClassDef classDef, MappingTable mapping)
     {
+        var priorContaining = _currentContainingClassName;
+
         // Clear and populate class members (properties and fields) to prevent shadowing
         _classMembers.Clear();
         foreach (var member in classDef.MemberDefs)
@@ -198,6 +222,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         }
 
         var className = SanitizeIdentifier(classDef.Name.ToString());
+        _currentContainingClassName = className;
         var classDecl = ClassDeclaration(className)
             .AddModifiers(Token(SyntaxKind.PublicKeyword));
 
@@ -265,6 +290,8 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 classDecl = classDecl.AddMembers(fieldDecl);
             }
         }
+
+        _currentContainingClassName = priorContaining;
 
         return classDecl;
     }
@@ -415,7 +442,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             return ReturnStatement();
         }
 
-        var expr = TranslateExpression(retStmt.ReturnValue);
+        var expr = TranslateExpression(retStmt.ReturnValue, _currentReturnType);
         return ReturnStatement(expr);
     }
 
@@ -505,10 +532,10 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         var loopVarName = SanitizeIdentifier(foreachStmt.LoopVariable.Name.ToString());
         var loopVarTypeName = ExtractTypeName(foreachStmt.LoopVariable.Type);
         var loopVarType = ParseTypeName(loopVarTypeName);
-        
+
         var collection = TranslateExpression(foreachStmt.Collection);
         var body = BuildBlockStatement(foreachStmt.Body);
-        
+
         return ForEachStatement(
             loopVarType,
             Identifier(loopVarName),
@@ -839,6 +866,21 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 powCall);
         }
 
+
+        // Handle concatenation (++) by calling Fifth.System.List.op_PlusPlus
+        if (binExp.Operator == Operator.Concatenate)
+        {
+            var lhsExpr = TranslateExpression(binExp.LHS);
+            var rhsExpr = TranslateExpression(binExp.RHS);
+
+            return InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        CreateQualifiedName("Fifth.System.List"),
+                        IdentifierName("op_PlusPlus")))
+                .WithArgumentList(ArgumentList(SeparatedList(new[] { Argument(lhsExpr), Argument(rhsExpr) })));
+        }
+
         var left = TranslateExpression(binExp.LHS);
         var right = TranslateExpression(binExp.RHS);
 
@@ -874,6 +916,12 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             Operator.ArithmeticSubtract => SyntaxKind.SubtractExpression,
             Operator.ArithmeticMultiply => SyntaxKind.MultiplyExpression,
             Operator.ArithmeticDivide => SyntaxKind.DivideExpression,
+            Operator.ArithmeticMod => SyntaxKind.ModuloExpression,
+            Operator.BitwiseAnd => SyntaxKind.BitwiseAndExpression,
+            Operator.BitwiseOr => SyntaxKind.BitwiseOrExpression,
+            Operator.BitwiseLeftShift => SyntaxKind.LeftShiftExpression,
+            Operator.BitwiseRightShift => SyntaxKind.RightShiftExpression,
+            Operator.LogicalXor => SyntaxKind.ExclusiveOrExpression,
             Operator.Equal => SyntaxKind.EqualsExpression,
             Operator.NotEqual => SyntaxKind.NotEqualsExpression,
             Operator.LessThan => SyntaxKind.LessThanExpression,
@@ -954,7 +1002,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     {
         // Instance method call (e.g., list.Add(item))?
         if (funcCall.Annotations != null &&
-            funcCall.Annotations.TryGetValue("IsInstanceMethod", out var isInstanceObj) && 
+            funcCall.Annotations.TryGetValue("IsInstanceMethod", out var isInstanceObj) &&
             isInstanceObj is bool isInstance && isInstance &&
             funcCall.Annotations.TryGetValue("Target", out var targetObj) && targetObj is Expression targetExpr)
         {
@@ -983,7 +1031,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                         IdentifierName(methodName)))
                 .WithArgumentList(ArgumentList(SeparatedList(argList)));
         }
-        
+
         // External (static) call annotated by TreeLinkageVisitor?
         if (funcCall.Annotations != null &&
             funcCall.Annotations.TryGetValue("ExternalType", out var extTypeObj) && extTypeObj is Type extType)
@@ -1051,7 +1099,24 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             arguments.Add(Argument(argExpr));
         }
 
-        return InvocationExpression(IdentifierName(funcName))
+        ExpressionSyntax callee;
+
+        // If we're inside a non-Program class (e.g., a generated lambda closure),
+        // module-level functions live on the static Program class.
+        var inProgram = string.Equals(_currentContainingClassName, "Program", StringComparison.Ordinal);
+        if (!inProgram && _moduleLevelFunctionNames.Contains(funcName))
+        {
+            callee = MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                IdentifierName("Program"),
+                IdentifierName(funcName));
+        }
+        else
+        {
+            callee = IdentifierName(funcName);
+        }
+
+        return InvocationExpression(callee)
             .WithArgumentList(ArgumentList(SeparatedList(arguments)));
     }
 
@@ -1535,6 +1600,30 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     {
         if (fifthTypeName == null) return "object";
 
+        // Handle function types: [T1, T2] -> R
+        // Map to runtime closure interfaces: IClosure<..., R> or IActionClosure<...>
+        if (TryParseFunctionType(fifthTypeName, out var inputTypes, out var outputType))
+        {
+            var mappedInputs = inputTypes.Select(MapTypeName).ToList();
+            var mappedOutput = MapTypeName(outputType);
+
+            if (string.Equals(outputType.Trim(), "void", StringComparison.Ordinal))
+            {
+                if (mappedInputs.Count == 0)
+                {
+                    return "Fifth.System.Runtime.IActionClosure";
+                }
+                return $"Fifth.System.Runtime.IActionClosure<{string.Join(", ", mappedInputs)}>";
+            }
+
+            if (mappedInputs.Count == 0)
+            {
+                return $"Fifth.System.Runtime.IClosure<{mappedOutput}>";
+            }
+
+            return $"Fifth.System.Runtime.IClosure<{string.Join(", ", mappedInputs)}, {mappedOutput}>";
+        }
+
         // Handle list/array types - Fifth uses [T] syntax, C# uses T[]
         // Examples: [int] -> int[], [[int]] -> int[][]
         if (fifthTypeName.StartsWith("[") && fifthTypeName.EndsWith("]"))
@@ -1580,8 +1669,88 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             "Store" => "Fifth.System.Store",
             "void" => "void",
             "var" => "var",
+            "unknown" => "object", // Map unknown types to object to allow compilation
             _ => fifthTypeName // Keep custom types as-is
         };
+    }
+
+    private static bool TryParseFunctionType(string input, out List<string> inputTypes, out string outputType)
+    {
+        inputTypes = [];
+        outputType = string.Empty;
+
+        var s = input.Trim();
+        var arrowIndex = s.IndexOf("->", StringComparison.Ordinal);
+        if (arrowIndex < 0)
+        {
+            return false;
+        }
+
+        var left = s.Substring(0, arrowIndex).Trim();
+        var right = s.Substring(arrowIndex + 2).Trim();
+
+        if (!left.StartsWith("[", StringComparison.Ordinal) || !left.EndsWith("]", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var args = left.Substring(1, left.Length - 2).Trim();
+        outputType = right;
+
+        if (string.IsNullOrWhiteSpace(args))
+        {
+            return true;
+        }
+
+        foreach (var part in SplitTopLevelCommaSeparated(args))
+        {
+            var t = part.Trim();
+            if (!string.IsNullOrWhiteSpace(t))
+            {
+                inputTypes.Add(t);
+            }
+        }
+
+        return true;
+    }
+
+    private static IEnumerable<string> SplitTopLevelCommaSeparated(string s)
+    {
+        var start = 0;
+        var angle = 0;
+        var square = 0;
+
+        for (var i = 0; i < s.Length; i++)
+        {
+            var ch = s[i];
+            switch (ch)
+            {
+                case '<':
+                    angle++;
+                    break;
+                case '>':
+                    angle = Math.Max(0, angle - 1);
+                    break;
+                case '[':
+                    square++;
+                    break;
+                case ']':
+                    square = Math.Max(0, square - 1);
+                    break;
+                case ',':
+                    if (angle == 0 && square == 0)
+                    {
+                        yield return s.Substring(start, i - start);
+                        start = i + 1;
+                    }
+                    break;
+            }
+        }
+
+        if (start <= s.Length)
+        {
+            yield return s.Substring(start);
+        }
     }
 
     private TypeSyntax CreateTypeSyntax(string typeName, ast.CollectionType collectionType)
@@ -1697,7 +1866,10 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             _declaredVariables.Add(SanitizeIdentifier(param.Name.ToString()));
         }
 
+        var priorReturnType = _currentReturnType;
+        _currentReturnType = funcDef.ReturnType;
         var body = BuildBlockStatement(funcDef.Body);
+        _currentReturnType = priorReturnType;
 
         // Add a discard local: object __discard = default(object);
         var discardDecl = LocalDeclarationStatement(
@@ -1886,6 +2058,28 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 var baseTypeName = SanitizeIdentifier(genericInstance.GenericTypeDefinition.ToString());
                 var typeArgs = string.Join(", ", genericInstance.TypeArguments.Select(ExtractTypeName));
                 return $"{baseTypeName}<{typeArgs}>";
+
+            case FifthType.TFunc func:
+                // Map to runtime closure interfaces
+                if (func.OutputType is FifthType.TVoidType)
+                {
+                    if (func.InputTypes.Count == 0)
+                    {
+                        return "Fifth.System.Runtime.IActionClosure";
+                    }
+                    var inArgs = string.Join(", ", func.InputTypes.Select(ExtractTypeName));
+                    return $"Fifth.System.Runtime.IActionClosure<{inArgs}>";
+                }
+                else
+                {
+                    var ret = ExtractTypeName(func.OutputType);
+                    if (func.InputTypes.Count == 0)
+                    {
+                        return $"Fifth.System.Runtime.IClosure<{ret}>";
+                    }
+                    var inArgs = string.Join(", ", func.InputTypes.Select(ExtractTypeName));
+                    return $"Fifth.System.Runtime.IClosure<{inArgs}, {ret}>";
+                }
         }
 
         // Fallback: try to use the Name property

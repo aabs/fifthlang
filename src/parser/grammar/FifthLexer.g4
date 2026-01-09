@@ -50,6 +50,7 @@ FINALLY     : 'finally';
 FOR         : 'for';
 FROM        : 'from';
 FUNC        : 'func';
+FUN         : 'fun';
 GO          : 'go';
 GOTO        : 'goto';
 GRAPH       : 'graph';
@@ -57,7 +58,6 @@ IF          : 'if';
 IMPORT      : 'import';
 IN          : 'in';
 INTERFACE   : 'interface';
-MAP         : 'map';
 NEW         : 'new';
 PACKAGE     : 'package';
 RANGE       : 'range';
@@ -85,27 +85,28 @@ IDENTIFIER: LETTER (LETTER | UNICODE_DIGIT)* /*-> mode(NLSEMI)*/;
 
 // Punctuation
 
-L_PAREN        : '(';
-R_PAREN        : ')' /*-> mode(NLSEMI)*/;
-L_CURLY        : '{';
+L_PAREN : '(';
+R_PAREN : ')' /*-> mode(NLSEMI)*/;
+L_CURLY : '{';
 // Special token for ending TriG interpolations - must come before R_CURLY
-TRIG_INTERP_END: '}}' -> popMode;
-R_CURLY        : '}' /*-> mode(NLSEMI)*/;
-L_BRACKET      : '[';
-R_BRACKET      : ']' /*-> mode(NLSEMI)*/;
-ASSIGN         : '=';
-COMMA          : ',';
-SEMI           : ';';
-COLON          : ':';
-DOT            : '.';
-PLUS_PLUS      : '++' /*-> mode(NLSEMI)*/;
-MINUS_MINUS    : '--' /*-> mode(NLSEMI)*/;
-PLUS_ASSIGN    : '+=';
-STAR_STAR      : '**';
-DECLARE_ASSIGN : ':=';
-ELLIPSIS       : '...';
-GEN            : '<-';
-UNDERSCORE     : '_';
+TRIG_INTERP_END : '}}' -> popMode;
+R_CURLY         : '}' /*-> mode(NLSEMI)*/;
+L_BRACKET       : '[';
+R_BRACKET       : ']' /*-> mode(NLSEMI)*/;
+ASSIGN          : '=';
+COMMA           : ',';
+SEMI            : ';';
+COLON           : ':';
+DOT             : '.';
+ARROW           : '->';
+PLUS_PLUS       : '++' /*-> mode(NLSEMI)*/;
+MINUS_MINUS     : '--' /*-> mode(NLSEMI)*/;
+PLUS_ASSIGN     : '+=';
+STAR_STAR       : '**';
+DECLARE_ASSIGN  : ':=';
+ELLIPSIS        : '...';
+GEN             : '<-';
+UNDERSCORE      : '_';
 // Logical
 
 LOGICAL_NOT  : '!';
@@ -125,10 +126,10 @@ GREATER           : '>';
 GREATER_OR_EQUALS : '>=';
 
 // TriG literal start - the content will be handled as a separate token
-TRIG_START : '@<' -> pushMode(TRIG_LITERAL_MODE);
+TRIG_START: '@<' -> pushMode(TRIG_LITERAL_MODE);
 
 // SPARQL literal start - the content will be handled as a separate token
-SPARQL_START : '?<' -> pushMode(SPARQL_LITERAL_MODE);
+SPARQL_START: '?<' -> pushMode(SPARQL_LITERAL_MODE);
 
 // Arithmetic operators
 
@@ -286,15 +287,15 @@ mode TRIG_LITERAL_MODE;
 TRIG_INTERP_START: '{{' -> pushMode(DEFAULT_MODE);
 
 // Brace escaping - triple braces for literal braces in output
-TRIG_ESCAPED_OPEN: '{{{';
-TRIG_ESCAPED_CLOSE: '}}}';
+TRIG_ESCAPED_OPEN  : '{{{';
+TRIG_ESCAPED_CLOSE : '}}}';
 
 // Any character sequence that doesn't start with < > { }
 TRIG_TEXT: ~[<>{}]+;
 
 // Single braces (not part of interpolation or escaping)
-TRIG_SINGLE_OPEN_BRACE: '{';
-TRIG_SINGLE_CLOSE_BRACE: '}';
+TRIG_SINGLE_OPEN_BRACE  : '{';
+TRIG_SINGLE_CLOSE_BRACE : '}';
 
 // Opening angle bracket - increment nesting depth
 TRIG_OPEN_ANGLE: '<' {trigAngleBracketDepth++;};
@@ -317,8 +318,8 @@ SPARQL_INTERP_START: '{{' -> pushMode(DEFAULT_MODE);
 
 // Match single braces that are NOT part of interpolation
 // These must come before SPARQL_CONTENT for precedence
-SPARQL_SINGLE_OPEN_BRACE: '{';
-SPARQL_SINGLE_CLOSE_BRACE: '}';
+SPARQL_SINGLE_OPEN_BRACE  : '{';
+SPARQL_SINGLE_CLOSE_BRACE : '}';
 
 // Opening angle bracket - increment nesting depth
 SPARQL_OPEN_ANGLE: '<' {sparqlAngleBracketDepth++;};

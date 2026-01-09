@@ -83,6 +83,7 @@ public enum Operator : ushort
     BitwiseRightShift,
 
     StringConcatenate,
+    Concatenate,
 }
 
 public enum OperatorPosition
@@ -192,6 +193,7 @@ public partial struct AssemblyName;
 public partial struct MemberName;
 
 [Ignore, ValueObject<string>]
+[Instance("anonymous", "", "For anonymous namespaces")]
 public partial struct NamespaceName;
 
 [Ignore, ValueObject<string>]
@@ -795,8 +797,18 @@ public record LambdaExp : Expression
 
 public record FuncCallExp : Expression
 {
+    /// <summary>
+    /// Reference to the resolved function definition. Marked [IgnoreDuringVisit] to prevent infinite
+    /// recursion when visiting recursive functions (e.g., fibonacci calls itself multiple times).
+    /// </summary>
+    [IgnoreDuringVisit]
     public FunctionDef FunctionDef { get; set; }
     public List<Expression> InvocationArguments { get; set; }
+    /// <summary>
+    /// Explicit type arguments for generic function calls (e.g., identity<int>(x))
+    /// Empty list if no type arguments provided (will be inferred)
+    /// </summary>
+    public List<FifthType> TypeArguments { get; set; } = [];
 }
 
 /// <summary>
@@ -805,6 +817,11 @@ public record FuncCallExp : Expression
 public record BaseConstructorCall : AstThing
 {
     public required List<Expression> Arguments { get; set; } = [];
+    /// <summary>
+    /// Reference to the resolved constructor. Marked [IgnoreDuringVisit] to prevent infinite
+    /// recursion when visiting constructor chains.
+    /// </summary>
+    [IgnoreDuringVisit]
     public FunctionDef? ResolvedConstructor { get; set; }
 }
 
@@ -1174,19 +1191,19 @@ public record ListComprehension : List
     /// Can be a VarRefExp, ObjectInstantiationExp, or any expression.
     /// </summary>
     public required Expression Projection { get; init; }
-    
+
     /// <summary>
     /// The source expression to iterate over.
     /// For general comprehensions: any list/enumerable expression.
     /// For SPARQL comprehensions: expression whose type is a tabular SELECT result.
     /// </summary>
     public required Expression Source { get; init; }
-    
+
     /// <summary>
     /// The iteration variable name (e.g., "x" in "x from nums").
     /// </summary>
     public required string VarName { get; init; }
-    
+
     /// <summary>
     /// Zero or more where constraints (AND-ed together).
     /// Each constraint must evaluate to boolean.

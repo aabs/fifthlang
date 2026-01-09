@@ -22,33 +22,33 @@ namespace Fifth.LangProcessingPhases;
 public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisitor
 {
     private readonly List<compiler.Diagnostic> compilerDiagnostics;
-    
+
     public IReadOnlyList<Diagnostic> Diagnostics { get; private set; } = new List<Diagnostic>();
-    
+
     public SparqlComprehensionValidationVisitor(List<compiler.Diagnostic>? compilerDiagnostics = null)
     {
         this.compilerDiagnostics = compilerDiagnostics ?? new List<compiler.Diagnostic>();
     }
-    
+
     public override ListComprehension VisitListComprehension(ListComprehension ctx)
     {
         // Visit children first to ensure types are inferred
         var result = base.VisitListComprehension(ctx);
-        
+
         var localDiagnostics = new List<Diagnostic>();
-        
+
         // Validate generator type (must be list or tabular SELECT result)
         ValidateGeneratorType(result, localDiagnostics);
-        
+
         // If generator is SPARQL literal, validate SELECT form and object projection
         if (result.Source is SparqlLiteralExpression sparqlSource)
         {
             ValidateSparqlComprehension(result, sparqlSource, localDiagnostics);
         }
-        
+
         // Validate constraints are boolean
         ValidateConstraints(result, localDiagnostics);
-        
+
         // Convert local diagnostics to compiler diagnostics
         foreach (var diag in localDiagnostics)
         {
@@ -59,12 +59,12 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
                 diag.Code);
             compilerDiagnostics.Add(compilerDiag);
         }
-        
+
         Diagnostics = localDiagnostics.AsReadOnly();
-        
+
         return result;
     }
-    
+
     /// <summary>
     /// Validates that the generator (source) expression has a compatible type.
     /// For general comprehensions: must be a list type.
@@ -77,20 +77,21 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
             // Type not yet inferred - skip validation (will be caught by type inference pass)
             return;
         }
-        
+
         var sourceType = ctx.Source.Type;
-        
+
         // Check if it's a list type
         bool isListType = sourceType switch
         {
-            FifthType.TType t => t.Name.ToString().StartsWith("List<") || 
+            FifthType.TType t => t.Name.ToString().StartsWith("List<") ||
                                   t.Name.ToString() == "List" ||
                                   t.Name.ToString() == "Result", // Tabular SELECT result
             FifthType.TListOf _ => true,
             FifthType.TArrayOf _ => true,
+            FifthType.UnknownType _ => true, // Allow unknown types (generics etc) to pass validation
             _ => false
         };
-        
+
         if (!isListType)
         {
             EmitDiagnostic(
@@ -101,7 +102,7 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
                 diagnostics);
         }
     }
-    
+
     /// <summary>
     /// Validates SPARQL-specific comprehension rules.
     /// </summary>
@@ -109,14 +110,14 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
     {
         // Introspect the SPARQL query to get form and projected variables
         var introspection = compiler.LanguageTransformations.SparqlSelectIntrospection.IntrospectQuery(sparqlSource.SparqlText);
-        
+
         if (!introspection.Success)
         {
             // Query parsing failed - emit generic error
             // Note: This might be a runtime-constructed query, so we're lenient here
             return;
         }
-        
+
         // Validate query form is SELECT
         if (introspection.QueryForm != "SELECT")
         {
@@ -128,14 +129,14 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
                 diagnostics);
             return;
         }
-        
+
         // If projection is object instantiation, validate SPARQL variable bindings
         if (ctx.Projection is ObjectInitializerExp objProj)
         {
             ValidateSparqlObjectProjection(objProj, introspection, ctx, diagnostics);
         }
     }
-    
+
     /// <summary>
     /// Validates SPARQL object projection:
     /// - Property values must be property access on iteration variable (x.propertyName)
@@ -143,7 +144,7 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
     /// - Rejects ?variable syntax (must use x.property instead)
     /// </summary>
     private void ValidateSparqlObjectProjection(
-        ObjectInitializerExp objProj, 
+        ObjectInitializerExp objProj,
         compiler.LanguageTransformations.SparqlSelectIntrospection.IntrospectionResult introspection,
         ListComprehension ctx,
         List<Diagnostic> diagnostics)
@@ -152,14 +153,14 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
         {
             return;
         }
-        
+
         foreach (var propInit in objProj.PropertyInitialisers)
         {
             if (propInit.RHS == null)
             {
                 continue;
             }
-            
+
             // Reject ?variable syntax (old syntax no longer supported)
             if (propInit.RHS is VarRefExp varRef && varRef.VarName.StartsWith("?"))
             {
@@ -171,7 +172,7 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
                     diagnostics);
                 continue;
             }
-            
+
             // Check if initializer is member access (e.g., x.age)
             if (propInit.RHS is MemberAccessExp memberAccess)
             {
@@ -179,13 +180,13 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
                 if (memberAccess.RHS is VarRefExp memberName)
                 {
                     var propertyName = memberName.VarName;
-                    
+
                     if (!compiler.LanguageTransformations.SparqlSelectIntrospection.HasProjectedVariable(introspection, propertyName))
                     {
-                        var availableVars = introspection.IsSelectStar 
-                            ? "*" 
+                        var availableVars = introspection.IsSelectStar
+                            ? "*"
                             : string.Join(", ", introspection.ProjectedVariables);
-                        
+
                         EmitDiagnostic(
                             compiler.ComprehensionDiagnostics.UnknownProperty,
                             compiler.ComprehensionDiagnostics.FormatUnknownProperty(propertyName, availableVars),
@@ -198,7 +199,7 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
             // Allow other expressions for now (e.g., simple variable references, method calls for transformation)
         }
     }
-    
+
     /// <summary>
     /// Validates that all where constraints are boolean expressions.
     /// </summary>
@@ -208,7 +209,7 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
         {
             return;
         }
-        
+
         foreach (var constraint in ctx.Constraints)
         {
             if (constraint.Type == null)
@@ -216,7 +217,7 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
                 // Type not yet inferred - skip validation
                 continue;
             }
-            
+
             // Check if constraint type is boolean
             bool isBooleanType = constraint.Type switch
             {
@@ -224,7 +225,7 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
                 FifthType.TDotnetType dt => dt.Name.ToString() == "bool" || dt.Name.ToString() == "Boolean" || dt.TheType == typeof(bool),
                 _ => false
             };
-            
+
             if (!isBooleanType)
             {
                 EmitDiagnostic(
@@ -236,7 +237,7 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
             }
         }
     }
-    
+
     /// <summary>
     /// Emits a diagnostic message.
     /// </summary>
@@ -251,7 +252,7 @@ public class SparqlComprehensionValidationVisitor : DefaultRecursiveDescentVisit
             Line = context.Location?.Line ?? 0,
             Column = context.Location?.Column ?? 0
         };
-        
+
         diagnostics.Add(diagnostic);
     }
 }
