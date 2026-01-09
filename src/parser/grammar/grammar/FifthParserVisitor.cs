@@ -152,6 +152,12 @@ public interface IFifthParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitType_parameter([NotNull] FifthParser.Type_parameterContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.type_argument_list"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitType_argument_list([NotNull] FifthParser.Type_argument_listContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.constraint_clause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

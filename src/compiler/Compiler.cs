@@ -233,6 +233,7 @@ Examples:
             {
                 // Single file
                 var ast = FifthParserManager.ParseFile(options.Source);
+
                 return (ast, 1);
             }
             else if (Directory.Exists(options.Source))

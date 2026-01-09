@@ -231,6 +231,16 @@ public interface IFifthParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitType_parameter([NotNull] FifthParser.Type_parameterContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.type_argument_list"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterType_argument_list([NotNull] FifthParser.Type_argument_listContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.type_argument_list"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitType_argument_list([NotNull] FifthParser.Type_argument_listContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.constraint_clause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

@@ -416,7 +416,7 @@ public static class KG
     {
         // Convert the Fifth.System.Triple to VDS.RDF.Triple
         var vdsTriple = t.ToVdsTriple();
-        
+
         // Avoid calling this extension recursively: prefer concrete Graph instance method
         if (g is VDS.RDF.Graph concrete)
         {
@@ -427,15 +427,6 @@ public static class KG
             // Use IEnumerable/params-based overload on IGraph to avoid extension recursion
             g.Assert(new[] { vdsTriple });
         }
-        try
-        {
-            Console.WriteLine($"KG.DEBUG: Assert called. Graph baseUri={g.BaseUri?.AbsoluteUri ?? "(null)"}, triples={g.Triples.Count}");
-            if (t != null)
-            {
-                Console.WriteLine($"KG.DEBUG: Triple: subj={t.Subject}, pred={t.Predicate}, obj={t.Object}");
-            }
-        }
-        catch { /* best-effort debug logging */ }
         return g;
     }
     /// <summary>
@@ -449,7 +440,7 @@ public static class KG
     {
         // Convert the Fifth.System.Triple to VDS.RDF.Triple
         var vdsTriple = t.ToVdsTriple();
-        
+
         // Avoid calling this extension recursively: prefer concrete Graph instance method
         if (g is VDS.RDF.Graph concrete)
         {
@@ -561,4 +552,33 @@ public static class KG
         store.SaveGraph(x);
         return store;
     }
+
+    // ============================================================================
+    // Overloads for Fifth.System.Graph wrapper
+    // ============================================================================
+
+    /// <summary>
+    /// Merges the source graph into the target graph and returns the target graph for chaining.
+    /// </summary>
+    [BuiltinFunction]
+    public static Graph Merge(this Graph target, Graph source) => target.MergeInPlace(source);
+
+    /// <summary>
+    /// Asserts the given triple into the graph and returns the graph for chaining.
+    /// </summary>
+    [BuiltinFunction]
+    public static Graph Assert(this Graph target, Triple t) => target.AddInPlace(t);
+
+    /// <summary>
+    /// Retracts the given triple from the graph and returns the graph for chaining.
+    /// </summary>
+    [BuiltinFunction]
+    public static Graph Retract(this Graph target, Triple t) => target.RemoveInPlace(t);
+
+    /// <summary>
+    /// Returns the number of triples in the given graph.
+    /// </summary>
+    [BuiltinFunction]
+    public static int CountTriples(this Graph g) => g.Count;
+
 }

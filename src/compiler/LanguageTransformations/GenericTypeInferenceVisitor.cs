@@ -23,8 +23,13 @@ public class GenericTypeInferenceVisitor : DefaultRecursiveDescentVisitor
         if (ctx.FunctionDef != null && ctx.FunctionDef.TypeParameters.Count > 0)
         {
             // Check if type arguments are explicitly provided
-            // (This would require extending FuncCallExp to track explicit type args)
-            
+            if (ctx.TypeArguments != null && ctx.TypeArguments.Count > 0)
+            {
+                // Explicit arguments provided - skip inference.
+                // Optionally validate count matches definition.
+                return base.VisitFuncCallExp(ctx);
+            }
+
             // For now, we create an inference context to track the inference process
             var context = new TypeInferenceContext
             {
@@ -116,7 +121,7 @@ public class GenericTypeInferenceVisitor : DefaultRecursiveDescentVisitor
     {
         // This would be called when we see an assignment or variable declaration
         // where the target type provides hints about the type arguments
-        
+
         // TODO: Implement assignment context inference
         return false;
     }
@@ -129,7 +134,7 @@ public class GenericTypeInferenceVisitor : DefaultRecursiveDescentVisitor
     {
         var functionName = call.FunctionDef?.Name.Value ?? "unknown";
         var diagnostics = string.Join(", ", context.Diagnostics);
-        
+
         Console.Error.WriteLine(
             $"GEN002: Cannot infer type arguments for '{functionName}'. " +
             $"Provide explicit type arguments. Details: {diagnostics} " +

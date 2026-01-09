@@ -35,6 +35,9 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     // Track top-level (module) function names so closure classes can qualify them as Program.<fn>
     private HashSet<string> _moduleLevelFunctionNames = new HashSet<string>(StringComparer.Ordinal);
 
+    // Track the return type of the current function being translated
+    private FifthType? _currentReturnType;
+
     /// <summary>
     /// Translate AssemblyDef (from IBackendTranslator interface)
     /// </summary>
@@ -436,7 +439,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             return ReturnStatement();
         }
 
-        var expr = TranslateExpression(retStmt.ReturnValue);
+        var expr = TranslateExpression(retStmt.ReturnValue, _currentReturnType);
         return ReturnStatement(expr);
     }
 
@@ -1648,6 +1651,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             "Store" => "Fifth.System.Store",
             "void" => "void",
             "var" => "var",
+            "unknown" => "object", // Map unknown types to object to allow compilation
             _ => fifthTypeName // Keep custom types as-is
         };
     }
@@ -1844,7 +1848,10 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             _declaredVariables.Add(SanitizeIdentifier(param.Name.ToString()));
         }
 
+        var priorReturnType = _currentReturnType;
+        _currentReturnType = funcDef.ReturnType;
         var body = BuildBlockStatement(funcDef.Body);
+        _currentReturnType = priorReturnType;
 
         // Add a discard local: object __discard = default(object);
         var discardDecl = LocalDeclarationStatement(

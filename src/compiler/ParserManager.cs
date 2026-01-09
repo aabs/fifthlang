@@ -107,7 +107,6 @@ public static class FifthParserManager
         {
             if (upTo >= AnalysisPhase.TreeLink)
             {
-                if (DebugHelpers.DebugEnabled) DebugHelpers.DebugLog("=== Running TreeLinkageVisitor ===");
                 ast = new TreeLinkageVisitor().Visit(ast);
             }
         }
@@ -222,13 +221,6 @@ public static class FifthParserManager
             }
         }
 
-        // Generate guard and subclause functions using collected constraints on grouped overloads
-        // Debug: Check main method before OverloadTransformingVisitor
-        if (ast is AssemblyDef asmBefore)
-        {
-            var mainMethod = asmBefore.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
-        }
-
         // If diagnostics list was provided and contains errors, short-circuit to allow caller to handle failures
         if (diagnostics != null && diagnostics.Any(d => d.Level == compiler.DiagnosticLevel.Error))
         {
@@ -238,12 +230,6 @@ public static class FifthParserManager
 
         if (upTo >= AnalysisPhase.OverloadTransform)
             ast = ExecutePhase("OverloadTransforming", ast, a => new OverloadTransformingVisitor().Visit(a), diagnostics);
-
-        // Debug: Check main method after OverloadTransformingVisitor
-        if (ast is AssemblyDef asmAfter)
-        {
-            var mainMethod2 = asmAfter.Modules.SelectMany(m => m.Functions).OfType<FunctionDef>().FirstOrDefault(f => f.Name.Value == "main");
-        }
 
         // Resolve property references in destructuring (still needed for property resolution)
         if (upTo >= AnalysisPhase.DestructuringLowering)

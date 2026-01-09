@@ -276,6 +276,18 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitType_parameter([NotNull] FifthParser.Type_parameterContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.type_argument_list"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterType_argument_list([NotNull] FifthParser.Type_argument_listContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.type_argument_list"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitType_argument_list([NotNull] FifthParser.Type_argument_listContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.constraint_clause"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>

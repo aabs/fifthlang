@@ -14,10 +14,11 @@ public static class IO
     }
 
     [BuiltinFunction]
-    public static string write(string s)
+    public static string write(object s)
     {
-        Console.WriteLine(s);
-        return s;
+        var str = s?.ToString() ?? string.Empty;
+        Console.WriteLine(str);
+        return str;
     }
 
 
@@ -39,7 +40,7 @@ public static class Math
 
 }
 
-public static class  List
+public static class List
 {
     // len gives the length of any ienumerable
     [BuiltinFunction]
@@ -47,5 +48,26 @@ public static class  List
     {
         if (list == null) throw new ArgumentNullException(nameof(list));
         return list.Count();
+    }
+
+    // head
+    [BuiltinFunction]
+    public static T head<T>(IEnumerable<T> list)
+    {
+        if (list == null) throw new ArgumentNullException(nameof(list));
+        return list.First();
+    }
+    // tail
+    [BuiltinFunction]
+    public static List<T> tail<T>(IEnumerable<T> list)
+    {
+        if (list == null) throw new ArgumentNullException(nameof(list));
+        return list.Skip(1).ToList();
+    }
+
+    [BuiltinFunction]
+    public static List<T> concat<T>(IEnumerable<T> list1, IEnumerable<T> list2)
+    {
+        return list1.Concat(list2).ToList();
     }
 }

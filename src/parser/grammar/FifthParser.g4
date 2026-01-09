@@ -77,11 +77,14 @@ property_declaration:
 
 type_name: IDENTIFIER;
 
-// Type parameter definitions for generics
+// Type parameter definitions for generics (e.g. <T, U>)
 type_parameter_list:
 	LESS type_parameter (COMMA type_parameter)* GREATER;
 
 type_parameter: IDENTIFIER;
+
+// Type arguments for generic instantiation (e.g. <int, string>)
+type_argument_list: LESS type_spec (COMMA type_spec)* GREATER;
 
 // Constraint clauses for generic type parameters
 constraint_clause: WHERE type_parameter COLON constraint_list;
@@ -181,10 +184,10 @@ expressionList:
 	expressions += expression (COMMA expressions += expression)*;
 
 expression:
-	lhs = expression DOT rhs = expression											# exp_member_access
-	| lhs = expression index														# exp_index
-	| funcname = IDENTIFIER type_parameter_list? L_PAREN expressionList? R_PAREN	# exp_funccall
-	| expression unary_op = (PLUS_PLUS | MINUS_MINUS)								# exp_unary_postfix
+	lhs = expression DOT rhs = expression										# exp_member_access
+	| lhs = expression index													# exp_index
+	| funcname = IDENTIFIER type_argument_list? L_PAREN expressionList? R_PAREN	# exp_funccall
+	| expression unary_op = (PLUS_PLUS | MINUS_MINUS)							# exp_unary_postfix
 	| unary_op = (
 		PLUS
 		| MINUS

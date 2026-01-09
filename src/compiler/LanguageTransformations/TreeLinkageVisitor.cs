@@ -325,12 +325,9 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
 
     public override FunctionDef VisitFunctionDef(FunctionDef ctx)
     {
-        DebugLog($"DEBUG: TreeLinkageVisitor.VisitFunctionDef: {ctx.Name.Value}");
-
         // Prevent infinite recursion: skip if already visited
         if (visitedFunctions.Contains(ctx))
         {
-            DebugLog($"DEBUG: TreeLinkageVisitor.VisitFunctionDef: Already visited {ctx.Name.Value}, skipping");
             return ctx;
         }
 
@@ -500,8 +497,6 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
                                 memberCall["ExternalMethodName"] = fn;
                             }
                         }
-
-                        DebugLog($"DEBUG: Qualified external call detected: {resolvedType.FullName}::{(memberCall.Annotations.TryGetValue("FunctionName", out var n) ? n : "?")}");
                     }
                 }
             }
@@ -561,7 +556,6 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
                                     chainedCall["ExternalMethodName"] = fn2;
                                 }
                             }
-                            DebugLog($"DEBUG: Chained external call detected: {resolvedType.FullName}::{(chainedCall.Annotations.TryGetValue("FunctionName", out var n2) ? n2 : "?")}");
                         }
                     }
                 }
@@ -584,14 +578,12 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
                     {
                         instCall["ExternalType"] = typeof(Fifth.System.KG);
                         instCall["ExternalMethodName"] = fn3;
-                        DebugLog($"DEBUG: Instance KG extension annotated: Fifth.System.KG::{fn3}");
                     }
                 }
             }
         }
-        catch (System.Exception ex)
+        catch (System.Exception)
         {
-            DebugLog($"DEBUG: Exception while annotating qualified call: {ex.Message}");
         }
 
         LeaveNonTerminal(ctx);
@@ -688,10 +680,8 @@ public class TreeLinkageVisitor : NullSafeRecursiveDescentVisitor
 
     public override ReturnStatement VisitReturnStatement(ReturnStatement ctx)
     {
-        DebugLog($"DEBUG: TreeLinkageVisitor.VisitReturnStatement: {ctx.ReturnValue?.GetType().Name ?? "null"}");
         EnterNonTerminal(ctx);
         var result = base.VisitReturnStatement(ctx);
-        DebugLog($"DEBUG: TreeLinkageVisitor.VisitReturnStatement result: {result?.ReturnValue?.GetType().Name ?? "null"}");
         LeaveNonTerminal(ctx);
         return result ?? ctx;
     }

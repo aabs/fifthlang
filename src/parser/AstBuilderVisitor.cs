@@ -317,10 +317,8 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         b.WithVariableDecl((VariableDecl)VisitVar_decl(context.var_decl()));
         if (context.expression() is not null)
         {
-            DebugLog($"DEBUG: VisitDeclaration found expression context: {context.expression().GetType().Name}");
             var exp = context.expression();
             var e = base.Visit(exp);
-            DebugLog($"DEBUG: VisitDeclaration visited expression, result type: {e?.GetType().Name ?? "null"}");
             b.WithInitialValue((Expression)e);
         }
         var result = b.Build() with { Location = GetLocationDetails(context), Type = Void };
@@ -394,6 +392,18 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         return result;
     }
 
+    private List<FifthType> ParseTypeArgumentList(FifthParser.Type_argument_listContext context)
+    {
+        var typeArgs = new List<FifthType>();
+        if (context == null) return typeArgs;
+
+        foreach (var typeCtx in context.type_spec())
+        {
+            typeArgs.Add(ResolveTypeFromSpec(typeCtx));
+        }
+        return typeArgs;
+    }
+
     public override IAstThing VisitExp_funccall([NotNull] FifthParser.Exp_funccallContext context)
     {
         // Build a FuncCallExp with arguments and stash the name for resolution in linkage
@@ -408,14 +418,22 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             }
         }
 
+        // Handling type arguments
+        var typeArguments = new List<FifthType>();
+        if (context.type_argument_list() != null)
+        {
+            typeArguments = ParseTypeArgumentList(context.type_argument_list());
+        }
+
         return new FuncCallExp
         {
             FunctionDef = null,
             InvocationArguments = arguments,
+            TypeArguments = typeArguments,
             Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
             Location = GetLocationDetails(context),
             Parent = null,
-            Type = null
+            Type = null // Will be inferred later
         };
     }
 
@@ -433,11 +451,18 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             }
         }
 
+        // Handling type arguments
+        var typeArguments = new List<FifthType>();
+        if (context.type_argument_list() != null)
+        {
+            typeArguments = ParseTypeArgumentList(context.type_argument_list());
+        }
+
         return new FuncCallExp()
         {
             FunctionDef = null, // Will be resolved during linking phase
             InvocationArguments = arguments,
-            TypeArguments = new List<FifthType>(), // Empty for now, filled during type inference
+            TypeArguments = typeArguments,
             // Store the function name in annotations temporarily
             Annotations = new Dictionary<string, object> { ["FunctionName"] = functionName },
             Location = GetLocationDetails(context),
@@ -620,47 +645,25 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitExp_operand([NotNull] FifthParser.Exp_operandContext context)
     {
-        DebugLog($"DEBUG: VisitExp_operand called, operand type: {context.operand().GetType().Name}");
         var operandContext = context.operand();
 
         // Check what type of operand this is and route appropriately
         if (operandContext.object_instantiation_expression() != null)
         {
-            DebugLog("DEBUG: Found object_instantiation_expression in operand, calling base.Visit");
             try
             {
                 var objInstContext = operandContext.object_instantiation_expression();
-                DebugLog($"DEBUG: About to visit object instantiation context of type: {objInstContext.GetType().Name}");
                 var result = base.Visit(objInstContext);
-                DebugLog($"DEBUG: base.Visit returned: {result?.GetType().Name ?? "null"}");
                 return result;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                DebugLog($"DEBUG: Exception in base.Visit: {ex.Message}");
                 return null;
             }
         }
-        else if (operandContext.literal() != null)
-        {
-            DebugLog("DEBUG: Found literal in operand");
-        }
-        else if (operandContext.var_name() != null)
-        {
-            DebugLog("DEBUG: Found var_name in operand");
-        }
-        else if (operandContext.list() != null)
-        {
-            DebugLog("DEBUG: Found list in operand");
-        }
         else if (operandContext.L_PAREN() != null && operandContext.R_PAREN() != null)
         {
-            DebugLog("DEBUG: Found parenthesized expression in operand; visiting inner expression");
             return Visit(operandContext.expression());
-        }
-        else
-        {
-            DebugLog("DEBUG: Found other operand type");
         }
 
         return Visit(operandContext);
@@ -1760,19 +1763,14 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitObject_instantiation_expression([NotNull] FifthParser.Object_instantiation_expressionContext context)
     {
-        DebugLog($"DEBUG: FINALLY ENTERING VisitObject_instantiation_expression!!!");
-        DebugLog($"DEBUG: Context type: {context?.GetType().Name ?? "null"}");
-
         // Extract the type specification (now supports arrays, lists, etc.)
         var typeSpec = context.type_spec();
         if (typeSpec == null)
         {
-            DebugLog($"DEBUG: No type_spec found");
             return DefaultResult;
         }
 
         var (typeName, collectionType) = ParseTypeSpec(typeSpec);
-        DebugLog($"DEBUG: Creating ObjectInitializerExp for type: {typeName.Value} with collection type: {collectionType}");
 
         // Create the type reference with collection type support
         FifthType typeToInitialize = CreateTypeFromSpec(typeName, collectionType);
@@ -1782,18 +1780,12 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var argExpressions = context.expression();
         if (argExpressions != null && argExpressions.Length > 0)
         {
-            DebugLog($"DEBUG: Found {argExpressions.Length} constructor arguments");
             foreach (var argExpr in argExpressions)
             {
                 var argResult = Visit(argExpr);
                 if (argResult is Expression expr)
                 {
                     constructorArgs.Add(expr);
-                    DebugLog($"DEBUG: Added constructor argument of type: {expr.GetType().Name}");
-                }
-                else
-                {
-                    DebugLog($"DEBUG: Argument visit did not return Expression: {argResult?.GetType().Name ?? "null"}");
                 }
             }
         }
@@ -1806,7 +1798,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             if (sizeOperand != null)
             {
                 arraySizeExpr = (Expression)Visit(sizeOperand);
-                DebugLog($"DEBUG: Array size expression found: {arraySizeExpr?.GetType().Name ?? "null"}");
             }
         }
 
@@ -1815,59 +1806,36 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         var propertyAssignments = context.initialiser_property_assignment();
         if (propertyAssignments != null && propertyAssignments.Length > 0)
         {
-            DebugLog($"DEBUG: Found {propertyAssignments.Length} property initializers");
             foreach (var propContext in propertyAssignments)
             {
-                DebugLog($"DEBUG: Processing property assignment context: {propContext?.GetType().Name ?? "null"}");
-
                 // Try to explicitly cast to the specific context type and call the right visitor method
                 if (propContext is FifthParser.Initialiser_property_assignmentContext propAssignmentContext)
                 {
-                    DebugLog($"DEBUG: Processing property assignment for proper dispatch");
                     try
                     {
                         // Use direct method call since it's working now
                         var propResult = VisitInitialiser_property_assignment(propAssignmentContext);
-                        DebugLog($"DEBUG: VisitInitialiser_property_assignment returned: {propResult?.GetType().Name ?? "null"}");
 
                         var propInit = propResult as PropertyInitializerExp;
                         if (propInit != null)
                         {
                             propertyInitializers.Add(propInit);
-                            DebugLog($"DEBUG: Added property initializer for: {propInit.PropertyToInitialize?.Property?.Name.Value ?? "unknown"}");
-                        }
-                        else
-                        {
-                            DebugLog($"DEBUG: Could not cast to PropertyInitializerExp. Actual type: {propResult?.GetType().Name ?? "null"}");
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        DebugLog($"DEBUG: Exception: {ex.Message}");
                     }
                 }
                 else
                 {
-                    DebugLog($"DEBUG: Cast to Initialiser_property_assignmentContext failed");
-                    DebugLog($"DEBUG: Using base Visit method");
                     var visitResult = Visit(propContext);
-                    DebugLog($"DEBUG: Visit result type: {visitResult?.GetType().Name ?? "null"}");
                     var propInit = visitResult as PropertyInitializerExp;
                     if (propInit != null)
                     {
                         propertyInitializers.Add(propInit);
-                        DebugLog($"DEBUG: Added property initializer for: {propInit.PropertyToInitialize?.Property?.Name.Value ?? "unknown"}");
-                    }
-                    else
-                    {
-                        DebugLog($"DEBUG: Failed to cast visit result to PropertyInitializerExp");
                     }
                 }
             }
-        }
-        else
-        {
-            DebugLog($"DEBUG: No property initializers found or array is empty");
         }
 
         // Create the ObjectInitializerExp
@@ -1887,7 +1855,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             Type = typeToInitialize // The result type is the same as the type being initialized
         };
 
-        DebugLog($"DEBUG: Created ObjectInitializerExp with {constructorArgs.Count} constructor arguments and {propertyInitializers.Count} property initializers");
         return result;
     }
 
@@ -1909,14 +1876,9 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
 
     public override IAstThing VisitInitialiser_property_assignment([NotNull] FifthParser.Initialiser_property_assignmentContext context)
     {
-        DebugLog($"DEBUG: VisitInitialiser_property_assignment START");
-
         var propertyName = context.var_name().GetText();
-        DebugLog($"DEBUG: Got property name: {propertyName}");
 
         var expression = Visit(context.expression()) as Expression;
-        DebugLog($"DEBUG: VisitInitialiser_property_assignment called for property: {propertyName}");
-        DebugLog($"DEBUG: Expression visit result: {expression?.GetType().Name ?? "null"}");
 
         // Create PropertyRef manually since the builder seems incomplete
         var propertyRef = new PropertyRef
@@ -1945,8 +1907,6 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             Location = GetLocationDetails(context),
             Type = expression?.Type ?? new FifthType.UnknownType() { Name = TypeName.From("unknown") }
         };
-        DebugLog($"DEBUG: VisitInitialiser_property_assignment created PropertyInitializerExp for {propertyName}");
-        DebugLog($"DEBUG: About to return result of type: {result.GetType().Name}");
         return result;
     }
 

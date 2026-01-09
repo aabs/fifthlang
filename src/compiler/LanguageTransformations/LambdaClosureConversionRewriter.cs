@@ -1,6 +1,7 @@
 using ast;
 using ast_model.Symbols;
 using ast_model.TypeSystem;
+using static Fifth.DebugHelpers;
 
 namespace compiler.LanguageTransformations;
 
@@ -33,6 +34,58 @@ public sealed class LambdaClosureConversionRewriter : DefaultAstRewriter
 
         currentModule = null;
         return new RewriteResult(rebuilt, rr.Prologue);
+    }
+
+    public override RewriteResult VisitFunctionDef(FunctionDef ctx)
+    {
+        // Rewrite type parameters
+        var prologue = new List<Statement>();
+        List<ast.TypeParameterDef> tmpTypeParameters = [];
+        foreach (var item in ctx.TypeParameters)
+        {
+            var rr = Rewrite(item);
+            tmpTypeParameters.Add((ast.TypeParameterDef)rr.Node);
+            prologue.AddRange(rr.Prologue);
+        }
+
+        // Rewrite parameters
+        List<ast.ParamDef> tmpParams = [];
+        foreach (var item in ctx.Params)
+        {
+            var rr = Rewrite(item);
+            tmpParams.Add((ast.ParamDef)rr.Node);
+            prologue.AddRange(rr.Prologue);
+        }
+
+        // Rewrite body - THIS IS THE KEY PART
+        var rrBody = Rewrite((AstThing)ctx.Body);
+        var rewrittenBody = (BlockStatement)rrBody.Node;
+
+        // CRITICAL FIX: If the body rewrite produced a prologue, we need to insert it
+        // at the beginning of the body's statements. This happens when expressions in the
+        // body are rewritten and need statement-level prologue (e.g., lambda closure allocation).
+        if (rrBody.Prologue.Count > 0)
+        {
+            // Insert the prologue at the beginning of the function body
+            var newStatements = new List<Statement>();
+            newStatements.AddRange(rrBody.Prologue);
+            newStatements.AddRange(rewrittenBody.Statements);
+            rewrittenBody = rewrittenBody with { Statements = newStatements };
+        }
+
+        var rrBaseCall = Rewrite((AstThing)ctx.BaseCall);
+        prologue.AddRange(rrBaseCall.Prologue);
+
+        var rebuilt = ctx with
+        {
+            TypeParameters = tmpTypeParameters,
+            Params = tmpParams,
+            Body = rewrittenBody,
+            BaseCall = (ast.BaseConstructorCall)rrBaseCall.Node
+        };
+
+        // Return with empty prologue since we've consumed any body prologue by inserting it into the body
+        return new RewriteResult(rebuilt, []);
     }
 
     public override RewriteResult VisitFuncCallExp(FuncCallExp ctx)
@@ -93,8 +146,37 @@ public sealed class LambdaClosureConversionRewriter : DefaultAstRewriter
         var declaredNames = LambdaCaptureUtils.GetDeclaredNames(apply);
         var captureNames = LambdaCaptureUtils.GetCaptureNames(apply);
 
+        // Filter captures to ensure we only capture actual variables (params/locals)
+        // and not types or static classes (like IO, Math) or external symbols.
+        var actualCaptures = new HashSet<string>(StringComparer.Ordinal);
+        var scope = ctx.NearestScope();
+
+        if (scope != null)
+        {
+            foreach (var name in captureNames)
+            {
+                // Only capture if it resolves to a variable-like symbol in the outer scope
+                if (scope.TryResolveByName(name, out var entry) && entry != null)
+                {
+                    // Check if it is a variable/param. Note that functions/classes are not variable-like.
+                    if (LambdaCaptureUtils.IsVariableLike(entry.Symbol.Kind))
+                    {
+                        actualCaptures.Add(name);
+                    }
+                }
+                // If not found in scope, it's likely an external static/type (IO) or implied context,
+                // so we don't capture it.
+            }
+        }
+        else
+        {
+            // Fallback if scope logic fails - retain original behavior (unsafe for IO but best effort)
+            // If parents are missing, we might capture 'IO' but better than losing real variables if tree is detached.
+            actualCaptures = captureNames;
+        }
+
         // Preserve deterministic capture ordering.
-        var orderedCaptures = captureNames.OrderBy(n => n, StringComparer.Ordinal).ToList();
+        var orderedCaptures = actualCaptures.OrderBy(n => n, StringComparer.Ordinal).ToList();
 
         var closureClassName = GetFreshClosureClassName(ctx);
 

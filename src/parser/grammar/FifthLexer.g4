@@ -58,7 +58,6 @@ IF          : 'if';
 IMPORT      : 'import';
 IN          : 'in';
 INTERFACE   : 'interface';
-MAP         : 'map';
 NEW         : 'new';
 PACKAGE     : 'package';
 RANGE       : 'range';

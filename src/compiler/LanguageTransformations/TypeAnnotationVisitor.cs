@@ -1,4 +1,6 @@
 using ast_model.TypeSystem.Inference;
+using ast_model.Symbols;
+using ast;
 
 namespace Fifth.LangProcessingPhases;
 
@@ -231,6 +233,39 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     }
 
     /// <summary>
+    /// Visits a ListComprehension and infers its type based on projection expression.
+    /// </summary>
+    public override ListComprehension VisitListComprehension(ListComprehension ctx)
+    {
+        var result = base.VisitListComprehension(ctx);
+
+        FifthType? elementType = result.Projection?.Type;
+
+        // Default to int if we still don't have a type (fallback)
+        if (elementType == null)
+        {
+            // Try to infer from Source if it's a list
+            if (result.Source?.Type is FifthType.TListOf listType)
+            {
+                // This assumes projection is identity-like or unknown, 
+                // but really we should rely on Projection type. 
+                // If Projection type is unknown, then result is List<unknown>.
+            }
+
+            elementType = new FifthType.UnknownType() { Name = TypeName.From("unknown") };
+        }
+
+        // Create the list type
+        var listTypeResult = new FifthType.TListOf(elementType)
+        {
+            Name = TypeName.From($"List<{GetTypeName(elementType)}>")
+        };
+
+        OnTypeInferred(result, listTypeResult);
+        return result with { Type = listTypeResult };
+    }
+
+    /// <summary>
     /// Visits a ListLiteral and infers its type based on element expressions or type annotation.
     /// </summary>
     public override ListLiteral VisitListLiteral(ListLiteral ctx)
@@ -335,6 +370,33 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
         {
             OnTypeInferred(result, result.FunctionDef.ReturnType);
             return result with { Type = result.FunctionDef.ReturnType };
+        }
+
+        // Try to resolve the function name from annotations (indirect call via variable)
+        if (result.Annotations.TryGetValue("FunctionName", out var funcNameObj) && funcNameObj is string funcName)
+        {
+            var scope = SymbolHelpers.NearestScope(result);
+            if (scope != null && scope.TryResolveByName(funcName, out var entry))
+            {
+                // Check if the resolved symbol refers to a variable with function type
+                var resolvedThing = entry.OriginatingAstThing;
+
+                if (resolvedThing is ParamDef paramDef && paramDef.Type is FifthType.TFunc paramFuncType)
+                {
+                    OnTypeInferred(result, paramFuncType.OutputType);
+                    return result with { Type = paramFuncType.OutputType };
+                }
+
+                if (resolvedThing is VariableDecl varDecl && varDecl.Type is FifthType.TFunc varFuncType)
+                {
+                    OnTypeInferred(result, varFuncType.OutputType);
+                    return result with { Type = varFuncType.OutputType };
+                }
+
+                // Also check if Type is a Generic Type Parameter used as function? No.
+                // But resolvedThing.Type might have been set by previous pass?
+                // ParamDef.Type comes from Declaration.
+            }
         }
 
         // If we can't determine the type, mark as unknown
@@ -523,6 +585,20 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
     }
 
     /// <summary>
+    /// Visits a ParamDef and infers its type from TypeName and CollectionType.
+    /// </summary>
+    public override ParamDef VisitParamDef(ParamDef ctx)
+    {
+        var result = base.VisitParamDef(ctx);
+
+        // Create FifthType from TypeName and CollectionType
+        FifthType fifthType = CreateFifthType(result.TypeName, result.CollectionType);
+
+        OnTypeInferred(result, fifthType);
+        return result with { Type = fifthType };
+    }
+
+    /// <summary>
     /// Visits a VariableDecl and infers its type from TypeName and CollectionType.
     /// </summary>
     public override VariableDecl VisitVariableDecl(VariableDecl ctx)
@@ -638,6 +714,12 @@ public class TypeAnnotationVisitor : DefaultRecursiveDescentVisitor
         if (friendlyType != null)
         {
             return friendlyType;
+        }
+
+        // Check TypeRegistry for functional types or other registered types
+        if (TypeRegistry.DefaultRegistry.TryGetTypeByName(typeNameValue, out var registeredType))
+        {
+            return registeredType;
         }
 
         // Default to TType for unknown types
