@@ -863,6 +863,21 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 powCall);
         }
 
+
+        // Handle concatenation (++) by calling Fifth.System.List.op_PlusPlus
+        if (binExp.Operator == Operator.Concatenate)
+        {
+            var lhsExpr = TranslateExpression(binExp.LHS);
+            var rhsExpr = TranslateExpression(binExp.RHS);
+
+            return InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        CreateQualifiedName("Fifth.System.List"),
+                        IdentifierName("op_PlusPlus")))
+                .WithArgumentList(ArgumentList(SeparatedList(new[] { Argument(lhsExpr), Argument(rhsExpr) })));
+        }
+
         var left = TranslateExpression(binExp.LHS);
         var right = TranslateExpression(binExp.RHS);
 

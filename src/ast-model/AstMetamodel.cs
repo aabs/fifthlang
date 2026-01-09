@@ -83,6 +83,7 @@ public enum Operator : ushort
     BitwiseRightShift,
 
     StringConcatenate,
+    Concatenate,
 }
 
 public enum OperatorPosition

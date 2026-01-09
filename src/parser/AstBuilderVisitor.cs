@@ -371,6 +371,7 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             FifthParser.MINUS => Operator.ArithmeticSubtract,
             FifthParser.OR => Operator.BitwiseOr,
             FifthParser.LOGICAL_XOR => Operator.LogicalXor,
+            FifthParser.PLUS_PLUS => Operator.Concatenate,
             _ => Operator.ArithmeticAdd
         };
 

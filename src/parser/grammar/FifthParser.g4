@@ -205,8 +205,14 @@ expression:
 		| RSHIFT
 		| AMPERSAND
 		| STAR_STAR
-	) rhs = expression																# exp_mul
-	| lhs = expression add_op = (PLUS | MINUS | OR | LOGICAL_XOR) rhs = expression	# exp_add
+	) rhs = expression # exp_mul
+	| lhs = expression add_op = (
+		PLUS
+		| MINUS
+		| OR
+		| LOGICAL_XOR
+		| PLUS_PLUS
+	) rhs = expression # exp_add
 	| lhs = expression rel_op = (
 		EQUALS
 		| NOT_EQUALS
