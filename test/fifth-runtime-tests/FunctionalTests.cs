@@ -10,7 +10,7 @@ public class FunctionalTests
     [Fact]
     public void Map_NullArguments_Throw()
     {
-        IReadOnlyList<int> source = new List<int> { 1, 2 };
+        IEnumerable<int> source = new List<int> { 1, 2 };
         Assert.Throws<ArgumentNullException>(() => Functional.map<int, int>(null!, x => x));
         Assert.Throws<ArgumentNullException>(() => Functional.map<int, int>(source, null!));
     }
@@ -18,7 +18,7 @@ public class FunctionalTests
     [Fact]
     public void Map_EmptySource_ReturnsEmptyList()
     {
-        IReadOnlyList<int> source = Array.Empty<int>();
+        IEnumerable<int> source = Array.Empty<int>();
         var result = Functional.map(source, x => x * 2);
 
         result.Should().BeEmpty();
@@ -28,7 +28,7 @@ public class FunctionalTests
     [Fact]
     public void Map_TransformsAllElements_InOrder()
     {
-        IReadOnlyList<int> source = new List<int> { 1, 2, 3 };
+        IEnumerable<int> source = new List<int> { 1, 2, 3 };
         var result = Functional.map(source, x => x * 10);
 
         result.Should().Equal(10, 20, 30);
@@ -37,7 +37,7 @@ public class FunctionalTests
     [Fact]
     public void Filter_NullArguments_Throw()
     {
-        IReadOnlyList<int> source = new List<int> { 1, 2 };
+        IEnumerable<int> source = new List<int> { 1, 2 };
         Assert.Throws<ArgumentNullException>(() => Functional.filter<int>(null!, x => x > 0));
         Assert.Throws<ArgumentNullException>(() => Functional.filter(source, null!));
     }
@@ -45,7 +45,7 @@ public class FunctionalTests
     [Fact]
     public void Filter_EmptySource_ReturnsEmptyList()
     {
-        IReadOnlyList<int> source = Array.Empty<int>();
+        IEnumerable<int> source = Array.Empty<int>();
         var result = Functional.filter(source, x => x > 0);
 
         result.Should().BeEmpty();
@@ -54,7 +54,7 @@ public class FunctionalTests
     [Fact]
     public void Filter_FiltersElements_PreservesOrder()
     {
-        IReadOnlyList<int> source = new List<int> { 1, 2, 3, 4, 5 };
+        IEnumerable<int> source = new List<int> { 1, 2, 3, 4, 5 };
         var result = Functional.filter(source, x => x % 2 == 1);
 
         result.Should().Equal(1, 3, 5);
@@ -63,7 +63,7 @@ public class FunctionalTests
     [Fact]
     public void FoldLeft_NullArguments_Throw()
     {
-        IReadOnlyList<int> source = new List<int> { 1, 2 };
+        IEnumerable<int> source = new List<int> { 1, 2 };
         Assert.Throws<ArgumentNullException>(() => Functional.foldleft<int, int>(null!, 0, (acc, x) => acc + x));
         Assert.Throws<ArgumentNullException>(() => Functional.foldleft(source, 0, null!));
     }
@@ -71,7 +71,7 @@ public class FunctionalTests
     [Fact]
     public void FoldLeft_EmptySource_ReturnsSeed()
     {
-        IReadOnlyList<int> source = Array.Empty<int>();
+        IEnumerable<int> source = Array.Empty<int>();
         var result = Functional.foldleft(source, 42, (acc, x) => acc + x);
 
         result.Should().Be(42);
@@ -80,7 +80,7 @@ public class FunctionalTests
     [Fact]
     public void FoldLeft_ProcessesInLeftToRightOrder()
     {
-        IReadOnlyList<int> source = new List<int> { 1, 2, 3 };
+        IEnumerable<int> source = new List<int> { 1, 2, 3 };
         var result = Functional.foldleft(source, 0, (acc, x) => acc * 10 + x);
 
         result.Should().Be(123);
@@ -89,7 +89,7 @@ public class FunctionalTests
     [Fact]
     public void FoldRight_NullArguments_Throw()
     {
-        IReadOnlyList<int> source = new List<int> { 1, 2 };
+        IEnumerable<int> source = new List<int> { 1, 2 };
         Assert.Throws<ArgumentNullException>(() => Functional.foldright<int, int>(null!, 0, (x, acc) => acc + x));
         Assert.Throws<ArgumentNullException>(() => Functional.foldright(source, 0, null!));
     }
@@ -97,7 +97,7 @@ public class FunctionalTests
     [Fact]
     public void FoldRight_EmptySource_ReturnsSeed()
     {
-        IReadOnlyList<int> source = Array.Empty<int>();
+        IEnumerable<int> source = Array.Empty<int>();
         var result = Functional.foldright(source, 42, (x, acc) => acc + x);
 
         result.Should().Be(42);
@@ -106,7 +106,7 @@ public class FunctionalTests
     [Fact]
     public void FoldRight_ProcessesInRightToLeftOrder()
     {
-        IReadOnlyList<int> source = new List<int> { 1, 2, 3 };
+        IEnumerable<int> source = new List<int> { 1, 2, 3 };
         var result = Functional.foldright(source, 0, (x, acc) => acc * 10 + x);
 
         result.Should().Be(321);
@@ -115,7 +115,7 @@ public class FunctionalTests
     [Fact]
     public void FlatMap_NullArguments_Throw()
     {
-        IReadOnlyList<int> source = new List<int> { 1, 2 };
+        IEnumerable<int> source = new List<int> { 1, 2 };
         Assert.Throws<ArgumentNullException>(() => Functional.flatmap<int, int>(null!, x => new[] { x }));
         Assert.Throws<ArgumentNullException>(() => Functional.flatmap<int, int>(source, null!));
     }
@@ -123,7 +123,7 @@ public class FunctionalTests
     [Fact]
     public void FlatMap_EmptySource_ReturnsEmptyList()
     {
-        IReadOnlyList<int> source = Array.Empty<int>();
+        IEnumerable<int> source = Array.Empty<int>();
         var result = Functional.flatmap(source, x => new[] { x, x });
 
         result.Should().BeEmpty();
@@ -132,7 +132,7 @@ public class FunctionalTests
     [Fact]
     public void FlatMap_ConcatenatesInnerLists_InOrder()
     {
-        IReadOnlyList<int> source = new List<int> { 1, 2, 3 };
+        IEnumerable<int> source = new List<int> { 1, 2, 3 };
         var result = Functional.flatmap(source, x => new[] { x, x * 10 });
 
         result.Should().Equal(1, 10, 2, 20, 3, 30);
@@ -141,7 +141,7 @@ public class FunctionalTests
     [Fact]
     public void FlatMap_SkipsNullInnerLists()
     {
-        IReadOnlyList<int> source = new List<int> { 1, 2, 3 };
+        IEnumerable<int> source = new List<int> { 1, 2, 3 };
         var result = Functional.flatmap(source, x => x == 2 ? null! : new[] { x });
 
         result.Should().Equal(1, 3);
@@ -150,8 +150,8 @@ public class FunctionalTests
     [Fact]
     public void Zip_NullArguments_Throw()
     {
-        IReadOnlyList<int> a = new List<int> { 1, 2 };
-        IReadOnlyList<int> b = new List<int> { 3, 4 };
+        IEnumerable<int> a = new List<int> { 1, 2 };
+        IEnumerable<int> b = new List<int> { 3, 4 };
 
         Assert.Throws<ArgumentNullException>(() => Functional.zip<int, int, int>(null!, b, (x, y) => x + y));
         Assert.Throws<ArgumentNullException>(() => Functional.zip<int, int, int>(a, null!, (x, y) => x + y));
@@ -161,8 +161,8 @@ public class FunctionalTests
     [Fact]
     public void Zip_EmptyInputs_ReturnsEmptyList()
     {
-        IReadOnlyList<int> a = Array.Empty<int>();
-        IReadOnlyList<int> b = Array.Empty<int>();
+        IEnumerable<int> a = Array.Empty<int>();
+        IEnumerable<int> b = Array.Empty<int>();
         var result = Functional.zip(a, b, (x, y) => x + y);
 
         result.Should().BeEmpty();
@@ -171,8 +171,8 @@ public class FunctionalTests
     [Fact]
     public void Zip_UnevenLengths_StopsAtShortest()
     {
-        IReadOnlyList<int> a = new List<int> { 1, 2, 3 };
-        IReadOnlyList<int> b = new List<int> { 10 };
+        IEnumerable<int> a = new List<int> { 1, 2, 3 };
+        IEnumerable<int> b = new List<int> { 10 };
         var result = Functional.zip(a, b, (x, y) => x + y);
 
         result.Should().Equal(11);
