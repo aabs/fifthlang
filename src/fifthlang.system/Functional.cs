@@ -20,17 +20,16 @@ public static class Functional
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="selector"/> is null.</exception>
     [BuiltinFunction]
     public static List<TResult> map<T, TResult>(
-        IReadOnlyList<T> source,
+        IEnumerable<T> source,
         Func<T, TResult> selector)
     {
         if (source == null) throw new ArgumentNullException(nameof(source));
         if (selector == null) throw new ArgumentNullException(nameof(selector));
 
-        int count = source.Count;
-        var result = new List<TResult>(count);
+        var result = new List<TResult>();
 
-        for (int i = 0; i < count; i++)
-            result.Add(selector(source[i]));
+        foreach (var item in source)
+            result.Add(selector(item));
 
         return result;
     }
@@ -49,7 +48,7 @@ public static class Functional
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="predicate"/> is null.</exception>
     [BuiltinFunction]
     public static List<T> filter<T>(
-        IReadOnlyList<T> source,
+        IEnumerable<T> source,
         Func<T, bool> predicate)
     {
         if (source == null) throw new ArgumentNullException(nameof(source));
@@ -57,10 +56,8 @@ public static class Functional
 
         var result = new List<T>();
 
-        int count = source.Count;
-        for (int i = 0; i < count; i++)
+        foreach (var item in source)
         {
-            T item = source[i];
             if (predicate(item))
                 result.Add(item);
         }
@@ -84,7 +81,7 @@ public static class Functional
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="folder"/> is null.</exception>
     [BuiltinFunction]
     public static TResult foldleft<T, TResult>(
-        IReadOnlyList<T> source,
+        IEnumerable<T> source,
         TResult seed,
         Func<TResult, T, TResult> folder)
     {
@@ -93,9 +90,8 @@ public static class Functional
 
         TResult acc = seed;
 
-        int count = source.Count;
-        for (int i = 0; i < count; i++)
-            acc = folder(acc, source[i]);
+        foreach (var item in source)
+            acc = folder(acc, item);
 
         return acc;
     }
@@ -116,7 +112,7 @@ public static class Functional
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="folder"/> is null.</exception>
     [BuiltinFunction]
     public static TResult foldright<T, TResult>(
-        IReadOnlyList<T> source,
+        IEnumerable<T> source,
         TResult seed,
         Func<T, TResult, TResult> folder)
     {
@@ -125,8 +121,10 @@ public static class Functional
 
         TResult acc = seed;
 
-        for (int i = source.Count - 1; i >= 0; i--)
-            acc = folder(source[i], acc);
+        var list = source as IList<T> ?? new List<T>(source);
+
+        for (int i = list.Count - 1; i >= 0; i--)
+            acc = folder(list[i], acc);
 
         return acc;
     }
@@ -146,22 +144,21 @@ public static class Functional
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="selector"/> is null.</exception>
     [BuiltinFunction]
     public static List<TResult> flatmap<T, TResult>(
-        IReadOnlyList<T> source,
-        Func<T, IReadOnlyList<TResult>> selector)
+        IEnumerable<T> source,
+        Func<T, IEnumerable<TResult>> selector)
     {
         if (source == null) throw new ArgumentNullException(nameof(source));
         if (selector == null) throw new ArgumentNullException(nameof(selector));
 
         var result = new List<TResult>();
 
-        int count = source.Count;
-        for (int i = 0; i < count; i++)
+        foreach (var item in source)
         {
-            var inner = selector(source[i]);
+            var inner = selector(item);
             if (inner == null) continue;
 
-            for (int j = 0; j < inner.Count; j++)
-                result.Add(inner[j]);
+            foreach (var innerItem in inner)
+                result.Add(innerItem);
         }
 
         return result;
@@ -184,19 +181,21 @@ public static class Functional
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="a"/>, <paramref name="b"/>, or <paramref name="zipper"/> is null.</exception>
     [BuiltinFunction]
     public static List<TResult> zip<T1, T2, TResult>(
-        IReadOnlyList<T1> a,
-        IReadOnlyList<T2> b,
+        IEnumerable<T1> a,
+        IEnumerable<T2> b,
         Func<T1, T2, TResult> zipper)
     {
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
         if (zipper == null) throw new ArgumentNullException(nameof(zipper));
 
-        int count = a.Count < b.Count ? a.Count : b.Count;
-        var result = new List<TResult>(count);
+        var result = new List<TResult>();
 
-        for (int i = 0; i < count; i++)
-            result.Add(zipper(a[i], b[i]));
+        using var enumA = a.GetEnumerator();
+        using var enumB = b.GetEnumerator();
+
+        while (enumA.MoveNext() && enumB.MoveNext())
+            result.Add(zipper(enumA.Current, enumB.Current));
 
         return result;
     }
