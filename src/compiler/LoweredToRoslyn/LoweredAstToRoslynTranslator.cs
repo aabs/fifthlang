@@ -1025,11 +1025,11 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
             // Emit instance method call: target.Method(args)
             var targetSyntax = TranslateExpression(targetExpr);
-            return InvocationExpression(
+                return InvocationExpression(
                     MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        targetSyntax,
-                        IdentifierName(methodName)))
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    targetSyntax,
+                    CreateMethodNameSyntax(methodName, funcCall.TypeArguments)))
                 .WithArgumentList(ArgumentList(SeparatedList(argList)));
         }
 
@@ -1069,11 +1069,11 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
             // Always emit fully-qualified static call: Type.Method(args)
             var typeNameSyntax = CreateQualifiedName(typeName);
-            return InvocationExpression(
+                return InvocationExpression(
                     MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        typeNameSyntax,
-                        IdentifierName(methodName)))
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    typeNameSyntax,
+                    CreateMethodNameSyntax(methodName, funcCall.TypeArguments)))
                 .WithArgumentList(ArgumentList(SeparatedList(argList)));
         }
 
@@ -1105,20 +1105,34 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         // If we're inside a non-Program class (e.g., a generated lambda closure),
         // module-level functions live on the static Program class.
         var inProgram = string.Equals(_currentContainingClassName, "Program", StringComparison.Ordinal);
+        var methodNameSyntax = CreateMethodNameSyntax(funcName, funcCall.TypeArguments);
         if (!inProgram && _moduleLevelFunctionNames.Contains(funcName))
         {
             callee = MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 IdentifierName("Program"),
-                IdentifierName(funcName));
+                methodNameSyntax);
         }
         else
         {
-            callee = IdentifierName(funcName);
+            callee = methodNameSyntax;
         }
 
         return InvocationExpression(callee)
             .WithArgumentList(ArgumentList(SeparatedList(arguments)));
+    }
+
+    private SimpleNameSyntax CreateMethodNameSyntax(string methodName, IReadOnlyList<FifthType>? typeArguments)
+    {
+        if (typeArguments == null || typeArguments.Count == 0)
+            return IdentifierName(methodName);
+
+        var typeSyntaxes = typeArguments
+            .Select(typeArg => ParseTypeName(ExtractTypeName(typeArg)))
+            .ToArray();
+
+        return GenericName(Identifier(methodName))
+            .WithTypeArgumentList(TypeArgumentList(SeparatedList(typeSyntaxes)));
     }
 
     private bool IsListOrArrayType(FifthType? type)
