@@ -38,6 +38,23 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
     // Track the return type of the current function being translated
     private FifthType? _currentReturnType;
 
+    private readonly Dictionary<string, string> _closureInterfaceByClass = new(StringComparer.Ordinal);
+
+    private static readonly HashSet<string> FunctionalHofNames =
+        new(StringComparer.Ordinal)
+        {
+            "map",
+            "filter",
+            "foldleft",
+            "foldright",
+            "flatmap",
+            "zip",
+            "compose",
+            "curry",
+            "uncurry",
+            "partial"
+        };
+
     /// <summary>
     /// Translate AssemblyDef (from IBackendTranslator interface)
     /// </summary>
@@ -117,6 +134,8 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             .OfType<FunctionDef>()
             .Select(f => SanitizeIdentifier(f.Name.ToString() == "main" ? "Main" : f.Name.ToString()))
             .ToHashSet(StringComparer.Ordinal);
+
+        CacheClosureInterfaces(module);
 
         // Create using directives
         var usingDirectives = new[]
@@ -1018,19 +1037,27 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             }
 
             var argList = new List<ArgumentSyntax>();
-            foreach (var arg in funcCall.InvocationArguments)
+            for (var i = 0; i < funcCall.InvocationArguments.Count; i++)
             {
-                argList.Add(Argument(TranslateExpression(arg)));
+                var arg = funcCall.InvocationArguments[i];
+                var argExpr = TranslateExpression(arg);
+
+                if (targetExpr.Type is FifthType.TDotnetType targetDotnet)
+                {
+                    argExpr = MaybeWrapExternalClosureArgument(targetDotnet.TheType, methodName, arg, argExpr);
+                }
+
+                argList.Add(Argument(argExpr));
             }
 
             // Emit instance method call: target.Method(args)
             var targetSyntax = TranslateExpression(targetExpr);
-                return InvocationExpression(
-                    MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    targetSyntax,
-                    CreateMethodNameSyntax(methodName, funcCall.TypeArguments)))
-                .WithArgumentList(ArgumentList(SeparatedList(argList)));
+            return InvocationExpression(
+                MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                targetSyntax,
+                CreateMethodNameSyntax(methodName, funcCall.TypeArguments)))
+            .WithArgumentList(ArgumentList(SeparatedList(argList)));
         }
 
         // External (static) call annotated by TreeLinkageVisitor?
@@ -1061,19 +1088,44 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
                 methodName = "UnknownFunction";
             }
 
-            var argList = new List<ArgumentSyntax>();
-            foreach (var arg in funcCall.InvocationArguments)
+            IReadOnlyList<FifthType> inferredTypeArgs = Array.Empty<FifthType>();
+            if (string.Equals(extType.FullName, "Fifth.System.Functional", StringComparison.Ordinal))
             {
-                argList.Add(Argument(TranslateExpression(arg)));
+                inferredTypeArgs = InferFunctionalTypeArguments(methodName, funcCall);
+            }
+
+            var argList = new List<ArgumentSyntax>();
+            for (var i = 0; i < funcCall.InvocationArguments.Count; i++)
+            {
+                var arg = funcCall.InvocationArguments[i];
+                var argExpr = TranslateExpression(arg);
+
+                if (string.Equals(extType.FullName, "Fifth.System.Functional", StringComparison.Ordinal))
+                {
+                    argExpr = MaybeWrapFunctionalClosureArgument(methodName, inferredTypeArgs, i, arg, argExpr);
+                }
+                else
+                {
+                    argExpr = MaybeWrapExternalClosureArgument(extType, methodName, arg, argExpr);
+                }
+
+                argList.Add(Argument(argExpr));
             }
 
             // Always emit fully-qualified static call: Type.Method(args)
             var typeNameSyntax = CreateQualifiedName(typeName);
-                return InvocationExpression(
+            IReadOnlyList<FifthType> typeArgsForCall = funcCall.TypeArguments.Count > 0
+                ? funcCall.TypeArguments
+                : inferredTypeArgs;
+            var callMethodName = typeArgsForCall.Count > 0
+                ? CreateGenericMethodNameSyntax(methodName, typeArgsForCall.Select(ExtractTypeName).ToList())
+                : CreateMethodNameSyntax(methodName, funcCall.TypeArguments);
+
+            return InvocationExpression(
                     MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     typeNameSyntax,
-                    CreateMethodNameSyntax(methodName, funcCall.TypeArguments)))
+                    callMethodName))
                 .WithArgumentList(ArgumentList(SeparatedList(argList)));
         }
 
@@ -1093,10 +1145,26 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             funcName = "UnknownFunction";
         }
 
+        var isFunctionalBuiltin = funcCall.FunctionDef == null && FunctionalHofNames.Contains(funcName);
+        var inferredBuiltinTypeArgs = isFunctionalBuiltin
+            ? InferFunctionalTypeArguments(funcName, funcCall)
+            : Array.Empty<FifthType>();
+
         var arguments = new List<ArgumentSyntax>();
-        foreach (var arg in funcCall.InvocationArguments)
+        for (var i = 0; i < funcCall.InvocationArguments.Count; i++)
         {
+            var arg = funcCall.InvocationArguments[i];
             var argExpr = TranslateExpression(arg);
+
+            if (isFunctionalBuiltin)
+            {
+                argExpr = MaybeWrapFunctionalClosureArgument(funcName, inferredBuiltinTypeArgs, i, arg, argExpr);
+            }
+            else
+            {
+                argExpr = MaybeWrapExternalDelegateAsClosureArgument(funcCall, i, arg, argExpr);
+            }
+
             arguments.Add(Argument(argExpr));
         }
 
@@ -1105,7 +1173,9 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         // If we're inside a non-Program class (e.g., a generated lambda closure),
         // module-level functions live on the static Program class.
         var inProgram = string.Equals(_currentContainingClassName, "Program", StringComparison.Ordinal);
-        var methodNameSyntax = CreateMethodNameSyntax(funcName, funcCall.TypeArguments);
+        var methodNameSyntax = isFunctionalBuiltin && inferredBuiltinTypeArgs.Count > 0
+            ? CreateGenericMethodNameSyntax(funcName, inferredBuiltinTypeArgs.Select(ExtractTypeName).ToList())
+            : CreateMethodNameSyntax(funcName, funcCall.TypeArguments);
         if (!inProgram && _moduleLevelFunctionNames.Contains(funcName))
         {
             callee = MemberAccessExpression(
@@ -1133,6 +1203,364 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
         return GenericName(Identifier(methodName))
             .WithTypeArgumentList(TypeArgumentList(SeparatedList(typeSyntaxes)));
+    }
+
+    private static SimpleNameSyntax CreateGenericMethodNameSyntax(string methodName, IReadOnlyList<string> typeArguments)
+    {
+        if (typeArguments.Count == 0)
+            return IdentifierName(methodName);
+
+        var typeSyntaxes = typeArguments
+            .Select(typeArg => ParseTypeName(typeArg))
+            .ToArray();
+
+        return GenericName(Identifier(methodName))
+            .WithTypeArgumentList(TypeArgumentList(SeparatedList(typeSyntaxes)));
+    }
+
+    private ExpressionSyntax MaybeWrapExternalClosureArgument(Type externalType, string methodName, Expression arg, ExpressionSyntax argExpr)
+    {
+        if (arg.Type is not FifthType.TFunc funcType)
+            return argExpr;
+
+        if (externalType.FullName == "Fifth.System.Functional" && !FunctionalHofNames.Contains(methodName))
+            return argExpr;
+
+        return WrapClosureAsDelegate(argExpr, funcType);
+    }
+
+    private ExpressionSyntax WrapClosureAsDelegate(ExpressionSyntax closureExpr, FifthType.TFunc funcType)
+    {
+        var inputs = funcType.InputTypes.Select(ExtractTypeName).ToList();
+
+        if (funcType.OutputType is FifthType.TVoidType)
+        {
+            var actionTypeName = inputs.Count == 0
+                ? "System.Action"
+                : $"System.Action<{string.Join(", ", inputs)}>";
+
+            return ObjectCreationExpression(ParseTypeName(actionTypeName))
+                .WithArgumentList(ArgumentList(SingletonSeparatedList(
+                    Argument(MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        closureExpr,
+                        IdentifierName("Apply"))))));
+        }
+
+        var output = ExtractTypeName(funcType.OutputType);
+        var funcTypeName = inputs.Count == 0
+            ? $"System.Func<{output}>"
+            : $"System.Func<{string.Join(", ", inputs)}, {output}>";
+
+        return ObjectCreationExpression(ParseTypeName(funcTypeName))
+            .WithArgumentList(ArgumentList(SingletonSeparatedList(
+                Argument(MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    closureExpr,
+                    IdentifierName("Apply"))))));
+    }
+
+    private static ExpressionSyntax WrapClosureAsDelegate(ExpressionSyntax closureExpr, string delegateTypeName)
+    {
+        return ObjectCreationExpression(ParseTypeName(delegateTypeName))
+            .WithArgumentList(ArgumentList(SingletonSeparatedList(
+                Argument(MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    closureExpr,
+                    IdentifierName("Apply"))))));
+    }
+
+    private ExpressionSyntax MaybeWrapFunctionalClosureArgument(
+        string methodName,
+        IReadOnlyList<FifthType> typeArguments,
+        int argIndex,
+        Expression arg,
+        ExpressionSyntax argExpr)
+    {
+        if (!FunctionalHofNames.Contains(methodName))
+            return argExpr;
+
+        if (arg.Type is FifthType.TDotnetType dotnetType && typeof(Delegate).IsAssignableFrom(dotnetType.TheType))
+            return argExpr;
+
+        if (typeArguments.Count == 0)
+        {
+            if (arg.Type is FifthType.TFunc funcType)
+                return WrapClosureAsDelegate(argExpr, funcType);
+
+            return argExpr;
+        }
+
+        var delegateTypeName = methodName switch
+        {
+            "map" when argIndex == 1 && typeArguments.Count >= 2
+                => $"System.Func<{ExtractTypeName(typeArguments[0])}, {ExtractTypeName(typeArguments[1])}>",
+            "filter" when argIndex == 1 && typeArguments.Count >= 1
+                => $"System.Func<{ExtractTypeName(typeArguments[0])}, bool>",
+            "foldleft" when argIndex == 2 && typeArguments.Count >= 2
+                => $"System.Func<{ExtractTypeName(typeArguments[1])}, {ExtractTypeName(typeArguments[0])}, {ExtractTypeName(typeArguments[1])}>",
+            "foldright" when argIndex == 2 && typeArguments.Count >= 2
+                => $"System.Func<{ExtractTypeName(typeArguments[0])}, {ExtractTypeName(typeArguments[1])}, {ExtractTypeName(typeArguments[1])}>",
+            "flatmap" when argIndex == 1 && typeArguments.Count >= 2
+                => $"System.Func<{ExtractTypeName(typeArguments[0])}, System.Collections.Generic.IEnumerable<{ExtractTypeName(typeArguments[1])}>>",
+            "zip" when argIndex == 2 && typeArguments.Count >= 3
+                => $"System.Func<{ExtractTypeName(typeArguments[0])}, {ExtractTypeName(typeArguments[1])}, {ExtractTypeName(typeArguments[2])}>",
+            _ => string.Empty
+        };
+
+        if (string.IsNullOrWhiteSpace(delegateTypeName))
+            return argExpr;
+
+        return WrapClosureAsDelegate(argExpr, delegateTypeName);
+    }
+
+    private void CacheClosureInterfaces(ModuleDef module)
+    {
+        _closureInterfaceByClass.Clear();
+
+        foreach (var classDef in module.Classes)
+        {
+            if (classDef.BaseClasses == null || classDef.BaseClasses.Count == 0)
+                continue;
+
+            var closureInterface = classDef.BaseClasses.FirstOrDefault(baseClass =>
+                baseClass.StartsWith("Fifth.System.Runtime.IClosure", StringComparison.Ordinal) ||
+                baseClass.StartsWith("Fifth.System.Runtime.IActionClosure", StringComparison.Ordinal));
+
+            if (!string.IsNullOrWhiteSpace(closureInterface))
+            {
+                var className = SanitizeIdentifier(classDef.Name.ToString());
+                _closureInterfaceByClass[className] = closureInterface;
+            }
+        }
+    }
+
+    private bool TryGetClosureInterfaceSignature(Expression arg, out List<string> inputTypes, out string? outputType, out bool isAction)
+    {
+        inputTypes = new List<string>();
+        outputType = null;
+        isAction = false;
+
+        if (arg.Type is not FifthType.TType type)
+            return false;
+
+        var className = SanitizeIdentifier(type.Name.ToString());
+        if (!_closureInterfaceByClass.TryGetValue(className, out var interfaceName))
+            return false;
+
+        isAction = interfaceName.StartsWith("Fifth.System.Runtime.IActionClosure", StringComparison.Ordinal);
+
+        var openIndex = interfaceName.IndexOf('<');
+        if (openIndex < 0)
+        {
+            return isAction;
+        }
+
+        var closeIndex = interfaceName.LastIndexOf('>');
+        if (closeIndex <= openIndex)
+            return false;
+
+        var args = interfaceName.Substring(openIndex + 1, closeIndex - openIndex - 1);
+        var typeParts = SplitTopLevelCommaSeparated(args).Select(t => t.Trim()).Where(t => t.Length > 0).ToList();
+
+        if (isAction)
+        {
+            inputTypes.AddRange(typeParts);
+            return true;
+        }
+
+        if (typeParts.Count == 0)
+            return false;
+
+        if (typeParts.Count == 1)
+        {
+            outputType = typeParts[0];
+            return true;
+        }
+
+        outputType = typeParts[^1];
+        inputTypes.AddRange(typeParts.Take(typeParts.Count - 1));
+        return true;
+    }
+
+    private static FifthType CreateNamedType(string typeName)
+        => new FifthType.TType { Name = TypeName.From(typeName) };
+
+    private static string? TryGetListElementTypeName(string typeName)
+    {
+        if (string.IsNullOrWhiteSpace(typeName))
+            return null;
+
+        if (typeName.StartsWith("[", StringComparison.Ordinal) && typeName.EndsWith("]", StringComparison.Ordinal))
+        {
+            return typeName.Substring(1, typeName.Length - 2);
+        }
+
+        if (typeName.EndsWith("[]", StringComparison.Ordinal))
+        {
+            return typeName.Substring(0, typeName.Length - 2);
+        }
+
+        if (typeName.StartsWith("list<", StringComparison.Ordinal) && typeName.EndsWith(">", StringComparison.Ordinal))
+        {
+            return typeName.Substring(5, typeName.Length - 6);
+        }
+
+        if (typeName.StartsWith("System.Collections.Generic.List<", StringComparison.Ordinal) && typeName.EndsWith(">", StringComparison.Ordinal))
+        {
+            return typeName.Substring("System.Collections.Generic.List<".Length, typeName.Length - "System.Collections.Generic.List<".Length - 1);
+        }
+
+        return null;
+    }
+
+    private IReadOnlyList<FifthType> InferFunctionalTypeArguments(string methodName, FuncCallExp funcCall)
+    {
+        FifthType? GetElementType(FifthType? type)
+        {
+            return type switch
+            {
+                FifthType.TArrayOf arrayOf => arrayOf.ElementType,
+                FifthType.TListOf listOf => listOf.ElementType,
+                FifthType.TGenericInstance genericInstance when genericInstance.GenericTypeDefinition.ToString() == "List"
+                    => genericInstance.TypeArguments.FirstOrDefault(),
+                _ => null
+            };
+        }
+
+        var args = funcCall.InvocationArguments;
+        var resultType = funcCall.Type;
+        var resultElement = GetElementType(resultType);
+
+        static bool IsUnknownType(FifthType? type)
+        {
+            if (type == null)
+                return true;
+            if (type is FifthType.UnknownType)
+                return true;
+
+            try
+            {
+                var name = type.Name.ToString();
+                return string.Equals(name, "unknown", StringComparison.Ordinal) ||
+                       string.Equals(name, "object", StringComparison.Ordinal);
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
+        var closureInputs = new List<string>();
+        string? closureOutput = null;
+        var closureIsAction = false;
+
+        var closureArgIndex = methodName switch
+        {
+            "map" => 1,
+            "filter" => 1,
+            "flatmap" => 1,
+            "foldleft" => 2,
+            "foldright" => 2,
+            "zip" => 2,
+            _ => -1
+        };
+
+        if (closureArgIndex >= 0 && args.Count > closureArgIndex)
+        {
+            _ = TryGetClosureInterfaceSignature(args[closureArgIndex], out closureInputs, out closureOutput, out closureIsAction);
+        }
+
+        return methodName switch
+        {
+            "map" when args.Count >= 2
+                => (GetElementType(args[0].Type) ?? (closureInputs.Count >= 1 ? CreateNamedType(closureInputs[0]) : null)) is { } t &&
+                   (resultElement ?? (closureOutput != null && !closureIsAction ? CreateNamedType(closureOutput) : null)) is { } r
+                    ? new[] { t, r }
+                    : Array.Empty<FifthType>(),
+            "filter" when args.Count >= 2
+                => (GetElementType(args[0].Type) ?? (closureInputs.Count >= 1 ? CreateNamedType(closureInputs[0]) : null)) is { } t
+                    ? new[] { t }
+                    : Array.Empty<FifthType>(),
+            "foldleft" when args.Count >= 3
+                => (GetElementType(args[0].Type) ?? (closureInputs.Count >= 2 ? CreateNamedType(closureInputs[1]) : null)) is { } t &&
+                   (!IsUnknownType(resultType) ? resultType : (!IsUnknownType(args[1].Type) ? args[1].Type : (closureOutput != null && !closureIsAction ? CreateNamedType(closureOutput) : null))) is { } r
+                    ? new[] { t, r }
+                    : Array.Empty<FifthType>(),
+            "foldright" when args.Count >= 3
+                => (GetElementType(args[0].Type) ?? (closureInputs.Count >= 1 ? CreateNamedType(closureInputs[0]) : null)) is { } t &&
+                   (!IsUnknownType(resultType) ? resultType : (!IsUnknownType(args[1].Type) ? args[1].Type : (closureOutput != null && !closureIsAction ? CreateNamedType(closureOutput) : null))) is { } r
+                    ? new[] { t, r }
+                    : Array.Empty<FifthType>(),
+            "flatmap" when args.Count >= 2
+                => (GetElementType(args[0].Type) ?? (closureInputs.Count >= 1 ? CreateNamedType(closureInputs[0]) : null)) is { } t &&
+                   (resultElement ?? (closureOutput != null && !closureIsAction && TryGetListElementTypeName(closureOutput) is { } inner ? CreateNamedType(inner) : null)) is { } r
+                    ? new[] { t, r }
+                    : Array.Empty<FifthType>(),
+            "zip" when args.Count >= 3
+                => (GetElementType(args[0].Type) ?? (closureInputs.Count >= 1 ? CreateNamedType(closureInputs[0]) : null)) is { } t1 &&
+                   (GetElementType(args[1].Type) ?? (closureInputs.Count >= 2 ? CreateNamedType(closureInputs[1]) : null)) is { } t2 &&
+                   (resultElement ?? (closureOutput != null && !closureIsAction ? CreateNamedType(closureOutput) : null)) is { } r
+                    ? new[] { t1, t2, r }
+                    : Array.Empty<FifthType>(),
+            _ => Array.Empty<FifthType>()
+        };
+    }
+
+    private ExpressionSyntax MaybeWrapExternalDelegateAsClosureArgument(
+        FuncCallExp funcCall,
+        int argIndex,
+        Expression arg,
+        ExpressionSyntax argExpr)
+    {
+        if (funcCall.FunctionDef == null)
+            return argExpr;
+
+        if (argIndex >= funcCall.FunctionDef.Params.Count)
+            return argExpr;
+
+        var param = funcCall.FunctionDef.Params[argIndex];
+        if (param.TypeName == null)
+            return argExpr;
+
+        if (!TryParseFunctionType(param.TypeName.ToString(), out var inputTypes, out var outputType))
+            return argExpr;
+
+        if (arg.Type is not FifthType.TDotnetType dotnetType)
+            return argExpr;
+
+        var delegateType = dotnetType.TheType;
+        if (!typeof(Delegate).IsAssignableFrom(delegateType))
+            return argExpr;
+
+        var mappedInputs = inputTypes.Select(MapTypeName).ToList();
+        var mappedOutput = MapTypeName(outputType);
+
+        var adapterTypeName = "Fifth.System.Runtime.ClosureAdapters";
+        var methodName = string.Equals(outputType.Trim(), "void", StringComparison.Ordinal)
+            ? "FromAction"
+            : "FromFunc";
+
+        SimpleNameSyntax adapterMethodName;
+        if (string.Equals(outputType.Trim(), "void", StringComparison.Ordinal))
+        {
+            adapterMethodName = mappedInputs.Count == 0
+                ? IdentifierName(methodName)
+                : CreateGenericMethodNameSyntax(methodName, mappedInputs);
+        }
+        else
+        {
+            var typeArgs = mappedInputs.Concat(new[] { mappedOutput }).ToList();
+            adapterMethodName = CreateGenericMethodNameSyntax(methodName, typeArgs);
+        }
+
+        var adapterCallee = MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            CreateQualifiedName(adapterTypeName),
+            adapterMethodName);
+
+        return InvocationExpression(adapterCallee)
+            .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(argExpr))));
     }
 
     private bool IsListOrArrayType(FifthType? type)
