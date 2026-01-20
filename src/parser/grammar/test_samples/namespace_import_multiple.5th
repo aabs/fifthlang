@@ -1,0 +1,7 @@
+namespace App.Core;
+import Utilities.Math;
+import Utilities.Strings;
+
+main(): int {
+    return 0;
+}

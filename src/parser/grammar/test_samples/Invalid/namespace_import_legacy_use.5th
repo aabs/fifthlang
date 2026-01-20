@@ -1,0 +1,5 @@
+use Utilities.Math;
+
+main(): int {
+    return 0;
+}

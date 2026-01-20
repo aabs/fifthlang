@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Text;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
@@ -90,6 +91,16 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         }
 
         return CreateTypeFromSpec(typeName, collectionType);
+    }
+
+    private static string ParseQualifiedName(FifthParser.Qualified_nameContext context)
+    {
+        if (context == null)
+        {
+            return string.Empty;
+        }
+
+        return string.Join(".", context.IDENTIFIER().Select(t => t.GetText()));
     }
 
     /// <summary>
@@ -681,8 +692,25 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
             .WithVersion("0.0.0.0")
             ;
         var mb = new ModuleDefBuilder();
-        // Set default anonymous namespace (required field in ModuleDef)
-        mb.WithNamespaceDecl(NamespaceName.anonymous);
+        // Set module metadata
+        var sourceName = context.Start?.InputStream?.SourceName;
+        var moduleName = !string.IsNullOrWhiteSpace(sourceName)
+            ? Path.GetFileNameWithoutExtension(sourceName)
+            : "anonymous";
+        mb.WithOriginalModuleName(moduleName)
+            .WithVisibility(Visibility.Public);
+
+        var namespaceContext = context.namespace_decl().FirstOrDefault();
+        if (namespaceContext != null)
+        {
+            var namespaceName = ParseQualifiedName(namespaceContext.qualified_name());
+            mb.WithNamespaceDecl(NamespaceName.From(namespaceName));
+        }
+        else
+        {
+            // Default anonymous namespace (required field in ModuleDef)
+            mb.WithNamespaceDecl(NamespaceName.anonymous);
+        }
 
         if (context._classes.Count == 0)
         {
@@ -714,6 +742,34 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
         if (module.Annotations == null)
         {
             module = module with { Annotations = new Dictionary<string, object>() };
+        }
+
+        if (!string.IsNullOrWhiteSpace(sourceName))
+        {
+            module.Annotations[ModuleAnnotationKeys.ModulePath] = sourceName;
+        }
+
+        // Record import directives for downstream namespace resolution
+        try
+        {
+            var imports = new List<NamespaceImportDirective>();
+            foreach (var importCtx in context.import_decl())
+            {
+                var importName = ParseQualifiedName(importCtx.qualified_name());
+                if (!string.IsNullOrWhiteSpace(importName))
+                {
+                    imports.Add(new NamespaceImportDirective(importName, GetLocationDetails(importCtx)));
+                }
+            }
+
+            if (imports.Count > 0)
+            {
+                module.Annotations[ModuleAnnotationKeys.ImportDirectives] = imports;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Failed to capture import directives: {ex.Message}");
         }
 
         // Collect colon-form store declarations; colon form is canonical.

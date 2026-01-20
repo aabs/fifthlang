@@ -4,6 +4,8 @@ using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using ast;
+using compiler.NamespaceResolution;
+using compiler.LanguageTransformations;
 
 namespace compiler;
 
@@ -86,7 +88,7 @@ public class Compiler
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, "Starting transform phase"));
             }
 
-            var transformedAst = TransformPhase(parseResult.ast, diagnostics);
+            var transformedAst = TransformPhase(parseResult.ast, diagnostics, options.Diagnostics);
             if (transformedAst == null)
             {
                 return CompilationResult.Failed(3, diagnostics);
@@ -179,7 +181,7 @@ public class Compiler
             }
 
             // Transform phase (semantic analysis)
-            var transformedAst = TransformPhase(parseResult.ast, diagnostics);
+            var transformedAst = TransformPhase(parseResult.ast, diagnostics, options.Diagnostics);
             if (transformedAst == null)
             {
                 return CompilationResult.Failed(3, diagnostics);
@@ -229,35 +231,15 @@ Examples:
     {
         try
         {
-            if (File.Exists(options.Source))
-            {
-                // Single file
-                var ast = FifthParserManager.ParseFile(options.Source);
+            var resolver = new ModuleResolver();
+            var result = resolver.Resolve(options, diagnostics);
 
-                return (ast, 1);
-            }
-            else if (Directory.Exists(options.Source))
+            if (result.Assembly == null)
             {
-                // Directory - find all .5th files
-                var files = Directory.GetFiles(options.Source, "*.5th", SearchOption.AllDirectories)
-                    .OrderBy(f => f) // Deterministic order
-                    .ToArray();
-
-                if (files.Length == 0)
-                {
-                    diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "No .5th files found in directory", options.Source));
-                    return (null, 0);
-                }
-
-                // For now, parse the first file (multiple file support can be added later)
-                var ast = FifthParserManager.ParseFile(files[0]);
-                return (ast, files.Length);
+                return (null, result.SourceCount);
             }
-            else
-            {
-                diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Source path not found: {options.Source}"));
-                return (null, 0);
-            }
+
+            return (result.Assembly, result.SourceCount);
         }
         catch (System.Exception ex)
         {
@@ -266,47 +248,28 @@ Examples:
         }
     }
 
-    private AstThing? TransformPhase(AstThing ast, List<Diagnostic> diagnostics)
+    private AstThing? TransformPhase(AstThing ast, List<Diagnostic> diagnostics, bool emitNamespaceTiming = false)
     {
         try
         {
             var transformed = FifthParserManager.ApplyLanguageAnalysisPhases(ast, diagnostics);
+
+            if (emitNamespaceTiming)
+            {
+                diagnostics.Add(new Diagnostic(
+                    DiagnosticLevel.Info,
+                    $"Namespace resolution time: {NamespaceImportResolverVisitor.LastElapsedMilliseconds}ms"));
+            }
 
             // If any error-level diagnostics were produced during language analysis (e.g., guard validation), fail transform
             if (diagnostics.Any(d => d.Level == DiagnosticLevel.Error))
             {
                 return null;
             }
-
             return transformed;
-        }
-        catch (ast_model.CompilationException cex)
-        {
-            // Surface compilation diagnostics from language phases without extra prefixing
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, cex.Message));
-            return null;
         }
         catch (System.Exception ex)
         {
-            // Log full exception chain to stderr for debugging
-            Console.Error.WriteLine("=== COMPILER CAUGHT EXCEPTION ===");
-            Console.Error.WriteLine($"Message: {ex.Message}");
-            Console.Error.WriteLine($"Type: {ex.GetType().FullName}");
-            Console.Error.WriteLine($"Stack: {ex.StackTrace}");
-
-            var innerEx = ex.InnerException;
-            int depth = 1;
-            while (innerEx != null)
-            {
-                Console.Error.WriteLine($"\n=== INNER EXCEPTION #{depth} ===");
-                Console.Error.WriteLine($"Message: {innerEx.Message}");
-                Console.Error.WriteLine($"Type: {innerEx.GetType().FullName}");
-                Console.Error.WriteLine($"Stack: {innerEx.StackTrace}");
-                innerEx = innerEx.InnerException;
-                depth++;
-            }
-            Console.Error.WriteLine("=== END EXCEPTION CHAIN ===\n");
-
             var errorMsg = $"Transform error: {ex.Message}\nStack trace:\n{ex.StackTrace}";
             if (ex.InnerException != null)
             {

@@ -19,7 +19,13 @@
     <SystemReflectionMetadataVersion>9.0.0</SystemReflectionMetadataVersion>
     <!-- Use pinned Roslyn by default for Release builds (CI / release); developers may override locally -->
     <UsePinnedRoslyn Condition="'$(UsePinnedRoslyn)'=='' and '$(Configuration)'=='Release'">true</UsePinnedRoslyn>
+    <!-- Fifth source manifest for namespace-aware compilation -->
+    <FifthSourceManifestPath Condition="'$(FifthSourceManifestPath)' == ''">$(IntermediateOutputPath)fifth_sources.manifest</FifthSourceManifestPath>
   </PropertyGroup>
+
+  <Target Name="EmitFifthSourceManifest" BeforeTargets="Build" Condition="'@(FifthSource)' != ''">
+    <WriteLinesToFile File="$(FifthSourceManifestPath)" Lines="@(FifthSource->'%(FullPath)')" Overwrite="true" />
+  </Target>
 
   <!-- When we ask to use the pinned Roslyn toolset, also reference the
        compiler toolset package so MSBuild will drive the compilation with

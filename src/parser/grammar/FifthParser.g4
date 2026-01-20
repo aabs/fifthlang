@@ -7,368 +7,409 @@ options {
 }
 
 fifth:
-	module_import* alias* (colon_store_decl)* (
+	namespace_decl* import_decl* alias* (colon_store_decl)* (
 		functions += function_declaration
 		| classes += class_definition
-	)*;
+	)* {
+		if ($namespace_decl.Count > 1)
+		{
+			NotifyErrorListeners("At most one namespace declaration is allowed per module.");
+		}
 
-module_import: USE module_name (COMMA module_name)* SEMI;
-module_name: IDENTIFIER;
-packagename: IDENTIFIER;
+	@members {
+		private bool seenNamespaceDecl = false;
 
-alias: ALIAS name = packagename AS iri SEMI;
+		private void RegisterNamespaceDecl(ParserRuleContext ctx)
+		{
+			if (seenNamespaceDecl)
+			{
+				NotifyErrorListeners(ctx.Start, "At most one namespace declaration is allowed per module.", null);
+				return;
+			}
 
-// ========[FUNC DEFS]========= Ex: Foo(x:int, y:int):int { . . . }
-function_declaration:
-	name = function_name type_parameter_list? L_PAREN (
-		args += paramdecl (COMMA args += paramdecl)*
-	)? R_PAREN COLON result_type = type_spec constraint_clause* body = function_body;
+			seenNamespaceDecl = true;
+		}
+	}
+	};
 
-function_body: block;
+namespace_decl? import_decl* alias* (colon_store_decl)* (
+		import_decl: IMPORT qualified_name SEMI;
+	qualified_name: IDENTIFIER (DOT IDENTIFIER)*;
 
-function_name: IDENTIFIER;
+	namespace_decl:
+		NAMESPACE qualified_name SEMI { RegisterNamespaceDecl($ctx); };
+	import_decl: IMPORT qualified_name SEMI;
+	qualified_name: IDENTIFIER (DOT IDENTIFIER)*;
+	packagename: IDENTIFIER;
 
-variable_constraint: OR constraint = expression;
+	// ========[FUNC DEFS]========= Ex: Foo(x:int, y:int):int { . . . }
+	function_declaration:
+		name = function_name type_parameter_list? L_PAREN (
+			args += paramdecl (COMMA args += paramdecl)*
+		)? R_PAREN COLON result_type = type_spec constraint_clause* body = function_body;
 
-// v2 Parameter declarations
-paramdecl:
-	var_name COLON type_spec (
-		variable_constraint
-		| destructuring_decl
-	)?;
+	function_body: block;
 
-// Lambda parameter declarations are explicit and do not carry destructuring/constraints.
-plain_paramdecl: var_name COLON type_spec;
+	function_name: IDENTIFIER;
 
-destructuring_decl:
-	L_CURLY bindings += destructure_binding (
-		COMMA bindings += destructure_binding
-	)* R_CURLY;
+	variable_constraint: OR constraint = expression;
 
-destructure_binding:
-	name = IDENTIFIER COLON propname = IDENTIFIER (
-		variable_constraint
-		| destructuring_decl
-	)?;
+	// v2 Parameter declarations
+	paramdecl:
+		var_name COLON type_spec (
+			variable_constraint
+			| destructuring_decl
+		)?;
 
-// ========[TYPE DEFINITIONS]=========
-class_definition:
-	CLASS name = IDENTIFIER type_parameter_list? (
-		EXTENDS superClass = type_name
-	)? (IN aliasScope = alias_scope_ref)? constraint_clause* L_CURLY (
-		constructors += constructor_declaration
-		| functions += function_declaration
-		| properties += property_declaration
-	)* R_CURLY;
+	// Lambda parameter declarations are explicit and do not carry destructuring/constraints.
+	plain_paramdecl: var_name COLON type_spec;
 
-// ========[CONSTRUCTOR DEFS]========= Ex: Person(string name, int age) : base() { ... }
-constructor_declaration:
-	name = IDENTIFIER L_PAREN (
-		args += paramdecl (COMMA args += paramdecl)*
-	)? R_PAREN base_constructor_call? body = function_body;
+	destructuring_decl:
+		L_CURLY bindings += destructure_binding (
+			COMMA bindings += destructure_binding
+		)* R_CURLY;
 
-base_constructor_call:
-	COLON BASE L_PAREN (
-		args += expression (COMMA args += expression)*
-	)? R_PAREN;
+	destructure_binding:
+		name = IDENTIFIER COLON propname = IDENTIFIER (
+			variable_constraint
+			| destructuring_decl
+		)?;
 
-property_declaration:
-	name = IDENTIFIER COLON type = type_spec SEMI;
+	// ========[TYPE DEFINITIONS]=========
+	class_definition:
+		CLASS name = IDENTIFIER type_parameter_list? (
+			EXTENDS superClass = type_name
+		)? (IN aliasScope = alias_scope_ref)? constraint_clause* L_CURLY (
+			constructors += constructor_declaration
+			| functions += function_declaration
+			| properties += property_declaration
+		)* R_CURLY;
 
-type_name: IDENTIFIER;
+	// ========[CONSTRUCTOR DEFS]========= Ex: Person(string name, int age) : base() { ... }
+	constructor_declaration:
+		name = IDENTIFIER L_PAREN (
+			args += paramdecl (COMMA args += paramdecl)*
+		)? R_PAREN base_constructor_call? body = function_body;
 
-// Type parameter definitions for generics (e.g. <T, U>)
-type_parameter_list:
-	LESS type_parameter (COMMA type_parameter)* GREATER;
+	base_constructor_call:
+		COLON BASE L_PAREN (
+			args += expression (COMMA args += expression)*
+		)? R_PAREN;
 
-type_parameter: IDENTIFIER;
+	property_declaration:
+		name = IDENTIFIER COLON type = type_spec SEMI;
 
-// Type arguments for generic instantiation (e.g. <int, string>)
-type_argument_list: LESS type_spec (COMMA type_spec)* GREATER;
+	type_name: IDENTIFIER;
 
-// Constraint clauses for generic type parameters
-constraint_clause: WHERE type_parameter COLON constraint_list;
+	// Type parameter definitions for generics (e.g. <T, U>)
+	type_parameter_list:
+		LESS type_parameter (COMMA type_parameter)* GREATER;
 
-constraint_list: type_constraint (COMMA type_constraint)*;
+	type_parameter: IDENTIFIER;
 
-type_constraint:
-	type_name; // For now, constraints are just type names (interfaces or base classes)
+	// Type arguments for generic instantiation (e.g. <int, string>)
+	type_argument_list:
+		LESS type_spec (COMMA type_spec)* GREATER;
 
-// ========[STATEMENTS]=========
-block: L_CURLY statement* R_CURLY;
+	// Constraint clauses for generic type parameters
+	constraint_clause:
+		WHERE type_parameter COLON constraint_list;
 
-declaration: decl = var_decl (ASSIGN init = expression)? SEMI;
+	constraint_list: type_constraint (COMMA type_constraint)*;
 
-statement:
-	block
-	| if_statement
-	| while_statement
-	| with_statement // #stmt_with // this is not useful as is
-	| try_statement
-	| throw_statement
-	| assignment_statement
-	| return_statement
-	| expression_statement
-	| declaration
-	| colon_store_decl
-	| colon_graph_decl;
+	type_constraint:
+		type_name;
+	// For now, constraints are just type names (interfaces or base classes)
 
-assignment_statement:
-	lvalue = expression (
-		op = ASSIGN
-		| op = PLUS_ASSIGN
-		| op = MINUS_ASSIGN
-	) rvalue = expression SEMI;
+	// ========[STATEMENTS]=========
+	block: L_CURLY statement* R_CURLY;
 
-expression_statement: expression? SEMI;
+	declaration:
+		decl = var_decl (ASSIGN init = expression)? SEMI;
 
-if_statement:
-	IF L_PAREN condition = expression R_PAREN ifpart = statement (
-		ELSE elsepart = statement
-	)?;
-return_statement: RETURN expression SEMI;
-while_statement:
-	WHILE L_PAREN condition = expression R_PAREN looppart = statement;
+	statement:
+		block
+		| if_statement
+		| while_statement
+		| with_statement // #stmt_with // this is not useful as is
+		| try_statement
+		| throw_statement
+		| assignment_statement
+		| return_statement
+		| expression_statement
+		| declaration
+		| colon_store_decl
+		| colon_graph_decl;
 
-with_statement: WITH expression statement;
+	assignment_statement:
+		lvalue = expression (
+			op = ASSIGN
+			| op = PLUS_ASSIGN
+			| op = MINUS_ASSIGN
+		) rvalue = expression SEMI;
 
-try_statement:
-	TRY tryBlock = block catchClauses += catch_clause* finallyBlock = finally_clause?;
+	expression_statement: expression? SEMI;
 
-catch_clause:
-	CATCH (
-		L_PAREN (
-			exceptionId = var_name COLON exceptionType = type_spec
-			| exceptionType = type_spec
-		) (WHEN L_PAREN filter = expression R_PAREN)? R_PAREN
-		| /* catch-all: no parentheses */
-	) catchBody = block;
+	if_statement:
+		IF L_PAREN condition = expression R_PAREN ifpart = statement (
+			ELSE elsepart = statement
+		)?;
+	return_statement: RETURN expression SEMI;
+	while_statement:
+		WHILE L_PAREN condition = expression R_PAREN looppart = statement;
 
-finally_clause: FINALLY finallyBody = block;
+	with_statement: WITH expression statement;
 
-throw_statement: THROW expression? SEMI;
+	try_statement:
+		TRY tryBlock = block catchClauses += catch_clause* finallyBlock = finally_clause?;
 
-var_decl: var_name COLON type_spec;
+	catch_clause:
+		CATCH (
+			L_PAREN (
+				exceptionId = var_name COLON exceptionType = type_spec
+				| exceptionType = type_spec
+			) (WHEN L_PAREN filter = expression R_PAREN)? R_PAREN
+			| /* catch-all: no parentheses */
+		) catchBody = block;
 
-var_name: IDENTIFIER;
+	finally_clause: FINALLY finallyBody = block;
 
-// ========[LISTS AND ARRAYS]=========
-list: L_BRACKET body = list_body R_BRACKET;
+	throw_statement: THROW expression? SEMI;
 
-list_body: list_literal | list_comprehension;
+	var_decl: var_name COLON type_spec;
 
-list_literal: expressionList?;
+	var_name: IDENTIFIER;
 
-list_comprehension:
-	projection = expression FROM varname = var_name IN source = expression (
-		WHERE constraints += expression (
-			COMMA constraints += expression
-		)*
-	)?;
+	// ========[LISTS AND ARRAYS]=========
+	list: L_BRACKET body = list_body R_BRACKET;
 
-type_spec:
-	function_type_spec									# type_func_spec
-	| L_BRACKET type_spec R_BRACKET						# list_type_spec
-	| type_spec L_BRACKET (size = operand)? R_BRACKET	# array_type_spec
-	| IDENTIFIER LESS type_spec GREATER					# generic_type_spec
-	| IDENTIFIER										# base_type_spec;
+	list_body: list_literal | list_comprehension;
 
-function_type_spec:
-	L_BRACKET (
-		input_types += type_spec (COMMA input_types += type_spec)*
-	)? R_BRACKET ARROW output_type = type_spec;
+	list_literal: expressionList?;
 
-// ========[EXPRESSIONS]=========
+	list_comprehension:
+		projection = expression FROM varname = var_name IN source = expression (
+			WHERE constraints += expression (
+				COMMA constraints += expression
+			)*
+		)?;
 
-expressionList:
-	expressions += expression (COMMA expressions += expression)*;
+	type_spec:
+		function_type_spec									# type_func_spec
+		| L_BRACKET type_spec R_BRACKET						# list_type_spec
+		| type_spec L_BRACKET (size = operand)? R_BRACKET	# array_type_spec
+		| IDENTIFIER LESS type_spec GREATER					# generic_type_spec
+		| IDENTIFIER										# base_type_spec;
 
-expression:
-	lhs = expression DOT rhs = expression										# exp_member_access
-	| lhs = expression index													# exp_index
-	| funcname = IDENTIFIER type_argument_list? L_PAREN expressionList? R_PAREN	# exp_funccall
-	| expression unary_op = (PLUS_PLUS | MINUS_MINUS)							# exp_unary_postfix
-	| unary_op = (
-		PLUS
-		| MINUS
-		| LOGICAL_NOT
-		| PLUS_PLUS
-		| MINUS_MINUS
-	) expression											# exp_unary
-	| THROW expression										# exp_throw
-	| <assoc = right> lhs = expression POW rhs = expression	# exp_exp
-	| lhs = expression mul_op = (
-		STAR
-		| DIV
-		| MOD
-		| LSHIFT
-		| RSHIFT
-		| AMPERSAND
-		| STAR_STAR
-	) rhs = expression # exp_mul
-	| lhs = expression add_op = (
-		PLUS
-		| MINUS
-		| OR
-		| LOGICAL_XOR
-		| PLUS_PLUS
-	) rhs = expression # exp_add
-	| lhs = expression rel_op = (
-		EQUALS
-		| NOT_EQUALS
-		| LESS
-		| LESS_OR_EQUALS
-		| GREATER
-		| GREATER_OR_EQUALS
-	) rhs = expression								# exp_rel
-	| lhs = expression LOGICAL_AND rhs = expression	# exp_and
-	| lhs = expression LOGICAL_OR rhs = expression	# exp_or
-	| query = expression GEN store = expression		# exp_query_application
-	| operand										# exp_operand;
+	function_type_spec:
+		L_BRACKET (
+			input_types += type_spec (
+				COMMA input_types += type_spec
+			)*
+		)? R_BRACKET ARROW output_type = type_spec;
 
-function_call_expression:
-	un = function_name L_PAREN expressionList? R_PAREN;
+	// ========[EXPRESSIONS]=========
 
-operand:
-	tripleExpression
-	| literal
-	| list
-	| lambda_expression
-	| var_name
-	| L_PAREN expression R_PAREN
-	| object_instantiation_expression;
+	expressionList:
+		expressions += expression (
+			COMMA expressions += expression
+		)*;
 
-lambda_expression:
-	FUN type_parameter_list? L_PAREN (
-		args += plain_paramdecl (COMMA args += plain_paramdecl)*
-	)? R_PAREN COLON return_type = type_spec constraint_clause* function_body;
+	expression:
+		lhs = expression DOT rhs = expression										# exp_member_access
+		| lhs = expression index													# exp_index
+		| funcname = IDENTIFIER type_argument_list? L_PAREN expressionList? R_PAREN	# exp_funccall
+		| expression unary_op = (PLUS_PLUS | MINUS_MINUS)							# exp_unary_postfix
+		| unary_op = (
+			PLUS
+			| MINUS
+			| LOGICAL_NOT
+			| PLUS_PLUS
+			| MINUS_MINUS
+		) expression											# exp_unary
+		| THROW expression										# exp_throw
+		| <assoc = right> lhs = expression POW rhs = expression	# exp_exp
+		| lhs = expression mul_op = (
+			STAR
+			| DIV
+			| MOD
+			| LSHIFT
+			| RSHIFT
+			| AMPERSAND
+			| STAR_STAR
+		) rhs = expression # exp_mul
+		| lhs = expression add_op = (
+			PLUS
+			| MINUS
+			| OR
+			| LOGICAL_XOR
+			| PLUS_PLUS
+		) rhs = expression # exp_add
+		| lhs = expression rel_op = (
+			EQUALS
+			| NOT_EQUALS
+			| LESS
+			| LESS_OR_EQUALS
+			| GREATER
+			| GREATER_OR_EQUALS
+		) rhs = expression								# exp_rel
+		| lhs = expression LOGICAL_AND rhs = expression	# exp_and
+		| lhs = expression LOGICAL_OR rhs = expression	# exp_or
+		| query = expression GEN store = expression		# exp_query_application
+		| operand										# exp_operand;
 
-// Treat triples as primary (non-left-recursive) expressions Semantic predicate: ensure lookahead
-// matches '<' followed by identifier and comma (for variable refs) or '<' IDENTIFIER ':' (for
-// prefixed IRIs) This allows both <var1, var2, var3> and <ex:s, ex:p, ex:o> forms
-tripleExpression:
-	{ InputStream.LA(1) == LESS && InputStream.LA(2) == IDENTIFIER && (InputStream.LA(3) == COMMA || InputStream.LA(3) == COLON)
+	function_call_expression:
+		un = function_name L_PAREN expressionList? R_PAREN;
+
+	operand:
+		tripleExpression
+		| literal
+		| list
+		| lambda_expression
+		| var_name
+		| L_PAREN expression R_PAREN
+		| object_instantiation_expression;
+
+	lambda_expression:
+		FUN type_parameter_list? L_PAREN (
+			args += plain_paramdecl (
+				COMMA args += plain_paramdecl
+			)*
+		)? R_PAREN COLON return_type = type_spec constraint_clause* function_body;
+
+	// Treat triples as primary (non-left-recursive) expressions Semantic predicate: ensure
+	// lookahead matches '<' followed by identifier and comma (for variable refs) or '<' IDENTIFIER
+	// ':' (for prefixed IRIs) This allows both <var1, var2, var3> and <ex:s, ex:p, ex:o> forms
+	tripleExpression:
+		{ InputStream.LA(1) == LESS && InputStream.LA(2) == IDENTIFIER && (InputStream.LA(3) == COMMA || InputStream.LA(3) == COLON)
 		}? (tripleLiteral | malformedTripleLiteral);
 
-object_instantiation_expression:
-	NEW type_spec (
-		L_PAREN (args += expression (COMMA args += expression)*)? R_PAREN
-	)? (
-		L_CURLY properties += initialiser_property_assignment (
-			COMMA properties += initialiser_property_assignment
-		)* R_CURLY
-	)?;
+	object_instantiation_expression:
+		NEW type_spec (
+			L_PAREN (
+				args += expression (COMMA args += expression)*
+			)? R_PAREN
+		)? (
+			L_CURLY properties += initialiser_property_assignment (
+				COMMA properties += initialiser_property_assignment
+			)* R_CURLY
+		)?;
 
-initialiser_property_assignment: var_name ASSIGN expression;
+	initialiser_property_assignment: var_name ASSIGN expression;
 
-index: L_BRACKET expression R_BRACKET;
+	index: L_BRACKET expression R_BRACKET;
 
-// Primitive literals extracted to allow extension with tripleLiteral
-primitiveLiteral:
-	NIL_LIT			# lit_nil
-	| integer		# lit_int
-	| boolean		# lit_bool
-	| string_		# lit_string
-	| REAL_LITERAL	# lit_float;
-// ===[ TRIPLE LITERALS ]=== Valid triple literal (subject, predicate, object)
-tripleLiteral:
-	LESS tripleSubject = tripleIriRef COMMA triplePredicate = tripleIriRef COMMA tripleObject =
-		tripleObjectTerm GREATER # triple_literal;
+	// Primitive literals extracted to allow extension with tripleLiteral
+	primitiveLiteral:
+		NIL_LIT			# lit_nil
+		| integer		# lit_int
+		| boolean		# lit_bool
+		| string_		# lit_string
+		| REAL_LITERAL	# lit_float;
+	// ===[ TRIPLE LITERALS ]=== Valid triple literal (subject, predicate, object)
+	tripleLiteral:
+		LESS tripleSubject = tripleIriRef COMMA triplePredicate = tripleIriRef COMMA tripleObject =
+			tripleObjectTerm GREATER # triple_literal;
 
-// Malformed variants captured for structured diagnostics (TRPL001)
-malformedTripleLiteral:
-	// Order: shorter/specific malformed patterns first, greedy tooMany last Missing object: only
-	// two components
-	LESS tripleIriRef COMMA tripleIriRef GREATER # triple_malformed_missingObject
-	// Trailing comma: has 3rd object component, then an extra comma before '>'
-	| LESS tripleIriRef COMMA tripleIriRef COMMA tripleObjectTerm COMMA GREATER #
-		triple_malformed_trailingComma
-	| LESS tripleIriRef COMMA tripleIriRef COMMA tripleIriRef COMMA tripleIriRef (
-		COMMA tripleIriRef
-	)* GREATER # triple_malformed_tooMany;
+	// Malformed variants captured for structured diagnostics (TRPL001)
+	malformedTripleLiteral:
+		// Order: shorter/specific malformed patterns first, greedy tooMany last Missing object:
+		// only two components
+		LESS tripleIriRef COMMA tripleIriRef GREATER # triple_malformed_missingObject
+		// Trailing comma: has 3rd object component, then an extra comma before '>'
+		| LESS tripleIriRef COMMA tripleIriRef COMMA tripleObjectTerm COMMA GREATER #
+			triple_malformed_trailingComma
+		| LESS tripleIriRef COMMA tripleIriRef COMMA tripleIriRef COMMA tripleIriRef (
+			COMMA tripleIriRef
+		)* GREATER # triple_malformed_tooMany;
 
-tripleObjectTerm: tripleIriRef | primitiveLiteral | list;
+	tripleObjectTerm: tripleIriRef | primitiveLiteral | list;
 
-// Allow either full IRI, prefixed alias form, or bare var reference (alias prefix resolution later)
-prefixedIri: IDENTIFIER COLON IDENTIFIER;
-// Allow both prefixed IRIs and expressions (variables, function calls, etc.) in triple components
-tripleIriRef: prefixedIri | expression;
+	// Allow either full IRI, prefixed alias form, or bare var reference (alias prefix resolution later)
+	prefixedIri: IDENTIFIER COLON IDENTIFIER;
+	// Allow both prefixed IRIs and expressions (variables, function calls, etc.) in triple components
+	tripleIriRef: prefixedIri | expression;
 
-literal: primitiveLiteral | trigLiteral | sparqlLiteral;
+	literal: primitiveLiteral | trigLiteral | sparqlLiteral;
 
-// TriG Literal Expression - @< ... > Uses lexer mode TRIG_LITERAL_MODE to capture raw content
-trigLiteral: TRIG_START trigLiteralContent* TRIG_CLOSE_ANGLE;
+	// TriG Literal Expression - @< ... > Uses lexer mode TRIG_LITERAL_MODE to capture raw content
+	trigLiteral:
+		TRIG_START trigLiteralContent* TRIG_CLOSE_ANGLE;
 
-// Content tokens from TRIG_LITERAL_MODE
-trigLiteralContent:
-	TRIG_TEXT
-	| TRIG_OPEN_ANGLE
-	| TRIG_CLOSE_ANGLE_CONTENT // Nested closing angle brackets
-	| TRIG_ESCAPED_OPEN // {{{ for literal {{
-	| TRIG_ESCAPED_CLOSE // }}} for literal }}
-	| TRIG_SINGLE_OPEN_BRACE // Single { (not part of interpolation)
-	| TRIG_SINGLE_CLOSE_BRACE // Single } (not part of interpolation)
-	| trigInterpolation; // {{ expression }}
+	// Content tokens from TRIG_LITERAL_MODE
+	trigLiteralContent:
+		TRIG_TEXT
+		| TRIG_OPEN_ANGLE
+		| TRIG_CLOSE_ANGLE_CONTENT // Nested closing angle brackets
+		| TRIG_ESCAPED_OPEN // {{{ for literal {{
+		| TRIG_ESCAPED_CLOSE // }}} for literal }}
+		| TRIG_SINGLE_OPEN_BRACE // Single { (not part of interpolation)
+		| TRIG_SINGLE_CLOSE_BRACE // Single } (not part of interpolation)
+		| trigInterpolation;
+	// {{ expression }}
 
-// Interpolation: {{ expression }} After TRIG_INTERP_START, we're in DEFAULT_MODE and can parse any
-// expression Then we expect }} to close it (TRIG_INTERP_END which pops back to TRIG_LITERAL_MODE)
-trigInterpolation: TRIG_INTERP_START expression TRIG_INTERP_END;
+	// Interpolation: {{ expression }} After TRIG_INTERP_START, we're in DEFAULT_MODE and can parse
+	// any expression Then we expect }} to close it (TRIG_INTERP_END which pops back to
+	// TRIG_LITERAL_MODE)
+	trigInterpolation:
+		TRIG_INTERP_START expression TRIG_INTERP_END;
 
-// SPARQL Literal Expression - ?< ... > Uses lexer mode SPARQL_LITERAL_MODE to capture raw SPARQL
-// query content
-sparqlLiteral:
-	SPARQL_START sparqlLiteralContent* SPARQL_CLOSE_ANGLE;
+	// SPARQL Literal Expression - ?< ... > Uses lexer mode SPARQL_LITERAL_MODE to capture raw
+	// SPARQL query content
+	sparqlLiteral:
+		SPARQL_START sparqlLiteralContent* SPARQL_CLOSE_ANGLE;
 
-// Content tokens from SPARQL_LITERAL_MODE
-sparqlLiteralContent:
-	SPARQL_CONTENT // Raw SPARQL text (no tokenization of SPARQL syntax)
-	| SPARQL_OPEN_ANGLE // Opening angle bracket in IRIs
-	| SPARQL_CLOSE_ANGLE_CONTENT // Closing angle bracket in IRIs (not the final one)
-	| SPARQL_SINGLE_OPEN_BRACE // Single { (not part of interpolation)
-	| SPARQL_SINGLE_CLOSE_BRACE // Single } (not part of interpolation)
-	| sparqlInterpolation; // {{ expression }}
+	// Content tokens from SPARQL_LITERAL_MODE
+	sparqlLiteralContent:
+		SPARQL_CONTENT // Raw SPARQL text (no tokenization of SPARQL syntax)
+		| SPARQL_OPEN_ANGLE // Opening angle bracket in IRIs
+		| SPARQL_CLOSE_ANGLE_CONTENT // Closing angle bracket in IRIs (not the final one)
+		| SPARQL_SINGLE_OPEN_BRACE // Single { (not part of interpolation)
+		| SPARQL_SINGLE_CLOSE_BRACE // Single } (not part of interpolation)
+		| sparqlInterpolation;
+	// {{ expression }}
 
-// Interpolation: {{ expression }} After SPARQL_INTERP_START, we're in DEFAULT_MODE and can parse
-// any expression Then we expect }} to close it (TRIG_INTERP_END which pops back to
-// SPARQL_LITERAL_MODE)
-sparqlInterpolation:
-	SPARQL_INTERP_START expression TRIG_INTERP_END;
+	// Interpolation: {{ expression }} After SPARQL_INTERP_START, we're in DEFAULT_MODE and can
+	// parse any expression Then we expect }} to close it (TRIG_INTERP_END which pops back to
+	// SPARQL_LITERAL_MODE)
+	sparqlInterpolation:
+		SPARQL_INTERP_START expression TRIG_INTERP_END;
 
-string_:
-	INTERPRETED_STRING_LIT		# str_plain
-	| INTERPOLATED_STRING_LIT	# str_interpolated
-	| RAW_STRING_LIT			# str_raw;
+	string_:
+		INTERPRETED_STRING_LIT		# str_plain
+		| INTERPOLATED_STRING_LIT	# str_interpolated
+		| RAW_STRING_LIT			# str_raw;
 
-boolean: TRUE | FALSE;
+	boolean: TRUE | FALSE;
 
-integer:
-	DECIMAL_LIT suffix = (SUF_SHORT | SUF_LONG)?	# num_decimal
-	| BINARY_LIT									# num_binary
-	| OCTAL_LIT										# num_octal
-	| HEX_LIT										# num_hex
-	| IMAGINARY_LIT									# num_imaginary
-	| RUNE_LIT										# num_rune;
+	integer:
+		DECIMAL_LIT suffix = (SUF_SHORT | SUF_LONG)?	# num_decimal
+		| BINARY_LIT									# num_binary
+		| OCTAL_LIT										# num_octal
+		| HEX_LIT										# num_hex
+		| IMAGINARY_LIT									# num_imaginary
+		| RUNE_LIT										# num_rune;
 
-operandName: IDENTIFIER;
+	operandName: IDENTIFIER;
 
-qualifiedIdent: IDENTIFIER DOT IDENTIFIER;
+	qualifiedIdent: IDENTIFIER DOT IDENTIFIER;
 
-// =====[KNOWLEDGE MANAGEMENT]=========
-iri: IRIREF;
+	// =====[KNOWLEDGE MANAGEMENT]=========
+	iri: IRIREF;
 
-graphDeclaration:
-	GRAPH name = IDENTIFIER (IN aliasScope = alias_scope_ref)? ASSIGN L_CURLY assignment_statement*
-		R_CURLY;
+	graphDeclaration:
+		GRAPH name = IDENTIFIER (IN aliasScope = alias_scope_ref)? ASSIGN L_CURLY
+			assignment_statement* R_CURLY;
 
-// Colon form graph variable: g : graph in <scope?> = graphExpression;
-colon_graph_decl:
-	name = IDENTIFIER COLON GRAPH (
-		IN aliasScope = alias_scope_ref
-	)? ASSIGN expression SEMI;
+	// Colon form graph variable: g : graph in <scope?> = graphExpression;
+	colon_graph_decl:
+		name = IDENTIFIER COLON GRAPH (
+			IN aliasScope = alias_scope_ref
+		)? ASSIGN expression SEMI;
 
-// Prefer simple identifier first to avoid mispredicting IRI when both are viable
-alias_scope_ref: IDENTIFIER | iri;
+	// Prefer simple identifier first to avoid mispredicting IRI when both are viable
+	alias_scope_ref: IDENTIFIER | iri;
 
-// Colon-form variant: name : store = sparql_store(<iri>);
-colon_store_decl:
-	store_name = IDENTIFIER COLON STORE ASSIGN SPARQL L_PAREN iri R_PAREN SEMI;
+	// Colon-form variant: name : store = sparql_store(<iri>);
+	colon_store_decl:
+		store_name = IDENTIFIER COLON STORE ASSIGN SPARQL L_PAREN iri R_PAREN SEMI;

@@ -168,8 +168,113 @@ public class ModuleDefBuilder : IBuilder<ast.ModuleDef>
     }
 
 }
+public class TypeParameterDefBuilder : IBuilder<ast.TypeParameterDef>
+{
+    private ast.TypeParameterName _Name;
+    private List<ast.TypeConstraint> _Constraints = [];
+    private ast.Visibility _Visibility;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.TypeParameterDef Build()
+    {
+        return new ast.TypeParameterDef(){
+             Name = this._Name // from TypeParameterDef
+           , Constraints = this._Constraints // from TypeParameterDef
+           , Visibility = this._Visibility // from Definition
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public TypeParameterDefBuilder WithName(ast.TypeParameterName value){
+        _Name = value;
+        return this;
+    }
+
+    public TypeParameterDefBuilder WithConstraints(List<ast.TypeConstraint> value){
+        _Constraints = value;
+        return this;
+    }
+
+    public TypeParameterDefBuilder AddingItemToConstraints(ast.TypeConstraint value){
+        _Constraints  ??= [];
+        _Constraints.Add(value);
+        return this;
+    }
+    public TypeParameterDefBuilder WithVisibility(ast.Visibility value){
+        _Visibility = value;
+        return this;
+    }
+
+    public TypeParameterDefBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class InterfaceConstraintBuilder : IBuilder<ast.InterfaceConstraint>
+{
+    private ast_model.TypeSystem.TypeName _InterfaceName;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.InterfaceConstraint Build()
+    {
+        return new ast.InterfaceConstraint(){
+             InterfaceName = this._InterfaceName // from InterfaceConstraint
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public InterfaceConstraintBuilder WithInterfaceName(ast_model.TypeSystem.TypeName value){
+        _InterfaceName = value;
+        return this;
+    }
+
+    public InterfaceConstraintBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class BaseClassConstraintBuilder : IBuilder<ast.BaseClassConstraint>
+{
+    private ast_model.TypeSystem.TypeName _BaseClassName;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.BaseClassConstraint Build()
+    {
+        return new ast.BaseClassConstraint(){
+             BaseClassName = this._BaseClassName // from BaseClassConstraint
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public BaseClassConstraintBuilder WithBaseClassName(ast_model.TypeSystem.TypeName value){
+        _BaseClassName = value;
+        return this;
+    }
+
+    public BaseClassConstraintBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class ConstructorConstraintBuilder : IBuilder<ast.ConstructorConstraint>
+{
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.ConstructorConstraint Build()
+    {
+        return new ast.ConstructorConstraint(){
+             Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public ConstructorConstraintBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
 {
+    private List<ast.TypeParameterDef> _TypeParameters = [];
     private List<ast.ParamDef> _Params = [];
     private ast.BlockStatement _Body;
     private ast_model.TypeSystem.FifthType _ReturnType;
@@ -184,7 +289,8 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
     public ast.FunctionDef Build()
     {
         return new ast.FunctionDef(){
-             Params = this._Params // from FunctionDef
+             TypeParameters = this._TypeParameters // from FunctionDef
+           , Params = this._Params // from FunctionDef
            , Body = this._Body // from FunctionDef
            , ReturnType = this._ReturnType // from FunctionDef
            , Name = this._Name // from FunctionDef
@@ -195,6 +301,16 @@ public class FunctionDefBuilder : IBuilder<ast.FunctionDef>
            , SymbolTable = this._SymbolTable // from ScopeAstThing
            , Annotations = this._Annotations // from AnnotatedThing
         };
+    }
+    public FunctionDefBuilder WithTypeParameters(List<ast.TypeParameterDef> value){
+        _TypeParameters = value;
+        return this;
+    }
+
+    public FunctionDefBuilder AddingItemToTypeParameters(ast.TypeParameterDef value){
+        _TypeParameters  ??= [];
+        _TypeParameters.Add(value);
+        return this;
     }
     public FunctionDefBuilder WithParams(List<ast.ParamDef> value){
         _Params = value;
@@ -704,6 +820,7 @@ public class InferenceRuleDefBuilder : IBuilder<ast.InferenceRuleDef>
 public class ParamDefBuilder : IBuilder<ast.ParamDef>
 {
     private ast_model.TypeSystem.TypeName _TypeName;
+    private ast.CollectionType _CollectionType;
     private System.String _Name;
     private ast.Expression _ParameterConstraint;
     private ast.ParamDestructureDef _DestructureDef;
@@ -714,6 +831,7 @@ public class ParamDefBuilder : IBuilder<ast.ParamDef>
     {
         return new ast.ParamDef(){
              TypeName = this._TypeName // from ParamDef
+           , CollectionType = this._CollectionType // from ParamDef
            , Name = this._Name // from ParamDef
            , ParameterConstraint = this._ParameterConstraint // from ParamDef
            , DestructureDef = this._DestructureDef // from ParamDef
@@ -723,6 +841,11 @@ public class ParamDefBuilder : IBuilder<ast.ParamDef>
     }
     public ParamDefBuilder WithTypeName(ast_model.TypeSystem.TypeName value){
         _TypeName = value;
+        return this;
+    }
+
+    public ParamDefBuilder WithCollectionType(ast.CollectionType value){
+        _CollectionType = value;
         return this;
     }
 
@@ -857,6 +980,7 @@ public class TypeDefBuilder : IBuilder<ast.TypeDef>
 public class ClassDefBuilder : IBuilder<ast.ClassDef>
 {
     private ast_model.TypeSystem.TypeName _Name;
+    private List<ast.TypeParameterDef> _TypeParameters = [];
     private List<ast.MemberDef> _MemberDefs = [];
     private List<System.String> _BaseClasses = [];
     private System.String _AliasScope;
@@ -869,6 +993,7 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
     {
         return new ast.ClassDef(){
              Name = this._Name // from ClassDef
+           , TypeParameters = this._TypeParameters // from ClassDef
            , MemberDefs = this._MemberDefs // from ClassDef
            , BaseClasses = this._BaseClasses // from ClassDef
            , AliasScope = this._AliasScope // from ClassDef
@@ -883,6 +1008,16 @@ public class ClassDefBuilder : IBuilder<ast.ClassDef>
         return this;
     }
 
+    public ClassDefBuilder WithTypeParameters(List<ast.TypeParameterDef> value){
+        _TypeParameters = value;
+        return this;
+    }
+
+    public ClassDefBuilder AddingItemToTypeParameters(ast.TypeParameterDef value){
+        _TypeParameters  ??= [];
+        _TypeParameters.Add(value);
+        return this;
+    }
     public ClassDefBuilder WithMemberDefs(List<ast.MemberDef> value){
         _MemberDefs = value;
         return this;
@@ -1467,24 +1602,75 @@ public class WhileStatementBuilder : IBuilder<ast.WhileStatement>
     }
 
 }
-public class GraphAssertionBlockStatementBuilder : IBuilder<ast.GraphAssertionBlockStatement>
+public class TryStatementBuilder : IBuilder<ast.TryStatement>
 {
-    private ast.GraphAssertionBlockExp _Content;
+    private ast.BlockStatement _TryBlock;
+    private List<ast.CatchClause> _CatchClauses = [];
     private Dictionary<System.String, System.Object> _Annotations;
     
-    public ast.GraphAssertionBlockStatement Build()
+    public ast.TryStatement Build()
     {
-        return new ast.GraphAssertionBlockStatement(){
-             Content = this._Content // from GraphAssertionBlockStatement
+        return new ast.TryStatement(){
+             TryBlock = this._TryBlock // from TryStatement
+           , CatchClauses = this._CatchClauses // from TryStatement
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
-    public GraphAssertionBlockStatementBuilder WithContent(ast.GraphAssertionBlockExp value){
-        _Content = value;
+    public TryStatementBuilder WithTryBlock(ast.BlockStatement value){
+        _TryBlock = value;
         return this;
     }
 
-    public GraphAssertionBlockStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+    public TryStatementBuilder WithCatchClauses(List<ast.CatchClause> value){
+        _CatchClauses = value;
+        return this;
+    }
+
+    public TryStatementBuilder AddingItemToCatchClauses(ast.CatchClause value){
+        _CatchClauses  ??= [];
+        _CatchClauses.Add(value);
+        return this;
+    }
+    public TryStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class CatchClauseBuilder : IBuilder<ast.CatchClause>
+{
+    private ast.BlockStatement _Body;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.CatchClause Build()
+    {
+        return new ast.CatchClause(){
+             Body = this._Body // from CatchClause
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public CatchClauseBuilder WithBody(ast.BlockStatement value){
+        _Body = value;
+        return this;
+    }
+
+    public CatchClauseBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class ThrowStatementBuilder : IBuilder<ast.ThrowStatement>
+{
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.ThrowStatement Build()
+    {
+        return new ast.ThrowStatement(){
+             Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public ThrowStatementBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
@@ -1614,29 +1800,6 @@ public class WithScopeStatementBuilder : IBuilder<ast.WithScopeStatement>
     }
 
 }
-public class GraphAssertionBlockExpBuilder : IBuilder<ast.GraphAssertionBlockExp>
-{
-    private ast.BlockStatement _Content;
-    private Dictionary<System.String, System.Object> _Annotations;
-    
-    public ast.GraphAssertionBlockExp Build()
-    {
-        return new ast.GraphAssertionBlockExp(){
-             Content = this._Content // from GraphAssertionBlockExp
-           , Annotations = this._Annotations // from AnnotatedThing
-        };
-    }
-    public GraphAssertionBlockExpBuilder WithContent(ast.BlockStatement value){
-        _Content = value;
-        return this;
-    }
-
-    public GraphAssertionBlockExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
-        _Annotations = value;
-        return this;
-    }
-
-}
 public class BinaryExpBuilder : IBuilder<ast.BinaryExp>
 {
     private ast.Expression _LHS;
@@ -1724,6 +1887,34 @@ public class FuncCallExpBuilder : IBuilder<ast.FuncCallExp>
         };
     }
     public FuncCallExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class BaseConstructorCallBuilder : IBuilder<ast.BaseConstructorCall>
+{
+    private List<ast.Expression> _Arguments = [];
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.BaseConstructorCall Build()
+    {
+        return new ast.BaseConstructorCall(){
+             Arguments = this._Arguments // from BaseConstructorCall
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public BaseConstructorCallBuilder WithArguments(List<ast.Expression> value){
+        _Arguments = value;
+        return this;
+    }
+
+    public BaseConstructorCallBuilder AddingItemToArguments(ast.Expression value){
+        _Arguments  ??= [];
+        _Arguments.Add(value);
+        return this;
+    }
+    public BaseConstructorCallBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
     }
@@ -2049,6 +2240,203 @@ public class AtomLiteralExpBuilder : IBuilder<ast.AtomLiteralExp>
     }
 
 }
+public class TriGLiteralExpressionBuilder : IBuilder<ast.TriGLiteralExpression>
+{
+    private System.String _Content;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.TriGLiteralExpression Build()
+    {
+        return new ast.TriGLiteralExpression(){
+             Content = this._Content // from TriGLiteralExpression
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public TriGLiteralExpressionBuilder WithContent(System.String value){
+        _Content = value;
+        return this;
+    }
+
+    public TriGLiteralExpressionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class InterpolatedExpressionBuilder : IBuilder<ast.InterpolatedExpression>
+{
+    private ast.Expression _Expression;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.InterpolatedExpression Build()
+    {
+        return new ast.InterpolatedExpression(){
+             Expression = this._Expression // from InterpolatedExpression
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public InterpolatedExpressionBuilder WithExpression(ast.Expression value){
+        _Expression = value;
+        return this;
+    }
+
+    public InterpolatedExpressionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class SparqlLiteralExpressionBuilder : IBuilder<ast.SparqlLiteralExpression>
+{
+    private System.String _SparqlText;
+    private List<ast.VariableBinding> _Bindings = [];
+    private List<ast.Interpolation> _Interpolations = [];
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.SparqlLiteralExpression Build()
+    {
+        return new ast.SparqlLiteralExpression(){
+             SparqlText = this._SparqlText // from SparqlLiteralExpression
+           , Bindings = this._Bindings // from SparqlLiteralExpression
+           , Interpolations = this._Interpolations // from SparqlLiteralExpression
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public SparqlLiteralExpressionBuilder WithSparqlText(System.String value){
+        _SparqlText = value;
+        return this;
+    }
+
+    public SparqlLiteralExpressionBuilder WithBindings(List<ast.VariableBinding> value){
+        _Bindings = value;
+        return this;
+    }
+
+    public SparqlLiteralExpressionBuilder AddingItemToBindings(ast.VariableBinding value){
+        _Bindings  ??= [];
+        _Bindings.Add(value);
+        return this;
+    }
+    public SparqlLiteralExpressionBuilder WithInterpolations(List<ast.Interpolation> value){
+        _Interpolations = value;
+        return this;
+    }
+
+    public SparqlLiteralExpressionBuilder AddingItemToInterpolations(ast.Interpolation value){
+        _Interpolations  ??= [];
+        _Interpolations.Add(value);
+        return this;
+    }
+    public SparqlLiteralExpressionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class VariableBindingBuilder : IBuilder<ast.VariableBinding>
+{
+    private System.String _Name;
+    private System.Int32 _PositionInLiteral;
+    private System.Int32 _Length;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.VariableBinding Build()
+    {
+        return new ast.VariableBinding(){
+             Name = this._Name // from VariableBinding
+           , PositionInLiteral = this._PositionInLiteral // from VariableBinding
+           , Length = this._Length // from VariableBinding
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public VariableBindingBuilder WithName(System.String value){
+        _Name = value;
+        return this;
+    }
+
+    public VariableBindingBuilder WithPositionInLiteral(System.Int32 value){
+        _PositionInLiteral = value;
+        return this;
+    }
+
+    public VariableBindingBuilder WithLength(System.Int32 value){
+        _Length = value;
+        return this;
+    }
+
+    public VariableBindingBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class InterpolationBuilder : IBuilder<ast.Interpolation>
+{
+    private System.Int32 _Position;
+    private System.Int32 _Length;
+    private ast.Expression _Expression;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.Interpolation Build()
+    {
+        return new ast.Interpolation(){
+             Position = this._Position // from Interpolation
+           , Length = this._Length // from Interpolation
+           , Expression = this._Expression // from Interpolation
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public InterpolationBuilder WithPosition(System.Int32 value){
+        _Position = value;
+        return this;
+    }
+
+    public InterpolationBuilder WithLength(System.Int32 value){
+        _Length = value;
+        return this;
+    }
+
+    public InterpolationBuilder WithExpression(ast.Expression value){
+        _Expression = value;
+        return this;
+    }
+
+    public InterpolationBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
+public class QueryApplicationExpBuilder : IBuilder<ast.QueryApplicationExp>
+{
+    private ast.Expression _Query;
+    private ast.Expression _Store;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.QueryApplicationExp Build()
+    {
+        return new ast.QueryApplicationExp(){
+             Query = this._Query // from QueryApplicationExp
+           , Store = this._Store // from QueryApplicationExp
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public QueryApplicationExpBuilder WithQuery(ast.Expression value){
+        _Query = value;
+        return this;
+    }
+
+    public QueryApplicationExpBuilder WithStore(ast.Expression value){
+        _Store = value;
+        return this;
+    }
+
+    public QueryApplicationExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class MemberAccessExpBuilder : IBuilder<ast.MemberAccessExp>
 {
     private ast.Expression _LHS;
@@ -2171,6 +2559,29 @@ public class UnaryExpBuilder : IBuilder<ast.UnaryExp>
     }
 
 }
+public class ThrowExpBuilder : IBuilder<ast.ThrowExp>
+{
+    private ast.Expression _Exception;
+    private Dictionary<System.String, System.Object> _Annotations;
+    
+    public ast.ThrowExp Build()
+    {
+        return new ast.ThrowExp(){
+             Exception = this._Exception // from ThrowExp
+           , Annotations = this._Annotations // from AnnotatedThing
+        };
+    }
+    public ThrowExpBuilder WithException(ast.Expression value){
+        _Exception = value;
+        return this;
+    }
+
+    public ThrowExpBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
+        return this;
+    }
+
+}
 public class VarRefExpBuilder : IBuilder<ast.VarRefExp>
 {
     private System.String _VarName;
@@ -2224,35 +2635,47 @@ public class ListLiteralBuilder : IBuilder<ast.ListLiteral>
 }
 public class ListComprehensionBuilder : IBuilder<ast.ListComprehension>
 {
+    private ast.Expression _Projection;
+    private ast.Expression _Source;
     private System.String _VarName;
-    private System.String _SourceName;
-    private ast.Expression _MembershipConstraint;
+    private List<ast.Expression> _Constraints = [];
     private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.ListComprehension Build()
     {
         return new ast.ListComprehension(){
-             VarName = this._VarName // from ListComprehension
-           , SourceName = this._SourceName // from ListComprehension
-           , MembershipConstraint = this._MembershipConstraint // from ListComprehension
+             Projection = this._Projection // from ListComprehension
+           , Source = this._Source // from ListComprehension
+           , VarName = this._VarName // from ListComprehension
+           , Constraints = this._Constraints // from ListComprehension
            , Annotations = this._Annotations // from AnnotatedThing
         };
     }
+    public ListComprehensionBuilder WithProjection(ast.Expression value){
+        _Projection = value;
+        return this;
+    }
+
+    public ListComprehensionBuilder WithSource(ast.Expression value){
+        _Source = value;
+        return this;
+    }
+
     public ListComprehensionBuilder WithVarName(System.String value){
         _VarName = value;
         return this;
     }
 
-    public ListComprehensionBuilder WithSourceName(System.String value){
-        _SourceName = value;
+    public ListComprehensionBuilder WithConstraints(List<ast.Expression> value){
+        _Constraints = value;
         return this;
     }
 
-    public ListComprehensionBuilder WithMembershipConstraint(ast.Expression value){
-        _MembershipConstraint = value;
+    public ListComprehensionBuilder AddingItemToConstraints(ast.Expression value){
+        _Constraints  ??= [];
+        _Constraints.Add(value);
         return this;
     }
-
     public ListComprehensionBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
         return this;
@@ -2326,6 +2749,29 @@ public class GraphBuilder : IBuilder<ast.Graph>
     }
     public GraphBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
         _Annotations = value;
+        return this;
+    }
+
+}
+public class NamespaceImportDirectiveBuilder : IBuilder<ast.NamespaceImportDirective>
+{
+    private System.String _Namespace;
+    private ast.SourceLocationMetadata _Location;
+    
+    public ast.NamespaceImportDirective Build()
+    {
+        return new ast.NamespaceImportDirective(){
+             Namespace = this._Namespace // from NamespaceImportDirective
+           , Location = this._Location // from NamespaceImportDirective
+        };
+    }
+    public NamespaceImportDirectiveBuilder WithNamespace(System.String value){
+        _Namespace = value;
+        return this;
+    }
+
+    public NamespaceImportDirectiveBuilder WithLocation(ast.SourceLocationMetadata value){
+        _Location = value;
         return this;
     }
 

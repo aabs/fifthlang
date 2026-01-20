@@ -12,9 +12,21 @@ var commandOption = new Option<string>(
 commandOption.SetDefaultValue("build");
 
 // Define source option
-var sourceOption = new Option<string>(
+var sourceOption = new Option<string[]>(
     name: "--source",
-    description: "Source file or directory path");
+    description: "Source file or directory path")
+{
+    IsRequired = false,
+    AllowMultipleArgumentsPerToken = true
+};
+
+// Define source manifest option
+var sourceManifestOption = new Option<string>(
+    name: "--source-manifest",
+    description: "Path to a manifest file listing .5th source modules")
+{
+    IsRequired = false
+};
 
 // Define output option  
 var outputOption = new Option<string>(
@@ -50,23 +62,28 @@ var rootCommand = new RootCommand("Fifth Language Compiler (fifthc)")
 {
     commandOption,
     sourceOption,
+    sourceManifestOption,
     outputOption,
     argsOption,
     keepTempOption,
     diagnosticsOption
 };
 
-rootCommand.SetHandler(async (command, source, output, args, keepTemp, diagnostics) =>
+rootCommand.SetHandler(async (command, source, sourceManifest, output, args, keepTemp, diagnostics) =>
 {
     var compilerCommand = ParseCommand(command);
+    var sourceFiles = source ?? Array.Empty<string>();
+    var primarySource = sourceFiles.FirstOrDefault() ?? string.Empty;
 
     var options = new CompilerOptions(
         Command: compilerCommand,
-        Source: source ?? "",
+        Source: primarySource,
         Output: output ?? "",
         Args: args ?? Array.Empty<string>(),
         KeepTemp: keepTemp,
-        Diagnostics: diagnostics);
+        Diagnostics: diagnostics,
+        SourceFiles: sourceFiles,
+        SourceManifest: sourceManifest);
 
     var compiler = new Compiler();
     var result = await compiler.CompileAsync(options);
@@ -97,7 +114,7 @@ rootCommand.SetHandler(async (command, source, output, args, keepTemp, diagnosti
     }
 
     Environment.Exit(result.ExitCode);
-}, commandOption, sourceOption, outputOption, argsOption, keepTempOption, diagnosticsOption);
+}, commandOption, sourceOption, sourceManifestOption, outputOption, argsOption, keepTempOption, diagnosticsOption);
 
 return await rootCommand.InvokeAsync(args);
 
