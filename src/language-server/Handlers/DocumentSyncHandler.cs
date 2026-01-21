@@ -1,12 +1,11 @@
-﻿using MediatR;
+﻿using System.Linq;
+using MediatR;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Fifth.LanguageServer.Parsing;
-using System.Linq;
 
 namespace Fifth.LanguageServer.Handlers;
 
@@ -71,9 +70,7 @@ public sealed class DocumentSyncHandler : TextDocumentSyncHandlerBase
     {
         var diagnostics = document.Diagnostics.Select(d => new Diagnostic
         {
-            Range = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range(
-                new Position(d.Line, d.Column),
-                new Position(d.Line, d.Column + 1)),
+            Range = new Range(new Position(d.Line, d.Column), new Position(d.Line, d.Column + 1)),
             Message = d.Message,
             Severity = DiagnosticSeverity.Error,
             Source = "fifth"
