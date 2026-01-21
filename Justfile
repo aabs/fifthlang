@@ -74,6 +74,14 @@ clean:
 build-docs:
 	mkdocs gh-deploy
 
+# Build Fifth quick reference (Typst)
+build-quick-reference:
+	@if command -v typst >/dev/null 2>&1; then \
+		typst compile docs/Getting-Started/quick-reference/quick-reference.typ docs/Getting-Started/quick-reference/quick-reference.pdf; \
+	else \
+		printf "typst CLI not found. Install typst to build docs/quick-reference.pdf\n"; \
+	fi
+
 # Build the AST model project
 build-ast-model:
 	dotnet build src/ast-model/ast_model.csproj
