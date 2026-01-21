@@ -6,8 +6,6 @@ public sealed class DocumentStore
 {
     private readonly ConcurrentDictionary<Uri, string> _documents = new();
 
-    public void Open(Uri uri, string text) => _documents[uri] = text;
-
     public void Close(Uri uri) => _documents.TryRemove(uri, out _);
 
     public void Update(Uri uri, string text) => _documents[uri] = text;

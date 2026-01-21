@@ -1,5 +1,6 @@
 ﻿using OmniSharp.Extensions.LanguageServer.Server;
 using Microsoft.Extensions.DependencyInjection;
+using Fifth.LanguageServer.Parsing;
 
 namespace Fifth.LanguageServer;
 
@@ -23,6 +24,8 @@ public static class Program
             options.WithHandler<Handlers.CompletionHandler>();
             options.WithServices(services =>
             {
+                services.AddSingleton<ParsingService>();
+                services.AddSingleton<DocumentService>();
                 services.AddSingleton<DocumentStore>();
             });
         });
