@@ -758,7 +758,11 @@ public class AstBuilderVisitor : FifthParserBaseVisitor<IAstThing>
                 var importName = ParseQualifiedName(importCtx.qualified_name());
                 if (!string.IsNullOrWhiteSpace(importName))
                 {
-                    imports.Add(new NamespaceImportDirective(importName, GetLocationDetails(importCtx)));
+                    imports.Add(new NamespaceImportDirective
+                    {
+                        Namespace = importName,
+                        Location = GetLocationDetails(importCtx)
+                    });
                 }
             }
 

@@ -45,7 +45,7 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	/// <return>The visitor result.</return>
 	public virtual Result VisitFifth([NotNull] FifthParser.FifthContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.module_import"/>.
+	/// Visit a parse tree produced by <see cref="FifthParser.namespace_decl"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -53,9 +53,9 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitModule_import([NotNull] FifthParser.Module_importContext context) { return VisitChildren(context); }
+	public virtual Result VisitNamespace_decl([NotNull] FifthParser.Namespace_declContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="FifthParser.module_name"/>.
+	/// Visit a parse tree produced by <see cref="FifthParser.import_decl"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -63,7 +63,17 @@ public partial class FifthParserBaseVisitor<Result> : AbstractParseTreeVisitor<R
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitModule_name([NotNull] FifthParser.Module_nameContext context) { return VisitChildren(context); }
+	public virtual Result VisitImport_decl([NotNull] FifthParser.Import_declContext context) { return VisitChildren(context); }
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="FifthParser.qualified_name"/>.
+	/// <para>
+	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
+	/// on <paramref name="context"/>.
+	/// </para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	public virtual Result VisitQualified_name([NotNull] FifthParser.Qualified_nameContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="FifthParser.packagename"/>.
 	/// <para>

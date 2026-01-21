@@ -706,7 +706,7 @@ Examples:
             {
                 if (assembly.TryGetRawMetadata(out byte* metadata, out int length))
                 {
-                    var moduleMetadata = ModuleMetadata.CreateFromMetadata((IntPtr)metadata, length);
+                    var moduleMetadata = Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata((IntPtr)metadata, length);
                     var assemblyMetadata = AssemblyMetadata.Create(moduleMetadata);
                     var display = assembly.GetName().Name ?? assembly.FullName ?? Guid.NewGuid().ToString();
                     return assemblyMetadata.GetReference(display: display);

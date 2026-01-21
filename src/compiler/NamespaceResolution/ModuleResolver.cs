@@ -10,7 +10,7 @@ public sealed class ModuleResolver
         var sources = ResolveSourceFiles(options, diagnostics);
         if (sources.Count == 0)
         {
-            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "No .5th source files were provided for compilation."));
+            diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, "No .5th files found."));
             return new ModuleResolutionResult(null, [], 0);
         }
 
@@ -43,7 +43,7 @@ public sealed class ModuleResolver
 
                 metadata.Add(ModuleMetadata.FromModule(updatedModule));
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Parse error: {ex.Message}", source));
             }
@@ -55,13 +55,14 @@ public sealed class ModuleResolver
         }
 
         var combinedAssembly = baseAssembly with { Modules = modules };
-        combinedAssembly.Annotations ??= new Dictionary<string, object>();
-        combinedAssembly.Annotations[ModuleMetadataKey] = metadata;
-
-        if (!ValidateEntryPoint(metadata, diagnostics))
+        var annotations = combinedAssembly.Annotations ?? new Dictionary<string, object>();
+        annotations[ModuleMetadataKey] = metadata;
+        if (!ReferenceEquals(annotations, combinedAssembly.Annotations))
         {
-            return new ModuleResolutionResult(null, metadata, sources.Count);
+            combinedAssembly = combinedAssembly with { Annotations = annotations };
         }
+
+        ValidateEntryPoint(metadata, diagnostics);
 
         return new ModuleResolutionResult(combinedAssembly, metadata, sources.Count);
     }
@@ -98,7 +99,7 @@ public sealed class ModuleResolver
 
         if (Directory.Exists(options.Source))
         {
-            sources.AddRange(Directory.GetFiles(options.Source, "*.5th", SearchOption.AllDirectories)
+            sources.AddRange(Directory.GetFiles(options.Source, "*.5th", SearchOption.TopDirectoryOnly)
                 .OrderBy(f => f));
             return sources;
         }
@@ -120,6 +121,11 @@ public sealed class ModuleResolver
 
     private static bool ValidateEntryPoint(IReadOnlyList<ModuleMetadata> modules, List<Diagnostic> diagnostics)
     {
+        if (modules.Count <= 1)
+        {
+            return true;
+        }
+
         var mainModules = new List<string>();
 
         foreach (var module in modules)
@@ -150,7 +156,7 @@ public sealed class ModuleResolver
         diagnostics.Add(new Diagnostic(
             DiagnosticLevel.Error,
             $"{description} across modules: {moduleList}",
-            source: moduleList));
+            Source: moduleList));
 
         return false;
     }

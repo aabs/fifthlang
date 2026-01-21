@@ -37,10 +37,15 @@ public class NamespaceImportResolverVisitor : DefaultRecursiveDescentVisitor
 
         foreach (var module in updatedModules)
         {
-            ApplyImports(module, index, importGraph, emitter);
+            var resolvedNamespaces = new HashSet<string>(StringComparer.Ordinal);
+            ApplyImports(module, index, importGraph, emitter, resolvedNamespaces);
+
+            if (module.Module.Annotations != null)
+            {
+                module.Module.Annotations[ModuleAnnotationKeys.ResolvedImports] = resolvedNamespaces.ToList();
+            }
         }
 
-        ctx.Annotations ??= new Dictionary<string, object>();
         ctx.Annotations[ModuleResolver.ModuleMetadataKey] = updatedModules;
 
         stopwatch.Stop();
@@ -78,7 +83,7 @@ public class NamespaceImportResolverVisitor : DefaultRecursiveDescentVisitor
         return graph;
     }
 
-    private static void ApplyImports(ModuleMetadata module, NamespaceScopeIndex index, NamespaceImportGraph graph, NamespaceDiagnosticEmitter emitter)
+    private static void ApplyImports(ModuleMetadata module, NamespaceScopeIndex index, NamespaceImportGraph graph, NamespaceDiagnosticEmitter emitter, HashSet<string> resolvedNamespaces)
     {
         var processed = new HashSet<string>(StringComparer.Ordinal);
         var warned = new HashSet<string>(StringComparer.Ordinal);
@@ -108,6 +113,7 @@ public class NamespaceImportResolverVisitor : DefaultRecursiveDescentVisitor
                     continue;
                 }
 
+                resolvedNamespaces.Add(ns);
                 ImportSymbols(module.Module, scope);
             }
         }

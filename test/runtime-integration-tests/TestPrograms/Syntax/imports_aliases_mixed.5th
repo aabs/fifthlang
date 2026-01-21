@@ -1,4 +1,5 @@
-use Math, IO;
+import Math;
+import IO;
 // IRIs should be properly bracketed
 alias Api as <http://example.com/v1/>;
 

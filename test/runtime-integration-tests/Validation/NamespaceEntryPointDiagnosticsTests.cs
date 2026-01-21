@@ -12,12 +12,16 @@ public class NamespaceEntryPointDiagnosticsTests : RuntimeTestBase
         var fileA = await NamespaceImportTestHelpers.WriteSourceAsync(moduleDir, "alpha.5th",
             """
             namespace Alpha;
-            export add(int a, int b): int => a + b;
+            export add(a: int, b: int): int {
+                return a + b;
+            }
             """);
         var fileB = await NamespaceImportTestHelpers.WriteSourceAsync(moduleDir, "beta.5th",
             """
             namespace Beta;
-            export sub(int a, int b): int => a - b;
+            export sub(a: int, b: int): int {
+                return a - b;
+            }
             """);
 
         var outputFile = Path.Combine(TempDirectory, "no_main.dll");

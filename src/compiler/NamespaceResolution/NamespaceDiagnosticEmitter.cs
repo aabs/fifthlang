@@ -15,8 +15,8 @@ public sealed class NamespaceDiagnosticEmitter
         _diagnostics.Add(new Diagnostic(
             DiagnosticLevel.Error,
             message,
-            source: module.ModulePath,
-            code: null,
+            Source: module.ModulePath,
+            Code: null,
             Namespace: scope.Name));
     }
 
@@ -32,8 +32,8 @@ public sealed class NamespaceDiagnosticEmitter
         _diagnostics.Add(new Diagnostic(
             DiagnosticLevel.Warning,
             message,
-            source: module.ModulePath,
-            code: "WNS0001",
+            Source: module.ModulePath,
+            Code: "WNS0001",
             Namespace: directive.Namespace,
             Line: line,
             Column: column + 1));

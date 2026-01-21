@@ -12,12 +12,16 @@ public class NamespaceDuplicateSymbolTests : RuntimeTestBase
         var fileA = await NamespaceImportTestHelpers.WriteSourceAsync(moduleDir, "math_a.5th",
             """
             namespace Utilities.Math;
-            export add(int a, int b): int => a + b;
+            export add(a: int, b: int): int {
+                return a + b;
+            }
             """);
         var fileB = await NamespaceImportTestHelpers.WriteSourceAsync(moduleDir, "math_b.5th",
             """
             namespace Utilities.Math;
-            export add(int a, int b): int => a + b;
+            export add(a: int, b: int): int {
+                return a + b;
+            }
             """);
 
         var outputFile = Path.Combine(TempDirectory, "dup_symbols.dll");

@@ -106,6 +106,25 @@ bin/
 | `FifthCompilerPath` | Auto-detected | Path to compiler.dll |
 | `FifthOutputPath` | <OutputPath>\\<Name>.exe | Full output executable path |
 
+## Namespace Imports & Multi-File Compilation
+
+Namespace imports are resolved across all modules provided to the compiler. The CLI accepts multiple `.5th` inputs and MSBuild emits a source manifest so the compiler can aggregate symbols across files.
+
+### CLI Enumeration
+
+```bash
+fifthc --command build --source math.5th consumer.5th --output bin/Debug/net8.0/App.exe
+```
+
+### MSBuild Manifest
+
+When building a `.5thproj`, MSBuild writes a manifest of all `*.5th` sources to the intermediate output path (`$(FifthSourceManifestPath)`). The compiler consumes this manifest during namespace resolution, ensuring a single aggregated module set.
+
+### Diagnostics
+
+- Duplicate symbols across modules in the same namespace are reported as errors with both module paths.
+- Importing an undeclared namespace produces warning `WNS0001` and includes module path, namespace, line, and column.
+
 ## Integration Points
 
 1. **NuGet Package System**: SDK is distributed as a standard NuGet package

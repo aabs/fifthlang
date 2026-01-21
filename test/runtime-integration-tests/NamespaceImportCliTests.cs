@@ -12,7 +12,9 @@ public class NamespaceImportCliTests : RuntimeTestBase
         var fileA = await NamespaceImportTestHelpers.WriteSourceAsync(moduleDir, "math.5th",
             """
             namespace Utilities.Math;
-            export add(int a, int b): int => a + b;
+            export add(a: int, b: int): int {
+                return a + b;
+            }
             """);
         var fileB = await NamespaceImportTestHelpers.WriteSourceAsync(moduleDir, "consumer.5th",
             """

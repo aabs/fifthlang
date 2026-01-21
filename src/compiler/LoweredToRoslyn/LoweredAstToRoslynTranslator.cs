@@ -41,6 +41,76 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
     private readonly Dictionary<string, string> _closureInterfaceByClass = new(StringComparer.Ordinal);
 
+    private static string GetModuleNamespace(ModuleDef module)
+    {
+        string namespaceName;
+        try
+        {
+            namespaceName = module.NamespaceDecl.ToString() ?? string.Empty;
+        }
+        catch
+        {
+            namespaceName = string.Empty;
+        }
+
+        if (string.IsNullOrWhiteSpace(namespaceName) || namespaceName.Equals("anonymous", StringComparison.OrdinalIgnoreCase))
+        {
+            return string.Empty;
+        }
+
+        return namespaceName;
+    }
+
+    private static IReadOnlyList<string> GetImportedNamespaces(ModuleDef module)
+    {
+        if (module.Annotations == null)
+        {
+            return Array.Empty<string>();
+        }
+
+        if (module.Annotations.TryGetValue(ModuleAnnotationKeys.ResolvedImports, out var resolvedObj))
+        {
+            if (resolvedObj is IReadOnlyList<string> resolvedList)
+            {
+                return resolvedList
+                    .Where(ns => !string.IsNullOrWhiteSpace(ns))
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList();
+            }
+
+            if (resolvedObj is List<string> resolvedList2)
+            {
+                return resolvedList2
+                    .Where(ns => !string.IsNullOrWhiteSpace(ns))
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList();
+            }
+        }
+
+        if (module.Annotations.TryGetValue(ModuleAnnotationKeys.ImportDirectives, out var importsObj))
+        {
+            if (importsObj is IReadOnlyList<NamespaceImportDirective> importsList)
+            {
+                return importsList
+                    .Select(i => i.Namespace)
+                    .Where(ns => !string.IsNullOrWhiteSpace(ns))
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList();
+            }
+
+            if (importsObj is List<NamespaceImportDirective> importsList2)
+            {
+                return importsList2
+                    .Select(i => i.Namespace)
+                    .Where(ns => !string.IsNullOrWhiteSpace(ns))
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList();
+            }
+        }
+
+        return Array.Empty<string>();
+    }
+
     /// <summary>
     /// Translate AssemblyDef (from IBackendTranslator interface)
     /// </summary>
@@ -94,10 +164,22 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
 
         try
         {
+            var hasAnyMain = assembly.Modules
+                .SelectMany(m => m.Functions)
+                .OfType<FunctionDef>()
+                .Any(f => string.Equals(f.Name.Value, "main", StringComparison.Ordinal));
+            var isSingleModule = assembly.Modules.Count == 1;
+
             // Process each module in the assembly
             foreach (var module in assembly.Modules)
             {
-                var syntaxTree = BuildSyntaxTreeFromModule(module, mapping);
+                var hasModuleMain = module.Functions
+                    .OfType<FunctionDef>()
+                    .Any(f => string.Equals(f.Name.Value, "main", StringComparison.Ordinal));
+
+                var emitStubMain = !hasModuleMain && !hasAnyMain && isSingleModule;
+
+                var syntaxTree = BuildSyntaxTreeFromModule(module, mapping, emitStubMain);
                 var sourceText = syntaxTree.GetText().ToString();
                 sources.Add(sourceText);
             }
@@ -114,7 +196,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         return new TranslationResult(sources, mapping, diagnostics);
     }
 
-    private SyntaxTree BuildSyntaxTreeFromModule(ModuleDef module, MappingTable mapping)
+    private SyntaxTree BuildSyntaxTreeFromModule(ModuleDef module, MappingTable mapping, bool emitStubMain)
     {
         _moduleLevelFunctionNames = module.Functions
             .OfType<FunctionDef>()
@@ -124,7 +206,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
         CacheClosureInterfaces(module);
 
         // Create using directives
-        var usingDirectives = new[]
+        var usingDirectives = new List<UsingDirectiveSyntax>
         {
             UsingDirective(IdentifierName("System")),
             UsingDirective(IdentifierName("System.Collections.Generic")),
@@ -137,36 +219,45 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             UsingDirective(IdentifierName("VDS.RDF.Query"))
         };
 
-        // Get namespace name (or use a default)
-        // Handle potentially uninitialized NamespaceDecl value object
-        string namespaceName;
-        try
+        var importNamespaces = GetImportedNamespaces(module);
+        var usingTracker = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var importNamespace in importNamespaces)
         {
-            namespaceName = module.NamespaceDecl != null && !string.IsNullOrEmpty(module.NamespaceDecl.ToString())
-                ? module.NamespaceDecl.ToString()
-                : (module.OriginalModuleName ?? "GeneratedNamespace");
-        }
-        catch
-        {
-            // Fallback if NamespaceDecl is uninitialized value object
-            namespaceName = module.OriginalModuleName ?? "GeneratedNamespace";
+            if (string.IsNullOrWhiteSpace(importNamespace))
+            {
+                continue;
+            }
+
+            if (usingTracker.Add($"ns:{importNamespace}"))
+            {
+                usingDirectives.Add(UsingDirective(ParseName(importNamespace)));
+            }
+
+            if (usingTracker.Add($"static:{importNamespace}.Program"))
+            {
+                usingDirectives.Add(
+                    UsingDirective(ParseName($"{importNamespace}.Program"))
+                        .WithStaticKeyword(Token(SyntaxKind.StaticKeyword)));
+            }
         }
 
-        // Create namespace declaration
-        var namespaceDeclaration = NamespaceDeclaration(
-            IdentifierName(SanitizeIdentifier(namespaceName)))
-            .AddUsings(usingDirectives);
+        var namespaceName = GetModuleNamespace(module);
+        var fileNamespaceName = string.IsNullOrWhiteSpace(namespaceName)
+            ? module.OriginalModuleName ?? "GeneratedModule"
+            : namespaceName;
 
-        // Add classes to namespace
+        var members = new List<MemberDeclarationSyntax>();
+
+        // Add classes
         foreach (var classDef in module.Classes)
         {
             var classDecl = BuildClassDeclaration(classDef, mapping);
-            namespaceDeclaration = namespaceDeclaration.AddMembers(classDecl);
+            members.Add(classDecl);
         }
 
-        // Always add a static Program class to host top-level functions and a fallback Main
+        // Always add a static partial Program class to host top-level functions
         var program = ClassDeclaration("Program")
-            .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword));
+            .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.PartialKeyword));
 
         var priorContaining = _currentContainingClassName;
         _currentContainingClassName = "Program";
@@ -185,7 +276,7 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             .OfType<MethodDeclarationSyntax>()
             .Any(m => string.Equals(m.Identifier.Text, "Main", StringComparison.Ordinal));
 
-        if (!hasMainMethod)
+        if (!hasMainMethod && emitStubMain)
         {
             var stubMain = MethodDeclaration(
                     PredefinedType(Token(SyntaxKind.IntKeyword)),
@@ -195,17 +286,31 @@ public class LoweredAstToRoslynTranslator : IBackendTranslator
             program = program.AddMembers(stubMain);
         }
 
-        namespaceDeclaration = namespaceDeclaration.AddMembers(program);
+        members.Add(program);
 
-        // Create compilation unit
-        var compilationUnit = CompilationUnit()
-            .AddMembers(namespaceDeclaration)
-            .NormalizeWhitespace();
+        CompilationUnitSyntax compilationUnit;
+        if (string.IsNullOrWhiteSpace(namespaceName))
+        {
+            compilationUnit = CompilationUnit()
+                .AddUsings(usingDirectives.ToArray())
+                .AddMembers(members.ToArray())
+                .NormalizeWhitespace();
+        }
+        else
+        {
+            var namespaceDeclaration = NamespaceDeclaration(ParseName(namespaceName))
+                .AddUsings(usingDirectives.ToArray())
+                .AddMembers(members.ToArray());
+
+            compilationUnit = CompilationUnit()
+                .AddMembers(namespaceDeclaration)
+                .NormalizeWhitespace();
+        }
 
         // Create syntax tree with file path for debugging
         return CSharpSyntaxTree.Create(
             compilationUnit,
-            path: $"{namespaceName}.g.cs",
+                path: $"{fileNamespaceName}.g.cs",
             encoding: System.Text.Encoding.UTF8);
     }
 

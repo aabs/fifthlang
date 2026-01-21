@@ -1,4 +1,6 @@
 namespace Utilities.Math;
 import Utilities.Algebra;
 
-export add(int a, int b): int => a + b;
+export add(a: int, b: int): int {
+	return a + b;
+}

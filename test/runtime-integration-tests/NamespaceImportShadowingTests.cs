@@ -11,14 +11,18 @@ public class NamespaceImportShadowingTests : RuntimeTestBase
         await NamespaceImportTestHelpers.WriteSourceAsync(moduleDir, "math.5th",
             """
             namespace Utilities.Math;
-            export add(int a, int b): int => a + b;
+            export add(a: int, b: int): int {
+                return a + b;
+            }
             """);
         await NamespaceImportTestHelpers.WriteSourceAsync(moduleDir, "consumer.5th",
             """
             namespace App.Core;
             import Utilities.Math;
 
-            export add(int a, int b): int => a - b;
+            export add(a: int, b: int): int {
+                return a - b;
+            }
 
             main(): int {
                 return add(3, 2);

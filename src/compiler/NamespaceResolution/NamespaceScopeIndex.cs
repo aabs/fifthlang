@@ -34,13 +34,10 @@ public sealed class NamespaceScopeIndex
             var symbolName = entry.Symbol.Name;
             if (scope.Symbols.TryGetValue(symbolName, out var existing))
             {
-                if (!ReferenceEquals(existing.OriginatingAstThing, entry.OriginatingAstThing)
-                    && !string.Equals(existing.OriginatingAstThing?.ToString(), entry.OriginatingAstThing?.ToString(), StringComparison.Ordinal))
+                var origin = scope.SymbolOrigins[symbolName];
+                if (!module.ModulePath.Equals(origin, StringComparison.Ordinal))
                 {
-                    if (!module.ModulePath.Equals(scope.SymbolOrigins[symbolName], StringComparison.Ordinal))
-                    {
-                        diagnosticEmitter.EmitDuplicateSymbol(module, scope, symbolName, scope.SymbolOrigins[symbolName]);
-                    }
+                    diagnosticEmitter.EmitDuplicateSymbol(module, scope, symbolName, origin);
                 }
 
                 continue;

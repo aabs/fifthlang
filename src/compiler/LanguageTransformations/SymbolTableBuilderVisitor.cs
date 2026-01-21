@@ -8,7 +8,7 @@ public class SymbolTableBuilderVisitor : DefaultRecursiveDescentVisitor
     public override ModuleDef VisitModuleDef(ModuleDef ctx)
     {
         var previous = _currentNamespace;
-        _currentNamespace = ctx.NamespaceDecl?.ToString() ?? string.Empty;
+        _currentNamespace = ctx.NamespaceDecl.ToString() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(_currentNamespace) || _currentNamespace.Equals("anonymous", StringComparison.OrdinalIgnoreCase))
         {
             _currentNamespace = string.Empty;

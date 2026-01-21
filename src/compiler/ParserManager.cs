@@ -291,6 +291,9 @@ public static class FifthParserManager
         if (upTo >= AnalysisPhase.SymbolTableFinal)
             ast = ExecutePhase("SymbolTableFinalBeforeTypeAnnotation", ast, a => new SymbolTableBuilderVisitor().Visit(a), diagnostics);
 
+        if (upTo >= AnalysisPhase.SymbolTableFinal)
+            ast = ExecutePhase("NamespaceImportResolverAfterFinal", ast, a => new NamespaceImportResolverVisitor(null).Visit(a), diagnostics);
+
         if (upTo >= AnalysisPhase.VarRefResolver)
             ast = ExecutePhase("VarRefResolver", ast, a => new VarRefResolverVisitor().Visit(a), diagnostics);
 

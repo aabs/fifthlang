@@ -11,7 +11,9 @@ public class NamespaceImportGlobalNamespaceTests : RuntimeTestBase
         await NamespaceImportTestHelpers.WriteSourceAsync(moduleDir, "math.5th",
             """
             namespace Utilities.Math;
-            export add(int a, int b): int => a + b;
+            export add(a: int, b: int): int {
+                return a + b;
+            }
             """);
         await NamespaceImportTestHelpers.WriteSourceAsync(moduleDir, "global_ops.5th",
             """

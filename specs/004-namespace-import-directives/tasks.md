@@ -38,14 +38,14 @@
 - [X] T025 Instrument namespace resolution timing in `src/compiler/Compiler.cs`, emitting elapsed milliseconds under the existing diagnostics flag to guard the 2-second SLA.
 
 ## Phase 3.4: Integration
-- [ ] T026 Amend `test/runtime-integration-tests/runtime-integration-tests.csproj` to copy the NamespaceImports program set to the output directory for all configurations.
-- [ ] T027 Extend `scripts/validate-examples.fish` to validate the new NamespaceImports samples so CI parser checks cover them.
+- [X] T026 Amend `test/runtime-integration-tests/runtime-integration-tests.csproj` to copy the NamespaceImports program set to the output directory for all configurations.
+- [X] T027 Extend `scripts/validate-examples.fish` to validate the new NamespaceImports samples so CI parser checks cover them.
 
 ## Phase 3.5: Polish
-- [ ] T028 [P] Update `docs/syntax-samples-readme.md` to document file-scoped namespaces and `import` directives with canonical examples.
-- [ ] T029 [P] Add `test/runtime-integration-tests/Performance/NamespaceImportPerformanceTests.cs` exercising large module sets and asserting the logged resolution time stays under 2 seconds.
-- [ ] T030 [P] Refresh CLI help text in `src/compiler/CompilerCommand.cs` to describe multi-file enumeration and MSBuild manifest behavior.
-- [ ] T031 [P] Update `docs/5thproj-implementation-summary.md` with the new namespace import workflow and diagnostics guidance.
+- [X] T028 [P] Update `docs/syntax-samples-readme.md` to document file-scoped namespaces and `import` directives with canonical examples.
+- [X] T029 [P] Add `test/runtime-integration-tests/Performance/NamespaceImportPerformanceTests.cs` exercising large module sets and asserting the logged resolution time stays under 2 seconds.
+- [X] T030 [P] Refresh CLI help text in `src/compiler/CompilerCommand.cs` to describe multi-file enumeration and MSBuild manifest behavior.
+- [X] T031 [P] Update `docs/5thproj-implementation-summary.md` with the new namespace import workflow and diagnostics guidance.
 - [ ] T032 Run `dotnet build fifthlang.sln`, `dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj`, `dotnet test test/syntax-parser-tests/syntax-parser-tests.csproj`, and `scripts/validate-examples.fish` to confirm the feature passes all gates.
 
 ## Dependencies

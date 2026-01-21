@@ -2757,12 +2757,14 @@ public class NamespaceImportDirectiveBuilder : IBuilder<ast.NamespaceImportDirec
 {
     private System.String _Namespace;
     private ast.SourceLocationMetadata _Location;
+    private Dictionary<System.String, System.Object> _Annotations;
     
     public ast.NamespaceImportDirective Build()
     {
         return new ast.NamespaceImportDirective(){
              Namespace = this._Namespace // from NamespaceImportDirective
            , Location = this._Location // from NamespaceImportDirective
+           , Annotations = this._Annotations // from AnnotatedThing
         };
     }
     public NamespaceImportDirectiveBuilder WithNamespace(System.String value){
@@ -2772,6 +2774,11 @@ public class NamespaceImportDirectiveBuilder : IBuilder<ast.NamespaceImportDirec
 
     public NamespaceImportDirectiveBuilder WithLocation(ast.SourceLocationMetadata value){
         _Location = value;
+        return this;
+    }
+
+    public NamespaceImportDirectiveBuilder WithAnnotations(Dictionary<System.String, System.Object> value){
+        _Annotations = value;
         return this;
     }
 
