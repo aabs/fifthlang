@@ -384,6 +384,8 @@ build_debug_roslyn/
 TestResults/
 gen/
 issues/
+.vscode/
+.DS_Store
 samples/generics/main.5th
 samples/generics/main
 site/404.html

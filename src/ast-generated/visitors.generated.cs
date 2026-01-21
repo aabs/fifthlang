@@ -186,6 +186,8 @@ public interface IAstVisitor
     public void LeaveMalformedTripleExp(MalformedTripleExp ctx);
     public void EnterGraph(Graph ctx);
     public void LeaveGraph(Graph ctx);
+    public void EnterNamespaceImportDirective(NamespaceImportDirective ctx);
+    public void LeaveNamespaceImportDirective(NamespaceImportDirective ctx);
 }
 
 public partial class BaseAstVisitor : IAstVisitor
@@ -372,6 +374,8 @@ public partial class BaseAstVisitor : IAstVisitor
     public virtual void LeaveMalformedTripleExp(MalformedTripleExp ctx){}
     public virtual void EnterGraph(Graph ctx){}
     public virtual void LeaveGraph(Graph ctx){}
+    public virtual void EnterNamespaceImportDirective(NamespaceImportDirective ctx){}
+    public virtual void LeaveNamespaceImportDirective(NamespaceImportDirective ctx){}
 }
 
 
@@ -469,6 +473,7 @@ public interface IAstRecursiveDescentVisitor
     public TripleLiteralExp VisitTripleLiteralExp(TripleLiteralExp ctx);
     public MalformedTripleExp VisitMalformedTripleExp(MalformedTripleExp ctx);
     public Graph VisitGraph(Graph ctx);
+    public NamespaceImportDirective VisitNamespaceImportDirective(NamespaceImportDirective ctx);
 }
 
 public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
@@ -568,6 +573,7 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
              TripleLiteralExp node => VisitTripleLiteralExp(node),
              MalformedTripleExp node => VisitMalformedTripleExp(node),
              Graph node => VisitGraph(node),
+             NamespaceImportDirective node => VisitNamespaceImportDirective(node),
 
             { } node => null,
         };
@@ -1172,6 +1178,11 @@ public class DefaultRecursiveDescentVisitor : IAstRecursiveDescentVisitor
      return ctx with {
          GraphUri = (ast.UriLiteralExp)Visit((AstThing)ctx.GraphUri)
         ,Triples = tmpTriples
+        };
+    }
+    public virtual NamespaceImportDirective VisitNamespaceImportDirective(NamespaceImportDirective ctx)
+    {
+     return ctx with {
         };
     }
 

@@ -139,7 +139,33 @@ Performance and quality improvements:
 3. **Refactor Pipeline Architecture**
 4. **Ship production-ready compiler with IDE support**
 
-## 🚀 Success Criteria
+## � Operational next steps (process & hygiene)
+
+To align with the latest build/validation discipline and keep CI green, add these recurring tasks to the team’s weekly cadence:
+
+- Build + test validation on every substantive change
+   - Run `dotnet build fifthlang.sln` (allow up to 2 minutes)
+   - Run `dotnet test test/ast-tests/ast_tests.csproj` and any focused suites
+
+- Validate examples and docs parse with current grammar
+   - Run `scripts/validate-examples.fish` (fish shell) locally before pushing
+   - Fix `.5th` samples that don’t parse; mark intentional negatives
+
+- Parser changes discipline
+   - Update both `src/parser/grammar/FifthLexer.g4` and `FifthParser.g4`
+   - Update `src/parser/AstBuilderVisitor.cs` accordingly
+   - Add/update samples under `src/parser/grammar/test_samples/*.5th`
+   - Run `dotnet test test/syntax-parser-tests/ -v minimal`
+
+- Generated code policy
+   - Never hand-edit `src/ast-generated/`; change `src/ast-model/*` and regenerate via `just run-generator`
+
+- CI expectations
+   - CI includes a step to validate `.5th` samples; keep docs/examples grammar-compliant to avoid parser-time regressions
+
+These steps reflect the repository’s constitution (`/.specify/memory/constitution.md`) and workspace `AGENTS.md` and should be considered non-negotiable gates for PR readiness.
+
+## �🚀 Success Criteria
 
 By end of Q3 2026, the compiler should have:
 

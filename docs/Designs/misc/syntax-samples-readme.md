@@ -60,3 +60,25 @@ var y = condition ? result : throw new Exception();
 ```
 
 Note: Full exception type support (e.g., `System.Exception`) requires parser enhancements for qualified type names.
+
+## Namespaces & Imports
+
+Fifth supports file-scoped namespaces and explicit imports. Declarations are file-local, while imports bring symbols into scope for that module only.
+
+```fifth
+// math.5th
+namespace math;
+
+export add(a: int, b: int): int {
+    return a + b;
+}
+```
+
+```fifth
+// consumer.5th
+import math;
+
+main(): int {
+    return add(2, 3);
+}
+```

@@ -243,11 +243,21 @@ public abstract record ScopeAstThing : AstThing, IScope
 
     public void Declare(Symbol symbol, IAstThing astThing, Dictionary<string, object> annotations)
     {
+        annotations ??= new Dictionary<string, object>();
+        var qualifiedName = annotations.TryGetValue("QualifiedName", out var qnValue) ? qnValue as string : null;
+        var isImported = annotations.TryGetValue("IsImported", out var importedValue)
+            && importedValue is bool imported && imported;
+        var isLocalShadow = annotations.TryGetValue("IsLocalShadow", out var shadowValue)
+            && shadowValue is bool shadow && shadow;
+
         var symTabEntry = new SymbolTableEntry
         {
             Symbol = symbol,
             Annotations = annotations,
-            OriginatingAstThing = astThing
+            OriginatingAstThing = astThing,
+            QualifiedName = qualifiedName,
+            IsImported = isImported,
+            IsLocalShadow = isLocalShadow
         };
         SymbolTable[symbol] = symTabEntry;
     }

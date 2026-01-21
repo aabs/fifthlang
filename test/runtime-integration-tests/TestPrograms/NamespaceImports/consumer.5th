@@ -1,0 +1,6 @@
+namespace App.Core;
+import Utilities.Math;
+
+main(): int {
+    return add(2, 3);
+}

@@ -15,12 +15,14 @@ public record CompilerOptions(
     string Output = "",
     string[] Args = null!,
     bool KeepTemp = false,
-    bool Diagnostics = false)
+    bool Diagnostics = false,
+    IReadOnlyList<string>? SourceFiles = null,
+    string? SourceManifest = null)
 {
     /// <summary>
     /// Create default options
     /// </summary>
-    public CompilerOptions() : this(CompilerCommand.Build, "", "", Array.Empty<string>(), false, false)
+    public CompilerOptions() : this(CompilerCommand.Build, "", "", Array.Empty<string>(), false, false, Array.Empty<string>(), null)
     {
     }
 
@@ -30,7 +32,10 @@ public record CompilerOptions(
     /// <returns>Validation error message, or null if valid</returns>
     public string? Validate()
     {
-        if (Command != CompilerCommand.Help && string.IsNullOrWhiteSpace(Source))
+        if (Command != CompilerCommand.Help
+            && (SourceFiles == null || SourceFiles.Count == 0)
+            && string.IsNullOrWhiteSpace(Source)
+            && string.IsNullOrWhiteSpace(SourceManifest))
         {
             return "Source file or directory must be specified";
         }
@@ -38,6 +43,22 @@ public record CompilerOptions(
         if ((Command == CompilerCommand.Build || Command == CompilerCommand.Run) && string.IsNullOrWhiteSpace(Output))
         {
             return "Output path must be specified for build and run commands";
+        }
+
+        if (!string.IsNullOrWhiteSpace(SourceManifest) && !File.Exists(SourceManifest))
+        {
+            return $"Source manifest does not exist: {SourceManifest}";
+        }
+
+        if (SourceFiles != null && SourceFiles.Count > 0)
+        {
+            var missing = SourceFiles.FirstOrDefault(path => !File.Exists(path));
+            if (!string.IsNullOrWhiteSpace(missing))
+            {
+                return $"Source path does not exist: {missing}";
+            }
+
+            return null;
         }
 
         if (!string.IsNullOrWhiteSpace(Source) && !File.Exists(Source) && !Directory.Exists(Source))

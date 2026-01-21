@@ -137,6 +137,9 @@ public static class FifthParserManager
         if (upTo >= AnalysisPhase.SymbolTableInitial)
             ast = ExecutePhase("SymbolTableInitial", ast, a => new SymbolTableBuilderVisitor().Visit(a), diagnostics);
 
+        if (upTo >= AnalysisPhase.SymbolTableInitial)
+            ast = ExecutePhase("NamespaceImportResolver", ast, a => new NamespaceImportResolverVisitor(diagnostics).Visit(a), diagnostics);
+
         // Constructor resolution happens AFTER symbol table is built so we can look up class definitions
         if (upTo >= AnalysisPhase.ConstructorResolution)
             ast = ExecutePhase("ConstructorResolver", ast, a => new SemanticAnalysis.ConstructorResolver(diagnostics).Visit(a), diagnostics);
@@ -287,6 +290,9 @@ public static class FifthParserManager
 
         if (upTo >= AnalysisPhase.SymbolTableFinal)
             ast = ExecutePhase("SymbolTableFinalBeforeTypeAnnotation", ast, a => new SymbolTableBuilderVisitor().Visit(a), diagnostics);
+
+        if (upTo >= AnalysisPhase.SymbolTableFinal)
+            ast = ExecutePhase("NamespaceImportResolverAfterFinal", ast, a => new NamespaceImportResolverVisitor(null).Visit(a), diagnostics);
 
         if (upTo >= AnalysisPhase.VarRefResolver)
             ast = ExecutePhase("VarRefResolver", ast, a => new VarRefResolverVisitor().Visit(a), diagnostics);

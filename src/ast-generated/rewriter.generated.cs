@@ -111,6 +111,7 @@ public interface IAstRewriter
     RewriteResult VisitTripleLiteralExp(TripleLiteralExp ctx);
     RewriteResult VisitMalformedTripleExp(MalformedTripleExp ctx);
     RewriteResult VisitGraph(Graph ctx);
+    RewriteResult VisitNamespaceImportDirective(NamespaceImportDirective ctx);
 }
 
 /// <summary>
@@ -215,6 +216,7 @@ public class DefaultAstRewriter : IAstRewriter
              TripleLiteralExp node => VisitTripleLiteralExp(node),
              MalformedTripleExp node => VisitMalformedTripleExp(node),
              Graph node => VisitGraph(node),
+             NamespaceImportDirective node => VisitNamespaceImportDirective(node),
 
             { } node => RewriteResult.From(null),
         };
@@ -1264,6 +1266,13 @@ public class DefaultAstRewriter : IAstRewriter
         var rebuilt = ctx with {
          GraphUri = (ast.UriLiteralExp)rrGraphUri.Node
         ,Triples = tmpTriples
+        };
+        return new RewriteResult(rebuilt, prologue);
+    }
+    public virtual RewriteResult VisitNamespaceImportDirective(NamespaceImportDirective ctx)
+    {
+        var prologue = new List<Statement>();
+        var rebuilt = ctx with {
         };
         return new RewriteResult(rebuilt, prologue);
     }

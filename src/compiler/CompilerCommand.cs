@@ -6,20 +6,20 @@ namespace compiler;
 public enum CompilerCommand
 {
     /// <summary>
-    /// Build command: Parse, transform, generate IL, and assemble to executable
+    /// Build command: Parse, transform, and compile to executable. Supports multi-file inputs and MSBuild source manifests.
     /// </summary>
     Build,
-    
+
     /// <summary>
-    /// Run command: Same as build, then execute the produced binary
+    /// Run command: Same as build (including multi-file inputs), then execute the produced binary
     /// </summary>
     Run,
-    
+
     /// <summary>
-    /// Lint command: Parse and apply transformations only, report issues
+    /// Lint command: Parse and apply transformations only, report issues across all provided modules
     /// </summary>
     Lint,
-    
+
     /// <summary>
     /// Help command: Display usage information
     /// </summary>

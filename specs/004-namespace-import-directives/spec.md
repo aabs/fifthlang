@@ -38,7 +38,7 @@
 A project maintainer can organize multiple Fifth source files into namespaces, import the namespaces they need, and rely on the compiler to resolve symbols without naming collisions or manual include chains.
 
 ### Acceptance Scenarios
-1. **Given** a project with modules `alpha.5th` and `beta.5th` that declare the same namespace, **When** a third module imports that namespace, **Then** all public symbols from both modules are available during compilation without qualification conflicts.
+1. **Given** a project with modules `alpha.5th` and `beta.5th` that declare the same namespace, **When** a third module imports that namespace, **Then** all symbols from both modules are available during compilation without qualification conflicts.
 2. **Given** a module without a namespace declaration, **When** it imports a named namespace and defines its own symbols, **Then** its symbols remain in the global namespace while imported symbols are available only inside that file.
 
 ### Edge Cases
@@ -71,6 +71,35 @@ A project maintainer can organize multiple Fifth source files into namespaces, i
 - **Module**: Represents a `.5th` source file, including its optional namespace declaration, local declarations, and list of import directives.
 - **Namespace**: Logical scope aggregating symbols from one or more modules that share the same namespace name; maintains the unioned symbol table and duplication diagnostics.
 - **Import Directive**: File-scoped instruction referencing a namespace name whose symbols become available within the module during compilation.
+
+## Symbol Visibility (clarification)
+
+- All module-scope symbols are public by default for this feature.
+- Importing a namespace brings the full symbol table of that namespace into the current module’s scope (subject to shadowing in FR-010).
+- If `export` appears in examples or tests, treat it as optional/no-op under current semantics; a future feature may introduce explicit export controls.
+
+## Diagnostic schema (namespace imports)
+
+All namespace-related diagnostics MUST include the following fields:
+
+| Field     | Description                                               |
+|-----------|-----------------------------------------------------------|
+| code      | Stable diagnostic code (prefix WNS, e.g., WNS0001)        |
+| severity  | Error or Warning                                          |
+| file      | Source module path where the diagnostic originated         |
+| namespace | Namespace relevant to the diagnostic (if applicable)       |
+| line      | Line number (1-based) for the primary location             |
+| column    | Column number (1-based) for the primary location           |
+| message   | Human-readable explanation                                 |
+
+## Diagnostic Codes (namespace imports)
+
+Prefix: WNS (Namespace warnings/errors)
+
+- WNS0001 (Warning): Undeclared namespace import
+	- Condition: Emitted when a module imports a namespace that is not declared by any module in the resolved module set.
+	- Required fields: code=WNS0001, severity=Warning, file=<module path>, namespace=<imported name>, message="Import targets undeclared namespace: '<namespace>'"
+	- Notes: Compilation continues; the undeclared namespace is treated as empty (see FR-009).
 
 ## Review & Acceptance Checklist
 *GATE: Automated checks run during main() execution*

@@ -48,29 +48,41 @@ public partial class FifthParserBaseListener : IFifthParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitFifth([NotNull] FifthParser.FifthContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.module_import"/>.
+	/// Enter a parse tree produced by <see cref="FifthParser.namespace_decl"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterModule_import([NotNull] FifthParser.Module_importContext context) { }
+	public virtual void EnterNamespace_decl([NotNull] FifthParser.Namespace_declContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.module_import"/>.
+	/// Exit a parse tree produced by <see cref="FifthParser.namespace_decl"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitModule_import([NotNull] FifthParser.Module_importContext context) { }
+	public virtual void ExitNamespace_decl([NotNull] FifthParser.Namespace_declContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="FifthParser.module_name"/>.
+	/// Enter a parse tree produced by <see cref="FifthParser.import_decl"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterModule_name([NotNull] FifthParser.Module_nameContext context) { }
+	public virtual void EnterImport_decl([NotNull] FifthParser.Import_declContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="FifthParser.module_name"/>.
+	/// Exit a parse tree produced by <see cref="FifthParser.import_decl"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitModule_name([NotNull] FifthParser.Module_nameContext context) { }
+	public virtual void ExitImport_decl([NotNull] FifthParser.Import_declContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="FifthParser.qualified_name"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterQualified_name([NotNull] FifthParser.Qualified_nameContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="FifthParser.qualified_name"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitQualified_name([NotNull] FifthParser.Qualified_nameContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="FifthParser.packagename"/>.
 	/// <para>The default implementation does nothing.</para>

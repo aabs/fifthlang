@@ -12,7 +12,9 @@
 //////////////////////////////////////
 
 // Import modules
-use Math, IO, Net;
+import Math;
+import IO;
+import Net;
 
 //////////////////////////////////////
 // Knowledge Graphs & Semantic Web

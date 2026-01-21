@@ -1,0 +1,6 @@
+namespace First.Namespace;
+namespace Second.Namespace;
+
+main(): int {
+    return 0;
+}

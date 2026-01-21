@@ -6,21 +6,42 @@ options {
 	superClass = FifthParserBase;
 }
 
+@members {
+	private bool seenNamespaceDecl = false;
+
+	private void RegisterNamespaceDecl(ParserRuleContext ctx)
+	{
+		if (seenNamespaceDecl)
+		{
+			NotifyErrorListeners(ctx.Start, "At most one namespace declaration is allowed per module.", null);
+			return;
+		}
+
+		seenNamespaceDecl = true;
+	}
+}
+
 fifth:
-	module_import* alias* (colon_store_decl)* (
+	namespace_decl* import_decl* alias* (colon_store_decl)* (
 		functions += function_declaration
 		| classes += class_definition
-	)*;
+	)* {
+		if ($ctx.namespace_decl().Length > 1)
+		{
+			NotifyErrorListeners("At most one namespace declaration is allowed per module.");
+		}
+	};
 
-module_import: USE module_name (COMMA module_name)* SEMI;
-module_name: IDENTIFIER;
+namespace_decl:
+	NAMESPACE qualified_name SEMI { RegisterNamespaceDecl($ctx); };
+import_decl: IMPORT qualified_name SEMI;
+qualified_name: IDENTIFIER (DOT IDENTIFIER)*;
 packagename: IDENTIFIER;
-
-alias: ALIAS name = packagename AS iri SEMI;
+alias: ALIAS IDENTIFIER AS iri SEMI;
 
 // ========[FUNC DEFS]========= Ex: Foo(x:int, y:int):int { . . . }
 function_declaration:
-	name = function_name type_parameter_list? L_PAREN (
+	EXPORT? name = function_name type_parameter_list? L_PAREN (
 		args += paramdecl (COMMA args += paramdecl)*
 	)? R_PAREN COLON result_type = type_spec constraint_clause* body = function_body;
 
@@ -53,7 +74,7 @@ destructure_binding:
 
 // ========[TYPE DEFINITIONS]=========
 class_definition:
-	CLASS name = IDENTIFIER type_parameter_list? (
+	EXPORT? CLASS name = IDENTIFIER type_parameter_list? (
 		EXTENDS superClass = type_name
 	)? (IN aliasScope = alias_scope_ref)? constraint_clause* L_CURLY (
 		constructors += constructor_declaration
@@ -91,8 +112,8 @@ constraint_clause: WHERE type_parameter COLON constraint_list;
 
 constraint_list: type_constraint (COMMA type_constraint)*;
 
-type_constraint:
-	type_name; // For now, constraints are just type names (interfaces or base classes)
+type_constraint: type_name;
+// For now, constraints are just type names (interfaces or base classes)
 
 // ========[STATEMENTS]=========
 block: L_CURLY statement* R_CURLY;
@@ -308,7 +329,8 @@ trigLiteralContent:
 	| TRIG_ESCAPED_CLOSE // }}} for literal }}
 	| TRIG_SINGLE_OPEN_BRACE // Single { (not part of interpolation)
 	| TRIG_SINGLE_CLOSE_BRACE // Single } (not part of interpolation)
-	| trigInterpolation; // {{ expression }}
+	| trigInterpolation;
+// {{ expression }}
 
 // Interpolation: {{ expression }} After TRIG_INTERP_START, we're in DEFAULT_MODE and can parse any
 // expression Then we expect }} to close it (TRIG_INTERP_END which pops back to TRIG_LITERAL_MODE)
@@ -326,7 +348,8 @@ sparqlLiteralContent:
 	| SPARQL_CLOSE_ANGLE_CONTENT // Closing angle bracket in IRIs (not the final one)
 	| SPARQL_SINGLE_OPEN_BRACE // Single { (not part of interpolation)
 	| SPARQL_SINGLE_CLOSE_BRACE // Single } (not part of interpolation)
-	| sparqlInterpolation; // {{ expression }}
+	| sparqlInterpolation;
+// {{ expression }}
 
 // Interpolation: {{ expression }} After SPARQL_INTERP_START, we're in DEFAULT_MODE and can parse
 // any expression Then we expect }} to close it (TRIG_INTERP_END which pops back to

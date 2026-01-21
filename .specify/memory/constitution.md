@@ -1,7 +1,7 @@
 # Fifth Language Engine
 
 ### I. Library-First, Contracts-First
-Every feature starts as a focused library under `src/` with a clear, documented purpose and public contract. Libraries must be self-contained, independently buildable, and testable with TUnit. Avoid organizational or "glue-only" libraries. Contracts are expressed through:
+Every feature starts as a focused library under `src/` with a clear, documented purpose and public contract. Libraries must be self-contained, independently buildable, and testable with xUnit. Avoid organizational or “glue-only” libraries. Contracts are expressed through:
 - AST metamodels in `src/ast-model/AstMetamodel.cs`
 - IL metamodels in `src/ast-model/ILMetamodel.cs`
 - Generated builders/visitors in `src/ast-generated/`
@@ -29,7 +29,7 @@ The Fifth language compiler follows a multi-pass pipeline architecture that tran
 ## Core Principles
 
 ### I. Library-First, Contracts-First
-Every feature starts as a focused library under `src/` with a clear, documented purpose and public contract. Libraries must be self-contained, independently buildable, and testable with TUnit. Avoid organizational or “glue-only” libraries. Contracts are expressed through:
+Every feature starts as a focused library under `src/` with a clear, documented purpose and public contract. Libraries must be self-contained, independently buildable, and testable with xUnit. Avoid organizational or “glue-only” libraries. Contracts are expressed through:
 - AST metamodels in `src/ast-model/`
 - Generated builders/visitors in `src/ast-generated/`
 - ANTLR grammar in `src/parser/grammar/FifthParser.g4` and `src/parser/grammar/FifthLexer.g4` 
@@ -49,7 +49,7 @@ The AST generator is authoritative for builders, visitors, IL builders, and type
 4. Build the full solution to validate
 
 ### IV. Test-First (Non-Negotiable)
-Practice TDD: write/approve tests, see them fail, then implement. Use TUnit + FluentAssertions across:
+Practice TDD: write/approve tests, see them fail, then implement. Use xUnit + FluentAssertions across:
 - `test/ast-tests/` for AST and generator correctness
 - `test/syntax-parser-tests/` for grammar parsing
 - `test/runtime-integration-tests/` for end-to-end verification
@@ -178,25 +178,25 @@ Changes to either grammar file require:
 - Regeneration occurs automatically during build via ANTLR
 - Expected warnings (like `assoc` option location) can be ignored if documented as benign
 
-+ Additional rule: Grammar compliance for example/source files
-+
-+- All example programs, quickstart snippets, test fixtures, and specification samples that are intended to be fed into the parser or compiler MUST conform to the current parser grammar. Samples that use legacy or non-grammar shorthand (for example older guard shorthand such as `when`) must be converted to the canonical grammar-supported form before being added to the repository or referenced by integration tests.
-+
-+- Canonical guard example (before → after):
-+
-+    // before (legacy shorthand — NOT VALID for parser-based tests)
-+    myprint(int x) when x == 0 => std.print(x);
-+
-+    // after (grammar-compliant parameter constraint)
-+    myprint(int x | x == 0) { std.print(x); }
-+
-+- Definition: "Grammar-compliant" means the sample can be successfully parsed by the current `FifthParser.g4` and successfully transformed to the high-level AST by `AstBuilderVisitor` without syntax errors.
-+
-+- Enforcement recommendation: Add a CI job (or a test target) that parses all `.5th` files under `docs/`, `specs/`, `src/parser/grammar/test_samples/`, and `test/` and fails the build if any sample does not parse. This CI job should be simple (build the solution and run the parser/syntax tests) and should be referenced in the PR checklist. Example enforcement points:
-+  - A dedicated `validate-examples` CI step that runs `dotnet test test/syntax-parser-tests/` (or a targeted parser-check test) against the working tree
-+  - A pre-commit hook that runs a lightweight parser-check script included in `scripts/` (e.g., `scripts/validate-examples.fish`) to catch regressions locally before pushing
-+
-+- Rationale: Ensures integration tests exercise the real compiler pipeline and prevents parser-time flakiness caused by deprecated surface forms.
+Additional rule: Grammar compliance for example/source files
+
+- All example programs, quickstart snippets, test fixtures, and specification samples that are intended to be fed into the parser or compiler MUST conform to the current parser grammar. Samples that use legacy or non-grammar shorthand (for example, older guard shorthand such as `when`) must be converted to the canonical grammar-supported form before being added to the repository or referenced by integration tests.
+
+- Canonical guard example (before → after):
+
+      // before (legacy shorthand — NOT VALID for parser-based tests)
+      myprint(int x) when x == 0 => std.print(x);
+
+      // after (grammar-compliant parameter constraint)
+      myprint(int x | x == 0) { std.print(x); }
+
+- Definition: "Grammar-compliant" means the sample can be successfully parsed by the current `FifthParser.g4` and successfully transformed to the high-level AST by `AstBuilderVisitor` without syntax errors.
+
+- Enforcement (implemented): CI includes a step "Validate .5th samples (parser-check)" that runs the repo's example validator to ensure all `.5th` examples across `docs/`, `specs/`, `src/parser/grammar/test_samples/`, and `test/` parse with the current grammar. Locally, run `scripts/validate-examples.fish` (fish shell) to catch issues before pushing.
+   - Parser-focused tests: `dotnet test test/syntax-parser-tests/ -v minimal`
+   - Integration tests for affected areas as needed: `dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj --filter "FullyQualifiedName~YourTestName" -v minimal`
+
+- Rationale: Ensures integration tests exercise the real compiler pipeline and prevents parser-time flakiness caused by deprecated surface forms.
 
 ### X. Observability & Diagnostics
 Text I/O is the primary observability mechanism. Emit clear, actionable diagnostics to stderr. Prefer structured messages (line/column, file paths) for parsers/compilers. When logging is needed, use standard .NET logging abstractions; avoid custom frameworks. Output must be deterministic and stable to support automated parsing by SpecKit.
@@ -254,7 +254,7 @@ src/
     └── KnowledgeGraphs.cs
 
 test/
-├── ast-tests/          # TUnit tests with .5th code samples
+├── ast-tests/          # xUnit tests with .5th code samples
 ├── syntax-parser-tests/  # Grammar and parsing tests
 └── runtime-integration-tests/  # End-to-end verification tests
 ```
@@ -321,7 +321,7 @@ Always build the full solution rather than individual projects to ensure proper 
 - `Antlr4.Runtime.Standard` - ANTLR runtime for C#
 - `RazorLight` - Template engine for code generation
 - `System.CommandLine` - CLI parsing for AST generator
-- `TUnit` - Test framework (replaces xUnit)
+- `xUnit` - Test framework
 - `FluentAssertions` - Test assertions
 - `dunet` - Discriminated unions for AST model
 - `Vogen` - Value object generation
@@ -353,8 +353,8 @@ myprint(int x) => std.print(x);
 ## Engineering Constraints & Standards
 
 ### Toolchain & Environment
-- C# 14 Language Version required.
-- .NET 8.0 SDK required (global.json pins 8.0.118); Java 17+ required for ANTLR operations
+- C# 12 Language Version (or the latest supported by .NET 8 SDK).
+- .NET 8.0 SDK required; Java 17+ required for ANTLR operations
 - For build timing, set timeouts per documented guidance; do not prematurely interrupt tasks
 
 ### Code Generation
@@ -372,7 +372,7 @@ myprint(int x) => std.print(x);
 - See `src/ast_generator/README.md` for guidance on choosing the right visitor/rewriter pattern
 
 ### Testing Requirements
-- Unit tests: TUnit with FluentAssertions
+- Unit tests: xUnit with FluentAssertions
 - Parser tests: grammar samples in `src/parser/grammar/test_samples/*.5th`
 - Integration tests: `test/runtime-integration-tests/`
 - Add tests first; ensure failing state is visible before implementing fixes
@@ -513,6 +513,6 @@ SpecKit is considered a first-class consumer. Specifications and tasks must be k
 - Added comprehensive description of multi-pass compiler pipeline
 - Detailed language transformations and their roles in AST lowering
 - Clarified two-level AST design (main AST vs IL AST)
-- Updated testing framework references (TUnit instead of xUnit)
+- Updated testing framework references (xUnit instead of TUnit)
 - Enhanced project structure documentation
 - Added transformation strategy guidelines
