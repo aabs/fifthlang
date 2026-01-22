@@ -1,0 +1,232 @@
+openapi: 3.0.3
+info:
+  title: Fifth Language Server (LSP) Contract
+  version: 0.1.0
+  description: REST-style contract representing core LSP requests for planning purposes.
+servers:
+  - url: http://localhost/lsp
+paths:
+  /initialize:
+    post:
+      summary: Initialize language server
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitializeParams'
+      responses:
+        '200':
+          description: Server capabilities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitializeResult'
+  /textDocument/didOpen:
+    post:
+      summary: Open a document
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DidOpenTextDocumentParams'
+      responses:
+        '200':
+          description: Accepted
+  /textDocument/didChange:
+    post:
+      summary: Apply document changes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DidChangeTextDocumentParams'
+      responses:
+        '200':
+          description: Accepted
+  /textDocument/didClose:
+    post:
+      summary: Close a document
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DidCloseTextDocumentParams'
+      responses:
+        '200':
+          description: Accepted
+  /textDocument/hover:
+    post:
+      summary: Get hover information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HoverParams'
+      responses:
+        '200':
+          description: Hover response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hover'
+  /textDocument/completion:
+    post:
+      summary: Get completion items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompletionParams'
+      responses:
+        '200':
+          description: Completion response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompletionList'
+  /textDocument/definition:
+    post:
+      summary: Go to definition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefinitionParams'
+      responses:
+        '200':
+          description: Definition response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+components:
+  schemas:
+    InitializeParams:
+      type: object
+      properties:
+        rootUri:
+          type: string
+        capabilities:
+          type: object
+    InitializeResult:
+      type: object
+      properties:
+        capabilities:
+          type: object
+    TextDocumentIdentifier:
+      type: object
+      properties:
+        uri:
+          type: string
+    VersionedTextDocumentIdentifier:
+      allOf:
+        - $ref: '#/components/schemas/TextDocumentIdentifier'
+        - type: object
+          properties:
+            version:
+              type: integer
+    TextDocumentItem:
+      type: object
+      properties:
+        uri:
+          type: string
+        languageId:
+          type: string
+        version:
+          type: integer
+        text:
+          type: string
+    DidOpenTextDocumentParams:
+      type: object
+      properties:
+        textDocument:
+          $ref: '#/components/schemas/TextDocumentItem'
+    DidChangeTextDocumentParams:
+      type: object
+      properties:
+        textDocument:
+          $ref: '#/components/schemas/VersionedTextDocumentIdentifier'
+        contentChanges:
+          type: array
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+    DidCloseTextDocumentParams:
+      type: object
+      properties:
+        textDocument:
+          $ref: '#/components/schemas/TextDocumentIdentifier'
+    Position:
+      type: object
+      properties:
+        line:
+          type: integer
+        character:
+          type: integer
+    Range:
+      type: object
+      properties:
+        start:
+          $ref: '#/components/schemas/Position'
+        end:
+          $ref: '#/components/schemas/Position'
+    HoverParams:
+      type: object
+      properties:
+        textDocument:
+          $ref: '#/components/schemas/TextDocumentIdentifier'
+        position:
+          $ref: '#/components/schemas/Position'
+    Hover:
+      type: object
+      properties:
+        contents:
+          type: string
+        range:
+          $ref: '#/components/schemas/Range'
+    CompletionParams:
+      type: object
+      properties:
+        textDocument:
+          $ref: '#/components/schemas/TextDocumentIdentifier'
+        position:
+          $ref: '#/components/schemas/Position'
+    CompletionItem:
+      type: object
+      properties:
+        label:
+          type: string
+        detail:
+          type: string
+        insertText:
+          type: string
+    CompletionList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompletionItem'
+    DefinitionParams:
+      type: object
+      properties:
+        textDocument:
+          $ref: '#/components/schemas/TextDocumentIdentifier'
+        position:
+          $ref: '#/components/schemas/Position'
+    Location:
+      type: object
+      properties:
+        uri:
+          type: string
+        range:
+          $ref: '#/components/schemas/Range'
