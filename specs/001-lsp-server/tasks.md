@@ -62,15 +62,15 @@ description: "Task list for LSP server implementation"
 
 ## Phase 4: User Story 2 - Understand Symbols in Context (Priority: P2)
 
-**Goal**: Symbol-aware hover and go-to-definition across open documents.
+**Goal**: Symbol-aware hover and go-to-definition across workspace documents (including unopened files).
 
-**Independent Test**: Hover a symbol for type/signature and jump to its definition in the same file or another open file.
+**Independent Test**: Hover a symbol for type/signature and jump to its definition in the same file or another workspace file, including unopened files.
 
 ### Implementation for User Story 2
 
-- [ ] T018 [P] [US2] Add smoke test for hover and definition in test/language-server-smoke/SmokeTests.cs
+- [ ] T018 [P] [US2] Add smoke test for hover and definition across unopened workspace files in test/language-server-smoke/SmokeTests.cs
 - [ ] T019 [US2] Upgrade SymbolService to resolve symbols using AST/symbol tables in src/language-server/SymbolService.cs
-- [ ] T020 [US2] Add open-document definition index in src/language-server/SymbolService.cs
+- [ ] T020 [US2] Add workspace-wide definition index (open + on-disk files) in src/language-server/SymbolService.cs
 - [ ] T021 [US2] Implement DefinitionHandler using SymbolService in src/language-server/Handlers/DefinitionHandler.cs
 - [ ] T022 [US2] Replace placeholder hover with symbol-aware hover content in src/language-server/Handlers/HoverHandler.cs
 

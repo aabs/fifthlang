@@ -43,7 +43,7 @@ As a developer, I want hover and definition navigation so I can understand types
 **Acceptance Scenarios**:
 
 1. **Given** a symbol in a file, **When** I hover over it, **Then** I see its type and signature information.
-2. **Given** a symbol reference, **When** I request “go to definition,” **Then** I am navigated to the correct definition even if it is in another file.
+2. **Given** a symbol reference, **When** I request “go to definition,” **Then** I am navigated to the correct definition even if it is in another file that is not currently open.
 
 ---
 
@@ -68,6 +68,7 @@ As a developer, I want context-aware completions so I can write code faster and 
 - Very large files should still provide diagnostics and completion without the editor freezing.
 - A file is closed; diagnostics and symbols for that file should be cleared from the editor view.
 - Diagnostics are not computed for unopened files; unopened files show no diagnostics until opened.
+- Go-to-definition must resolve definitions in unopened files within the workspace.
 - Rapid successive edits should not queue partial updates; the latest full text replaces prior pending changes.
 
 ## Requirements *(mandatory)*
@@ -79,7 +80,7 @@ As a developer, I want context-aware completions so I can write code faster and 
 - **FR-003**: The system MUST provide real-time diagnostics for syntax and semantic errors in open documents.
 - **FR-004**: The system MUST provide hover information that includes symbol type and signature where available.
 - **FR-005**: The system MUST provide context-aware completion suggestions for keywords and in-scope symbols.
-- **FR-006**: The system MUST support navigation to symbol definitions across files within the workspace.
+- **FR-006**: The system MUST support navigation to symbol definitions across files within the workspace, including files that are not currently open.
 - **FR-007**: The system MUST return graceful empty results (no errors) when a requested feature has no applicable data.
 - **FR-008**: The system MUST keep results up to date as documents change, without requiring a full project rebuild for each edit.
 - **FR-009**: The system MUST support a single-root workspace in the MVP.

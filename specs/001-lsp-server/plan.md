@@ -7,18 +7,18 @@
 
 ## Summary
 
-Deliver a Fifth language server executable over stdio. Current implementation includes full-text document sync, syntax diagnostics, basic hover, and keyword completions; definition and semantic features remain to be implemented. The server maintains in-memory document state for open files only and responds with deterministic, structured logs to stderr.
+Deliver a Fifth language server executable over stdio. Current implementation includes full-text document sync, syntax diagnostics, basic hover, and keyword completions; definition and semantic features remain to be implemented. The server maintains in-memory document state for open files only, while go-to-definition must resolve symbols across all workspace files, and it responds with deterministic, structured logs to stderr.
 
 ## Technical Context
 
 **Language/Version**: C# .NET 8.0  
 **Primary Dependencies**: OmniSharp.Extensions.LanguageServer (LSP), existing parser/compiler libraries  
-**Storage**: In-memory document/AST cache (no persistent store)  
+**Storage**: In-memory document/AST cache for open files plus a workspace symbol index from on-disk sources (no persistent store)  
 **Testing**: xUnit + FluentAssertions (existing `test/language-server-smoke`)  
 **Target Platform**: Cross-platform CLI (macOS/Linux/Windows)  
 **Project Type**: Single service executable under `src/`  
 **Performance Goals**: Diagnostics <1s; hover/definition <500ms for typical workspaces  
-**Constraints**: stdio transport only; full-text sync; open documents only; local-only/no auth  
+**Constraints**: stdio transport only; full-text sync; diagnostics for open documents only; go-to-definition across workspace files; local-only/no auth  
 **Scale/Scope**: Single-root workspace; ≤200 files, ≤2,000 lines per open file for performance targets
 
 ## Constitution Check
