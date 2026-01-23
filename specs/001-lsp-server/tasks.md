@@ -18,11 +18,11 @@ description: "Task list for LSP server implementation"
 
 **Covers**: FR-001, FR-002, FR-008, FR-009, FR-011, FR-013
 
-- [ ] T001 Verify language server project references and package versions in src/language-server/Fifth.LanguageServer.csproj
-- [ ] T002 [P] Confirm stdio server entry point and handler registration in src/language-server/Program.cs
-- [ ] T003 [P] Review smoke test coverage in test/language-server-smoke/SmokeTests.cs and ParsingServiceTests.cs
-- [ ] T004 [P] Verify document tracking + full-text sync behavior in src/language-server/DocumentService.cs and src/language-server/Handlers/DocumentSyncHandler.cs
-- [ ] T005 [P] Verify single-root + local-only assumptions in src/language-server/Program.cs
+- [X] T001 Verify language server project references and package versions in src/language-server/Fifth.LanguageServer.csproj
+- [X] T002 [P] Confirm stdio server entry point and handler registration in src/language-server/Program.cs
+- [X] T003 [P] Review smoke test coverage in test/language-server-smoke/SmokeTests.cs and ParsingServiceTests.cs
+- [X] T004 [P] Verify document tracking + full-text sync behavior in src/language-server/DocumentService.cs and src/language-server/Handlers/DocumentSyncHandler.cs
+- [X] T005 [P] Verify single-root + local-only assumptions in src/language-server/Program.cs
 
 ---
 
@@ -30,11 +30,11 @@ description: "Task list for LSP server implementation"
 
 **Purpose**: Core infrastructure that MUST be complete before any user story work.
 
-- [ ] T006 Add structured stderr logging baseline in src/language-server/Program.cs
-- [ ] T007 [P] Register SymbolService in DI container in src/language-server/Program.cs
-- [ ] T008 [P] Add DefinitionHandler skeleton in src/language-server/Handlers/DefinitionHandler.cs
-- [ ] T009 Wire DefinitionHandler into server registration in src/language-server/Program.cs
-- [ ] T010 [P] Add defensive empty-result handling helpers in src/language-server/Handlers/
+- [X] T006 Add structured stderr logging baseline in src/language-server/Program.cs
+- [X] T007 [P] Register SymbolService in DI container in src/language-server/Program.cs
+- [X] T008 [P] Add DefinitionHandler skeleton in src/language-server/Handlers/DefinitionHandler.cs
+- [X] T009 Wire DefinitionHandler into server registration in src/language-server/Program.cs
+- [X] T010 [P] Add defensive empty-result handling helpers in src/language-server/Handlers/
 
 **Checkpoint**: Foundational wiring complete (logging + definition handler registration)
 
@@ -48,13 +48,13 @@ description: "Task list for LSP server implementation"
 
 ### Implementation for User Story 1
 
-- [ ] T011 [P] [US1] Add smoke test for diagnostics updates in test/language-server-smoke/SmokeTests.cs
-- [ ] T012 [US1] Extend ParsedDocument to track semantic diagnostics in src/language-server/Parsing/ParsingService.cs
-- [ ] T013 [US1] Add semantic diagnostic extraction using compiler pipeline in src/language-server/Parsing/ParsingService.cs
-- [ ] T014 [US1] Update DocumentService to preserve semantic diagnostics in src/language-server/DocumentService.cs
-- [ ] T015 [US1] Publish combined diagnostics (syntax + semantic) in src/language-server/Handlers/DocumentSyncHandler.cs
-- [ ] T016 [US1] Verify open-document-only diagnostics behavior in src/language-server/Handlers/DocumentSyncHandler.cs
-- [ ] T017 [US1] Verify diagnostics update without rebuild in src/language-server/Handlers/DocumentSyncHandler.cs
+- [X] T011 [P] [US1] Add smoke test for diagnostics updates in test/language-server-smoke/SmokeTests.cs
+- [X] T012 [US1] Extend ParsedDocument to track semantic diagnostics in src/language-server/Parsing/ParsingService.cs
+- [X] T013 [US1] Add semantic diagnostic extraction using compiler pipeline in src/language-server/Parsing/ParsingService.cs
+- [X] T014 [US1] Update DocumentService to preserve semantic diagnostics in src/language-server/DocumentService.cs
+- [X] T015 [US1] Publish combined diagnostics (syntax + semantic) in src/language-server/Handlers/DocumentSyncHandler.cs
+- [X] T016 [US1] Verify open-document-only diagnostics behavior in src/language-server/Handlers/DocumentSyncHandler.cs
+- [X] T017 [US1] Verify diagnostics update without rebuild in src/language-server/Handlers/DocumentSyncHandler.cs
 
 **Checkpoint**: Diagnostics include semantic errors for open documents only.
 
@@ -68,11 +68,11 @@ description: "Task list for LSP server implementation"
 
 ### Implementation for User Story 2
 
-- [ ] T018 [P] [US2] Add smoke test for hover and definition across unopened workspace files in test/language-server-smoke/SmokeTests.cs
-- [ ] T019 [US2] Upgrade SymbolService to resolve symbols using AST/symbol tables in src/language-server/SymbolService.cs
-- [ ] T020 [US2] Add workspace-wide definition index (open + on-disk files) in src/language-server/SymbolService.cs
-- [ ] T021 [US2] Implement DefinitionHandler using SymbolService in src/language-server/Handlers/DefinitionHandler.cs
-- [ ] T022 [US2] Replace placeholder hover with symbol-aware hover content in src/language-server/Handlers/HoverHandler.cs
+- [X] T018 [P] [US2] Add smoke test for hover and definition across unopened workspace files in test/language-server-smoke/SmokeTests.cs
+- [X] T019 [US2] Upgrade SymbolService to resolve symbols using AST/symbol tables in src/language-server/SymbolService.cs
+- [X] T020 [US2] Add workspace-wide definition index (open + on-disk files) in src/language-server/SymbolService.cs
+- [X] T021 [US2] Implement DefinitionHandler using SymbolService in src/language-server/Handlers/DefinitionHandler.cs
+- [X] T022 [US2] Replace placeholder hover with symbol-aware hover content in src/language-server/Handlers/HoverHandler.cs
 
 **Checkpoint**: Hover shows symbol info and go-to-definition resolves definitions.
 
@@ -86,10 +86,10 @@ description: "Task list for LSP server implementation"
 
 ### Implementation for User Story 3
 
-- [ ] T023 [P] [US3] Add smoke test for completion results in test/language-server-smoke/SmokeTests.cs
-- [ ] T024 [US3] Add symbol-based completion items in src/language-server/Handlers/CompletionHandler.cs
-- [ ] T025 [US3] Use SymbolService to filter completions by scope in src/language-server/Handlers/CompletionHandler.cs
-- [ ] T026 [US3] Add signature detail to function completions in src/language-server/Handlers/CompletionHandler.cs
+- [X] T023 [P] [US3] Add smoke test for completion results in test/language-server-smoke/SmokeTests.cs
+- [X] T024 [US3] Add symbol-based completion items in src/language-server/Handlers/CompletionHandler.cs
+- [X] T025 [US3] Use SymbolService to filter completions by scope in src/language-server/Handlers/CompletionHandler.cs
+- [X] T026 [US3] Add signature detail to function completions in src/language-server/Handlers/CompletionHandler.cs
 
 **Checkpoint**: Completion returns relevant symbols and signatures.
 
@@ -101,9 +101,9 @@ description: "Task list for LSP server implementation"
 
 **Covers**: FR-007
 
-- [ ] T027 [P] Update quickstart guidance if behaviors changed in specs/001-lsp-server/quickstart.md
-- [ ] T028 [P] Verify graceful empty-result handling across handlers in src/language-server/Handlers/
-- [ ] T029 Run local smoke validation with existing tests in test/language-server-smoke/LanguageServerSmoke.csproj
+- [X] T027 [P] Update quickstart guidance if behaviors changed in specs/001-lsp-server/quickstart.md
+- [X] T028 [P] Verify graceful empty-result handling across handlers in src/language-server/Handlers/
+- [X] T029 Run local smoke validation with existing tests in test/language-server-smoke/LanguageServerSmoke.csproj
 
 ---
 

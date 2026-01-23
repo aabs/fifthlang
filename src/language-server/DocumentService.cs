@@ -32,4 +32,6 @@ public sealed class DocumentService
     }
 
     public bool TryGetParsed(Uri uri, out ParsedDocument document) => _parsedDocuments.TryGetValue(uri, out document!);
+
+    public IReadOnlyDictionary<Uri, ParsedDocument> SnapshotParsed() => new Dictionary<Uri, ParsedDocument>(_parsedDocuments);
 }

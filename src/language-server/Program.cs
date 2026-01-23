@@ -1,6 +1,8 @@
 ﻿using OmniSharp.Extensions.LanguageServer.Server;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Fifth.LanguageServer.Parsing;
+using Fifth.LanguageServer.Logging;
 
 namespace Fifth.LanguageServer;
 
@@ -22,11 +24,19 @@ public static class Program
             options.WithHandler<Handlers.DocumentSyncHandler>();
             options.WithHandler<Handlers.HoverHandler>();
             options.WithHandler<Handlers.CompletionHandler>();
+            options.WithHandler<Handlers.DefinitionHandler>();
             options.WithServices(services =>
             {
+                services.AddLogging(builder =>
+                {
+                    builder.ClearProviders();
+                    builder.AddProvider(new StderrLoggerProvider());
+                    builder.SetMinimumLevel(LogLevel.Information);
+                });
                 services.AddSingleton<ParsingService>();
                 services.AddSingleton<DocumentService>();
                 services.AddSingleton<DocumentStore>();
+                services.AddSingleton<SymbolService>();
             });
         });
 

@@ -1,5 +1,6 @@
 ﻿using Antlr4.Runtime;
 using ast;
+using compiler;
 using compiler.LangProcessingPhases;
 using Fifth;
 
@@ -32,14 +33,29 @@ public sealed class ParsingService
         }
 
         AssemblyDef? ast = null;
+        AssemblyDef? analyzedAst = null;
+        var semanticDiagnostics = new List<Diagnostic>();
         if (listener.Diagnostics.Count == 0 && tree is not null)
         {
             var visitor = new AstBuilderVisitor();
             var visited = visitor.Visit(tree);
             ast = visited as AssemblyDef;
+
+            if (ast is not null)
+            {
+                try
+                {
+                    var analyzed = FifthParserManager.ApplyLanguageAnalysisPhases(ast, semanticDiagnostics);
+                    analyzedAst = analyzed as AssemblyDef;
+                }
+                catch (Exception ex)
+                {
+                    semanticDiagnostics.Add(new Diagnostic(DiagnosticLevel.Error, $"Semantic analysis failed: {ex.Message}"));
+                }
+            }
         }
 
-        return new ParsedDocument(uri, text, ast, listener.Diagnostics);
+        return new ParsedDocument(uri, text, ast, analyzedAst, listener.Diagnostics, semanticDiagnostics);
     }
 
     private sealed class CollectingErrorListener :
@@ -68,4 +84,6 @@ public sealed record ParsedDocument(
     Uri Uri,
     string Text,
     AssemblyDef? Ast,
-    IReadOnlyList<ParsingDiagnostic> Diagnostics);
+    AssemblyDef? AnalyzedAst,
+    IReadOnlyList<ParsingDiagnostic> Diagnostics,
+    IReadOnlyList<Diagnostic> SemanticDiagnostics);
