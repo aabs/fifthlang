@@ -11,4 +11,6 @@ public sealed class DocumentStore
     public void Update(Uri uri, string text) => _documents[uri] = text;
 
     public bool TryGet(Uri uri, out string text) => _documents.TryGetValue(uri, out text!);
+
+    public IReadOnlyDictionary<Uri, string> Snapshot() => new Dictionary<Uri, string>(_documents);
 }

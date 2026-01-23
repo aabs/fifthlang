@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="0.19.9" />
+    <PackageReference Include="OmniSharp.Extensions.LanguageProtocol" Version="0.19.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

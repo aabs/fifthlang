@@ -1,0 +1,76 @@
+{
+    "name": "fifth-language-client",
+    "displayName": "Fifth Language Client",
+    "description": "VS Code client for the Fifth Language Server.",
+    "version": "0.1.0",
+    "publisher": "fifthlang",
+    "license": "MIT",
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "activationEvents": [
+        "onLanguage:fifth"
+    ],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "languages": [
+            {
+                "id": "fifth",
+                "aliases": [
+                    "Fifth",
+                    "fifth"
+                ],
+                "extensions": [
+                    ".5th"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "fifth",
+                "scopeName": "source.fifth",
+                "path": "./syntaxes/fifth.tmLanguage.json"
+            }
+        ],
+        "configuration": {
+            "title": "Fifth Language Server",
+            "properties": {
+                "fifthLanguageServer.dotnetPath": {
+                    "type": "string",
+                    "default": "dotnet",
+                    "description": "Path to the dotnet executable used to launch the Fifth Language Server."
+                },
+                "fifthLanguageServer.serverDllPath": {
+                    "type": "string",
+                    "default": "../language-server/bin/Debug/net8.0/Fifth.LanguageServer.dll",
+                    "description": "Path to Fifth.LanguageServer.dll (relative to the workspace root or extension folder, or absolute)."
+                },
+                "fifthLanguageServer.args": {
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Extra arguments passed to the language server."
+                }
+            }
+        }
+    },
+    "scripts": {
+        "compile": "tsc -p .",
+        "watch": "tsc -watch -p .",
+        "vscode:prepublish": "npm run compile"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^9.0.1"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.0",
+        "@types/vscode": "^1.85.0",
+        "typescript": "^5.4.0"
+    }
+}
