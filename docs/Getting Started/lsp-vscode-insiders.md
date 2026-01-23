@@ -8,6 +8,30 @@ This guide explains how to run the Fifth Language Server locally and connect it 
 - VS Code Insiders
 - A generic LSP client extension that supports **stdio** and custom language mappings
 
+## Use the Fifth VS Code client (recommended)
+
+This repo includes a dedicated VS Code client extension at [src/vscode-client](src/vscode-client). It wires up the Fifth language id and launches the server over stdio.
+
+1) Install dependencies:
+
+- `cd src/vscode-client`
+- `npm install`
+
+2) Build the extension:
+
+- `npm run compile`
+
+3) Launch the extension:
+
+- Open `src/vscode-client` in VS Code
+- Press `F5` to start an Extension Development Host
+
+4) Confirm settings (optional):
+
+- `fifthLanguageServer.serverDllPath` (default: `src/language-server/bin/Debug/net8.0/Fifth.LanguageServer.dll`)
+- `fifthLanguageServer.dotnetPath` (default: `dotnet`)
+- `fifthLanguageServer.args` (default: empty)
+
 ## Build the server
 
 From the repo root:

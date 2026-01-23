@@ -19,7 +19,7 @@ public sealed class StderrLoggerProvider : ILoggerProvider
             _category = category;
         }
 
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => NullScope.Instance;
 
         public bool IsEnabled(LogLevel logLevel) => logLevel != LogLevel.None;
 
@@ -36,10 +36,19 @@ public sealed class StderrLoggerProvider : ILoggerProvider
             var line = $"{timestamp} [{logLevel}] {_category}: {message}";
             if (exception is not null)
             {
-                line += $" | {exception.GetType().Name}: {exception.Message}";
+                line += $" | {exception}";
             }
 
             Console.Error.WriteLine(line);
+        }
+
+        private sealed class NullScope : IDisposable
+        {
+            public static readonly NullScope Instance = new();
+
+            public void Dispose()
+            {
+            }
         }
     }
 }

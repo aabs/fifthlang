@@ -1,0 +1,102 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Fifth",
+    "scopeName": "source.fifth",
+    "patterns": [
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#types"
+        },
+        {
+            "include": "#operators"
+        }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.double-slash.fifth",
+                    "match": "//.*$"
+                },
+                {
+                    "name": "comment.block.fifth",
+                    "begin": "/\\*",
+                    "end": "\\*/"
+                }
+            ]
+        },
+        "strings": {
+            "patterns": [
+                {
+                    "name": "string.quoted.double.fifth",
+                    "begin": "\"",
+                    "end": "\"",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.fifth",
+                            "match": "\\\\."
+                        }
+                    ]
+                },
+                {
+                    "name": "string.quoted.single.fifth",
+                    "begin": "'",
+                    "end": "'",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.fifth",
+                            "match": "\\\\."
+                        }
+                    ]
+                }
+            ]
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "name": "constant.numeric.fifth",
+                    "match": "\\b(0x[0-9a-fA-F]+|\\d+(\\.\\d+)?)([eE][+-]?\\d+)?\\b"
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.fifth",
+                    "match": "\\b(class|fun|let|return|match|if|else|while|for|break|continue)\\b"
+                },
+                {
+                    "name": "constant.language.fifth",
+                    "match": "\\b(true|false|null)\\b"
+                }
+            ]
+        },
+        "types": {
+            "patterns": [
+                {
+                    "name": "storage.type.fifth",
+                    "match": "\\b(int|int32|int64|uint|uint32|uint64|float|double|decimal|string|bool|char|void)\\b"
+                }
+            ]
+        },
+        "operators": {
+            "patterns": [
+                {
+                    "name": "keyword.operator.fifth",
+                    "match": "(==|!=|<=|>=|&&|\\|\\||\\+|\\-|\\*|/|%|=|<|>)"
+                }
+            ]
+        }
+    }
+}

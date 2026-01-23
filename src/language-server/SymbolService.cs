@@ -13,7 +13,7 @@ namespace Fifth.LanguageServer;
 public sealed class SymbolService
 {
     private static readonly Regex IdentifierRegex = new(@"[A-Za-z_][A-Za-z0-9_]*", RegexOptions.Compiled);
-    private static readonly Regex FunctionDefinitionRegex = new(@"(?m)^(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*\((?<params>[^)]*)\)\s*:\s*(?<return>[^\s\{]+)", RegexOptions.Compiled);
+    private static readonly Regex FunctionDefinitionRegex = new(@"(?m)^(?<name>[A-Za-z_][A-Za-z0-9_]*)(?:\s*<[^>]+>)?\s*\((?<params>[^)]*)\)\s*:\s*(?<return>[^\s\{]+)", RegexOptions.Compiled);
 
     private static readonly string[] WorkspaceIgnoreSegments = [".git", "bin", "obj", ".idea", ".vscode", "artifacts", "dist", "site"];
 
@@ -151,7 +151,8 @@ public sealed class SymbolService
             candidates = matches;
         }
 
-        var preferred = candidates.FirstOrDefault(m => m.Uri != requestingUri) ?? candidates.First();
+        var sameFile = candidates.FirstOrDefault(m => m.Uri == requestingUri);
+        var preferred = sameFile ?? candidates.First();
         return new LocationOrLocationLinks(new LocationOrLocationLink(new Location
         {
             Uri = preferred.Uri,
