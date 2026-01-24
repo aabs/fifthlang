@@ -67,7 +67,7 @@ public record CompilerOptions(
 
         if (SourceFiles != null && SourceFiles.Count > 0)
         {
-            var missing = SourceFiles.FirstOrDefault(path => !File.Exists(path));
+            var missing = SourceFiles.FirstOrDefault(path => !File.Exists(path) && !Directory.Exists(path));
             if (!string.IsNullOrWhiteSpace(missing))
             {
                 return $"Source path does not exist: {missing}";

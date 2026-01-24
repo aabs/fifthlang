@@ -6,6 +6,14 @@
     <FifthDesignTimeManifestPath Condition="'$(FifthDesignTimeManifestPath)' == ''">$(IntermediateOutputPath)fifth_designtime.manifest</FifthDesignTimeManifestPath>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <TargetName Condition="'$(TargetName)' == ''">$(AssemblyName)</TargetName>
+    <TargetName Condition="'$(TargetName)' == ''">$(MSBuildProjectName)</TargetName>
+    <TargetFileName Condition="'$(TargetFileName)' == '' OR '$(TargetFileName)' == '$(TargetExt)'">$(TargetName)$(TargetExt)</TargetFileName>
+    <TargetPath Condition="'$(TargetPath)' == '' OR '$(TargetPath)' == '$(OutputPath)$(TargetExt)'">$(OutputPath)$(TargetFileName)</TargetPath>
+    <FifthOutputPath Condition="'$(FifthOutputPath)' == '' OR '$(FifthOutputPath)' == '$(OutputPath)$(TargetExt)'">$(TargetPath)</FifthOutputPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <UpToDateCheckInput Include="@(FifthSource)" />
     <UpToDateCheckInput Include="$(FifthSourceManifestPath)" Condition="Exists('$(FifthSourceManifestPath)')" />
@@ -72,11 +80,13 @@
 
   <Target Name="ValidateFifthTargetFrameworks" Condition="'$(FifthSupportedTargetFrameworks)' != '' and '$(TargetFramework)' != ''">
     <PropertyGroup>
-      <_FifthSupportedFrameworksPadded>;$([System.String]::Copy('$(FifthSupportedTargetFrameworks)'));</_FifthSupportedFrameworksPadded>
-      <_FifthIsSupported>$([System.String]::Copy('$(_FifthSupportedFrameworksPadded)')).Contains(';$(TargetFramework);')</_FifthIsSupported>
+      <_FifthSupportedFrameworksLower>$([System.String]::Copy('$(FifthSupportedTargetFrameworks)').ToLowerInvariant().Replace(' ', ''))</_FifthSupportedFrameworksLower>
+      <_FifthTargetFrameworkLower>$([System.String]::Copy('$(TargetFramework)').ToLowerInvariant().Replace(' ', ''))</_FifthTargetFrameworkLower>
+      <_FifthSupportedFrameworksPadded>;$(_FifthSupportedFrameworksLower);</_FifthSupportedFrameworksPadded>
+      <_FifthSupportedIndex>$([System.String]::Copy('$(_FifthSupportedFrameworksPadded)').IndexOf(';$(_FifthTargetFrameworkLower);', System.StringComparison.OrdinalIgnoreCase))</_FifthSupportedIndex>
     </PropertyGroup>
 
-    <Error Condition="'$(_FifthIsSupported)' != 'True'"
+    <Error Condition="'$(_FifthSupportedIndex)' == '-1'"
            Text="TargetFramework $(TargetFramework) is not supported. Supported: $(FifthSupportedTargetFrameworks)" />
   </Target>
 

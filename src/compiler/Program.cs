@@ -107,7 +107,28 @@ public static class Program
             var diagnostics = context.ParseResult.GetValueForOption(diagnosticsOption);
 
             var compilerCommand = ParseCommand(command);
-            var primarySource = source.FirstOrDefault() ?? string.Empty;
+            var resolvedSourceFiles = new List<string>();
+            var sourceDirectories = new List<string>();
+
+            foreach (var sourceEntry in source)
+            {
+                if (Directory.Exists(sourceEntry))
+                {
+                    sourceDirectories.Add(sourceEntry);
+                    continue;
+                }
+
+                resolvedSourceFiles.Add(sourceEntry);
+            }
+
+            foreach (var directory in sourceDirectories)
+            {
+                resolvedSourceFiles.AddRange(Directory.GetFiles(directory, "*.5th", SearchOption.TopDirectoryOnly));
+            }
+
+            var primarySource = resolvedSourceFiles.FirstOrDefault()
+                ?? sourceDirectories.FirstOrDefault()
+                ?? string.Empty;
 
             var options = new CompilerOptions(
                 Command: compilerCommand,
@@ -117,7 +138,7 @@ public static class Program
                 Args: args,
                 KeepTemp: keepTemp,
                 Diagnostics: diagnostics,
-                SourceFiles: source,
+                SourceFiles: resolvedSourceFiles,
                 SourceManifest: sourceManifest,
                 References: reference);
 
