@@ -43,13 +43,18 @@
       <_FifthReferenceArgs>@(_FifthReference->'--reference &quot;%(FullPath)&quot;', ' ')</_FifthReferenceArgs>
     </PropertyGroup>
 
+    <PropertyGroup>
+      <_FifthCompilerCommand Condition="'$(FifthCompilerCommand)' != ''">$(FifthCompilerCommand)</_FifthCompilerCommand>
+      <_FifthCompilerCommand Condition="'$(_FifthCompilerCommand)' == ''">dotnet &quot;$(FifthCompilerPath)&quot;</_FifthCompilerCommand>
+    </PropertyGroup>
+
     <Message Text="Compiling Fifth project: $(MSBuildProjectName)" Importance="high" />
     <Message Text="  Source: $(_FifthSourceArg)" Importance="high" />
     <Message Text="  Output: $(FifthOutputPath)" Importance="high" />
     <Message Text="  OutputType: $(OutputType)" Importance="high" />
     
     <!-- Run the Fifth compiler -->
-    <Exec Command="dotnet &quot;$(FifthCompilerPath)&quot; --command build $(_FifthSourceArg) --output &quot;$(FifthOutputPath)&quot; --output-type &quot;$(OutputType)&quot; $(_FifthReferenceArgs)"
+    <Exec Command="$(_FifthCompilerCommand) --command build $(_FifthSourceArg) --output &quot;$(FifthOutputPath)&quot; --output-type &quot;$(OutputType)&quot; $(_FifthReferenceArgs)"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
     
     <Message Text="Fifth compilation completed successfully" Importance="high" />
@@ -72,8 +77,8 @@
     </PropertyGroup>
     
     <!-- Error if compiler still not found -->
-    <Error Condition="'$(FifthCompilerPath)' == '' OR !Exists('$(FifthCompilerPath)')" 
-           Text="Fifth compiler not found. Please set FifthCompilerPath property or environment variable to the full path of compiler.dll, or ensure the compiler is built in the repository at src/compiler/bin/." />
+        <Error Condition="'$(FifthCompilerCommand)' == '' AND ('$(FifthCompilerPath)' == '' OR !Exists('$(FifthCompilerPath)'))" 
+          Text="Fifth compiler not found. Set FifthCompilerCommand to a tool (e.g., fifthc), or set FifthCompilerPath to the full path of compiler.dll, or build the compiler in the repository at src/compiler/bin/." />
     
     <Message Text="Using Fifth compiler: $(FifthCompilerPath)" Importance="normal" />
   </Target>

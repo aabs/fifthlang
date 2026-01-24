@@ -357,6 +357,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup .NET SDK (global.json)
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
       - name: Determine release version
         id: publish_version
         shell: bash
@@ -377,6 +382,39 @@ jobs:
           else
               echo "value=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Verify NuGet publish secret
+        if: steps.dryrun.outputs.value != 'true'
+        shell: bash
+        env:
+          NUGET_PUBLISH: ${{ secrets.NUGET_PUBLISH }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$NUGET_PUBLISH" ]]; then
+              echo "::error::NUGET_PUBLISH secret is not set."
+              exit 1
+          fi
+
+      - name: Pack SDK and compiler tool
+        if: steps.dryrun.outputs.value != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION='${{ steps.publish_version.outputs.value }}'
+          dotnet pack src/Fifth.Sdk/Fifth.Sdk.csproj -c Release /p:Version="$VERSION"
+          dotnet pack src/compiler/compiler.csproj -c Release /p:Version="$VERSION"
+
+      - name: Publish SDK and compiler tool to NuGet
+        if: steps.dryrun.outputs.value != 'true'
+        shell: bash
+        env:
+          NUGET_PUBLISH: ${{ secrets.NUGET_PUBLISH }}
+          NUGET_SOURCE: https://api.nuget.org/v3/index.json
+        run: |
+          set -euo pipefail
+          VERSION='${{ steps.publish_version.outputs.value }}'
+          dotnet nuget push "src/Fifth.Sdk/bin/Release/Fifth.Sdk.$VERSION.nupkg" --api-key "$NUGET_PUBLISH" --source "$NUGET_SOURCE" --skip-duplicate
+          dotnet nuget push "src/compiler/bin/Release/Fifth.Compiler.Tool.$VERSION.nupkg" --api-key "$NUGET_PUBLISH" --source "$NUGET_SOURCE" --skip-duplicate
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4

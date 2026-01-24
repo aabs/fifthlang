@@ -1319,7 +1319,7 @@
           "dunet": "[1.11.2, )"
         }
       },
-      "compiler": {
+      "Fifth.Compiler.Tool": {
         "type": "Project",
         "dependencies": {
           "Fifth.System": "[1.0.0, )",
@@ -1333,10 +1333,10 @@
       "fifth.languageserver": {
         "type": "Project",
         "dependencies": {
+          "Fifth.Compiler.Tool": "[0.1.0, )",
           "Microsoft.Extensions.Logging.Console": "[8.0.0, )",
           "OmniSharp.Extensions.LanguageProtocol": "[0.19.9, )",
           "OmniSharp.Extensions.LanguageServer": "[0.19.9, )",
-          "compiler": "[1.0.0, )",
           "parser": "[1.0.0, )"
         }
       },

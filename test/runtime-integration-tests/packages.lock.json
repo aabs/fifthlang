@@ -1082,7 +1082,7 @@
           "dunet": "[1.11.2, )"
         }
       },
-      "compiler": {
+      "Fifth.Compiler.Tool": {
         "type": "Project",
         "dependencies": {
           "Fifth.System": "[1.0.0, )",
