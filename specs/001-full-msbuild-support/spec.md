@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "full msbuild support (library projects, references, package dependencies, incremental builds, build events, multi-targeting, and design-time build data)"
 
+## Clarifications
+
+### Session 2026-01-24
+
+- Q: How should build events behave on failure? → A: Build fails if any pre/post build event fails.
+- Q: Which target frameworks are supported? → A: Support a defined allowlist of target frameworks.
+- Q: How should circular project references be handled? → A: Build fails on circular project references.
+- Q: How should package version conflicts be handled? → A: Fail the build on version conflicts.
+- Q: What design-time output should be produced? → A: Emit a lightweight manifest only.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Build projects with the right outputs (Priority: P1)
@@ -55,7 +65,7 @@ As a developer, I want incremental builds and multi-targeting to work, so I can 
 ### Edge Cases
 
 - What happens when a referenced project is missing or cannot be built?
-- How does the build handle circular project references?
+- How does the build handle circular project references? (Build fails with a clear error.)
 - What happens when package dependencies resolve to incompatible versions?
 - How does the system behave when a build event fails?
 - How does the build handle a target framework that is unsupported?
@@ -70,9 +80,13 @@ As a developer, I want incremental builds and multi-targeting to work, so I can 
 - **FR-004**: System MUST resolve package dependencies declared by the project and include them in compilation.
 - **FR-005**: System MUST fail the build with a clear error when a required dependency cannot be resolved.
 - **FR-006**: System MUST support incremental builds by skipping compilation work when inputs are unchanged.
-- **FR-007**: System MUST execute configured pre-build and post-build events and surface failures.
+- **FR-007**: System MUST execute configured pre-build and post-build events and fail the build if any event fails.
 - **FR-008**: System MUST support building the same project for multiple target frameworks in a single build request.
 - **FR-009**: System MUST provide design-time build outputs suitable for editor tooling to consume project structure and references.
+- **FR-009a**: System MUST emit a lightweight design-time manifest without running a full compilation, containing sources, resolved references, target framework, and defines.
+- **FR-010**: System MUST validate target frameworks against an approved allowlist and fail with a clear error for unsupported targets.
+- **FR-011**: System MUST detect circular project references and fail the build with a clear error.
+- **FR-012**: System MUST fail the build with a clear error when package version conflicts cannot be resolved.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -88,6 +102,7 @@ As a developer, I want incremental builds and multi-targeting to work, so I can 
 - A typical solution contains up to 10 projects with fewer than 50 source files each.
 - Build configurations are defined in project metadata and are available at build time.
 - Dependency metadata is declared explicitly in project files.
+- The supported target framework list is documented and versioned with the SDK.
 
 ## Success Criteria *(mandatory)*
 
