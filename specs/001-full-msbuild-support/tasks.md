@@ -22,7 +22,7 @@ description: "Task list for full MSBuild support"
 
 **Purpose**: Minimal scaffolding needed before shared work
 
-- [ ] T001 Create allowlist file in src/Fifth.Sdk/Sdk/SupportedTargetFrameworks.props
+- [x] T001 Create allowlist file in src/Fifth.Sdk/Sdk/SupportedTargetFrameworks.props
 
 ---
 
@@ -30,10 +30,10 @@ description: "Task list for full MSBuild support"
 
 **Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
 
-- [ ] T002 Update output path properties in src/Fifth.Sdk/Sdk/Sdk.props
-- [ ] T003 [P] Add output-type and reference arguments in src/compiler/Program.cs
-- [ ] T004 [P] Store output type and references in src/compiler/CompilerOptions.cs
-- [ ] T005 Update Roslyn output type and references in src/compiler/Compiler.cs
+- [x] T002 Update output path properties in src/Fifth.Sdk/Sdk/Sdk.props
+- [x] T003 [P] Add output-type and reference arguments in src/compiler/Program.cs
+- [x] T004 [P] Store output type and references in src/compiler/CompilerOptions.cs
+- [x] T005 Update Roslyn output type and references in src/compiler/Compiler.cs
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -47,12 +47,12 @@ description: "Task list for full MSBuild support"
 
 ### Tests for User Story 1
 
-- [ ] T006 [P] [US1] Add output type build tests in test/fifth-sdk-tests/OutputTypeTests.cs
+- [x] T006 [P] [US1] Add output type build tests in test/fifth-sdk-tests/OutputTypeTests.cs
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Wire OutputType and TargetPath into FifthCompile in src/Fifth.Sdk/Sdk/Sdk.targets
-- [ ] T008 [US1] Ensure output extension mapping matches OutputType in src/Fifth.Sdk/Sdk/Sdk.targets
+- [x] T007 [US1] Wire OutputType and TargetPath into FifthCompile in src/Fifth.Sdk/Sdk/Sdk.targets
+- [x] T008 [US1] Ensure output extension mapping matches OutputType in src/Fifth.Sdk/Sdk/Sdk.targets
 
 **Checkpoint**: User Story 1 is fully functional and independently testable
 
@@ -66,15 +66,15 @@ description: "Task list for full MSBuild support"
 
 ### Tests for User Story 2
 
-- [ ] T009 [P] [US2] Add reference resolution tests in test/fifth-sdk-tests/ReferenceResolutionTests.cs
+- [x] T009 [P] [US2] Add reference resolution tests in test/fifth-sdk-tests/ReferenceResolutionTests.cs
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] Pass resolved reference paths to compiler in src/Fifth.Sdk/Sdk/Sdk.targets
-- [ ] T011 [US2] Enforce project dependency ordering in src/Fifth.Sdk/Sdk/Sdk.targets
-- [ ] T012 [US2] Fail build on missing project or package dependencies in src/Fifth.Sdk/Sdk/Sdk.targets
-- [ ] T013 [US2] Detect circular project references and fail build in src/Fifth.Sdk/Sdk/Sdk.targets
-- [ ] T014 [US2] Fail build on package version conflicts in src/Fifth.Sdk/Sdk/Sdk.targets
+- [x] T010 [US2] Pass resolved reference paths to compiler in src/Fifth.Sdk/Sdk/Sdk.targets
+- [x] T011 [US2] Enforce project dependency ordering in src/Fifth.Sdk/Sdk/Sdk.targets
+- [x] T012 [US2] Fail build on missing project or package dependencies in src/Fifth.Sdk/Sdk/Sdk.targets
+- [x] T013 [US2] Detect circular project references and fail build in src/Fifth.Sdk/Sdk/Sdk.targets
+- [x] T014 [US2] Fail build on package version conflicts in src/Fifth.Sdk/Sdk/Sdk.targets
 
 **Checkpoint**: User Stories 1 and 2 are independently functional
 
@@ -88,14 +88,14 @@ description: "Task list for full MSBuild support"
 
 ### Tests for User Story 3
 
-- [ ] T015 [P] [US3] Add incremental and multi-target build tests in test/fifth-sdk-tests/IncrementalBuildTests.cs
+- [x] T015 [P] [US3] Add incremental and multi-target build tests in test/fifth-sdk-tests/IncrementalBuildTests.cs
 
 ### Implementation for User Story 3
 
-- [ ] T016 [US3] Add incremental build Inputs/Outputs and up-to-date checks in src/Fifth.Sdk/Sdk/Sdk.targets
-- [ ] T017 [US3] Execute PreBuildEvent/PostBuildEvent and fail on error in src/Fifth.Sdk/Sdk/Sdk.targets
-- [ ] T018 [US3] Enforce target framework allowlist and multi-targeting in src/Fifth.Sdk/Sdk/Sdk.targets
-- [ ] T019 [US3] Emit design-time manifest with sources, references, target framework, and defines in src/Fifth.Sdk/Sdk/Sdk.targets
+- [x] T016 [US3] Add incremental build Inputs/Outputs and up-to-date checks in src/Fifth.Sdk/Sdk/Sdk.targets
+- [x] T017 [US3] Execute PreBuildEvent/PostBuildEvent and fail on error in src/Fifth.Sdk/Sdk/Sdk.targets
+- [x] T018 [US3] Enforce target framework allowlist and multi-targeting in src/Fifth.Sdk/Sdk/Sdk.targets
+- [x] T019 [US3] Emit design-time manifest with sources, references, target framework, and defines in src/Fifth.Sdk/Sdk/Sdk.targets
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -105,8 +105,8 @@ description: "Task list for full MSBuild support"
 
 **Purpose**: Documentation and cleanup across stories
 
-- [ ] T020 [P] Update capability documentation in src/Fifth.Sdk/README.md
-- [ ] T021 [P] Update design summary in docs/Designs/5thproj-implementation-summary.md
+- [x] T020 [P] Update capability documentation in src/Fifth.Sdk/README.md
+- [x] T021 [P] Update design summary in docs/Designs/5thproj-implementation-summary.md
 
 ---
 

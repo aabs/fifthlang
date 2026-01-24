@@ -2,22 +2,46 @@
   <!-- This file is imported at the end of the project file -->
 
   <!-- Define the core build target for Fifth projects -->
+  <PropertyGroup>
+    <FifthDesignTimeManifestPath Condition="'$(FifthDesignTimeManifestPath)' == ''">$(IntermediateOutputPath)fifth_designtime.manifest</FifthDesignTimeManifestPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Include="@(FifthSource)" />
+    <UpToDateCheckInput Include="$(FifthSourceManifestPath)" Condition="Exists('$(FifthSourceManifestPath)')" />
+    <UpToDateCheckInput Include="$(FifthCompilerPath)" Condition="'$(FifthCompilerPath)' != ''" />
+    <UpToDateCheckInput Include="@(ReferencePath)" />
+    <UpToDateCheckOutput Include="$(FifthOutputPath)" Condition="'$(FifthOutputPath)' != ''" />
+  </ItemGroup>
+
   <Target Name="FifthCompile" 
-          DependsOnTargets="ResolveFifthCompilerPath">
+          DependsOnTargets="ResolveFifthCompilerPath;ResolveFifthProjectReferences;ValidatePackageReferences;ValidateFifthTargetFrameworks"
+          Inputs="@(FifthSource);$(FifthSourceManifestPath);$(FifthCompilerPath);@(ReferencePath)"
+          Outputs="$(FifthOutputPath)">
     
     <PropertyGroup>
-      <_FifthSourceArg>$(FifthSourceDirectory)</_FifthSourceArg>
-      
+      <_FifthSourceArg Condition="Exists('$(FifthSourceManifestPath)')">--source-manifest &quot;$(FifthSourceManifestPath)&quot;</_FifthSourceArg>
+      <_FifthSourceArg Condition="'$(_FifthSourceArg)' == ''">--source &quot;$(FifthSourceDirectory)&quot;</_FifthSourceArg>
+
       <!-- Compute FifthOutputPath -->
-      <FifthOutputPath Condition="'$(FifthOutputPath)' == ''">$(OutputPath)$(AssemblyName).exe</FifthOutputPath>
+      <FifthOutputPath Condition="'$(FifthOutputPath)' == ''">$(TargetPath)</FifthOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_FifthReference Include="@(ReferencePath)" Condition="'@(ReferencePath)' != ''" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_FifthReferenceArgs>@(_FifthReference->'--reference &quot;%(FullPath)&quot;', ' ')</_FifthReferenceArgs>
     </PropertyGroup>
 
     <Message Text="Compiling Fifth project: $(MSBuildProjectName)" Importance="high" />
     <Message Text="  Source: $(_FifthSourceArg)" Importance="high" />
     <Message Text="  Output: $(FifthOutputPath)" Importance="high" />
+    <Message Text="  OutputType: $(OutputType)" Importance="high" />
     
     <!-- Run the Fifth compiler -->
-    <Exec Command="dotnet &quot;$(FifthCompilerPath)&quot; --command build --source &quot;$(_FifthSourceArg)&quot; --output &quot;$(FifthOutputPath)&quot;"
+    <Exec Command="dotnet &quot;$(FifthCompilerPath)&quot; --command build $(_FifthSourceArg) --output &quot;$(FifthOutputPath)&quot; --output-type &quot;$(OutputType)&quot; $(_FifthReferenceArgs)"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
     
     <Message Text="Fifth compilation completed successfully" Importance="high" />
@@ -46,6 +70,76 @@
     <Message Text="Using Fifth compiler: $(FifthCompilerPath)" Importance="normal" />
   </Target>
 
+  <Target Name="ValidateFifthTargetFrameworks" Condition="'$(FifthSupportedTargetFrameworks)' != '' and '$(TargetFramework)' != ''">
+    <PropertyGroup>
+      <_FifthSupportedFrameworksPadded>;$([System.String]::Copy('$(FifthSupportedTargetFrameworks)'));</_FifthSupportedFrameworksPadded>
+      <_FifthIsSupported>$([System.String]::Copy('$(_FifthSupportedFrameworksPadded)')).Contains(';$(TargetFramework);')</_FifthIsSupported>
+    </PropertyGroup>
+
+    <Error Condition="'$(_FifthIsSupported)' != 'True'"
+           Text="TargetFramework $(TargetFramework) is not supported. Supported: $(FifthSupportedTargetFrameworks)" />
+  </Target>
+
+  <Target Name="ResolveFifthProjectReferences" Condition="'@(ProjectReference)' != ''">
+    <ItemGroup>
+      <_FifthMissingProjectReference Include="@(ProjectReference)" Condition="!Exists('%(Identity)')" />
+    </ItemGroup>
+
+    <Error Condition="'@(_FifthMissingProjectReference)' != ''"
+           Text="Missing project references: @(_FifthMissingProjectReference, ', ')" />
+
+    <MSBuild Projects="@(ProjectReference)"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)"
+             BuildInParallel="$(BuildInParallel)" />
+  </Target>
+
+  <Target Name="ValidatePackageReferences" Condition="'@(PackageReference)' != ''">
+    <Error Condition="'$(ProjectAssetsFile)' == '' OR !Exists('$(ProjectAssetsFile)')"
+           Text="Package references require a restored assets file. Run restore before building." />
+
+    <ReadLinesFromFile File="$(ProjectAssetsFile)" Condition="Exists('$(ProjectAssetsFile)')">
+      <Output TaskParameter="Lines" ItemName="_FifthAssetsLines" />
+    </ReadLinesFromFile>
+
+    <PropertyGroup>
+      <_FifthAssetsText>@(_FifthAssetsLines, '
+')</_FifthAssetsText>
+      <_FifthHasVersionConflict>$([System.String]::Copy('$(_FifthAssetsText)')).Contains('NU1107')</_FifthHasVersionConflict>
+      <_FifthHasDowngrade>$([System.String]::Copy('$(_FifthAssetsText)')).Contains('NU1605')</_FifthHasDowngrade>
+    </PropertyGroup>
+
+    <Error Condition="'$(_FifthHasVersionConflict)' == 'True'"
+           Text="Package version conflict detected (NU1107). Resolve package versions before building." />
+    <Error Condition="'$(_FifthHasDowngrade)' == 'True'"
+           Text="Package downgrade detected (NU1605). Resolve package versions before building." />
+  </Target>
+
+  <Target Name="EmitFifthDesignTimeManifest" Condition="'$(DesignTimeBuild)' == 'true'">
+    <ItemGroup>
+      <_FifthDesignTimeLines Include="Source=%(FifthSource.FullPath)" Condition="'@(FifthSource)' != ''" />
+      <_FifthDesignTimeLines Include="Reference=%(ReferencePath.FullPath)" Condition="'@(ReferencePath)' != ''" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_FifthDesignTimeLinesText>@(_FifthDesignTimeLines)</_FifthDesignTimeLinesText>
+    </PropertyGroup>
+
+    <WriteLinesToFile File="$(FifthDesignTimeManifestPath)"
+                      Lines="@(_FifthDesignTimeLines);TargetFramework=$(TargetFramework);Define=$(DefineConstants)"
+                      Overwrite="true" />
+  </Target>
+
+  <Target Name="FifthPreBuildEvent" BeforeTargets="FifthCompile" Condition="'$(PreBuildEvent)' != ''">
+    <Message Text="Running PreBuildEvent: $(PreBuildEvent)" Importance="high" />
+    <Exec Command="$(PreBuildEvent)" WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+
+  <Target Name="FifthPostBuildEvent" AfterTargets="FifthCompile" Condition="'$(PostBuildEvent)' != ''">
+    <Message Text="Running PostBuildEvent: $(PostBuildEvent)" Importance="high" />
+    <Exec Command="$(PostBuildEvent)" WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+
   <!-- Create output directory before compilation -->
   <Target Name="CreateOutputDirectory" BeforeTargets="FifthCompile">
     <MakeDir Directories="$(OutputPath)" Condition="!Exists('$(OutputPath)')" />
@@ -58,7 +152,7 @@
   <Target Name="Clean">
     <PropertyGroup>
       <_FifthOutputToClean Condition="'$(FifthOutputPath)' != ''">$(FifthOutputPath)</_FifthOutputToClean>
-      <_FifthOutputToClean Condition="'$(FifthOutputPath)' == ''">$(OutputPath)$(AssemblyName).exe</_FifthOutputToClean>
+      <_FifthOutputToClean Condition="'$(FifthOutputPath)' == ''">$(TargetPath)</_FifthOutputToClean>
     </PropertyGroup>
     <Delete Files="$(_FifthOutputToClean)" Condition="Exists('$(_FifthOutputToClean)')" />
     <RemoveDir Directories="$(OutputPath)" Condition="Exists('$(OutputPath)')" />

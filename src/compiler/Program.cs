@@ -36,6 +36,24 @@ public static class Program
             name: "--output",
             description: "Output executable path");
 
+        // Define output type option
+        var outputTypeOption = new Option<string>(
+            name: "--output-type",
+            description: "Output type: Exe or Library")
+        {
+            IsRequired = false
+        };
+        outputTypeOption.SetDefaultValue("Exe");
+
+        // Define reference option
+        var referenceOption = new Option<string[]>(
+            name: "--reference",
+            description: "Assembly reference path")
+        {
+            IsRequired = false,
+            AllowMultipleArgumentsPerToken = true
+        };
+
         // Define args option
         var argsOption = new Option<string[]>(
             name: "--args",
@@ -67,6 +85,8 @@ public static class Program
             sourceOption,
             sourceManifestOption,
             outputOption,
+            outputTypeOption,
+            referenceOption,
             argsOption,
             keepTempOption,
             diagnosticsOption
@@ -74,21 +94,32 @@ public static class Program
 
         var exitCode = 0;
 
-        rootCommand.SetHandler(async (command, source, sourceManifest, output, args, keepTemp, diagnostics) =>
+        rootCommand.SetHandler(async context =>
         {
+            var command = context.ParseResult.GetValueForOption(commandOption) ?? "build";
+            var source = context.ParseResult.GetValueForOption(sourceOption) ?? Array.Empty<string>();
+            var sourceManifest = context.ParseResult.GetValueForOption(sourceManifestOption);
+            var output = context.ParseResult.GetValueForOption(outputOption);
+            var outputType = context.ParseResult.GetValueForOption(outputTypeOption) ?? "Exe";
+            var reference = context.ParseResult.GetValueForOption(referenceOption) ?? Array.Empty<string>();
+            var args = context.ParseResult.GetValueForOption(argsOption) ?? Array.Empty<string>();
+            var keepTemp = context.ParseResult.GetValueForOption(keepTempOption);
+            var diagnostics = context.ParseResult.GetValueForOption(diagnosticsOption);
+
             var compilerCommand = ParseCommand(command);
-            var sourceFiles = source ?? Array.Empty<string>();
-            var primarySource = sourceFiles.FirstOrDefault() ?? string.Empty;
+            var primarySource = source.FirstOrDefault() ?? string.Empty;
 
             var options = new CompilerOptions(
                 Command: compilerCommand,
                 Source: primarySource,
                 Output: output ?? "",
-                Args: args ?? Array.Empty<string>(),
+                OutputType: outputType,
+                Args: args,
                 KeepTemp: keepTemp,
                 Diagnostics: diagnostics,
-                SourceFiles: sourceFiles,
-                SourceManifest: sourceManifest);
+                SourceFiles: source,
+                SourceManifest: sourceManifest,
+                References: reference);
 
             var compiler = new Compiler();
             var result = await compiler.CompileAsync(options);
@@ -119,7 +150,7 @@ public static class Program
             }
 
             exitCode = result.ExitCode;
-        }, commandOption, sourceOption, sourceManifestOption, outputOption, argsOption, keepTempOption, diagnosticsOption);
+        });
 
         await rootCommand.InvokeAsync(args);
         return exitCode;

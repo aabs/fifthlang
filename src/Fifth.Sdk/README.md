@@ -4,7 +4,7 @@ MSBuild SDK for building Fifth language projects (`.5thproj`).
 
 ## Overview
 
-Fifth.Sdk enables Fifth language projects to be seamlessly integrated into .NET solutions using standard MSBuild tooling. It provides the necessary MSBuild targets and properties to compile Fifth source files (`.5th`) into executable .NET assemblies.
+Fifth.Sdk enables Fifth language projects to be seamlessly integrated into .NET solutions using standard MSBuild tooling. It provides the necessary MSBuild targets and properties to compile Fifth source files (`.5th`) into executable or library .NET assemblies with support for project and package references.
 
 ## Requirements
 
@@ -52,7 +52,8 @@ dotnet build MyProject.5thproj
 
 - **FifthCompilerPath** (optional): Full path to the Fifth compiler DLL. If not specified, the SDK will attempt to locate it relative to the SDK installation.
 - **FifthSourceDirectory** (optional): Directory containing Fifth source files. Defaults to the project directory.
-- **FifthOutputPath** (optional): Full path to the output executable. Defaults to `bin\<Configuration>\<TargetFramework>\<AssemblyName>.exe`.
+- **FifthOutputPath** (optional): Full path to the output artifact. Defaults to `bin\<Configuration>\<TargetFramework>\<AssemblyName>.<ext>`.
+- **FifthSupportedTargetFrameworks** (optional): Semicolon-delimited allowlist of supported target frameworks.
 
 ### Targets
 
@@ -111,7 +112,6 @@ dotnet sln add MyFifthProject.5thproj
 
 ## Limitations
 
-- Currently only supports executable projects (`OutputType=Exe`)
 - Requires the Fifth compiler to be pre-built
 - .NET 8.0+ target framework required
 
