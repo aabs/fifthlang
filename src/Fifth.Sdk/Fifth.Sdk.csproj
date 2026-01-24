@@ -5,7 +5,7 @@
     <IsPackable>true</IsPackable>
     <PackageId>Fifth.Sdk</PackageId>
     <Description>MSBuild SDK for building Fifth language projects (.5thproj)</Description>
-    <Version>0.1.0</Version>
+    <Version>0.0.1</Version>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <DevelopmentDependency>true</DevelopmentDependency>
