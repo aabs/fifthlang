@@ -158,6 +158,16 @@
   <!-- The main Build target -->
   <Target Name="Build" DependsOnTargets="FifthCompile" />
 
+  <!-- Provide run arguments for dotnet run -->
+  <Target Name="ComputeRunArguments" DependsOnTargets="Build">
+    <PropertyGroup>
+      <RunCommand Condition="'$(RunCommand)' == ''">dotnet</RunCommand>
+      <RunArguments Condition="'$(RunArguments)' == ''">&quot;$(FifthOutputPath)&quot;</RunArguments>
+      <RunArguments Condition="'$(RunArguments)' != ''">&quot;$(FifthOutputPath)&quot; $(RunArguments)</RunArguments>
+      <RunWorkingDirectory Condition="'$(RunWorkingDirectory)' == ''">$(MSBuildProjectDirectory)</RunWorkingDirectory>
+    </PropertyGroup>
+  </Target>
+
   <!-- Clean target -->
   <Target Name="Clean">
     <PropertyGroup>
