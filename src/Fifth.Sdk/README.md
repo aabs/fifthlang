@@ -4,12 +4,12 @@ MSBuild SDK for building Fifth language projects (`.5thproj`).
 
 ## Overview
 
-Fifth.Sdk enables Fifth language projects to be seamlessly integrated into .NET solutions using standard MSBuild tooling. It provides the necessary MSBuild targets and properties to compile Fifth source files (`.5th`) into executable .NET assemblies.
+Fifth.Sdk enables Fifth language projects to be seamlessly integrated into .NET solutions using standard MSBuild tooling. It provides the necessary MSBuild targets and properties to compile Fifth source files (`.5th`) into executable or library .NET assemblies with support for project and package references.
 
 ## Requirements
 
 - .NET 8.0 SDK or higher
-- Fifth compiler built in the repository
+- Fifth compiler available either from the repo build or as a .NET tool
 
 ## Usage
 
@@ -26,6 +26,9 @@ Create a new file with the `.5thproj` extension:
     
     <!-- Optional: Specify compiler path if not in default location -->
     <FifthCompilerPath>../path/to/compiler.dll</FifthCompilerPath>
+
+    <!-- Optional: Use the compiler as a .NET tool (preferred for distribution) -->
+    <FifthCompilerCommand>fifthc</FifthCompilerCommand>
   </PropertyGroup>
 </Project>
 ```
@@ -51,8 +54,10 @@ dotnet build MyProject.5thproj
 ### Properties
 
 - **FifthCompilerPath** (optional): Full path to the Fifth compiler DLL. If not specified, the SDK will attempt to locate it relative to the SDK installation.
+- **FifthCompilerCommand** (optional): Compiler command to invoke (e.g., `fifthc`) when the compiler is installed as a .NET tool.
 - **FifthSourceDirectory** (optional): Directory containing Fifth source files. Defaults to the project directory.
-- **FifthOutputPath** (optional): Full path to the output executable. Defaults to `bin\<Configuration>\<TargetFramework>\<AssemblyName>.exe`.
+- **FifthOutputPath** (optional): Full path to the output artifact. Defaults to `bin\<Configuration>\<TargetFramework>\<AssemblyName>.<ext>`.
+- **FifthSupportedTargetFrameworks** (optional): Semicolon-delimited allowlist of supported target frameworks.
 
 ### Targets
 
@@ -98,8 +103,30 @@ And a `global.json`:
 ### Building the SDK
 
 ```bash
-dotnet pack src/Fifth.Sdk/Fifth.Sdk.csproj --configuration Debug
+dotnet pack src/Fifth.Sdk/Fifth.Sdk.csproj -c Release
 ```
+
+### Building the Compiler Tool
+
+```bash
+dotnet pack src/compiler/compiler.csproj -c Release
+```
+
+### Publishing (exact commands)
+
+```bash
+dotnet nuget push src/Fifth.Sdk/bin/Release/Fifth.Sdk.<version>.nupkg --api-key <API_KEY> --source <NUGET_SOURCE>
+dotnet nuget push src/compiler/bin/Release/Fifth.Compiler.Tool.<version>.nupkg --api-key <API_KEY> --source <NUGET_SOURCE>
+```
+
+### Versioning notes
+
+- Use semantic versioning for both packages.
+- Keep `Fifth.Sdk` and `Fifth.Compiler.Tool` versions aligned unless there is a clear reason not to.
+- If you change the version, update the `Version` properties in:
+  - `src/Fifth.Sdk/Fifth.Sdk.csproj`
+  - `src/compiler/compiler.csproj`
+- Update any `global.json` that pins `Fifth.Sdk` in consumers or samples.
 
 ## Integration with .NET Solutions
 
@@ -111,8 +138,7 @@ dotnet sln add MyFifthProject.5thproj
 
 ## Limitations
 
-- Currently only supports executable projects (`OutputType=Exe`)
-- Requires the Fifth compiler to be pre-built
+- Requires the Fifth compiler to be available via `FifthCompilerPath` or `FifthCompilerCommand`
 - .NET 8.0+ target framework required
 
 ## Future Enhancements

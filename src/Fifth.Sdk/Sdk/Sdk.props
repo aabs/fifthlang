@@ -1,5 +1,7 @@
 <Project>
   <!-- This file is imported at the beginning of the project file -->
+
+  <Import Project="SupportedTargetFrameworks.props" Condition="Exists('SupportedTargetFrameworks.props')" />
   
   <PropertyGroup>
     <!-- Default properties for Fifth projects -->
@@ -11,6 +13,13 @@
     <!-- Set up standard output paths -->
     <BaseOutputPath Condition="'$(BaseOutputPath)' == ''">bin\</BaseOutputPath>
     <OutputPath Condition="'$(OutputPath)' == ''">$(BaseOutputPath)$(Configuration)\$(TargetFramework)\</OutputPath>
+
+    <TargetExt Condition="'$(TargetExt)' == '' and '$(OutputType)' == 'Library'">.dll</TargetExt>
+    <TargetExt Condition="'$(TargetExt)' == '' and '$(OutputType)' == 'Exe'">.exe</TargetExt>
+    <TargetName Condition="'$(TargetName)' == ''">$(AssemblyName)</TargetName>
+    <TargetFileName Condition="'$(TargetFileName)' == ''">$(TargetName)$(TargetExt)</TargetFileName>
+    <TargetPath Condition="'$(TargetPath)' == ''">$(OutputPath)$(TargetFileName)</TargetPath>
+    <FifthOutputPath Condition="'$(FifthOutputPath)' == ''">$(TargetPath)</FifthOutputPath>
     
     <!-- Fifth-specific properties -->
     <FifthSourceDirectory Condition="'$(FifthSourceDirectory)' == ''">$(MSBuildProjectDirectory)</FifthSourceDirectory>

@@ -2,6 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>fifthc</ToolCommandName>
+    <PackageId>Fifth.Compiler.Tool</PackageId>
+    <Description>Fifth language compiler CLI packaged as a .NET tool.</Description>
+    <Version>0.1.0</Version>
     <TargetFrameworks Condition="'$(EnableNet10)' == 'true'">net8.0;net10.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(EnableNet10)' != 'true'">net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>

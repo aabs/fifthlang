@@ -79,7 +79,7 @@ dotnet build MyProject.5thproj
 All standard MSBuild operations have been tested and verified:
 
 ✅ **Restore**: NuGet package resolution works correctly
-✅ **Build**: Compiles `.5th` files and produces `.exe` output
+✅ **Build**: Compiles `.5th` files and produces `.exe` or `.dll` output
 ✅ **Clean**: Removes build outputs
 ✅ **Rebuild**: Performs clean followed by build
 ✅ **Solution-level build**: Fifth.Sdk project builds as part of solution
@@ -99,12 +99,14 @@ bin/
 | Property | Default | Description |
 |----------|---------|-------------|
 | `TargetFramework` | net8.0 | Target .NET framework |
-| `OutputType` | Exe | Output type (currently only Exe supported) |
+| `OutputType` | Exe | Output type (Exe or Library) |
 | `Configuration` | Debug | Build configuration |
 | `OutputPath` | bin\\<Config>\\<TFM>\\ | Output directory |
 | `FifthSourceDirectory` | Project directory | Directory containing source files |
 | `FifthCompilerPath` | Auto-detected | Path to compiler.dll |
-| `FifthOutputPath` | <OutputPath>\\<Name>.exe | Full output executable path |
+| `FifthOutputPath` | <OutputPath>\\<Name>.<ext> | Full output artifact path |
+| `FifthSupportedTargetFrameworks` | net8.0 | Allowlisted target frameworks |
+| `FifthDesignTimeManifestPath` | <IntermediateOutputPath>\\fifth_designtime.manifest | Design-time manifest path |
 
 ## Namespace Imports & Multi-File Compilation
 
@@ -138,25 +140,18 @@ When building a `.5thproj`, MSBuild writes a manifest of all `*.5th` sources to 
    - This doesn't prevent MSBuild usage
    - Projects can still be built from solution level
    
-2. **Library Projects**: Currently only supports executable projects
-   - Can be extended to support library projects in future
-
-3. **Runtime Execution**: Generated executables have runtime issues
+2. **Runtime Execution**: Generated executables have runtime issues
    - This is an existing compiler problem, not SDK-related
    - SDK successfully builds and produces output
 
-4. **IDE Integration**: No syntax highlighting or IntelliSense support yet
+3. **IDE Integration**: No syntax highlighting or IntelliSense support yet
    - This requires additional tooling beyond MSBuild
 
 ## Future Enhancements
 
-1. Support for library projects (DLL output)
-2. Project-to-project references
-3. IDE tooling integration (VS Code, Visual Studio)
-4. NuGet package publishing of Fifth.Sdk
-5. Multi-targeting support
-6. Custom build events and hooks
-7. Enhanced .sln integration
+1. IDE tooling integration (VS Code, Visual Studio)
+2. NuGet package publishing of Fifth.Sdk
+3. Enhanced .sln integration
 
 ## Files Created/Modified
 

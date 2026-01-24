@@ -213,13 +213,16 @@ Commands:
 Options:
   --source <path>      Source file or directory path (required for build/run/lint)
   --output <path>      Output executable path (required for build/run)
+    --output-type <type> Output type: Exe or Library
+    --reference <path>   Assembly reference path (repeatable)
   --args <args>        Arguments to pass to program when running
   --keep-temp          Keep temporary files
   --diagnostics        Enable diagnostic output
 
 Examples:
-  fifthc --source hello.5th --output hello.exe
-  fifthc --command run --source hello.5th --output hello.exe --args ""arg1 arg2""
+    fifthc --source hello.5th --output hello.exe
+    fifthc --output-type Library --source hello.5th --output hello.dll
+    fifthc --command run --source hello.5th --output hello.exe --args ""arg1 arg2""
   fifthc --command lint --source src/
 ";
 
@@ -528,6 +531,29 @@ Examples:
                 }
             }
 
+            if (options.References != null)
+            {
+                foreach (var reference in options.References)
+                {
+                    if (string.IsNullOrWhiteSpace(reference))
+                    {
+                        continue;
+                    }
+
+                    if (Directory.Exists(reference))
+                    {
+                        foreach (var dllPath in Directory.EnumerateFiles(reference, "*.dll", SearchOption.TopDirectoryOnly))
+                        {
+                            AddReferenceIfExists(dllPath);
+                        }
+                    }
+                    else
+                    {
+                        AddReferenceIfExists(reference);
+                    }
+                }
+            }
+
             try
             {
                 var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
@@ -573,15 +599,23 @@ Examples:
             AddReferenceIfExists(Path.Combine(baseDir, "dotNetRdf.Client.dll"));
             AddReferenceIfExists(Path.Combine(baseDir, "VDS.Common.dll"));
 
-            // Create the compilation - emit as DLL for proper .NET Core format
+            var outputKind = options.OutputType.Equals("Library", StringComparison.OrdinalIgnoreCase)
+                ? Microsoft.CodeAnalysis.OutputKind.DynamicallyLinkedLibrary
+                : Microsoft.CodeAnalysis.OutputKind.ConsoleApplication;
+
+            // Create the compilation - emit based on output type unless caller already specified an extension
             var assemblyName = Path.GetFileNameWithoutExtension(options.Output);
-            var outputPath = Path.ChangeExtension(options.Output, ".dll");
+            var requestedExtension = Path.GetExtension(options.Output);
+            var outputExtension = string.IsNullOrWhiteSpace(requestedExtension)
+                ? (outputKind == Microsoft.CodeAnalysis.OutputKind.DynamicallyLinkedLibrary ? ".dll" : ".exe")
+                : requestedExtension;
+            var outputPath = Path.ChangeExtension(options.Output, outputExtension);
             var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees: syntaxTrees,
                 references: references,
                 options: new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(
-                    Microsoft.CodeAnalysis.OutputKind.ConsoleApplication,
+                    outputKind,
                     optimizationLevel: Microsoft.CodeAnalysis.OptimizationLevel.Debug,
                     platform: Microsoft.CodeAnalysis.Platform.AnyCpu));
 
@@ -618,11 +652,14 @@ Examples:
                 diagnostics.Add(new Diagnostic(DiagnosticLevel.Info, $"Generated PDB: {Path.ChangeExtension(outputPath, ".pdb")}"));
             }
 
-            // Generate runtime configuration file for framework-dependent execution
-            await GenerateRuntimeConfigAsync(outputPath, diagnostics);
+            if (outputKind == Microsoft.CodeAnalysis.OutputKind.ConsoleApplication)
+            {
+                // Generate runtime configuration file for framework-dependent execution
+                await GenerateRuntimeConfigAsync(outputPath, diagnostics);
 
-            // Copy runtime dependencies to output directory
-            await CopyRuntimeDependenciesAsync(outputPath, diagnostics);
+                // Copy runtime dependencies to output directory
+                await CopyRuntimeDependenciesAsync(outputPath, diagnostics);
+            }
 
             // No need to set execute permission on DLLs - they're executed via dotnet runtime
 

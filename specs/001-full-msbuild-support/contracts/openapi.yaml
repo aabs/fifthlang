@@ -1,0 +1,160 @@
+openapi: 3.0.3
+info:
+  title: Fifth Build Orchestration API
+  version: 1.0.0
+  description: API contract for build orchestration and design-time metadata.
+servers:
+  - url: https://build.local
+paths:
+  /builds:
+    post:
+      summary: Start a build
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BuildRequest"
+      responses:
+        "202":
+          description: Build accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BuildHandle"
+  /builds/{buildId}:
+    get:
+      summary: Get build status
+      parameters:
+        - name: buildId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Build status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BuildStatus"
+  /projects/{projectId}/outputs:
+    get:
+      summary: List build outputs for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Project outputs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BuildOutputs"
+  /design-time/projects/{projectId}:
+    get:
+      summary: Get design-time build metadata
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Design-time metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DesignTimeMetadata"
+components:
+  schemas:
+    BuildRequest:
+      type: object
+      required:
+        - projectId
+      properties:
+        projectId:
+          type: string
+        configuration:
+          type: string
+          example: Debug
+        targetFrameworks:
+          type: array
+          items:
+            type: string
+        outputType:
+          type: string
+          enum: [Exe, Library]
+    BuildHandle:
+      type: object
+      required:
+        - buildId
+      properties:
+        buildId:
+          type: string
+        statusUrl:
+          type: string
+    BuildStatus:
+      type: object
+      required:
+        - buildId
+        - state
+      properties:
+        buildId:
+          type: string
+        state:
+          type: string
+          enum: [Queued, Running, Succeeded, Failed]
+        diagnostics:
+          type: array
+          items:
+            type: string
+    BuildOutputs:
+      type: object
+      properties:
+        outputs:
+          type: array
+          items:
+            $ref: "#/components/schemas/BuildOutput"
+    BuildOutput:
+      type: object
+      required:
+        - targetFramework
+        - artifactPath
+      properties:
+        targetFramework:
+          type: string
+        artifactPath:
+          type: string
+        outputType:
+          type: string
+          enum: [Exe, Library]
+    DesignTimeMetadata:
+      type: object
+      properties:
+        sources:
+          type: array
+          items:
+            type: string
+        references:
+          type: array
+          items:
+            type: string
+        projectReferences:
+          type: array
+          items:
+            type: string
+        packageReferences:
+          type: array
+          items:
+            type: string
+        targetFramework:
+          type: string
+        defines:
+          type: array
+          items:
+            type: string
