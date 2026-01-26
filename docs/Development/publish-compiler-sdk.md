@@ -39,7 +39,13 @@ dotnet nuget push src/compiler/bin/Release/Fifth.Compiler.Tool.<version>.nupkg -
 Install the tool:
 
 ```bash
-dotnet tool install -g Fifth.Compiler.Tool --version <version>
+dotnet tool install -g Fifth.Compiler.Tool --version <version🕙 13:50:32 ❯ dotnet tool install -g Fifth.Compiler.Tool
+Tool 'fifth.compiler.tool' failed to update due to the following:
+The settings file in the tool's NuGet package is invalid: Command 'fifthc' uses unsupported runner ''."
+Tool 'fifth.compiler.tool' failed to install. Contact the tool author for assistance.🕙 13:50:32 ❯ dotnet tool install -g Fifth.Compiler.Tool
+Tool 'fifth.compiler.tool' failed to update due to the following:
+The settings file in the tool's NuGet package is invalid: Command 'fifthc' uses unsupported runner ''."
+Tool 'fifth.compiler.tool' failed to install. Contact the tool author for assistance.>
 ```
 
 Pin the SDK in `global.json`:

@@ -4,7 +4,9 @@
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>fifthc</ToolCommandName>
+    <ToolEntryPoint>compiler.dll</ToolEntryPoint>
     <PackageId>Fifth.Compiler.Tool</PackageId>
+    <PackageType>DotnetTool</PackageType>
     <Description>Fifth language compiler CLI packaged as a .NET tool.</Description>
     <Version>0.1.0</Version>
     <TargetFrameworks Condition="'$(EnableNet10)' == 'true'">net8.0;net10.0</TargetFrameworks>

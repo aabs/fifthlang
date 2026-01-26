@@ -145,6 +145,12 @@ install-cli-quick:
 	printf "Fifth language compiler is now available as 'fifth' in your PATH\n"
 	printf "Usage: fifth [options] <source-file>\n"
 
+# Remove compiler CLI symlink
+uninstall-cli:
+	printf "Removing symlink ~/bin/fifth...\n"
+	rm -f ~/bin/fifth || true
+	printf "Fifth language compiler symlink removed\n"
+
 # Help text is generated from comments above each recipe; use `just --summary` for a concise list
 help:
 	@just --list
