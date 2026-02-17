@@ -3,7 +3,7 @@ File: .gitattributes
 ###############################################################################
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
-* text=auto
+* -text
 
 ###############################################################################
 # ANTLR-generated files should maintain LF line endings
