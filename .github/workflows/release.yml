@@ -26,80 +26,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     steps:
-        include:
-          - os: ubuntu-latest
-            platform: linux
-            arch: x64
-            runtime: linux-x64
-            framework: net8.0
-            archive_format: tar.gz
-          - os: ubuntu-latest
-            platform: linux
-            arch: x64
-            runtime: linux-x64
-            framework: net10.0
-            archive_format: tar.gz
-          - os: ubuntu-latest
-            platform: linux
-            arch: arm64
-            runtime: linux-arm64
-            framework: net8.0
-            archive_format: tar.gz
-          - os: ubuntu-latest
-            platform: linux
-            arch: arm64
-            runtime: linux-arm64
-            framework: net10.0
-            archive_format: tar.gz
-          - os: macos-latest
-            platform: macos
-            arch: x64
-            runtime: osx-x64
-            framework: net8.0
-            archive_format: tar.gz
-          - os: macos-latest
-            platform: macos
-            arch: x64
-            runtime: osx-x64
-            framework: net10.0
-            archive_format: tar.gz
-          - os: macos-latest
-            platform: macos
-            arch: arm64
-            runtime: osx-arm64
-            framework: net8.0
-            archive_format: tar.gz
-          - os: macos-latest
-            platform: macos
-            arch: arm64
-            runtime: osx-arm64
-            framework: net10.0
-            archive_format: tar.gz
-          - os: windows-latest
-            platform: windows
-            arch: x64
-            runtime: win-x64
-            framework: net8.0
-            archive_format: zip
-          - os: windows-latest
-            platform: windows
-            arch: x64
-            runtime: win-x64
-            framework: net10.0
-            archive_format: zip
-          - os: windows-latest
-            platform: windows
-            arch: arm64
-            runtime: win-arm64
-            framework: net8.0
-            archive_format: zip
-          - os: windows-latest
-            platform: windows
-            arch: arm64
-            runtime: win-arm64
-            framework: net10.0
-            archive_format: zip
-    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -109,52 +35,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
-
-      - name: Install zip (Windows)
-        if: matrix.platform == 'windows'
-        shell: pwsh
-        run: |
-          choco install zip -y --no-progress
-
-      - name: Install .NET 10 SDK (preview)
-        if: matrix.framework == 'net10.0' && matrix.platform != 'windows'
-        shell: bash
-        env:
-          DOTNET_10_INSTALL_DIR: ${{ runner.temp }}/dotnet10
-        run: |
-          set -euo pipefail
-          INSTALL_SCRIPT="$RUNNER_TEMP/dotnet-install.sh"
-          INSTALL_DIR="$DOTNET_10_INSTALL_DIR"
-          mkdir -p "$INSTALL_DIR"
-          curl -sSL https://dot.net/v1/dotnet-install.sh -o "$INSTALL_SCRIPT"
-          chmod +x "$INSTALL_SCRIPT"
-          "$INSTALL_SCRIPT" --channel 10.0 --quality preview --install-dir "$INSTALL_DIR"
-          "$INSTALL_SCRIPT" --channel 10.0 --quality preview --runtime dotnet --install-dir "$INSTALL_DIR"
-          # Install net8 runtime so smoke tests can execute compiler outputs targeting 8.0
-          "$INSTALL_SCRIPT" --channel 8.0 --runtime dotnet --install-dir "$INSTALL_DIR"
-          echo "$INSTALL_DIR" >> "$GITHUB_PATH"
-          echo "DOTNET_10_ROOT=$INSTALL_DIR" >> "$GITHUB_ENV"
-          dotnet --list-sdks
-          dotnet --list-runtimes
-
-      - name: Install .NET 10 SDK (preview) (Windows)
-        if: matrix.framework == 'net10.0' && matrix.platform == 'windows'
-        shell: pwsh
-        env:
-          DOTNET_10_INSTALL_DIR: ${{ runner.temp }}\dotnet10
-        run: |
-          $installScript = Join-Path $env:RUNNER_TEMP 'dotnet-install.ps1'
-          Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile $installScript
-          $installDir = "$env:DOTNET_10_INSTALL_DIR"
-          New-Item -ItemType Directory -Force -Path $installDir | Out-Null
-          & $installScript -Channel 10.0 -Quality Preview -InstallDir $installDir
-          & $installScript -Channel 10.0 -Quality Preview -Runtime dotnet -InstallDir $installDir
-          # Install net8 runtime so smoke tests can execute compiler outputs targeting 8.0
-          & $installScript -Channel 8.0 -Runtime dotnet -InstallDir $installDir
-          "DOTNET_10_ROOT=$installDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          $installDir | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          & "$installDir\dotnet.exe" --list-sdks
-          & "$installDir\dotnet.exe" --list-runtimes
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -162,203 +42,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Check framework SDK availability
-        id: framework_sdk
-        shell: bash
-        run: |
-          set -euo pipefail
-          FRAMEWORK='${{ matrix.framework }}'
-          if [[ "$FRAMEWORK" != "net10.0" ]]; then
-              echo "sdk_available=true" >> "$GITHUB_OUTPUT"
-              echo "sdk_version=" >> "$GITHUB_OUTPUT"
-              echo "sdk_is_preview=false" >> "$GITHUB_OUTPUT"
-              exit 0
-          fi
-
-          SDK_VERSION=$(dotnet --list-sdks | awk '/^10\.0\./ {print $1; exit}')
-          if [[ -z "$SDK_VERSION" ]]; then
-              echo "::warning title=.NET 10 SDK unavailable::.NET 10.0 SDK not installed on runner ${RUNNER_OS}/${RUNNER_ARCH}. Skipping package build for $FRAMEWORK" >&2
-              echo "sdk_available=false" >> "$GITHUB_OUTPUT"
-              echo "sdk_version=" >> "$GITHUB_OUTPUT"
-              echo "sdk_is_preview=false" >> "$GITHUB_OUTPUT"
-              exit 0
-          fi
-
-          IS_PREVIEW=false
-          if [[ "$SDK_VERSION" == *preview* ]] || [[ "$SDK_VERSION" == *rc* ]]; then
-              IS_PREVIEW=true
-          fi
-
-          echo "Found .NET 10 SDK $SDK_VERSION (preview=$IS_PREVIEW)" >&2
-          echo "sdk_available=true" >> "$GITHUB_OUTPUT"
-          echo "sdk_version=$SDK_VERSION" >> "$GITHUB_OUTPUT"
-          echo "sdk_is_preview=$IS_PREVIEW" >> "$GITHUB_OUTPUT"
-
-      - name: Determine package version
-        id: version
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION=$(./scripts/release/version-info.sh --format text)
-          echo "Detected version $VERSION"
-          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Build release package
-        id: build_release
-        if: steps.framework_sdk.outputs.sdk_available == 'true' || matrix.framework != 'net10.0'
-        shell: bash
-        run: |
-          set -euo pipefail
-            if [[ '${{ matrix.framework }}' == 'net10.0' ]]; then
-              if [[ -z "${DOTNET_10_ROOT:-}" ]]; then
-                  echo "::error::.NET 10 SDK path (DOTNET_10_ROOT) not available" >&2
-                  exit 1
-              fi
-              export DOTNET_ROOT="$DOTNET_10_ROOT"
-              export PATH="$DOTNET_ROOT:$PATH"
-              export DOTNET_MULTILEVEL_LOOKUP=0
-              export DOTNET_ROLL_FORWARD=LatestMajor
-              export DOTNET_ROLL_FORWARD_TO_PRERELEASE=1
-          else
-              export DOTNET_ROLL_FORWARD=LatestMinor
-          fi
-          DIST_DIR="${{ runner.temp }}/dist-${{ matrix.runtime }}-${{ matrix.framework }}"
-          mkdir -p "$DIST_DIR"
-          BUILD_OUTPUT_JSON="${{ runner.temp }}/build-${{ matrix.runtime }}-${{ matrix.framework }}.json"
-
-            ./scripts/build/build-release.sh \
-              --version '${{ steps.version.outputs.value }}' \
-              --runtime '${{ matrix.runtime }}' \
-              --framework '${{ matrix.framework }}' \
-              --output-dir "$DIST_DIR" \
-              --json-output "$BUILD_OUTPUT_JSON"
-
-            PACKAGE_PATH=$(python3 -c "import json, sys; data=json.load(open(sys.argv[1], 'r', encoding='utf-8')); print(data['package_path'])" "$BUILD_OUTPUT_JSON")
-            PACKAGE_SIZE=$(python3 -c "import json, sys; data=json.load(open(sys.argv[1], 'r', encoding='utf-8')); print(data['package_size_bytes'])" "$BUILD_OUTPUT_JSON")
-          echo "package_path=$PACKAGE_PATH" >> "$GITHUB_OUTPUT"
-          echo "package_name=$(basename "$PACKAGE_PATH")" >> "$GITHUB_OUTPUT"
-          echo "package_size=$PACKAGE_SIZE" >> "$GITHUB_OUTPUT"
-
-      - name: Verify package layout
-        if: steps.build_release.outputs.package_path != ''
-        shell: bash
-        run: |
-          set -euo pipefail
-          ./scripts/test/verify-package.sh --package-path "${{ steps.build_release.outputs.package_path }}"
-
-      - name: Run smoke tests
-        if: ${{ steps.build_release.outputs.package_path != '' && (matrix.arch != 'arm64' || runner.arch == 'ARM64') }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ '${{ matrix.framework }}' == 'net10.0' ]]; then
-            if [[ -z "${DOTNET_10_ROOT:-}" ]]; then
-                echo "::error::.NET 10 installation path (DOTNET_10_ROOT) not available" >&2
-                exit 1
-            fi
-            export DOTNET_ROOT="$DOTNET_10_ROOT"
-            export PATH="$DOTNET_ROOT:$PATH"
-            export DOTNET_MULTILEVEL_LOOKUP=0
-            export DOTNET_ROLL_FORWARD=LatestMajor
-            export DOTNET_ROLL_FORWARD_TO_PRERELEASE=1
-          fi
-          ./scripts/test/smoke-test.sh \
-            --package-path "${{ steps.build_release.outputs.package_path }}" \
-            --test-dir "${{ runner.temp }}/smoke-${{ matrix.runtime }}-${{ matrix.framework }}"
-
-      - name: Write build metadata
-        id: metadata
-        shell: bash
-        env:
-          SDK_AVAILABLE: ${{ steps.framework_sdk.outputs.sdk_available || 'true' }}
-          SDK_IS_PREVIEW: ${{ steps.framework_sdk.outputs.sdk_is_preview || 'false' }}
-          SDK_VERSION_OVERRIDDEN: ${{ steps.framework_sdk.outputs.sdk_version || '' }}
-        run: |
-          set -euo pipefail
-          METADATA_PATH="${{ runner.temp }}/metadata-${{ matrix.runtime }}-${{ matrix.framework }}.json"
-          PACKAGE_PATH='${{ steps.build_release.outputs.package_path }}'
-          PACKAGE_SIZE='${{ steps.build_release.outputs.package_size }}'
-          PACKAGE_AVAILABLE=false
-          if [[ -n "$PACKAGE_PATH" ]]; then
-              PACKAGE_AVAILABLE=true
-          fi
-
-          SDK_VERSION="$SDK_VERSION_OVERRIDDEN"
-          if [[ -z "$SDK_VERSION" ]]; then
-              SDK_VERSION=$(dotnet --version)
-          fi
-
-          METADATA_ENV_PLATFORM='${{ matrix.platform }}'
-          METADATA_ENV_ARCH='${{ matrix.arch }}'
-          METADATA_ENV_RUNTIME='${{ matrix.runtime }}'
-          METADATA_ENV_FRAMEWORK='${{ matrix.framework }}'
-          METADATA_ENV_ARCHIVE='${{ matrix.archive_format }}'
-          export METADATA_PATH PACKAGE_AVAILABLE PACKAGE_PATH PACKAGE_SIZE SDK_AVAILABLE SDK_VERSION SDK_IS_PREVIEW
-          export METADATA_ENV_PLATFORM METADATA_ENV_ARCH METADATA_ENV_RUNTIME METADATA_ENV_FRAMEWORK METADATA_ENV_ARCHIVE
-                python3 <<'PY'
-          import json
-          import os
-
-          payload = {
-            "platform": os.environ["METADATA_ENV_PLATFORM"],
-            "arch": os.environ["METADATA_ENV_ARCH"],
-            "runtime": os.environ["METADATA_ENV_RUNTIME"],
-            "framework": os.environ["METADATA_ENV_FRAMEWORK"],
-            "archive_format": os.environ["METADATA_ENV_ARCHIVE"],
-            "package_available": os.environ["PACKAGE_AVAILABLE"].lower() == 'true',
-            "package_path": os.environ.get("PACKAGE_PATH", ""),
-            "package_size_bytes": os.environ.get("PACKAGE_SIZE", ""),
-            "sdk_available": os.environ["SDK_AVAILABLE"].lower() == 'true',
-            "sdk_version": os.environ.get("SDK_VERSION", ""),
-            "sdk_is_preview": os.environ["SDK_IS_PREVIEW"].lower() == 'true'
-          }
-
-          with open(os.environ["METADATA_PATH"], 'w', encoding='utf-8') as handle:
-            json.dump(payload, handle)
-          PY
-
-          echo "metadata_path=$METADATA_PATH" >> "$GITHUB_OUTPUT"
-
-      - name: Upload package artifact
-        if: steps.build_release.outputs.package_path != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: package-${{ matrix.runtime }}-${{ matrix.framework }}
-          path: |
-            ${{ steps.build_release.outputs.package_path }}
-          retention-days: 7
-
-      - name: Upload build metadata
-        uses: actions/upload-artifact@v4
-        with:
-          name: metadata-${{ matrix.runtime }}-${{ matrix.framework }}
-          path: ${{ steps.metadata.outputs.metadata_path }}
-          retention-days: 7
-
-      - name: Record skipped build
-        if: steps.build_release.outputs.package_path == ''
-        shell: bash
-        run: |
-          echo "Skipped build for ${{ matrix.runtime }} ${{ matrix.framework }} due to missing framework SDK."
-
-  publish:
-    name: Publish release artifacts
-    runs-on: ubuntu-latest
-    needs: build
-    if: ${{ success() }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup .NET SDK (global.json)
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
-
       - name: Determine release version
-        id: publish_version
+        id: version
         shell: bash
         run: |
           set -euo pipefail
@@ -378,6 +63,24 @@ jobs:
               echo "value=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Restore NuGet packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet restore fifthlang.sln
+
+      - name: Build solution
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet build fifthlang.sln -c Release --no-restore
+
+      - name: Run tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet test fifthlang.sln -c Release --no-build --no-restore --verbosity=minimal
+
       - name: Verify NuGet publish secret
         if: steps.dryrun.outputs.value != 'true'
         shell: bash
@@ -391,11 +94,10 @@ jobs:
           fi
 
       - name: Pack SDK and compiler tool
-        if: steps.dryrun.outputs.value != 'true'
         shell: bash
         run: |
           set -euo pipefail
-          VERSION='${{ steps.publish_version.outputs.value }}'
+          VERSION='${{ steps.version.outputs.value }}'
           dotnet pack src/Fifth.Sdk/Fifth.Sdk.csproj -c Release /p:Version="$VERSION"
           dotnet pack src/compiler/compiler.csproj -c Release /p:Version="$VERSION"
 
@@ -407,181 +109,16 @@ jobs:
           NUGET_SOURCE: https://api.nuget.org/v3/index.json
         run: |
           set -euo pipefail
-          VERSION='${{ steps.publish_version.outputs.value }}'
+          VERSION='${{ steps.version.outputs.value }}'
           dotnet nuget push "src/Fifth.Sdk/bin/Release/Fifth.Sdk.$VERSION.nupkg" --api-key "$NUGET_PUBLISH" --source "$NUGET_SOURCE" --skip-duplicate
           dotnet nuget push "src/compiler/bin/Release/Fifth.Compiler.Tool.$VERSION.nupkg" --api-key "$NUGET_PUBLISH" --source "$NUGET_SOURCE" --skip-duplicate
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist/artifacts
-
-      - name: Organize packages and metadata
-        id: organize
-        shell: bash
-        run: |
-          set -euo pipefail
-          ARTIFACT_ROOT="${{ github.workspace }}/dist/artifacts"
-          PACKAGE_DIR="${{ github.workspace }}/dist/packages"
-          METADATA_DIR="${{ github.workspace }}/dist/metadata"
-          mkdir -p "$PACKAGE_DIR" "$METADATA_DIR"
-
-          shopt -s nullglob
-          while IFS= read -r -d '' file; do
-              mv "$file" "$PACKAGE_DIR"/
-          done < <(find "$ARTIFACT_ROOT" -type f \( -name '*.tar.gz' -o -name '*.zip' \) -print0)
-
-          while IFS= read -r -d '' file; do
-              base=$(basename "$file")
-              if [[ "$base" == metadata-* ]]; then
-                  mv "$file" "$METADATA_DIR"/
-              fi
-          done < <(find "$ARTIFACT_ROOT" -type f -name '*.json' -print0)
-
-          if [[ ! -d "$METADATA_DIR" ]] || [[ -z $(ls -A "$METADATA_DIR" 2>/dev/null) ]]; then
-              echo "::error::No metadata artifacts were downloaded. Cannot determine build coverage."
-              exit 1
-          fi
-
-          if [[ ! -d "$PACKAGE_DIR" ]] || [[ -z $(ls -A "$PACKAGE_DIR" 2>/dev/null) ]]; then
-              echo "::error::No packages were found in artifacts."
-              exit 1
-          fi
-
-          echo "package_dir=$PACKAGE_DIR" >> "$GITHUB_OUTPUT"
-          echo "metadata_dir=$METADATA_DIR" >> "$GITHUB_OUTPUT"
-          echo "Organized $(find "$PACKAGE_DIR" -maxdepth 1 -type f | wc -l | tr -d ' ') package files" | tee -a "$GITHUB_STEP_SUMMARY"
-
-      - name: Analyze framework coverage
-        id: coverage
-        env:
-          METADATA_DIR: ${{ steps.organize.outputs.metadata_dir }}
-        run: |
-          python3 <<'PY'
-          import json
-          import os
-          import glob
-          import sys
-          
-          metadata_dir = os.environ['METADATA_DIR']
-          files = sorted(glob.glob(os.path.join(metadata_dir, '*.json')))
-          if not files:
-              print('::error::No metadata files found after download')
-              sys.exit(1)
-          
-          expected_counts = {'net8.0': 0, 'net10.0': 0}
-          available_counts = {'net8.0': 0, 'net10.0': 0}
-          net10_sdk_availability = []
-          preview_versions = set()
-          net10_sdk_versions = set()
-          
-          for path in files:
-              with open(path, 'r', encoding='utf-8') as handle:
-                  data = json.load(handle)
-              tfm = data.get('framework')
-              expected_counts[tfm] = expected_counts.get(tfm, 0) + 1
-              if data.get('package_available'):
-                  available_counts[tfm] = available_counts.get(tfm, 0) + 1
-              if tfm == 'net10.0':
-                  net10_sdk_availability.append(bool(data.get('sdk_available', True)))
-                  sdk_version = data.get('sdk_version') or ''
-                  if sdk_version:
-                      net10_sdk_versions.add(sdk_version)
-                  if data.get('sdk_is_preview') and data.get('package_available'):
-                      preview_versions.add(sdk_version or 'unknown')
-          
-          net8_expected = expected_counts.get('net8.0', 0)
-          net10_expected = expected_counts.get('net10.0', 0)
-          net8_available = available_counts.get('net8.0', 0)
-          net10_available = available_counts.get('net10.0', 0)
-          
-          if net8_expected != 6 or net8_available != 6:
-              print('::error::Expected 6 net8.0 packages but found', net8_available)
-              sys.exit(1)
-          
-          framework_warning = ''
-          if net10_expected == 0:
-              print('::error::No net10.0 metadata entries found. Build matrix is misconfigured.')
-              sys.exit(1)
-          
-          if net10_available == net10_expected:
-              pass
-          elif net10_available == 0 and net10_sdk_availability and not any(net10_sdk_availability):
-              framework_warning = '.NET 10.0 SDK was unavailable on runners; only .NET 8.0 packages were produced.'
-          else:
-              print(f"::error::net10.0 packages incomplete ({net10_available}/{net10_expected}).")
-              sys.exit(1)
-          
-          preview_warning = ''
-          if preview_versions:
-              joined = ', '.join(sorted(preview_versions))
-              preview_warning = f'.NET 10.0 packages were built using preview SDKs ({joined}).'
-          
-          summary_lines = [
-              f"net8.0 packages: {net8_available}/{net8_expected}",
-              f"net10.0 packages: {net10_available}/{net10_expected}",
-          ]
-          if framework_warning:
-              summary_lines.append(f"WARNING: {framework_warning}")
-          if preview_warning:
-              summary_lines.append(f"NOTICE: {preview_warning}")
-          
-          print('\n'.join(summary_lines))
-          
-          coverage_outputs = {
-              'net8_packages': str(net8_available),
-              'net10_packages': str(net10_available),
-              'framework_warning': framework_warning,
-              'preview_warning': preview_warning,
-              'net10_sdk_versions': ','.join(sorted(net10_sdk_versions)),
-          }
-          
-          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as handle:
-              for key, value in coverage_outputs.items():
-                  handle.write(f"{key}={value}\n")
-          
-          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
-              summary.write('\n'.join(summary_lines) + '\n')
-          PY
-
-      - name: Check package sizes (soft limit 150MB)
-        shell: bash
-        env:
-          PACKAGE_DIR: ${{ steps.organize.outputs.package_dir }}
-        run: |
-          set -euo pipefail
-          SOFT_LIMIT_MB=150
-          while IFS= read -r -d '' file; do
-              size_mb=$(du -m "$file" | cut -f1)
-              if (( size_mb > SOFT_LIMIT_MB )); then
-                  echo "⚠️  $(basename "$file") is ${size_mb}MB (exceeds ${SOFT_LIMIT_MB}MB soft limit)" | tee -a "$GITHUB_STEP_SUMMARY"
-              fi
-          done < <(find "$PACKAGE_DIR" -type f -print0)
-
-      - name: Generate checksums
-        id: checksums
-        shell: bash
-        env:
-          PACKAGE_DIR: ${{ steps.organize.outputs.package_dir }}
-        run: |
-          set -euo pipefail
-          MANIFEST="$PACKAGE_DIR/SHA256SUMS"
-          ./scripts/build/generate-checksums.sh --package-dir "$PACKAGE_DIR" --output-file "$MANIFEST"
-          echo "manifest_path=$MANIFEST" >> "$GITHUB_OUTPUT"
-
-      - name: Upload checksum manifest artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: checksums
-          path: ${{ steps.checksums.outputs.manifest_path }}
-          retention-days: 7
 
       - name: Detect release channel
         id: channel
         shell: bash
         run: |
           set -euo pipefail
-          VERSION='${{ steps.publish_version.outputs.value }}'
+          VERSION='${{ steps.version.outputs.value }}'
           if [[ "$VERSION" == *-* ]]; then
               echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
           else
@@ -591,31 +128,24 @@ jobs:
       - name: Generate release notes
         id: release_notes
         shell: bash
-        env:
-          PACKAGE_DIR: ${{ steps.organize.outputs.package_dir }}
-          FRAMEWORK_WARNING: ${{ steps.coverage.outputs.framework_warning }}
-          PREVIEW_WARNING: ${{ steps.coverage.outputs.preview_warning }}
         run: |
           set -euo pipefail
-          NOTES_FILE="${{ github.workspace }}/dist/RELEASE_NOTES.md"
-          VERSION='${{ steps.publish_version.outputs.value }}'
+          NOTES_FILE="${{ runner.temp }}/RELEASE_NOTES.md"
+          VERSION='${{ steps.version.outputs.value }}'
           echo "## Fifth Compiler ${VERSION}" > "$NOTES_FILE"
+          echo "" >> "$NOTES_FILE"
+          echo "Published to NuGet:" >> "$NOTES_FILE"
+          echo "- **Fifth.Sdk** (MSBuild SDK for Fifth language projects)" >> "$NOTES_FILE"
+          echo "- **Fifth.Compiler.Tool** (Global dotnet tool)" >> "$NOTES_FILE"
+          echo "" >> "$NOTES_FILE"
+          echo "Install the tool:" >> "$NOTES_FILE"
+          echo "\`\`\`bash" >> "$NOTES_FILE"
+          echo "dotnet tool install -g Fifth.Compiler.Tool" >> "$NOTES_FILE"
+          echo "\`\`\`" >> "$NOTES_FILE"
           echo "" >> "$NOTES_FILE"
           echo "- Commit: ${GITHUB_SHA}" >> "$NOTES_FILE"
           echo "- Generated: $(date -u '+%Y-%m-%d %H:%M:%SZ')" >> "$NOTES_FILE"
           echo "" >> "$NOTES_FILE"
-          echo "### Packages" >> "$NOTES_FILE"
-          ls -1 "$PACKAGE_DIR" >> "$NOTES_FILE"
-
-          if [[ -n "$FRAMEWORK_WARNING" ]]; then
-              echo "" >> "$NOTES_FILE"
-              echo "⚠️ **Framework Availability**: $FRAMEWORK_WARNING" >> "$NOTES_FILE"
-          fi
-
-          if [[ -n "$PREVIEW_WARNING" ]]; then
-              echo "" >> "$NOTES_FILE"
-              echo "⚠️ **Preview SDK Notice**: $PREVIEW_WARNING" >> "$NOTES_FILE"
-          fi
 
           echo "notes<<EOF" >> "$GITHUB_OUTPUT"
           cat "$NOTES_FILE" >> "$GITHUB_OUTPUT"
@@ -626,14 +156,10 @@ jobs:
         if: steps.dryrun.outputs.value != 'true'
         with:
           tag_name: ${{ github.ref_name }}
-          name: Fifth Compiler ${{ steps.publish_version.outputs.value }}
+          name: Fifth Compiler ${{ steps.version.outputs.value }}
           body: ${{ steps.release_notes.outputs.notes }}
           draft: false
           prerelease: ${{ steps.channel.outputs.is_prerelease == 'true' }}
-          files: |
-            ${{ steps.organize.outputs.package_dir }}/*.tar.gz
-            ${{ steps.organize.outputs.package_dir }}/*.zip
-            ${{ steps.checksums.outputs.manifest_path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -642,7 +168,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "DRY RUN: The following files would be published:"
-          ls -lh "${{ steps.organize.outputs.package_dir }}"
+          VERSION='${{ steps.version.outputs.value }}'
+          echo "## DRY RUN: Would publish Fifth Compiler $VERSION"
           echo ""
-          cat "${{ steps.checksums.outputs.manifest_path }}"
+          echo "Packages to publish:"
+          ls -lh src/Fifth.Sdk/bin/Release/Fifth.Sdk.$VERSION.nupkg
+          ls -lh src/compiler/bin/Release/Fifth.Compiler.Tool.$VERSION.nupkg
