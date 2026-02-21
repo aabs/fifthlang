@@ -31,6 +31,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Normalize git state  
+        shell: bash
+        run: |
+          # Ensure repo is in a clean state by resetting any line-ending artifacts
+          # This prevents false "dirty working tree" detections in CI
+          git reset --hard HEAD
+          git config core.safecrlf false
+
       - name: Setup .NET SDK (global.json)
         uses: actions/setup-dotnet@v4
         with:
