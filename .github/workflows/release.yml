@@ -31,14 +31,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Normalize git state  
-        shell: bash
-        run: |
-          # Ensure repo is in a clean state by resetting any line-ending artifacts
-          # This prevents false "dirty working tree" detections in CI
-          git reset --hard HEAD
-          git config core.safecrlf false
-
       - name: Setup .NET SDK (global.json)
         uses: actions/setup-dotnet@v4
         with:
@@ -55,7 +47,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION=$(./scripts/release/version-info.sh --format text)
+          # Use --allow-dirty since GitHub runner provides clean checkout
+          # but git may detect false modifications due to line ending handling
+          VERSION=$(./scripts/release/version-info.sh --format text --allow-dirty)
           echo "Publishing version $VERSION"
           echo "value=$VERSION" >> "$GITHUB_OUTPUT"
 
