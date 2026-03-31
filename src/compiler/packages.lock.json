@@ -345,7 +345,7 @@
       "ast_generated": {
         "type": "Project",
         "dependencies": {
-          "ast_model": "[1.0.0, )"
+          "ast_model": "[1.0.0, )""ast_model": "[1.0.0, )"
         }
       },
       "ast_model": {
@@ -369,6 +369,8 @@
         "dependencies": {
           "Antlr4.Runtime.Standard": "[4.13.1, )",
           "FluentAssertions": "[6.12.2, )",
+          "ast_generated": "[1.0.0, )",
+          "ast_model": "[1.0.0, )",
           "ast_generated": "[1.0.0, )",
           "ast_model": "[1.0.0, )",
           "log4net": "[2.0.12, )"
