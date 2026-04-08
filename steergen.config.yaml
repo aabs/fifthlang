@@ -1,0 +1,5 @@
+globalRoot: /home/aabs/steering/global
+projectRoot: docs/steering
+registeredTargets:
+  - speckit
+  - kiro
