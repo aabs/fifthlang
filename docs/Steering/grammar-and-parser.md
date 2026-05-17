@@ -9,7 +9,7 @@ fileMatchPattern: "src/parser/**,docs/**/*.5th,test/**/*.5th,src/parser/grammar/
 
 ## Split Grammar Architecture
 
-:::rule id="GRAM-001" mandatory="false" category="architecture"
+:::rule id="GRAM-001" category="architecture"
 The parser surface is divided across three primary assets:
 
 - `src/parser/grammar/FifthLexer.g4` for tokens, keywords, literals, and lexical structure
@@ -32,7 +32,7 @@ When grammar behavior changes:
 
 ## Grammar Compliance for Examples and Tests
 
-:::rule id="GRAM-003" category="validation"
+:::rule id="GRAM-003" category="validation" mandatory="true"
 All `.5th` files in `docs/`, `specs/`, `test/`, and `src/parser/grammar/test_samples/` must parse with the current grammar. CI enforces this with the `Validate .5th samples (parser-check)` step.
 
 Run `just validate-examples` locally before committing.
@@ -40,15 +40,15 @@ Run `just validate-examples` locally before committing.
 
 ## Common Non-Fifth Patterns to Avoid
 
-:::rule id="GRAM-004" category="syntax"
+:::rule id="GRAM-004" category="syntax" mandatory="true"
 Do not use `var <name> =` in examples or tests. Use `name: type =` or the appropriate canonical Fifth form.
 :::
 
-:::rule id="GRAM-005" category="syntax"
+:::rule id="GRAM-005" category="syntax" mandatory="true"
 Do not use declarations such as `graph g =` or `triple t =`. Use `g: graph =` or `t: triple =`.
 :::
 
-:::rule id="GRAM-006" category="syntax"
+:::rule id="GRAM-006" category="syntax" mandatory="true"
 Do not use the legacy `when` guard shorthand. Use the parameter constraint form `param: Type | <expr>` together with block bodies.
 :::
 

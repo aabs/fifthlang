@@ -1,6 +1,6 @@
 # Engineering Constitution
 ## Governance
-- ARCH-001: Architecture guidance for the Fifth compiler must be concrete and measurable. Every rule in this document must include a compliance check an agent can perform.
+- ARCH-001 [MANDATORY]: Architecture guidance for the Fifth compiler must be concrete and measurable. Every rule in this document must include a compliance check an agent can perform.
 ## Dependency
 - ARCH-002: Project references follow this strict DAG:
   
@@ -31,8 +31,8 @@
   dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
   ```
 - BUILD-011: AST code generation runs automatically before compilation via MSBuild targets. Manual generation is primarily for focused regeneration workflows.
-- CODE-010: Never hand-edit files in `src/ast-generated/`.
-- CODE-011: To modify the AST, edit the metamodels in `src/ast-model/` and then regenerate the generated output.
+- CODE-010 [MANDATORY]: Never hand-edit files in `src/ast-generated/`.
+- CODE-011 [MANDATORY]: To modify the AST, edit the metamodels in `src/ast-model/` and then regenerate the generated output.
 - GEN-001: The AST generator is authoritative for all files under `src/ast-generated/`. These files must never be hand-edited.
 - GEN-002: The primary generated files are:
   
@@ -63,7 +63,7 @@
   
   Verify: `using Microsoft.CodeAnalysis` must not appear in `src/compiler/LanguageTransformations/`, `src/compiler/Pipeline/Phases/`, `src/ast-model/`, or `src/ast-generated/`.
 ## Pipeline
-- ARCH-006: Every compiler phase implements `ICompilerPhase` and declares:
+- ARCH-006 [MANDATORY]: Every compiler phase implements `ICompilerPhase` and declares:
   
   - `DependsOn`: capability strings required from earlier phases.
   - `ProvidedCapabilities`: capability strings this phase makes available.
@@ -125,15 +125,15 @@
   - C# nullable reference warnings
   - Switch exhaustiveness warnings
 ## Parser
-- ARCH-013: All parseable Fifth syntax is defined in `FifthLexer.g4` for tokens and `FifthParser.g4` for rules. No code outside the ANTLR grammar files may define new syntax. `AstBuilderVisitor` translates parse trees to AST but must not accept token sequences the grammar rejects.
+- ARCH-013 [MANDATORY]: All parseable Fifth syntax is defined in `FifthLexer.g4` for tokens and `FifthParser.g4` for rules. No code outside the ANTLR grammar files may define new syntax. `AstBuilderVisitor` translates parse trees to AST but must not accept token sequences the grammar rejects.
   
   Verify: every `Visit*` method suffix in `AstBuilderVisitor.cs` must match a named rule in `FifthParser.g4`.
-- ARCH-014: Every named parser rule in `FifthParser.g4` that produces a semantic construct must have a corresponding `Visit*` method in `AstBuilderVisitor.cs`, and vice versa.
+- ARCH-014 [MANDATORY]: Every named parser rule in `FifthParser.g4` that produces a semantic construct must have a corresponding `Visit*` method in `AstBuilderVisitor.cs`, and vice versa.
   
   Verify: extract rule names from `FifthParser.g4` using lines matching `ruleName :`. Extract `Visit*` method names from `AstBuilderVisitor.cs`. The sets must align, allowing for ANTLR alternation labels such as `#labeledAlt`.
 - BUILD-010: ANTLR grammar compilation happens automatically during the parser project build. Do not add redundant manual generation steps to the normal workflow.
-- CODE-012: When grammar behavior changes, update both `FifthLexer.g4` and `FifthParser.g4` as needed.
-- CODE-013: Always update `AstBuilderVisitor.cs` when grammar changes alter the parse tree or surface syntax.
+- CODE-012 [MANDATORY]: When grammar behavior changes, update both `FifthLexer.g4` and `FifthParser.g4` as needed.
+- CODE-013 [MANDATORY]: Always update `AstBuilderVisitor.cs` when grammar changes alter the parse tree or surface syntax.
 - PR-004: Any grammar change must have corresponding updates in both the parser grammar and the AST builder visitor.
 - PR-017: When adding or updating `.5th` examples or test programs:
   
@@ -160,7 +160,7 @@
   
   Choose this pattern when introducing temporary variables, breaking down high-level constructs, transforming expression types, or performing any lowering that requires statement insertion.
 ## Prerequisites
-- BUILD-001: The local environment must include:
+- BUILD-001 [MANDATORY]: The local environment must include:
   
   - .NET 10.0 SDK pinned by `global.json` to `10.0.100`
   - Java 17 or newer for ANTLR grammar compilation
@@ -229,6 +229,22 @@
   
   Use them to iterate locally, but retain the full solution test run as the regression gate.
 - PR-002: Pull requests that change behavior must add or update tests, and all relevant suites must pass locally.
+- TEST-004 [MANDATORY]: Test code should use property-based testing (PBT) using FsCheck.xunit in preference to unit tests.
+- TEST-004a [MANDATORY]: Never just test single-point scenarios and  happy paths, instead use a property-based test that will test all positive, negative and edge cases.
+- TEST-005: Avoid testing internal implementation details and avoid depending on concrete implementations where looser behavioral validation is possible.
+- TEST-013 [MANDATORY]: Define properties as universal rules that must hold for all valid inputs, rather than relying on specific example cases.
+- TEST-014 [MANDATORY]: Design generators to produce diverse, realistic, and edge-case inputs across the full input space.
+- TEST-015 [MANDATORY]: Ensure failing cases can be minimized automatically through shrinking to aid debugging.
+- TEST-016 [MANDATORY]: Specify preconditions clearly or constrain generators so properties are only evaluated in valid domains.
+- TEST-017 [MANDATORY]: Keep tests deterministic and reproducible by controlling randomness and eliminating hidden state or side effects.
+- TEST-018 [MANDATORY]: Use strong oracles, models, or metamorphic relationships to validate correctness beyond simple assertions.
+  
+  - Every property must have an oracle: a mechanical way to decide pass/fail that is stronger than “doesn’t throw” or “looks plausible”.
+  - Prefer a reference (spec) model oracle when you can: compute expected behaviour using a simpler, obviously-correct implementation and compare.
+  - If you can’t compute the exact expected output, use a metamorphic oracle: apply a transformation to inputs and assert a predictable relationship between outputs.
+  - Use multiple weak oracles together (invariants + metamorphic + cross-check) rather than one weak check.
+  - Fail with evidence: when a property fails, ensure the counterexample is informative (shrinks well; includes classification/labels).
+- TEST-019 [MANDATORY]: When making significant changes to a pre-existing unit test, convert it to a Property based test that tests a whole class of invariants and pre and post conditions. 
 ## Verification
 - BUILD-007: Confirm the toolchain before debugging restore or build failures:
   
@@ -269,7 +285,7 @@
   3. Verify runtime behavior
   
   Compilation alone is not sufficient validation.
-- GRAM-003: All `.5th` files in `docs/`, `specs/`, `test/`, and `src/parser/grammar/test_samples/` must parse with the current grammar. CI enforces this with the `Validate .5th samples (parser-check)` step.
+- GRAM-003 [MANDATORY]: All `.5th` files in `docs/`, `specs/`, `test/`, and `src/parser/grammar/test_samples/` must parse with the current grammar. CI enforces this with the `Validate .5th samples (parser-check)` step.
   
   Run `just validate-examples` locally before committing.
 - GRAM-008: Intentionally invalid files are excluded from example validation by these heuristics:
@@ -295,8 +311,6 @@
 - PIPE-002: Each visitor or rewriter in the transformation pipeline must have one well-defined responsibility.
 - PIPE-004: Prefer several simple, comprehensible passes over a single pass that mixes unrelated transformation logic.
 - PIPE-007: Prefer expressing language adaptation as AST transformations rather than pushing additional complexity into code generation.
-- TEST-004: Prefer property-based testing over single-point scenarios, and aim to verify corner cases rather than only happy paths.
-- TEST-005: Avoid testing internal implementation details and avoid depending on concrete implementations where looser behavioral validation is possible.
 ## Maintainability
 - CODE-003: Make targeted, minimal changes that respect existing structure and public APIs.
 - PR-007: When a change increases complexity, document the rationale in the pull request.
@@ -315,12 +329,12 @@
 - CODE-008: Support human-readable text by default and add JSON output where it materially improves automation.
 - CODE-009: Favor deterministic, scriptable commands. Output must be stable and must not depend on timestamps or non-deterministic ordering.
 ## Repository
-- CODE-014: Do not commit temporary debugging helpers, IL dumps, or scratch `.5th` programs.
-- CODE-015: The `scripts/` directory is reserved for durable automation only.
-- CODE-016: Do not commit `tmp_*.5th`, `build_debug_il/`, `KEEP_FIFTH_TEMP`, or outputs produced by `--keep-temp`.
-- CODE-017: Use `.gitignore` patterns and local temporary directories for experiments rather than leaving scratch assets in the repository.
+- CODE-014 [MANDATORY]: Do not commit temporary debugging helpers, IL dumps, or scratch `.5th` programs.
+- CODE-015 [MANDATORY]: The `scripts/` directory is reserved for durable automation only.
+- CODE-016 [MANDATORY]: Do not commit `tmp_*.5th`, `build_debug_il/`, `KEEP_FIFTH_TEMP`, or outputs produced by `--keep-temp`.
+- CODE-017 [MANDATORY]: Use `.gitignore` patterns and local temporary directories for experiments rather than leaving scratch assets in the repository.
 ## Security
-- CODE-018: Avoid executing arbitrary code during generation or parsing.
+- CODE-018 [MANDATORY]: Avoid executing arbitrary code during generation or parsing.
 - CODE-019: Validate inputs and keep user inputs separated from internal templates.
 - CODE-020: Do not introduce network calls or file-system side effects without explicit review.
 ## Dependencies
@@ -357,9 +371,9 @@
   - `src/parser/grammar/FifthParser.g4` for syntactic rules and grammar structure
   - `src/parser/AstBuilderVisitor.cs` for parse-tree to high-level AST transformation
 ## Syntax
-- GRAM-004: Do not use `var <name> =` in examples or tests. Use `name: type =` or the appropriate canonical Fifth form.
-- GRAM-005: Do not use declarations such as `graph g =` or `triple t =`. Use `g: graph =` or `t: triple =`.
-- GRAM-006: Do not use the legacy `when` guard shorthand. Use the parameter constraint form `param: Type | <expr>` together with block bodies.
+- GRAM-004 [MANDATORY]: Do not use `var <name> =` in examples or tests. Use `name: type =` or the appropriate canonical Fifth form.
+- GRAM-005 [MANDATORY]: Do not use declarations such as `graph g =` or `triple t =`. Use `g: graph =` or `t: triple =`.
+- GRAM-006 [MANDATORY]: Do not use the legacy `when` guard shorthand. Use the parameter constraint form `param: Type | <expr>` together with block bodies.
 - SYN-001: Basic syntax looks like this:
   
   ```fifth
@@ -468,7 +482,7 @@
   - `FluentAssertions` for assertions
   - `test/ast-tests/`, `test/syntax-parser-tests/`, and `test/runtime-integration-tests/` as the primary test projects
 ## Process
-- TEST-002: Practice TDD by writing tests, seeing them fail, and then implementing the change. Never mask failing tests with broad `try` or `catch` blocks. Let failures surface so CI reflects the true repository state.
+- TEST-002 [MANDATORY]: Practice TDD by writing tests, seeing them fail, and then implementing the change. Never mask failing tests with broad `try` or `catch` blocks. Let failures surface so CI reflects the true repository state.
 ## Completion
 - TEST-003: A feature is not complete until end-to-end tests prove that it:
   

@@ -18,7 +18,7 @@ inclusion: always
 5. Run parser tests with `dotnet test test/syntax-parser-tests/ -v minimal`
 6. Run the full regression suite with `dotnet test fifthlang.sln`
 ## Validation
-- GRAM-003: All `.5th` files in `docs/`, `specs/`, `test/`, and `src/parser/grammar/test_samples/` must parse with the current grammar. CI enforces this with the `Validate .5th samples (parser-check)` step.
+- GRAM-003 [MANDATORY]: All `.5th` files in `docs/`, `specs/`, `test/`, and `src/parser/grammar/test_samples/` must parse with the current grammar. CI enforces this with the `Validate .5th samples (parser-check)` step.
 
 Run `just validate-examples` locally before committing.
 - GRAM-008: Intentionally invalid files are excluded from example validation by these heuristics:
@@ -33,9 +33,9 @@ For debugging, force validation of negative examples with:
 dotnet run --project src/tools/validate-examples/validate-examples.csproj -- --include-negatives
 ```
 ## Syntax
-- GRAM-004: Do not use `var <name> =` in examples or tests. Use `name: type =` or the appropriate canonical Fifth form.
-- GRAM-005: Do not use declarations such as `graph g =` or `triple t =`. Use `g: graph =` or `t: triple =`.
-- GRAM-006: Do not use the legacy `when` guard shorthand. Use the parameter constraint form `param: Type | <expr>` together with block bodies.
+- GRAM-004 [MANDATORY]: Do not use `var <name> =` in examples or tests. Use `name: type =` or the appropriate canonical Fifth form.
+- GRAM-005 [MANDATORY]: Do not use declarations such as `graph g =` or `triple t =`. Use `g: graph =` or `t: triple =`.
+- GRAM-006 [MANDATORY]: Do not use the legacy `when` guard shorthand. Use the parameter constraint form `param: Type | <expr>` together with block bodies.
 ## Guards
 - GRAM-007: The canonical contrast for guard syntax is:
 

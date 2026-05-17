@@ -8,7 +8,7 @@ inclusion: auto
 
 ## Prerequisites
 
-:::rule id="BUILD-001" category="prerequisites" 
+:::rule id="BUILD-001" category="prerequisites"  mandatory="true"
 The local environment must include:
 
 - .NET 10.0 SDK pinned by `global.json` to `10.0.100`

@@ -3,7 +3,7 @@ description: build-and-test
 inclusion: always
 ---
 ## Prerequisites
-- BUILD-001: The local environment must include:
+- BUILD-001 [MANDATORY]: The local environment must include:
 
 - .NET 10.0 SDK pinned by `global.json` to `10.0.100`
 - Java 17 or newer for ANTLR grammar compilation

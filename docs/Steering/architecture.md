@@ -6,7 +6,7 @@ inclusion: always
 
 # Architecture Rules
 
-:::rule id="ARCH-001" mandatory="false" category="governance" 
+:::rule id="ARCH-001" mandatory="true" category="governance" 
 Architecture guidance for the Fifth compiler must be concrete and measurable. Every rule in this document must include a compliance check an agent can perform.
 :::
 
@@ -46,7 +46,7 @@ Verify: `using Microsoft.CodeAnalysis` must not appear in `src/compiler/Language
 
 ## Compiler Pipeline Rules
 
-:::rule id="ARCH-006" category="pipeline" 
+:::rule id="ARCH-006" category="pipeline" mandatory="true"
 Every compiler phase implements `ICompilerPhase` and declares:
 
 - `DependsOn`: capability strings required from earlier phases.
@@ -103,13 +103,13 @@ Verify: phase classes under `src/compiler/Pipeline/Phases/` must not declare `st
 
 ## Grammar & Parser Rules
 
-:::rule id="ARCH-013" category="parser" 
+:::rule id="ARCH-013" category="parser"  mandatory="true"
 All parseable Fifth syntax is defined in `FifthLexer.g4` for tokens and `FifthParser.g4` for rules. No code outside the ANTLR grammar files may define new syntax. `AstBuilderVisitor` translates parse trees to AST but must not accept token sequences the grammar rejects.
 
 Verify: every `Visit*` method suffix in `AstBuilderVisitor.cs` must match a named rule in `FifthParser.g4`.
 :::
 
-:::rule id="ARCH-014" category="parser" 
+:::rule id="ARCH-014" category="parser"  mandatory="true"
 Every named parser rule in `FifthParser.g4` that produces a semantic construct must have a corresponding `Visit*` method in `AstBuilderVisitor.cs`, and vice versa.
 
 Verify: extract rule names from `FifthParser.g4` using lines matching `ruleName :`. Extract `Visit*` method names from `AstBuilderVisitor.cs`. The sets must align, allowing for ANTLR alternation labels such as `#labeledAlt`.

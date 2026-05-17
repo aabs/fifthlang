@@ -3,7 +3,7 @@ description: architecture
 inclusion: always
 ---
 ## Governance
-- ARCH-001: Architecture guidance for the Fifth compiler must be concrete and measurable. Every rule in this document must include a compliance check an agent can perform.
+- ARCH-001 [MANDATORY]: Architecture guidance for the Fifth compiler must be concrete and measurable. Every rule in this document must include a compliance check an agent can perform.
 ## Dependency
 - ARCH-002: Project references follow this strict DAG:
 
@@ -29,7 +29,7 @@ Verify: search `.cs` files outside `src/ast-model/` and `src/ast-generated/` for
 
 Verify: `using Microsoft.CodeAnalysis` must not appear in `src/compiler/LanguageTransformations/`, `src/compiler/Pipeline/Phases/`, `src/ast-model/`, or `src/ast-generated/`.
 ## Pipeline
-- ARCH-006: Every compiler phase implements `ICompilerPhase` and declares:
+- ARCH-006 [MANDATORY]: Every compiler phase implements `ICompilerPhase` and declares:
 
 - `DependsOn`: capability strings required from earlier phases.
 - `ProvidedCapabilities`: capability strings this phase makes available.
@@ -66,10 +66,10 @@ Verify: for any rewriter phase, output node types must be equal to or simpler th
 
 Verify: `Console.Error.WriteLine` in phase `Transform` methods must be guarded by `DebugHelpers.DebugEnabled`. `Console.WriteLine` or `Console.Out` calls are non-compliant.
 ## Parser
-- ARCH-013: All parseable Fifth syntax is defined in `FifthLexer.g4` for tokens and `FifthParser.g4` for rules. No code outside the ANTLR grammar files may define new syntax. `AstBuilderVisitor` translates parse trees to AST but must not accept token sequences the grammar rejects.
+- ARCH-013 [MANDATORY]: All parseable Fifth syntax is defined in `FifthLexer.g4` for tokens and `FifthParser.g4` for rules. No code outside the ANTLR grammar files may define new syntax. `AstBuilderVisitor` translates parse trees to AST but must not accept token sequences the grammar rejects.
 
 Verify: every `Visit*` method suffix in `AstBuilderVisitor.cs` must match a named rule in `FifthParser.g4`.
-- ARCH-014: Every named parser rule in `FifthParser.g4` that produces a semantic construct must have a corresponding `Visit*` method in `AstBuilderVisitor.cs`, and vice versa.
+- ARCH-014 [MANDATORY]: Every named parser rule in `FifthParser.g4` that produces a semantic construct must have a corresponding `Visit*` method in `AstBuilderVisitor.cs`, and vice versa.
 
 Verify: extract rule names from `FifthParser.g4` using lines matching `ruleName :`. Extract `Visit*` method names from `AstBuilderVisitor.cs`. The sets must align, allowing for ANTLR alternation labels such as `#labeledAlt`.
 ## Visitor

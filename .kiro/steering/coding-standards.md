@@ -18,18 +18,18 @@ inclusion: always
 - CODE-008: Support human-readable text by default and add JSON output where it materially improves automation.
 - CODE-009: Favor deterministic, scriptable commands. Output must be stable and must not depend on timestamps or non-deterministic ordering.
 ## Generation
-- CODE-010: Never hand-edit files in `src/ast-generated/`.
-- CODE-011: To modify the AST, edit the metamodels in `src/ast-model/` and then regenerate the generated output.
+- CODE-010 [MANDATORY]: Never hand-edit files in `src/ast-generated/`.
+- CODE-011 [MANDATORY]: To modify the AST, edit the metamodels in `src/ast-model/` and then regenerate the generated output.
 ## Parser
-- CODE-012: When grammar behavior changes, update both `FifthLexer.g4` and `FifthParser.g4` as needed.
-- CODE-013: Always update `AstBuilderVisitor.cs` when grammar changes alter the parse tree or surface syntax.
+- CODE-012 [MANDATORY]: When grammar behavior changes, update both `FifthLexer.g4` and `FifthParser.g4` as needed.
+- CODE-013 [MANDATORY]: Always update `AstBuilderVisitor.cs` when grammar changes alter the parse tree or surface syntax.
 ## Repository
-- CODE-014: Do not commit temporary debugging helpers, IL dumps, or scratch `.5th` programs.
-- CODE-015: The `scripts/` directory is reserved for durable automation only.
-- CODE-016: Do not commit `tmp_*.5th`, `build_debug_il/`, `KEEP_FIFTH_TEMP`, or outputs produced by `--keep-temp`.
-- CODE-017: Use `.gitignore` patterns and local temporary directories for experiments rather than leaving scratch assets in the repository.
+- CODE-014 [MANDATORY]: Do not commit temporary debugging helpers, IL dumps, or scratch `.5th` programs.
+- CODE-015 [MANDATORY]: The `scripts/` directory is reserved for durable automation only.
+- CODE-016 [MANDATORY]: Do not commit `tmp_*.5th`, `build_debug_il/`, `KEEP_FIFTH_TEMP`, or outputs produced by `--keep-temp`.
+- CODE-017 [MANDATORY]: Use `.gitignore` patterns and local temporary directories for experiments rather than leaving scratch assets in the repository.
 ## Security
-- CODE-018: Avoid executing arbitrary code during generation or parsing.
+- CODE-018 [MANDATORY]: Avoid executing arbitrary code during generation or parsing.
 - CODE-019: Validate inputs and keep user inputs separated from internal templates.
 - CODE-020: Do not introduce network calls or file-system side effects without explicit review.
 ## Dependencies
