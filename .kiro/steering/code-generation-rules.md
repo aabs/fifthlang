@@ -1,44 +1,35 @@
 ---
-inclusion: fileMatch
-fileMatchPattern: "src/ast-model/**,src/ast-generated/**,src/ast_generator/**"
+description: code-generation-rules
+inclusion: always
 ---
+## Generation
+- GEN-001: The AST generator is authoritative for all files under `src/ast-generated/`. These files must never be hand-edited.
+- GEN-002: The primary generated files are:
 
-# AST Code Generation Rules
-
-## Generator-as-Source-of-Truth
-
-The AST generator is authoritative for all files under `src/ast-generated/`. These files are NEVER hand-edited.
-
-Generated files:
-- `builders.generated.cs` — Builder pattern classes
-- `visitors.generated.cs` — Visitor pattern classes
-- `rewriter.generated.cs` — Rewriter pattern for lowering
-- `typeinference.generated.cs` — Type inference support
-
-## How to Change Generated Code
+- `builders.generated.cs` for builder pattern classes
+- `visitors.generated.cs` for visitor pattern classes
+- `rewriter.generated.cs` for lowering-oriented rewriters
+- `typeinference.generated.cs` for type inference support
+## Workflow
+- GEN-003: To change generated AST output:
 
 1. Edit `src/ast-model/AstMetamodel.cs`
-2. Optionally update templates under `src/ast_generator/Templates/`
-3. Regenerate: `just run-generator`
-4. Build the full solution: `dotnet build fifthlang.sln`
+2. Update templates under `src/ast_generator/Templates/` when template behavior must change
+3. Regenerate with `just run-generator`
+4. Build the full solution with `dotnet build fifthlang.sln`
+## Design
+- GEN-004: `AstMetamodel.cs` defines rich, high-level constructs that mirror source language features. These constructs are lowered through transformation passes before Roslyn code generation.
+## Visitor
+- GEN-005: Use `BaseAstVisitor` for read-only analysis such as symbol tables, diagnostics, and validation. This pattern must not modify the AST.
+- GEN-006: Use `DefaultRecursiveDescentVisitor` for type-preserving AST modifications. This pattern must not change node types or hoist statements.
+- GEN-007: Use `DefaultAstRewriter` for statement-level desugaring, cross-type rewrites, and expression hoisting. This is the preferred pattern for new lowering passes because it returns `RewriteResult` with a node and prologue.
 
-## AST Design
+Choose this pattern when introducing temporary variables, breaking down high-level constructs, transforming expression types, or performing any lowering that requires statement insertion.
+## Reference
+- GEN-008: Use `src/ast_generator/README.md` as the detailed reference for visitor and rewriter pattern selection.
+## Review
+- GEN-009: Any pull request modifying `src/ast-generated/` must include:
 
-- AST (`AstMetamodel.cs`): Rich, high-level constructs mirroring source language features, lowered through transformation passes for Roslyn code generation
-
-## Visitor/Rewriter Pattern Selection
-
-- `BaseAstVisitor` — Read-only analysis (symbol tables, diagnostics, validation). Cannot modify AST.
-- `DefaultRecursiveDescentVisitor` — Type-preserving AST modifications. Cannot change node types or hoist statements.
-- `DefaultAstRewriter` ⭐ PREFERRED for new lowering passes — Statement-level desugaring, cross-type rewrites, expression hoisting. Returns `RewriteResult` with node + prologue.
-
-Use `DefaultAstRewriter` when introducing temporary variables, breaking down high-level constructs, transforming expression types, or any lowering requiring statement insertion.
-
-See `src/ast_generator/README.md` for the comprehensive pattern guide.
-
-## PR Requirements
-
-Any PR modifying `src/ast-generated/` must include:
 - The upstream metamodel or template changes
 - The regeneration command used
-- No hand-edits in generated files
+- Confirmation that the generated files were not hand-edited

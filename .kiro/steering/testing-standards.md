@@ -1,60 +1,58 @@
 ---
-inclusion: fileMatch
-fileMatchPattern: "test/**"
+description: testing-standards
+inclusion: always
 ---
+## Framework
+- TEST-001: The standard test stack is:
 
-# Testing Standards
+- `xUnit` as the test framework
+- `FluentAssertions` for assertions
+- `test/ast-tests/`, `test/syntax-parser-tests/`, and `test/runtime-integration-tests/` as the primary test projects
+## Process
+- TEST-002: Practice TDD by writing tests, seeing them fail, and then implementing the change. Never mask failing tests with broad `try` or `catch` blocks. Let failures surface so CI reflects the true repository state.
+## Completion
+- TEST-003: A feature is not complete until end-to-end tests prove that it:
 
-## Framework and Tools
+1. Uses actual Fifth language syntax including constructs such as TriG literals, SPARQL literals, and operators
+2. Executes successfully at runtime rather than merely compiling
+3. Produces results that are accessible and correct
+4. Exercises the major code paths and result types involved
 
-- xUnit for test framework
-- FluentAssertions for assertions
-- Test projects: `test/ast-tests/`, `test/syntax-parser-tests/`, `test/runtime-integration-tests/`
-
-## Test-First (Non-Negotiable)
-
-Practice TDD: write tests, see them fail, then implement. Never mask failing tests with broad try/catch. Let failures surface so CI correctly reflects state.
-
-## Compilation is NOT Sufficient
-
-A feature is NOT complete until proven to work end-to-end with passing tests that:
-1. Use actual Fifth language syntax (TriG literals, SPARQL literals, operators)
-2. Execute successfully at runtime (not just compile)
-3. Validate results are accessible and correct
-4. Exercise all major code paths and result types
-
-Features with only compilation tests or failing runtime tests are INCOMPLETE.
-
-## Test Design Principles
-
-- Prefer property-based testing over single-point scenarios
-- Aim to verify all corner cases
-- Avoid testing internal implementation details
-- Avoid embedding dependencies on concrete implementations where possible
-- Tests referencing `.5th` samples need `CopyToOutputDirectory` metadata in the test `.csproj`
-
-## Running Tests
+Features with only compilation tests or with failing runtime tests are incomplete.
+## Design
+- TEST-004: Prefer property-based testing over single-point scenarios, and aim to verify corner cases rather than only happy paths.
+- TEST-005: Avoid testing internal implementation details and avoid depending on concrete implementations where looser behavioral validation is possible.
+## Fixtures
+- TEST-006: Tests that reference `.5th` sample files must declare `CopyToOutputDirectory` metadata in the owning test `.csproj`.
+## Commands
+- TEST-007: The default regression command is:
 
 ```bash
-# Full regression gate (default)
 dotnet test fifthlang.sln
+```
+- TEST-008: Use this quick smoke command while iterating:
 
-# Quick smoke while iterating
+```bash
 dotnet test test/ast-tests/ast_tests.csproj
+```
+- TEST-009: Use this focused parser command when grammar behavior changes:
 
-# Parser-focused
+```bash
 dotnet test test/syntax-parser-tests/ -v minimal
+```
+- TEST-010: Use filtered runtime integration tests for focused investigation:
 
-# Filtered runtime tests
+```bash
 dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj --filter "FullyQualifiedName~YourTestName" -v minimal
+```
+- TEST-011: Validate knowledge-graph changes with:
 
-# Knowledge graph tests
+```bash
 dotnet test test/kg-smoke-tests/kg-smoke-tests.csproj
 ```
+## Ast
+- TEST-012: Use this quick smoke test after AST builder changes:
 
-## AST Smoke Test
-
-Quick validation after AST builder changes:
 ```csharp
 using ast;
 using ast_generated;
@@ -62,5 +60,6 @@ using ast_generated;
 var intLiteral = new Int32LiteralExp { Value = 42 };
 var builder = new Int32LiteralExpBuilder();
 var result = builder.Build();
-// Should complete without errors
 ```
+
+The builder construction should complete without errors.

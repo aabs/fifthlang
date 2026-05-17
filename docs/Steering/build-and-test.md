@@ -8,7 +8,7 @@ inclusion: auto
 
 ## Prerequisites
 
-:::rule id="BUILD-001" severity="error" category="prerequisites" domain="build"
+:::rule id="BUILD-001" category="prerequisites" 
 The local environment must include:
 
 - .NET 10.0 SDK pinned by `global.json` to `10.0.100`
@@ -18,7 +18,7 @@ The local environment must include:
 
 ## Essential Commands
 
-:::rule id="BUILD-002" severity="error" category="commands" domain="build"
+:::rule id="BUILD-002" category="commands" 
 Use the solution restore command as the standard restore entry point:
 
 ```bash
@@ -28,7 +28,7 @@ dotnet restore fifthlang.sln
 This operation typically takes about 70 seconds. Do not cancel it. Use a timeout of at least 120 seconds when automation controls execution time.
 :::
 
-:::rule id="BUILD-003" severity="error" category="commands" domain="build"
+:::rule id="BUILD-003" category="commands" 
 Use the solution build command as the standard build entry point:
 
 ```bash
@@ -38,7 +38,7 @@ dotnet build fifthlang.sln
 This operation typically takes about 60 seconds. Do not cancel it. Use a timeout of at least 120 seconds when automation controls execution time.
 :::
 
-:::rule id="BUILD-004" severity="error" category="testing" domain="build"
+:::rule id="BUILD-004" category="testing" 
 Use the solution test command as the default regression gate:
 
 ```bash
@@ -48,7 +48,7 @@ dotnet test fifthlang.sln
 Do not cancel this run. Use a timeout of at least 5 minutes when automation controls execution time.
 :::
 
-:::rule id="BUILD-005" severity="warning" category="testing" domain="build"
+:::rule id="BUILD-005" mandatory="false" category="testing" 
 Use this command for a quick smoke-test subset while iterating locally:
 
 ```bash
@@ -56,7 +56,7 @@ dotnet test test/ast-tests/ast_tests.csproj
 ```
 :::
 
-:::rule id="BUILD-006" severity="error" category="generation" domain="build"
+:::rule id="BUILD-006" category="generation" 
 After metamodel changes, regenerate AST output with:
 
 ```bash
@@ -66,7 +66,7 @@ dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-
 
 ## Verification
 
-:::rule id="BUILD-007" severity="warning" category="verification" domain="build"
+:::rule id="BUILD-007" mandatory="false" category="verification" 
 Confirm the toolchain before debugging restore or build failures:
 
 ```bash
@@ -79,7 +79,7 @@ The .NET command should report `10.0.x`, and Java should report version 17 or ne
 
 ## Build Order Dependencies
 
-:::rule id="BUILD-008" severity="error" category="dependency" domain="build"
+:::rule id="BUILD-008" category="dependency" 
 The effective build order is:
 
 ```text
@@ -91,19 +91,19 @@ Always build the full solution rather than individual projects so dependency ord
 
 ## Critical Rules
 
-:::rule id="BUILD-009" severity="error" category="workflow" domain="build"
+:::rule id="BUILD-009" category="workflow" 
 Do not cancel restore, build, test, or generation operations. The documented timings in this repository are normal and expected.
 :::
 
-:::rule id="BUILD-010" severity="warning" category="parser" domain="build"
+:::rule id="BUILD-010" mandatory="false" category="parser" 
 ANTLR grammar compilation happens automatically during the parser project build. Do not add redundant manual generation steps to the normal workflow.
 :::
 
-:::rule id="BUILD-011" severity="warning" category="generation" domain="build"
+:::rule id="BUILD-011" mandatory="false" category="generation" 
 AST code generation runs automatically before compilation via MSBuild targets. Manual generation is primarily for focused regeneration workflows.
 :::
 
-:::rule id="BUILD-012" severity="warning" category="diagnostics" domain="build"
+:::rule id="BUILD-012" mandatory="false" category="diagnostics" 
 The following warnings are expected and safe to ignore unless they change unexpectedly:
 
 - ANTLR `assoc` option warnings
@@ -113,7 +113,7 @@ The following warnings are expected and safe to ignore unless they change unexpe
 
 ## Validation Protocol (after any change)
 
-:::rule id="BUILD-013" severity="error" category="validation" domain="build"
+:::rule id="BUILD-013" category="validation" 
 After any change, validate in this order:
 
 1. `dotnet build fifthlang.sln`
@@ -125,7 +125,7 @@ Compilation alone is not sufficient validation.
 
 ## Granular Test Targets
 
-:::rule id="BUILD-014" severity="warning" category="testing" domain="build"
+:::rule id="BUILD-014" mandatory="false" category="testing" 
 These targeted commands are available for narrower local validation:
 
 ```bash

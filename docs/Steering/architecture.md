@@ -6,13 +6,13 @@ inclusion: always
 
 # Architecture Rules
 
-:::rule id="ARCH-001" severity="warning" category="governance" domain="architecture"
+:::rule id="ARCH-001" mandatory="false" category="governance" 
 Architecture guidance for the Fifth compiler must be concrete and measurable. Every rule in this document must include a compliance check an agent can perform.
 :::
 
 ## Dependency & Module Boundaries
 
-:::rule id="ARCH-002" severity="error" category="dependency" domain="architecture"
+:::rule id="ARCH-002" category="dependency" 
 Project references follow this strict DAG:
 
 ```text
@@ -26,19 +26,19 @@ No `.csproj` under `src/` may contain a `<ProjectReference>` pointing backward i
 Verify: inspect project references under `src/` and reject any backward edge relative to this DAG.
 :::
 
-:::rule id="ARCH-003" severity="error" category="generation" domain="architecture"
+:::rule id="ARCH-003" category="generation" 
 Files under `src/ast-generated/` are output, not source. Any diff modifying `src/ast-generated/` must also change `src/ast-model/AstMetamodel.cs` or `src/ast_generator/Templates/`.
 
 Verify: if `git diff --name-only` includes `src/ast-generated/`, it must also include `src/ast-model/` or `src/ast_generator/Templates/`.
 :::
 
-:::rule id="ARCH-004" severity="error" category="ast" domain="architecture"
+:::rule id="ARCH-004" category="ast" 
 All AST node types, fields, and inheritance are defined in `src/ast-model/AstMetamodel.cs`. No hand-written class outside `ast-model` may subclass `AstThing` or introduce new AST node types.
 
 Verify: search `.cs` files outside `src/ast-model/` and `src/ast-generated/` for classes inheriting `AstThing`, `Expression`, `Statement`, or `TypeRef`. Any match is non-compliant.
 :::
 
-:::rule id="ARCH-005" severity="error" category="backend" domain="architecture"
+:::rule id="ARCH-005" category="backend" 
 `LoweredAstToRoslynTranslator` is the sole bridge to Roslyn. No phase or visitor under `src/compiler/LanguageTransformations/` or `src/compiler/Pipeline/Phases/` may reference `Microsoft.CodeAnalysis`. Roslyn types must not leak into the AST model or transformation layer.
 
 Verify: `using Microsoft.CodeAnalysis` must not appear in `src/compiler/LanguageTransformations/`, `src/compiler/Pipeline/Phases/`, `src/ast-model/`, or `src/ast-generated/`.
@@ -46,7 +46,7 @@ Verify: `using Microsoft.CodeAnalysis` must not appear in `src/compiler/Language
 
 ## Compiler Pipeline Rules
 
-:::rule id="ARCH-006" severity="error" category="pipeline" domain="architecture"
+:::rule id="ARCH-006" category="pipeline" 
 Every compiler phase implements `ICompilerPhase` and declares:
 
 - `DependsOn`: capability strings required from earlier phases.
@@ -57,7 +57,7 @@ Every compiler phase implements `ICompilerPhase` and declares:
 Verify: for each phase under `src/compiler/Pipeline/Phases/`, confirm every visitor or rewriter it instantiates operates only on AST state guaranteed by its declared `DependsOn`.
 :::
 
-:::rule id="ARCH-007" severity="error" category="pipeline" domain="architecture"
+:::rule id="ARCH-007" category="pipeline" 
 Each `ICompilerPhase` performs exactly one category of work:
 
 - Structural linking
@@ -71,31 +71,31 @@ A compound phase combining sub-steps must document each in its XML summary and m
 Verify: the `Transform` method should only instantiate visitors or rewriters serving its declared category. Distinct visitor types spanning multiple categories without XML-summary justification are non-compliant.
 :::
 
-:::rule id="ARCH-008" severity="error" category="pipeline" domain="architecture"
+:::rule id="ARCH-008" category="pipeline" 
 A phase receives `AstThing` and returns a new or mutated `AstThing` via `PhaseResult`. No phase may retain a reference to the input AST and mutate it after returning. The pipeline owns the AST reference between phases.
 
 Verify: phase `Transform` methods must not store the input `ast` parameter in instance or static fields. `PhaseResult.TransformedAst` is the only valid output path.
 :::
 
-:::rule id="ARCH-009" severity="error" category="lowering" domain="architecture"
+:::rule id="ARCH-009" category="lowering" 
 Transformation phases lower high-level AST constructs toward simpler forms consumable by `LoweredAstToRoslynTranslator`. No phase may introduce a higher-level construct than what it received.
 
 Verify: for any rewriter phase, output node types must be equal to or simpler than input node types, where simpler means closer to what `LoweredAstToRoslynTranslator.TranslateStatement` or `TranslateExpression` directly handle.
 :::
 
-:::rule id="ARCH-010" severity="error" category="diagnostics" domain="architecture"
+:::rule id="ARCH-010" category="diagnostics" 
 Phases report errors and warnings exclusively through `PhaseResult.Diagnostics` or `PhaseContext.Diagnostics`. Direct `Console.Error` writes are permitted only when `DebugHelpers.DebugEnabled` is true. No phase may write to `Console.Out`.
 
 Verify: `Console.Error.WriteLine` in phase `Transform` methods must be guarded by `DebugHelpers.DebugEnabled`. `Console.WriteLine` or `Console.Out` calls are non-compliant.
 :::
 
-:::rule id="ARCH-011" severity="error" category="pipeline" domain="architecture"
+:::rule id="ARCH-011" category="pipeline" 
 The phase sequence in `TransformationPipeline.CreateDefault()` is the canonical compilation order. Phases must not be conditionally reordered at runtime. Skipping via `PipelineOptions.SkipPhases` is permitted, but reordering is not.
 
 Verify: `CreateDefault()` contains only `RegisterPhase` calls in a fixed sequence with no conditional logic such as `if`, loops, or configuration-driven ordering.
 :::
 
-:::rule id="ARCH-012" severity="error" category="pipeline" domain="architecture"
+:::rule id="ARCH-012" category="pipeline" 
 Phases must not communicate through static mutable state, singletons, or thread-local storage. All inter-phase data flows through the AST or `PhaseContext`. The only exception is `DebugHelpers.DebugEnabled` as a read-only diagnostic flag.
 
 Verify: phase classes under `src/compiler/Pipeline/Phases/` must not declare `static` mutable fields. Visitors or rewriters they instantiate must not read or write `static` mutable fields other than `DebugHelpers`.
@@ -103,13 +103,13 @@ Verify: phase classes under `src/compiler/Pipeline/Phases/` must not declare `st
 
 ## Grammar & Parser Rules
 
-:::rule id="ARCH-013" severity="error" category="parser" domain="architecture"
+:::rule id="ARCH-013" category="parser" 
 All parseable Fifth syntax is defined in `FifthLexer.g4` for tokens and `FifthParser.g4` for rules. No code outside the ANTLR grammar files may define new syntax. `AstBuilderVisitor` translates parse trees to AST but must not accept token sequences the grammar rejects.
 
 Verify: every `Visit*` method suffix in `AstBuilderVisitor.cs` must match a named rule in `FifthParser.g4`.
 :::
 
-:::rule id="ARCH-014" severity="error" category="parser" domain="architecture"
+:::rule id="ARCH-014" category="parser" 
 Every named parser rule in `FifthParser.g4` that produces a semantic construct must have a corresponding `Visit*` method in `AstBuilderVisitor.cs`, and vice versa.
 
 Verify: extract rule names from `FifthParser.g4` using lines matching `ruleName :`. Extract `Visit*` method names from `AstBuilderVisitor.cs`. The sets must align, allowing for ANTLR alternation labels such as `#labeledAlt`.
@@ -117,7 +117,7 @@ Verify: extract rule names from `FifthParser.g4` using lines matching `ruleName 
 
 ## Visitor/Rewriter Pattern Selection
 
-:::rule id="ARCH-015" severity="error" category="visitor" domain="architecture"
+:::rule id="ARCH-015" category="visitor" 
 Use the visitor and rewriter base classes according to the operation being performed:
 
 | Operation | Base class | When to use |

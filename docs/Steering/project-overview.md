@@ -6,13 +6,13 @@ inclusion: auto
 
 # Fifth Language Project Overview
 
-:::rule id="OVR-001" severity="warning" category="overview" domain="project"
+:::rule id="OVR-001" mandatory="false" category="overview"
 Fifth Language is a C# .NET 10.0 compiler for the Fifth programming language. It uses an ANTLR-based split lexer and parser, AST code generation for builders and visitors, and a multi-pass compiler that lowers the AST through intermediate transformation stages.
 :::
 
 ## Compiler Pipeline
 
-:::rule id="OVR-002" severity="warning" category="pipeline" domain="project"
+:::rule id="OVR-002" mandatory="false" category="pipeline"
 The canonical compiler flow is:
 
 1. Lexical analysis and parsing into an ANTLR parse tree
@@ -23,7 +23,7 @@ The canonical compiler flow is:
 
 ## Key Directories
 
-:::rule id="OVR-003" severity="warning" category="structure" domain="project"
+:::rule id="OVR-003" mandatory="false" category="structure"
 The major repository areas are:
 
 - `src/ast-model/` for AST metamodel definitions including `AstMetamodel.cs`
@@ -41,7 +41,7 @@ The major repository areas are:
 
 ## Authoritative References
 
-:::rule id="OVR-004" severity="warning" category="reference" domain="project"
+:::rule id="OVR-004" mandatory="false" category="reference"
 Use these reference files according to their role:
 
 - `.specify/memory/constitution.md` for architectural decisions and principles

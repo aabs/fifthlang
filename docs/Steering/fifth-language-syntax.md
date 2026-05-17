@@ -8,7 +8,7 @@ inclusion: manual
 
 ## Basic Syntax
 
-:::rule id="SYN-001" severity="warning" category="syntax" domain="syntax"
+:::rule id="SYN-001" mandatory="false" category="syntax"
 Basic syntax looks like this:
 
 ```fifth
@@ -24,7 +24,7 @@ myprint(int x) => std.print(x);
 
 ## Variable Declarations
 
-:::rule id="SYN-002" severity="error" category="syntax" domain="syntax"
+:::rule id="SYN-002" category="syntax"
 Use `name: type = value` form. Never use `var name =` in C# or JavaScript style, and never use type-first forms such as `type name =`.
 
 ```fifth
@@ -35,7 +35,7 @@ g: graph = KG.CreateGraph();
 
 ## Function Definitions
 
-:::rule id="SYN-003" severity="warning" category="functions" domain="syntax"
+:::rule id="SYN-003" mandatory="false" category="functions"
 Function definitions can use either expression bodies or block bodies:
 
 ```fifth
@@ -49,7 +49,7 @@ greet(string name) {
 
 ## Parameter Constraints (Guards)
 
-:::rule id="SYN-004" severity="error" category="guards" domain="syntax"
+:::rule id="SYN-004" category="guards"
 Use the parameter constraint form with block bodies:
 
 ```fifth
@@ -66,7 +66,7 @@ Do not use the legacy `when` shorthand.
 
 ## Knowledge Graph Constructs
 
-:::rule id="SYN-005" severity="warning" category="knowledge-graph" domain="syntax"
+:::rule id="SYN-005" mandatory="false" category="knowledge-graph"
 Use the canonical knowledge-graph forms:
 
 ```fifth
@@ -80,7 +80,7 @@ g: graph = KG.CreateGraph();
 
 ## TriG and SPARQL Literals
 
-:::rule id="SYN-006" severity="warning" category="knowledge-graph" domain="syntax"
+:::rule id="SYN-006" mandatory="false" category="knowledge-graph"
 Use these literal forms in syntax and examples:
 
 - TriG literals use `<{...}>`
@@ -90,7 +90,7 @@ Use these literal forms in syntax and examples:
 
 ## Sample Files
 
-:::rule id="SYN-007" severity="warning" category="reference" domain="syntax"
+:::rule id="SYN-007" mandatory="false" category="reference"
 Use these locations when looking for canonical syntax examples:
 
 - `test/ast-tests/CodeSamples/*.5th`

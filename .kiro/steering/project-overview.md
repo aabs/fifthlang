@@ -1,34 +1,33 @@
 ---
-inclusion: auto
+description: project-overview
+inclusion: always
 ---
+## Overview
+- OVR-001: Fifth Language is a C# .NET 10.0 compiler for the Fifth programming language. It uses an ANTLR-based split lexer and parser, AST code generation for builders and visitors, and a multi-pass compiler that lowers the AST through intermediate transformation stages.
+## Pipeline
+- OVR-002: The canonical compiler flow is:
 
-# Fifth Language Project Overview
+1. Lexical analysis and parsing into an ANTLR parse tree
+2. Parse-tree transformation into a high-level AST through `AstBuilderVisitor.cs`
+3. High-level AST lowering through multiple language-transformation passes
+4. Roslyn code generation from the lowered AST into a PE assembly
+## Structure
+- OVR-003: The major repository areas are:
 
-Fifth Language is a C# .NET 10.0 compiler for the Fifth programming language. It uses an ANTLR-based split lexer/parser, AST code generation for builders and visitors, and a multi-pass compiler with language transformations that perform AST lowering through intermediate representations.
+- `src/ast-model/` for AST metamodel definitions including `AstMetamodel.cs`
+- `src/ast-generated/` for generated builders, visitors, and rewriters that must not be hand-edited
+- `src/ast_generator/` for the generator that produces `ast-generated/`
+- `src/parser/grammar/` for `FifthLexer.g4` and `FifthParser.g4`
+- `src/parser/AstBuilderVisitor.cs` for parse-tree to AST conversion
+- `src/compiler/LanguageTransformations/` for AST transformation passes
+- `src/compiler/ParserManager.cs` for transformation pipeline coordination
+- `src/fifthlang.system/` for built-in system functions and knowledge graph support
+- `test/ast-tests/` for AST and generator tests
+- `test/syntax-parser-tests/` for grammar parsing tests
+- `test/runtime-integration-tests/` for end-to-end verification tests
+## Reference
+- OVR-004: Use these reference files according to their role:
 
-## Compiler Pipeline
-
-1. Lexical Analysis → Parsing → Parse Tree (ANTLR split grammar)
-2. Parse Tree → AST Building → High-Level AST (`AstBuilderVisitor.cs`)
-3. High-Level AST → Language Transformations → Lowered AST (multiple visitor passes)
-4. Lowered AST → Roslyn Code Generation → PE Assembly
-
-## Key Directories
-
-- `src/ast-model/` — AST metamodel definitions (`AstMetamodel.cs`)
-- `src/ast-generated/` — Auto-generated builders/visitors/rewriters. NEVER hand-edit.
-- `src/ast_generator/` — Code generator that produces `ast-generated/` from metamodels
-- `src/parser/grammar/` — `FifthLexer.g4` + `FifthParser.g4` (split grammar)
-- `src/parser/AstBuilderVisitor.cs` — Parse tree to high-level AST
-- `src/compiler/LanguageTransformations/` — AST transformation passes
-- `src/compiler/ParserManager.cs` — Transformation pipeline coordinator
-- `src/fifthlang.system/` — Built-in system functions and knowledge graph support
-- `test/ast-tests/` — xUnit AST and generator tests
-- `test/syntax-parser-tests/` — Grammar parsing tests
-- `test/runtime-integration-tests/` — End-to-end verification tests
-
-## Authoritative References
-
-- Constitution: `.specify/memory/constitution.md` — all architectural decisions and principles
-- Agent instructions: `AGENTS.md` — operational commands and workflow guidance
-- Spec-kit config: `.specify/config.yml` — build/test command definitions
+- `.specify/memory/constitution.md` for architectural decisions and principles
+- `AGENTS.md` for operational commands and workflow guidance
+- `.specify/config.yml` for build and test command definitions

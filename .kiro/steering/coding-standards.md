@@ -1,54 +1,43 @@
 ---
-inclusion: auto
+description: coding-standards
+inclusion: always
 ---
-
-# Coding Standards and Principles
-
-## Core Principles
-
-- Library-First: Every feature starts as a focused library under `src/` with a clear public contract
-- Simplicity and YAGNI: Prefer the simplest design that works. No incidental complexity or non-required abstractions.
-- Minimal Surface: Make targeted, minimal changes that respect existing structure and APIs
-- Safety: Do not add catch-all error handling that hides defects. Changes increasing complexity must be justified.
-
-## C# Conventions
-
-- C# 14 language version (or latest supported by .NET 10 SDK)
-- .NET 10.0 target framework
-- Semantic Versioning (MAJOR.MINOR.PATCH) for all packages
-
-## CLI and Text I/O Discipline
-
-- stdin/args → input; stdout → primary output; stderr → errors/diagnostics
-- Support human-readable text; add JSON output where suitable for automation
-- Favor deterministic, scriptable commands
-- Output must be deterministic and stable (no timestamps or non-deterministic ordering)
-
-## File Editing Rules
-
-- NEVER hand-edit files in `src/ast-generated/`
-- To modify AST: edit metamodels in `src/ast-model/`, then regenerate
-- Grammar changes: update both `FifthLexer.g4` AND `FifthParser.g4` as needed
-- Always update `AstBuilderVisitor.cs` for grammar changes
-
-## Repository Cleanliness
-
-- Never commit temporary debugging helpers, IL dumps, or scratch `.5th` programs
-- `scripts/` is reserved for durable automation only
-- Never commit `tmp_*.5th`, `build_debug_il/`, `KEEP_FIFTH_TEMP`, or `--keep-temp` outputs
-- Use `.gitignore` patterns and local temp directories for experiments
-
+## Design
+- CODE-001: Every feature should start as a focused library under `src/` with a clear public contract.
+- CODE-002: Prefer the simplest design that works. Do not introduce incidental complexity or abstractions that are not required.
+## Maintainability
+- CODE-003: Make targeted, minimal changes that respect existing structure and public APIs.
+## Quality
+- CODE-004: Do not add catch-all error handling that hides defects. Any change that increases complexity must be justified explicitly.
+## Platform
+- CODE-005: Target C# 14, or the latest language version supported by the .NET 10 SDK, and target .NET 10.0.
+## Versioning
+- CODE-006: Use Semantic Versioning in `MAJOR.MINOR.PATCH` form for all packages.
+## Cli
+- CODE-007: Use stdin and arguments for input, stdout for primary output, and stderr for errors and diagnostics.
+- CODE-008: Support human-readable text by default and add JSON output where it materially improves automation.
+- CODE-009: Favor deterministic, scriptable commands. Output must be stable and must not depend on timestamps or non-deterministic ordering.
+## Generation
+- CODE-010: Never hand-edit files in `src/ast-generated/`.
+- CODE-011: To modify the AST, edit the metamodels in `src/ast-model/` and then regenerate the generated output.
+## Parser
+- CODE-012: When grammar behavior changes, update both `FifthLexer.g4` and `FifthParser.g4` as needed.
+- CODE-013: Always update `AstBuilderVisitor.cs` when grammar changes alter the parse tree or surface syntax.
+## Repository
+- CODE-014: Do not commit temporary debugging helpers, IL dumps, or scratch `.5th` programs.
+- CODE-015: The `scripts/` directory is reserved for durable automation only.
+- CODE-016: Do not commit `tmp_*.5th`, `build_debug_il/`, `KEEP_FIFTH_TEMP`, or outputs produced by `--keep-temp`.
+- CODE-017: Use `.gitignore` patterns and local temporary directories for experiments rather than leaving scratch assets in the repository.
 ## Security
+- CODE-018: Avoid executing arbitrary code during generation or parsing.
+- CODE-019: Validate inputs and keep user inputs separated from internal templates.
+- CODE-020: Do not introduce network calls or file-system side effects without explicit review.
+## Dependencies
+- CODE-021: The core package set in this repository includes:
 
-- Avoid executing arbitrary code during generation or parsing
-- Validate inputs; separate user inputs from internal templates
-- Do not introduce network calls or file system side-effects without explicit review
-
-## Key NuGet Packages
-
-- `Antlr4.Runtime.Standard` — ANTLR runtime
-- `RazorLight` — Template engine for code generation
-- `System.CommandLine` — CLI parsing
-- `xUnit` + `FluentAssertions` — Testing
-- `dunet` — Discriminated unions
-- `Vogen` — Value object generation
+- `Antlr4.Runtime.Standard` for the ANTLR runtime
+- `RazorLight` for code-generation templates
+- `System.CommandLine` for CLI parsing
+- `xUnit` and `FluentAssertions` for testing
+- `dunet` for discriminated unions
+- `Vogen` for value-object generation

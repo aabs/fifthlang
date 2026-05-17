@@ -1,10 +1,9 @@
 ---
-inclusion: manual
+description: fifth-language-syntax
+inclusion: always
 ---
-
-# Fifth Language Syntax Reference
-
-## Basic Syntax
+## Syntax
+- SYN-001: Basic syntax looks like this:
 
 ```fifth
 class Person {
@@ -15,60 +14,53 @@ class Person {
 main() => myprint(5 + 6);
 myprint(int x) => std.print(x);
 ```
-
-## Variable Declarations
-
-Use `name: type = value` form. Never use `var name =` (C#/JS-style) or `type name =` (type-first).
+- SYN-002: Use `name: type = value` form. Never use `var name =` in C# or JavaScript style, and never use type-first forms such as `type name =`.
 
 ```fifth
 x: int = 42;
 g: graph = KG.CreateGraph();
 ```
-
-## Function Definitions
+## Functions
+- SYN-003: Function definitions can use either expression bodies or block bodies:
 
 ```fifth
-// Expression body
 add(int a, int b) => a + b;
 
-// Block body
 greet(string name) {
     std.print("Hello " + name);
 }
 ```
-
-## Parameter Constraints (Guards)
-
-Use the parameter constraint form with block bodies:
+## Guards
+- SYN-004: Use the parameter constraint form with block bodies:
 
 ```fifth
-// Correct: parameter constraint form
 myprint(int x | x == 0) { std.print(x); }
-
-// INVALID: legacy 'when' shorthand
-// myprint(int x) when x == 0 => std.print(x);
 ```
 
-## Knowledge Graph Constructs
+Do not use the legacy `when` shorthand.
 
 ```fifth
-// Store declarations
+// INVALID
+// myprint(int x) when x == 0 => std.print(x);
+```
+## Knowledge Graph
+- SYN-005: Use the canonical knowledge-graph forms:
+
+```fifth
 myStore: store = sparql_store(<http://example.org/store>);
 store default = sparql_store(<http://example.org/default>);
 
-// Graph operations
 g: graph = KG.CreateGraph();
 // Add triples with += operator
 ```
+- SYN-006: Use these literal forms in syntax and examples:
 
-## TriG and SPARQL Literals
+- TriG literals use `<{...}>`
+- SPARQL literals use `?<...>`
+- Object-position literal values may be strings, booleans, chars, signed integers, unsigned integers, `float`, `double`, or `decimal`
+## Reference
+- SYN-007: Use these locations when looking for canonical syntax examples:
 
-- TriG literals: `<{...}>`
-- SPARQL literals: `?<...>`
-- Literal types in object position: strings, booleans, chars, all signed/unsigned integers, float, double, decimal
-
-## Sample Files
-
-- Test code samples: `test/ast-tests/CodeSamples/*.5th`
-- Parser test samples: `src/parser/grammar/test_samples/*.5th`
-- Documentation examples: `docs/Getting-Started/`
+- `test/ast-tests/CodeSamples/*.5th`
+- `src/parser/grammar/test_samples/*.5th`
+- `docs/Getting-Started/`

@@ -9,7 +9,7 @@ fileMatchPattern: "src/compiler/LanguageTransformations/**,src/compiler/ParserMa
 
 ## Transformation Pass Order
 
-:::rule id="PIPE-001" severity="error" category="pipeline" domain="transformations"
+:::rule id="PIPE-001" category="pipeline" 
 The compiler applies these passes sequentially in `ParserManager.cs`:
 
 1. `TreeLinkageVisitor` for parent-child relationships
@@ -26,33 +26,33 @@ The compiler applies these passes sequentially in `ParserManager.cs`:
 
 ## Design Principles
 
-:::rule id="PIPE-002" severity="error" category="design" domain="transformations"
+:::rule id="PIPE-002" category="design" 
 Each visitor or rewriter in the transformation pipeline must have one well-defined responsibility.
 :::
 
-:::rule id="PIPE-003" severity="error" category="dependency" domain="transformations"
+:::rule id="PIPE-003" category="dependency" 
 Transformation passes are order-dependent, and later passes may rely on invariants established by earlier passes.
 :::
 
-:::rule id="PIPE-004" severity="warning" category="design" domain="transformations"
+:::rule id="PIPE-004" mandatory="false" category="design" 
 Prefer several simple, comprehensible passes over a single pass that mixes unrelated transformation logic.
 :::
 
-:::rule id="PIPE-005" severity="warning" category="documentation" domain="transformations"
+:::rule id="PIPE-005" mandatory="false" category="documentation" 
 Document dependencies between transformation passes whenever later stages rely on earlier ones.
 :::
 
-:::rule id="PIPE-006" severity="error" category="correctness" domain="transformations"
+:::rule id="PIPE-006" category="correctness" 
 Each transformation pass must preserve AST validity and type safety.
 :::
 
-:::rule id="PIPE-007" severity="warning" category="design" domain="transformations"
+:::rule id="PIPE-007" mandatory="false" category="design" 
 Prefer expressing language adaptation as AST transformations rather than pushing additional complexity into code generation.
 :::
 
 ## Adding a New Transformation
 
-:::rule id="PIPE-008" severity="error" category="workflow" domain="transformations"
+:::rule id="PIPE-008" category="workflow" 
 To add a new transformation:
 
 1. Create the visitor or rewriter in `src/compiler/LanguageTransformations/`
@@ -64,6 +64,6 @@ To add a new transformation:
 
 ## Code Generation
 
-:::rule id="PIPE-009" severity="error" category="code-generation" domain="transformations"
+:::rule id="PIPE-009" category="code-generation" 
 The compiler uses `LoweredAstToRoslynTranslator` to emit C# syntax trees from the lowered AST for Roslyn compilation and PE or PDB emission. Roslyn-generated PDBs must include full line-and-column sequence points so debugging fidelity is preserved.
 :::

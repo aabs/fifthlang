@@ -9,7 +9,7 @@ fileMatchPattern: "src/parser/**,docs/**/*.5th,test/**/*.5th,src/parser/grammar/
 
 ## Split Grammar Architecture
 
-:::rule id="GRAM-001" severity="warning" category="architecture" domain="parser"
+:::rule id="GRAM-001" mandatory="false" category="architecture"
 The parser surface is divided across three primary assets:
 
 - `src/parser/grammar/FifthLexer.g4` for tokens, keywords, literals, and lexical structure
@@ -19,7 +19,7 @@ The parser surface is divided across three primary assets:
 
 ## Grammar Change Workflow
 
-:::rule id="GRAM-002" severity="error" category="workflow" domain="parser"
+:::rule id="GRAM-002" category="workflow"
 When grammar behavior changes:
 
 1. Edit `FifthLexer.g4` for tokens and keywords and `FifthParser.g4` for syntax rules as needed
@@ -32,7 +32,7 @@ When grammar behavior changes:
 
 ## Grammar Compliance for Examples and Tests
 
-:::rule id="GRAM-003" severity="error" category="validation" domain="parser"
+:::rule id="GRAM-003" category="validation"
 All `.5th` files in `docs/`, `specs/`, `test/`, and `src/parser/grammar/test_samples/` must parse with the current grammar. CI enforces this with the `Validate .5th samples (parser-check)` step.
 
 Run `just validate-examples` locally before committing.
@@ -40,21 +40,21 @@ Run `just validate-examples` locally before committing.
 
 ## Common Non-Fifth Patterns to Avoid
 
-:::rule id="GRAM-004" severity="error" category="syntax" domain="parser"
+:::rule id="GRAM-004" category="syntax"
 Do not use `var <name> =` in examples or tests. Use `name: type =` or the appropriate canonical Fifth form.
 :::
 
-:::rule id="GRAM-005" severity="error" category="syntax" domain="parser"
+:::rule id="GRAM-005" category="syntax"
 Do not use declarations such as `graph g =` or `triple t =`. Use `g: graph =` or `t: triple =`.
 :::
 
-:::rule id="GRAM-006" severity="error" category="syntax" domain="parser"
+:::rule id="GRAM-006" category="syntax"
 Do not use the legacy `when` guard shorthand. Use the parameter constraint form `param: Type | <expr>` together with block bodies.
 :::
 
 ## Canonical Guard Syntax
 
-:::rule id="GRAM-007" severity="error" category="guards" domain="parser"
+:::rule id="GRAM-007" category="guards"
 The canonical contrast for guard syntax is:
 
 ```fifth
@@ -68,7 +68,7 @@ myprint(int x | x == 0) { std.print(x); }
 
 ## Negative Tests
 
-:::rule id="GRAM-008" severity="warning" category="validation" domain="parser"
+:::rule id="GRAM-008" mandatory="false" category="validation"
 Intentionally invalid files are excluded from example validation by these heuristics:
 
 - directory matches under `*/Invalid/*`
@@ -84,7 +84,7 @@ dotnet run --project src/tools/validate-examples/validate-examples.csproj -- --i
 
 ## Knowledge Graph Syntax
 
-:::rule id="GRAM-009" severity="warning" category="knowledge-graph" domain="parser"
+:::rule id="GRAM-009" mandatory="false" category="knowledge-graph"
 Use these canonical knowledge-graph forms in examples and tests:
 
 - `name: store = sparql_store(<iri>);`
