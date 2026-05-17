@@ -1,0 +1,150 @@
+---
+id: steering-testing-standards
+title: Testing Standards
+inclusion: fileMatch
+fileMatchPattern: "test/**"
+---
+
+# Testing Standards
+
+## Framework and Tools
+
+:::rule id="TEST-001" mandatory="false" category="framework" 
+The standard test stack is:
+
+- `xUnit` as the test framework
+- `FluentAssertions` for assertions
+- `test/ast-tests/`, `test/syntax-parser-tests/`, and `test/runtime-integration-tests/` as the primary test projects
+:::
+
+## Test-First (Non-Negotiable)
+
+:::rule id="TEST-002" category="process"  mandatory="true"
+Practice TDD by writing tests, seeing them fail, and then implementing the change. Never mask failing tests with broad `try` or `catch` blocks. Let failures surface so CI reflects the true repository state.
+:::
+
+## Compilation is NOT Sufficient
+
+:::rule id="TEST-003" category="completion" 
+A feature is not complete until end-to-end tests prove that it:
+
+1. Uses actual Fifth language syntax including constructs such as TriG literals, SPARQL literals, and operators
+2. Executes successfully at runtime rather than merely compiling
+3. Produces results that are accessible and correct
+4. Exercises the major code paths and result types involved
+
+Features with only compilation tests or with failing runtime tests are incomplete.
+:::
+
+## Test Design Principles
+
+:::rule id="TEST-004" mandatory="true" category="testing"
+Test code should use property-based testing (PBT) using FsCheck.xunit in preference to unit tests.
+:::
+
+:::rule id="TEST-004a" mandatory="true" category="testing"
+Never just test single-point scenarios and  happy paths, instead use a property-based test that will test all positive, negative and edge cases.
+:::
+
+
+:::rule id="TEST-013" mandatory="true" category="testing"
+Define properties as universal rules that must hold for all valid inputs, rather than relying on specific example cases.
+:::
+
+:::rule id="TEST-014" mandatory="true" category="testing"
+Design generators to produce diverse, realistic, and edge-case inputs across the full input space.
+:::
+
+:::rule id="TEST-015" mandatory="true" category="testing"
+Ensure failing cases can be minimized automatically through shrinking to aid debugging.
+:::
+
+:::rule id="TEST-016" mandatory="true" category="testing"
+Specify preconditions clearly or constrain generators so properties are only evaluated in valid domains.
+:::
+
+:::rule id="TEST-017" mandatory="true" category="testing"
+Keep tests deterministic and reproducible by controlling randomness and eliminating hidden state or side effects.
+:::
+
+:::rule id="TEST-018" mandatory="true" category="testing"
+Use strong oracles, models, or metamorphic relationships to validate correctness beyond simple assertions.
+
+- Every property must have an oracle: a mechanical way to decide pass/fail that is stronger than “doesn’t throw” or “looks plausible”.
+- Prefer a reference (spec) model oracle when you can: compute expected behaviour using a simpler, obviously-correct implementation and compare.
+- If you can’t compute the exact expected output, use a metamorphic oracle: apply a transformation to inputs and assert a predictable relationship between outputs.
+- Use multiple weak oracles together (invariants + metamorphic + cross-check) rather than one weak check.
+- Fail with evidence: when a property fails, ensure the counterexample is informative (shrinks well; includes classification/labels).
+:::
+
+
+:::rule id="TEST-019" mandatory="true" category="testing"
+When making significant changes to a pre-existing unit test, convert it to a Property based test that tests a whole class of invariants and pre and post conditions. 
+:::
+
+:::rule id="TEST-005" mandatory="false" category="testing" 
+Avoid testing internal implementation details and avoid depending on concrete implementations where looser behavioral validation is possible.
+:::
+
+:::rule id="TEST-006" category="fixtures" 
+Tests that reference `.5th` sample files must declare `CopyToOutputDirectory` metadata in the owning test `.csproj`.
+:::
+
+## Running Tests
+
+:::rule id="TEST-007" mandatory="false" category="commands" 
+The default regression command is:
+
+```bash
+dotnet test fifthlang.sln
+```
+:::
+
+:::rule id="TEST-008" mandatory="false" category="commands" 
+Use this quick smoke command while iterating:
+
+```bash
+dotnet test test/ast-tests/ast_tests.csproj
+```
+:::
+
+:::rule id="TEST-009" mandatory="false" category="commands" 
+Use this focused parser command when grammar behavior changes:
+
+```bash
+dotnet test test/syntax-parser-tests/ -v minimal
+```
+:::
+
+:::rule id="TEST-010" mandatory="false" category="commands" 
+Use filtered runtime integration tests for focused investigation:
+
+```bash
+dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj --filter "FullyQualifiedName~YourTestName" -v minimal
+```
+:::
+
+:::rule id="TEST-011" mandatory="false" category="commands" 
+Validate knowledge-graph changes with:
+
+```bash
+dotnet test test/kg-smoke-tests/kg-smoke-tests.csproj
+```
+:::
+
+## AST Smoke Test
+
+:::rule id="TEST-012" mandatory="false" category="ast" 
+Use this quick smoke test after AST builder changes:
+
+```csharp
+using ast;
+using ast_generated;
+
+var intLiteral = new Int32LiteralExp { Value = 42 };
+var builder = new Int32LiteralExpBuilder();
+var result = builder.Build();
+```
+
+The builder construction should complete without errors.
+:::

@@ -1,0 +1,6 @@
+globalRoot: $HOME/steering/global
+projectRoot: docs/Steering
+generationRoot: .
+registeredTargets:
+  - speckit
+  - kiro

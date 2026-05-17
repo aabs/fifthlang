@@ -1,42 +1,37 @@
 ---
-inclusion: fileMatch
-fileMatchPattern: "src/compiler/LanguageTransformations/**,src/compiler/ParserManager.cs"
+description: transformation-pipeline
+inclusion: always
 ---
+## Pipeline
+- PIPE-001: The compiler applies these passes sequentially in `ParserManager.cs`:
 
-# Language Transformation Pipeline
+1. `TreeLinkageVisitor` for parent-child relationships
+2. `BuiltinInjectorVisitor` for built-in function definitions
+3. `ClassCtorInserter` for default constructors
+4. `SymbolTableBuilderVisitor` for scoping symbol tables
+5. `PropertyToFieldExpander` for property syntax expansion
+6. `OverloadGatheringVisitor` for overload grouping
+7. `OverloadTransformingVisitor` for guard and subclause transformation
+8. `DestructuringVisitor` for destructuring property references
+9. `DestructuringLoweringRewriter` for lowering destructuring into variable declarations
+10. `TypeAnnotationVisitor` for type inference and annotation
+## Design
+- PIPE-002: Each visitor or rewriter in the transformation pipeline must have one well-defined responsibility.
+- PIPE-004: Prefer several simple, comprehensible passes over a single pass that mixes unrelated transformation logic.
+- PIPE-007: Prefer expressing language adaptation as AST transformations rather than pushing additional complexity into code generation.
+## Dependency
+- PIPE-003: Transformation passes are order-dependent, and later passes may rely on invariants established by earlier passes.
+## Documentation
+- PIPE-005: Document dependencies between transformation passes whenever later stages rely on earlier ones.
+## Correctness
+- PIPE-006: Each transformation pass must preserve AST validity and type safety.
+## Workflow
+- PIPE-008: To add a new transformation:
 
-## Transformation Pass Order
-
-The compiler applies these passes sequentially in `ParserManager.cs`:
-
-1. TreeLinkageVisitor — Parent-child relationships
-2. BuiltinInjectorVisitor — Built-in function definitions
-3. ClassCtorInserter — Default constructors
-4. SymbolTableBuilderVisitor — Symbol tables for scoping
-5. PropertyToFieldExpander — Property syntax to field access
-6. OverloadGatheringVisitor — Group function overloads
-7. OverloadTransformingVisitor — Guard/subclause pattern
-8. DestructuringVisitor — Property references in destructuring
-9. DestructuringLoweringRewriter — Destructuring to variable declarations
-10. TypeAnnotationVisitor — Type inference and annotation
-
-## Design Principles
-
-- Each visitor has a single, well-defined responsibility
-- Passes are order-dependent; later passes may depend on earlier ones
-- Prefer multiple simple passes over complex single passes
-- Document dependencies between transformation passes
-- Each pass must preserve AST validity and type safety
-- Prefer AST transformations over code generation complexity
-
-## Adding a New Transformation
-
-1. Create visitor in `src/compiler/LanguageTransformations/`
-2. Choose the right pattern (see code-generation-rules steering for pattern guide)
-3. Register in the pipeline in `src/compiler/ParserManager.cs`
+1. Create the visitor or rewriter in `src/compiler/LanguageTransformations/`
+2. Choose the correct base pattern using the code-generation steering guidance
+3. Register the transformation in `src/compiler/ParserManager.cs`
 4. Add tests in `test/ast-tests/` or `test/runtime-integration-tests/`
-5. Build and run full test suite
-
+5. Build the solution and run the full test suite
 ## Code Generation
-
-The compiler uses `LoweredAstToRoslynTranslator` to emit C# syntax trees from the lowered AST for Roslyn compilation and PE/PDB emission. Roslyn-generated PDBs must include full line-and-column sequence points for debugging fidelity.
+- PIPE-009: The compiler uses `LoweredAstToRoslynTranslator` to emit C# syntax trees from the lowered AST for Roslyn compilation and PE or PDB emission. Roslyn-generated PDBs must include full line-and-column sequence points so debugging fidelity is preserved.

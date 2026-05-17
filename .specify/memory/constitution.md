@@ -1,502 +1,496 @@
-# Fifth Language Engine
-
-### I. Library-First, Contracts-First
-Every feature starts as a focused library under `src/` with a clear, documented purpose and public contract. Libraries must be self-contained, independently buildable, and testable with TUnit. Avoid organizational or "glue-only" libraries. Contracts are expressed through:
-- AST metamodel in `src/ast-model/AstMetamodel.cs`
-- Generated builders/visitors in `src/ast-generated/`
-- ANTLR grammar split between `src/parser/grammar/FifthParser.g4` and `src/parser/grammar/FifthLexer.g4`
-- Public CLIs (e.g., `ast_generator`, `compiler`) with text I/O Constitution
-
-This constitution governs how we build, test, version, and evolve the Fifth language projects in this repository, including the AST model, parser, compiler, and system libraries. It exists to create a predictable, testable, and observable development flow that GitHub SpecKit and automation can rely on.
-
-This document is self-contained and has no external dependencies. All operational details, build commands, project structure, and workflows are defined herein.
-
-## Project Overview
-
-Fifth Language is a C# .NET 10.0 solution that provides Abstract Syntax Tree (AST) construction capabilities for the Fifth programming language. It includes an ANTLR-based split lexer/parser, code generation for AST builders and visitors, and a multi-pass compiler with various language transformations that perform AST lowering through intermediate representations.
-
-### Architecture Overview
-
-The Fifth language compiler follows a multi-pass pipeline architecture that transforms source code through several intermediate representations:
-
-1. **Lexical Analysis** → **Parsing** → **Parse Tree**
-2. **Parse Tree** → **AST Building** → **High-Level AST**
-3. **High-Level AST** → **Language Transformations** → **Lowered AST**
-4. **Lowered AST** → **Roslyn Code Generation** → **PE Assembly**
-
-## Core Principles
-
-### I. Library-First, Contracts-First
-Every feature starts as a focused library under `src/` with a clear, documented purpose and public contract. Libraries must be self-contained, independently buildable, and testable with TUnit. Avoid organizational or "glue-only" libraries. Contracts are expressed through:
-- AST metamodel in `src/ast-model/AstMetamodel.cs`
-- Generated builders/visitors in `src/ast-generated/`
-- ANTLR grammar in `src/parser/grammar/FifthParser.g4` and `src/parser/grammar/FifthLexer.g4` 
-- Public CLIs (e.g., `ast_generator`, `compiler`) with text I/O
-
-### II. CLI and Text I/O Discipline
-Each executable surface must provide a CLI entry that communicates via text I/O:
-- stdin/args → input; stdout → primary output; stderr → errors/diagnostics
-- Support human-readable text; add JSON output where suitable for automation
-- Favor deterministic, scriptable commands to enable SpecKit orchestration
-
-### III. Generator-as-Source-of-Truth (Do Not Hand-Edit Generated Code)
-The AST generator is authoritative for builders, visitors, rewriters, and type inference support. Never hand-edit files under `src/ast-generated/`. To change generated outputs:
-1. Update `src/ast-model/AstMetamodel.cs`
-2. Optionally update templates under `src/ast_generator/Templates/` for code generation changes
-3. Regenerate via `just run-generator` (preferred) or `dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated`
-4. Build the full solution to validate
-
-### IV. Test-First (Non-Negotiable)
-Practice TDD: write/approve tests, see them fail, then implement. Use TUnit + FluentAssertions across:
-- `test/ast-tests/` for AST and generator correctness
-- `test/syntax-parser-tests/` for grammar parsing
-- `test/runtime-integration-tests/` for end-to-end verification
-Never mask failing tests with broad try/catch. Let failures surface so CI and SpecKit correctly reflect state.
-
-**CRITICAL: Compilation is NOT Sufficient**
-A language feature is NOT complete until it is proven to work end-to-end with comprehensive passing tests that:
-1. Use actual Fifth language syntax (not just C# interop calls)
-2. Execute successfully at runtime (not just compile)
-3. Validate that results are accessible and correct
-4. Exercise all major code paths and result types
-
-For features involving TriG literals (`<{...}>`), SPARQL literals (`?<...>`), or other language constructs:
-- Tests MUST use these constructs directly in Fifth code
-- Tests MUST run to completion and return expected exit codes
-- Tests MUST prove data flows through the entire pipeline
-- Manual C# validation is acceptable as supplementary evidence but does NOT replace Fifth language tests
-
-Any feature with only compilation tests or failing runtime tests is considered INCOMPLETE. Continue iterating until all tests pass.
-
-### V. Reproducible Builds & Toolchain Discipline
-Tooling is pinned and enforced for reproducibility:
-- .NET SDK 10.0.x per `global.json` (currently 10.0.100)
-- Java 17+ for ANTLR; ANTLR 4.13.1 runtime (NuGet) with the jar at `src/parser/tools/antlr-4.13.2-complete.jar`
-- Build order: ast-model → ast_generator → ast-generated → parser → compiler → tests
-- Critical rule: NEVER CANCEL restore/build/test/generation tasks. Allow up to 1–2 minutes for completion as documented.
-
-### VI. Simplicity, Minimal Surface, and Safety
-Prefer the simplest design that works. Avoid incidental complexity and non-required abstractions (YAGNI). Make targeted, minimal changes that respect existing structure and APIs. Do not add catch-all error handling that hides defects. Changes that increase complexity must be justified in the PR.
-
-### VII. Multi-Pass Compilation & AST Lowering Philosophy
-The compiler implements a clean separation of concerns through multiple compilation phases:
-
-#### Phase 1: Lexical Analysis & Parsing
-- **Lexer** (`FifthLexer.g4`): Tokenizes source code into lexical tokens
-- **Parser** (`FifthParser.g4`): Builds parse tree from tokens according to grammar rules
-- **AST Builder Visitor** (`AstBuilderVisitor.cs`): Transforms parse tree into high-level AST
-
-#### Phase 2: Language Analysis & Transformation
-Multiple passes through the AST apply increasingly sophisticated transformations:
-
-1. **TreeLinkageVisitor**: Establishes parent-child relationships in AST
-2. **BuiltinInjectorVisitor**: Injects built-in function definitions
-3. **ClassCtorInserter**: Adds default constructors where needed
-4. **SymbolTableBuilderVisitor**: Builds symbol tables for scoping
-5. **PropertyToFieldExpander**: Expands property syntax to underlying field access
-6. **OverloadGatheringVisitor**: Groups function overloads together
-7. **OverloadTransformingVisitor**: Transforms overloaded functions into guard/subclause pattern
-8. **DestructuringVisitor**: Resolves property references in destructuring patterns
-9. **DestructuringLoweringRewriter**: Lowers destructuring to variable declarations with constraint collection
-10. **TypeAnnotationVisitor**: Performs type inference and annotation
-
-#### Phase 3: Code Generation (Roslyn)
-- `LoweredAstToRoslynTranslator` accepts the Lowered AST and emits C# syntax trees for Roslyn compilation and PE/PDB emission.
-- Roslyn-based emission produces Portable PDBs with #line mapping back to `.5th` sources.
-- Roslyn-generated PDBs MUST include full line-and-column sequence points for all emitted statements and expressions to preserve developer debugging experience. Implementations should use Roslyn's SequencePoint APIs / #line pragmas and EmbeddedText to preserve source fidelity.
-
-### VIII. AST Design & Transformation Strategy
-When designing language features and solving problems:
-
-**Prefer AST Transformations over Code Generation Complexity**
-- Implement syntactic sugar and high-level constructs in the main AST model
-- Use language transformation visitors to lower high-level constructs to simpler forms
-- Keep the lowered AST simple and close to what Roslyn code generation needs
-
-**AST Design**
-- **AST** (`AstMetamodel.cs`): Rich, high-level constructs that mirror source language features, lowered through transformation passes into forms suitable for Roslyn code generation
-
-**Transformation Guidelines**
-- Each transformation visitor should have a single, well-defined responsibility
-- Transformations should be order-dependent; later passes can depend on earlier ones
-- Prefer multiple simple passes over complex single passes
-- Document dependencies between transformation passes
-- Each pass should preserve AST validity and type safety
-
-**Choosing the Right Transformation Pattern**
-
-The AST generator provides three main patterns for AST traversal and transformation:
-
-1. **`BaseAstVisitor`** (read-only analysis)
-   - Use for: Symbol table building, diagnostics, validation, metrics collection
-   - Characteristics: Enter/leave pattern, no return values, side effects only
-   - Cannot modify AST
-
-2. **`DefaultRecursiveDescentVisitor`** (type-preserving transformations)
-   - Use for: Simple AST modifications, structure-preserving rewrites
-   - Characteristics: Type-safe returns (BinaryExp → BinaryExp), recursive descent
-   - Cannot change node types or hoist statements
-
-3. **`DefaultAstRewriter`** ⭐ **PREFERRED for new lowering passes**
-   - Use for: Statement-level desugaring, cross-type rewrites, expression hoisting
-   - Characteristics: Returns `RewriteResult` with node + prologue, category-level flexibility
-   - Enables: Temporary variables, pre-computation statements, cross-type transformations
-   - Example: Transform `BinaryExp` → `FuncCallExp` with hoisted temp declaration
-
-**When to Use DefaultAstRewriter**:
-- Introducing temporary variables or pre-computation
-- Breaking down high-level constructs into multiple statements
-- Transforming expression types (e.g., operators to function calls)
-- Any lowering that requires statement insertion before the current statement
-
-See `src/ast_generator/README.md` for comprehensive visitor/rewriter pattern guide.
-
-### IX. Parser & Grammar Integrity
-The grammar is split into lexer and parser components:
-- **FifthLexer.g4**: Defines tokens, keywords, literals, and lexical structure
-- **FifthParser.g4**: Defines syntactic rules and grammar structure
-
-Changes to either grammar file require:
-- Corresponding tests in `src/parser/grammar/test_samples/*.5th`
-- Updates to `AstBuilderVisitor.cs` for new syntax constructs
-- Regeneration occurs automatically during build via ANTLR
-- Expected warnings (like `assoc` option location) can be ignored if documented as benign
-
-Additional rule: Grammar compliance for example/source files
-
-- All example programs, quickstart snippets, test fixtures, and specification samples that are intended to be fed into the parser or compiler MUST conform to the current parser grammar. Samples that use legacy or non-grammar shorthand (for example, older guard shorthand such as `when`) must be converted to the canonical grammar-supported form before being added to the repository or referenced by integration tests.
-
-- Canonical guard example (before → after):
-
-      // before (legacy shorthand — NOT VALID for parser-based tests)
-      myprint(int x) when x == 0 => std.print(x);
-
-      // after (grammar-compliant parameter constraint)
-      myprint(int x | x == 0) { std.print(x); }
-
-- Definition: "Grammar-compliant" means the sample can be successfully parsed by the current `FifthParser.g4` and successfully transformed to the high-level AST by `AstBuilderVisitor` without syntax errors.
-
-- Enforcement (implemented): CI includes a step "Validate .5th samples (parser-check)" that runs the C# tool at `src/tools/validate-examples/` to ensure all `.5th` examples across `docs/`, `specs/`, `src/parser/grammar/test_samples/`, and `test/` parse with the current grammar. Locally, run `just validate-examples` to catch issues before pushing. The tool accepts `--include-negatives` to force-validate intentionally-invalid samples for debugging.
-   - Validate examples: `just validate-examples` (or `dotnet run --project src/tools/validate-examples/validate-examples.csproj`)
-   - Parser-focused tests: `dotnet test test/syntax-parser-tests/ -v minimal`
-   - Integration tests for affected areas as needed: `dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj --filter "FullyQualifiedName~YourTestName" -v minimal`
-
-- Rationale: Ensures integration tests exercise the real compiler pipeline and prevents parser-time flakiness caused by deprecated surface forms.
-
-### X. Observability & Diagnostics
-Text I/O is the primary observability mechanism. Emit clear, actionable diagnostics to stderr. Prefer structured messages (line/column, file paths) for parsers/compilers. When logging is needed, use standard .NET logging abstractions; avoid custom frameworks. Output must be deterministic and stable to support automated parsing by SpecKit.
-
-### XI. Versioning & Backward Compatibility
-Use Semantic Versioning (MAJOR.MINOR.PATCH). Breaking changes require:
-- A migration note in the PR
-- Updated tests reflecting new behavior
-- A minor/major version bump as appropriate
-Generated code changes follow metamodel versioning. Deprecations must be documented and tested.
-
-## Project Structure
-
-```
-src/
-├── ast-model/          # Core AST model definitions and type system
-│   ├── AstMetamodel.cs     # AST definitions
-│   └── TypeSystem/         # Type system components
-├── ast-generated/      # Auto-generated AST builders and visitors  
-│   ├── builders.generated.cs       # Builder pattern classes
-│   ├── visitors.generated.cs       # Visitor pattern classes
-│   ├── rewriter.generated.cs       # Rewriter pattern for lowering
-│   └── typeinference.generated.cs  # Type inference support
-├── ast_generator/      # Code generator that creates AST infrastructure
-│   ├── Program.cs              # CLI entry point
-│   ├── Templates/              # Razor templates for code generation
-│   └── RazorLight*.cs          # Template processors
-├── parser/             # ANTLR-based parser with split grammar
-│   ├── grammar/
-│   │   ├── FifthLexer.g4       # Lexical analysis grammar
-│   │   ├── FifthParser.g4      # Syntactic analysis grammar
-│   │   └── test_samples/*.5th  # Parser test samples
-│   ├── tools/
-│   │   └── antlr-4.13.2-complete.jar  # ANTLR tool
-│   └── AstBuilderVisitor.cs    # Parse tree to AST transformation
-├── compiler/           # Main compiler with language transformations
-│   ├── Compiler.cs             # Main compilation orchestrator
-│   ├── ParserManager.cs        # Parser and transformation coordinator
-│   ├── CompilerOptions.cs      # CLI option parsing
-│   └── LanguageTransformations/    # AST transformation passes
-│       ├── TreeLinkageVisitor.cs
-│       ├── OverloadTransformingVisitor.cs
-│       ├── DestructuringVisitor.cs
-│       └── ... (other transformation passes)
-└── fifthlang.system/   # Built-in system functions
-    ├── BuiltinFunctions.cs
-    └── KnowledgeGraphs.cs
-
-test/
-├── ast-tests/          # TUnit tests with .5th code samples
-├── syntax-parser-tests/  # Grammar and parsing tests
-└── runtime-integration-tests/  # End-to-end verification tests
-```
-
-## Build System & Commands
-
-### Prerequisites
-- **.NET 10.0 SDK** (global.json pins 10.0.100)
-- **Java 17+** (for ANTLR grammar compilation)
-- **ANTLR 4.13.1** runtime (NuGet), jar at `src/parser/tools/antlr-4.13.2-complete.jar`
-
-### Verification Commands
-```bash
-# Verify prerequisites
-dotnet --version  # Should show 10.0.x
-java -version     # Should show Java 17+
-```
-
-### Bootstrap, Build, and Test Commands
-```bash
-# Initial setup and build (run these commands in sequence)
-dotnet restore fifthlang.sln                      # Takes ~70 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
-dotnet build fifthlang.sln                        # Takes ~60 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
-
-# Optional: Use Just
-just build-all # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
-
-# Run tests
-dotnet test test/ast-tests/ast_tests.csproj        # Takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
-# Or run all tests across the solution
-dotnet test fifthlang.sln
-
-# Run AST code generator separately
-just run-generator                                                         # Takes ~5 seconds.
-# OR
-dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
-```
-
-### Critical Build Notes
-- **NEVER CANCEL** any build operations - they can take up to 2 minutes
-- ANTLR grammar compilation happens automatically during parser project build
-- AST code generation runs automatically before compilation via MSBuild targets
-
-### Build Timing Guidelines
-- **Restore**: ~70 seconds (set timeout to 120+ seconds)
-- **Build**: ~60 seconds (set timeout to 120+ seconds) 
-- **Test**: ~25 seconds (set timeout to 60+ seconds)
-- **Code Generation**: ~5 seconds (set timeout to 30+ seconds)
-
-### Build Order Dependencies
-1. `ast-model` (base AST definitions)
-2. `ast_generator` (creates builders/visitors) 
-3. `ast-generated` (output of generator, depends on ast-model)
-4. `parser` (depends on ast-model, ast-generated, runs ANTLR)
-5. `compiler` (depends on all above)
-6. `tests` (depends on all above)
-
-Always build the full solution rather than individual projects to ensure proper dependency resolution.
-
-## Dependencies and Requirements
-
-### Key NuGet Packages
-- `Antlr4.Runtime.Standard` - ANTLR runtime for C#
-- `RazorLight` - Template engine for code generation
-- `System.CommandLine` - CLI parsing for AST generator
-- `TUnit` - Test framework
-- `FluentAssertions` - Test assertions
-- `dunet` - Discriminated unions for AST model
-- `Vogen` - Value object generation
-
-### Fifth Language Syntax Examples
-Sample Fifth language files are in:
-- `test/ast-tests/CodeSamples/*.5th` - Test code samples
-- `src/parser/grammar/test_samples/*.5th` - Parser test samples
-
-Example Fifth syntax:
-```fifth
-class Person {
-    Name: string;
-    Height: float;
-}
-
-main() => myprint(5 + 6);
-myprint(int x) => std.print(x);
-```
-
-### Knowledge Graphs (Canonical Syntax)
-- Canonical store declaration forms:
-   - `name: store = sparql_store(<http://example.org/store>);`
-   - `store default = sparql_store(<http://example.org/store>);` (sets default)
-- Literal support in object position includes: strings, booleans, chars, all signed/unsigned integers, float, double, and precise `decimal`.
-- Graph operations are performed via supported APIs and expressions; there is no special surface syntax for inline graph assertion blocks.
-- Tests: runtime coverage under `test/runtime-integration-tests` and smoke tests under `test/kg-smoke-tests` validate end-to-end behavior of RDF features (e.g., triple literals, store interactions).
-
-## Engineering Constraints & Standards
-
-### Toolchain & Environment
-- C# 14 Language Version (or the latest supported by .NET 10 SDK).
-- .NET 10.0 SDK required; Java 17+ required for ANTLR operations
-- For build timing, set timeouts per documented guidance; do not prematurely interrupt tasks
-
-### Code Generation
-- All generated code resides in `src/ast-generated/`
-- The generator reads from `src/ast-model/AstMetamodel.cs`
-- Generated files include:
-  - `builders.generated.cs` (Builder pattern classes)
-  - `visitors.generated.cs` (Visitor pattern classes)
-  - `rewriter.generated.cs` (Rewriter pattern for lowering)
-  - `typeinference.generated.cs` (Type inference support)
-- Update metamodels/templates only; regenerate instead of manual edits
-- PRs modifying generated folders must include the upstream metamodel/template changes and the regeneration command used
-- See `src/ast_generator/README.md` for guidance on choosing the right visitor/rewriter pattern
-
-### Testing Requirements
-- Unit tests: TUnit with FluentAssertions
-- Parser tests: grammar samples in `src/parser/grammar/test_samples/*.5th`
-- Integration tests: `test/runtime-integration-tests/`
-- Add tests first; ensure failing state is visible before implementing fixes
-- Prefer property-based testing over testing of single-point scenarios
-- Testing should aim to verify all corner cases
-- Tests should avoid testing of internal implementation details, and should aim not to embed dependencies on concrete implementations where possible
-
-### Manual AST Smoke Test
-To quickly validate AST builders after changes:
-```csharp
-using ast;
-using ast_generated;
-
-var intLiteral = new Int32LiteralExp { Value = 42 };
-var builder = new Int32LiteralExpBuilder();
-var result = builder.Build();
-```
-This should complete without errors.
-
-### Expected Build Warnings (Acceptable)
-- ANTLR: "rule expression contains an assoc terminal option in an unrecognized location"
-- C# nullable reference warnings across the codebase
-- Switch expression exhaustiveness warnings in parser
-
-### Performance & Reliability
-- Favor predictable, deterministic behavior over micro-optimizations
-- Use integration tests to guard against regressions in code generation, parsing, and compilation
-- Large builds are expected; never truncate or cancel build steps
-
-### Security & Safety
-- Avoid executing arbitrary code during generation or parsing
-- Validate inputs; clearly separate user inputs from internal templates
-- Do not introduce network calls or file system side-effects without explicit review
-
-### Temporary Tooling & Scratch Artifacts
-- Repository cleanliness is mandatory. Temporary debugging helpers, IL dumps, or scratch `.5th` programs must never be committed. Use local temp directories outside the repo when experimenting.
-- `scripts/` is reserved for durable automation only. Promote a helper into `src/tools/` (or the appropriate project) once it has docs, tests, and a CLI contract; otherwise delete it after use.
-- Prefer compiler flags such as `--keep-temp` to emit transient artifacts, but delete the generated `build_debug_il/` (or equivalent) output before committing. `.gitignore` covers common scratch patterns like `tmp_*.5th`, and those files must stay untracked.
-- Document any sanctioned debugging workflow in `docs/debugging.md`. Update this constitution if a temporary workflow becomes part of the supported toolchain to capture build/test expectations.
-
-## Troubleshooting
-
-### Common Issues
-1. **"java command not found"** - Install Java 17+ 
-2. **ANTLR grammar errors** - Check grammar syntax in `src/parser/grammar/FifthLexer.g4` and `src/parser/grammar/FifthParser.g4`
-3. **Missing generated files** - Run `just run-generator` to regenerate AST code
-4. **Build timeouts** - Use longer timeout values, builds can legitimately take 1-2 minutes
-
-### Key Files to Watch
-- Always check generated files in `src/ast-generated/` after modifying `src/ast-model/AstMetamodel.cs`
-- Parser changes require attention to both grammar files and `src/parser/AstBuilderVisitor.cs`
-- Test failures in grammar parsing usually indicate issues in ANTLR grammar or visitor implementation
-- Language transformation changes require updates to the transformation pipeline in `ParserManager.cs`
-
-## Development Workflow & Quality Gates
-
-### Standard Developer Loop
-1. Define or refine the SpecKit task/spec
-2. TDD: add/adjust tests under the appropriate test project
-3. For AST changes: edit `AstMetamodel.cs` → regenerate → build
-4. For grammar changes: edit `FifthLexer.g4` or `FifthParser.g4` → update `AstBuilderVisitor.cs` → build
-5. For transformation changes: add/modify visitors in `LanguageTransformations/` → update pipeline in `ParserManager.cs`
-6. Build the full solution: `dotnet build fifthlang.sln`
-7. Run focused tests first (e.g., `test/ast-tests/`), then broader suites
-8. Update documentation if behavior changes
-9. Prepare a PR with clear scope, rationale, and test evidence
-
-### Always Validate Changes
-After making any changes to the codebase:
-
-1. **Build validation:**
-   ```bash
-   dotnet build fifthlang.sln  # NEVER CANCEL - wait up to 2 minutes
-   ```
-
-2. **Test validation:**
-   ```bash
-   dotnet test test/ast-tests/ast_tests.csproj  # NEVER CANCEL - wait up to 1 minute
-   ```
-
-3. **Manual AST functionality test:** (Use the smoke test above)
-
-### PR Checklist (SpecKit Gate)
-- Builds succeed for the full solution (no cancellations)
-- New/updated tests added; all suites pass locally
-- No hand-edits in `src/ast-generated/`; regeneration steps included
-- Grammar changes have corresponding parser and visitor updates
-- Transformation changes are properly integrated into the pipeline
-- Public contracts and CLI help text are updated when behavior changes
-- Rationale for any complexity increases is documented
-
-### Review Standards
-- Favor smallest viable change; keep diffs focused
-- Ensure changes adhere to core principles (Sections I–XI)
-- Confirm reproducibility by re-running documented commands
-- Verify deterministic outputs and diagnostics for automation use
-- Validate that AST transformations maintain proper lowering semantics
-
-## SpecKit Integration
-
-### Validations
-- Run restore/build/test commands exactly as documented; flag early termination as failure
-- Detect edits under `src/ast-generated/` without corresponding metamodel/template change → fail
-- Ensure PR diffs include test changes when behavior changes
-- Verify deterministic CLI outputs (no timestamps/non-deterministic ordering) where practical
-- Validate transformation pipeline integrity when language transformations change
-
-### Artifacts & Interfaces
-- Executables: `src/ast_generator`, `src/compiler`
-- Inputs: `.5th` samples under `test/` and `src/parser/grammar/test_samples/`
-- Outputs: stdout text, optional JSON streams for machine parsing
-- Metamodels: `src/ast-model/AstMetamodel.cs`
-- Grammars: `src/parser/grammar/FifthLexer.g4`, `src/parser/grammar/FifthParser.g4`
-
-### Files to Watch
-- Metamodel: `src/ast-model/AstMetamodel.cs`
-- Templates: `src/ast_generator/Templates/`
-- Generated: `src/ast-generated/` (read-only by policy)
-- Grammars: `src/parser/grammar/FifthLexer.g4`, `src/parser/grammar/FifthParser.g4`
-- Transformations: `src/compiler/LanguageTransformations/`
-- Pipeline: `src/compiler/ParserManager.cs`
-- Build configs: `global.json`, solution/project files
-
+# Engineering Constitution
 ## Governance
-
-This constitution supersedes ad-hoc practices for this repository. All PRs and reviews must verify compliance with the principles, constraints, and gates above. Amendments to this constitution require:
-- A design note or PR section describing the change and its impact
-- A migration plan for any breaking process or contract changes
-- Updates to build/test commands if workflows change
-
-SpecKit is considered a first-class consumer. Specifications and tasks must be kept in sync with code and tests, and their automation must not be broken by non-deterministic outputs or undocumented changes.
-
-**Version**: 2.2.0 | **Ratified**: 2025-09-14 | **Last Amended**: 2026-03-25
-
-**Major Changes in v2.2.0:**
-- §IX: Replaced `scripts/validate-examples.fish` reference with the C# tool at `src/tools/validate-examples/` and `just validate-examples` recipe (REM-003)
-
-**Major Changes in v2.1.0:**
-- Removed all references to legacy IL pipeline (ILMetamodel.cs, il.builders.generated.cs, il.rewriter.generated.cs, code_generator)
-- Updated Roslyn migration status: complete; legacy IL pipeline removed
-- Updated ANTLR version from 4.8 to 4.13.1 (runtime) / 4.13.2 (jar)
-- Simplified architecture to reflect Roslyn-only code generation pipeline
-- Consolidated duplicate §I block at file header
-
-**Major Changes in v2.0.0:**
-- Incorporated all valuable content from AGENTS.md to eliminate external dependencies
-- Updated parser/lexer references to reflect split grammar (FifthLexer.g4 + FifthParser.g4)
-- Added comprehensive description of multi-pass compiler pipeline
-- Detailed language transformations and their roles in AST lowering
-- Clarified AST design and Roslyn-only pipeline (legacy IL pipeline removed)
-- Updated testing framework references (TUnit instead of xUnit)
-- Enhanced project structure documentation
-- Added transformation strategy guidelines
+- ARCH-001 [MANDATORY]: Architecture guidance for the Fifth compiler must be concrete and measurable. Every rule in this document must include a compliance check an agent can perform.
+## Dependency
+- ARCH-002: Project references follow this strict DAG:
+  
+  ```text
+  ast-model -> ast_generator -> ast-generated -> parser -> compiler -> tests
+                                                 ^
+                                            fifthlang.system
+  ```
+  
+  No `.csproj` under `src/` may contain a `<ProjectReference>` pointing backward in this ordering.
+  
+  Verify: inspect project references under `src/` and reject any backward edge relative to this DAG.
+- BUILD-008: The effective build order is:
+  
+  ```text
+  ast-model -> ast_generator -> ast-generated -> parser -> compiler -> tests
+  ```
+  
+  Always build the full solution rather than individual projects so dependency ordering is resolved correctly.
+- PIPE-003: Transformation passes are order-dependent, and later passes may rely on invariants established by earlier passes.
+## Generation
+- ARCH-003: Files under `src/ast-generated/` are output, not source. Any diff modifying `src/ast-generated/` must also change `src/ast-model/AstMetamodel.cs` or `src/ast_generator/Templates/`.
+  
+  Verify: if `git diff --name-only` includes `src/ast-generated/`, it must also include `src/ast-model/` or `src/ast_generator/Templates/`.
+- BUILD-006: After metamodel changes, regenerate AST output with:
+  
+  ```bash
+  dotnet run --project src/ast_generator/ast_generator.csproj -- --folder src/ast-generated
+  ```
+- BUILD-011: AST code generation runs automatically before compilation via MSBuild targets. Manual generation is primarily for focused regeneration workflows.
+- CODE-010 [MANDATORY]: Never hand-edit files in `src/ast-generated/`.
+- CODE-011 [MANDATORY]: To modify the AST, edit the metamodels in `src/ast-model/` and then regenerate the generated output.
+- GEN-001: The AST generator is authoritative for all files under `src/ast-generated/`. These files must never be hand-edited.
+- GEN-002: The primary generated files are:
+  
+  - `builders.generated.cs` for builder pattern classes
+  - `visitors.generated.cs` for visitor pattern classes
+  - `rewriter.generated.cs` for lowering-oriented rewriters
+  - `typeinference.generated.cs` for type inference support
+- PR-003: Do not hand-edit `src/ast-generated/`. If the metamodel changes, include the required regeneration steps in the pull request.
+- PR-015: Generated code changes must follow metamodel versioning rules.
+## Ast
+- ARCH-004: All AST node types, fields, and inheritance are defined in `src/ast-model/AstMetamodel.cs`. No hand-written class outside `ast-model` may subclass `AstThing` or introduce new AST node types.
+  
+  Verify: search `.cs` files outside `src/ast-model/` and `src/ast-generated/` for classes inheriting `AstThing`, `Expression`, `Statement`, or `TypeRef`. Any match is non-compliant.
+- TEST-012: Use this quick smoke test after AST builder changes:
+  
+  ```csharp
+  using ast;
+  using ast_generated;
+  
+  var intLiteral = new Int32LiteralExp { Value = 42 };
+  var builder = new Int32LiteralExpBuilder();
+  var result = builder.Build();
+  ```
+  
+  The builder construction should complete without errors.
+## Backend
+- ARCH-005: `LoweredAstToRoslynTranslator` is the sole bridge to Roslyn. No phase or visitor under `src/compiler/LanguageTransformations/` or `src/compiler/Pipeline/Phases/` may reference `Microsoft.CodeAnalysis`. Roslyn types must not leak into the AST model or transformation layer.
+  
+  Verify: `using Microsoft.CodeAnalysis` must not appear in `src/compiler/LanguageTransformations/`, `src/compiler/Pipeline/Phases/`, `src/ast-model/`, or `src/ast-generated/`.
+## Pipeline
+- ARCH-006 [MANDATORY]: Every compiler phase implements `ICompilerPhase` and declares:
+  
+  - `DependsOn`: capability strings required from earlier phases.
+  - `ProvidedCapabilities`: capability strings this phase makes available.
+  
+  `TransformationPipeline.RegisterPhase` enforces at registration time that every `DependsOn` entry is already provided. A phase that reads AST state from another phase without declaring the dependency is non-compliant.
+  
+  Verify: for each phase under `src/compiler/Pipeline/Phases/`, confirm every visitor or rewriter it instantiates operates only on AST state guaranteed by its declared `DependsOn`.
+- ARCH-007: Each `ICompilerPhase` performs exactly one category of work:
+  
+  - Structural linking
+  - Symbol resolution
+  - Validation and diagnostics
+  - Lowering and desugaring
+  - Type annotation
+  
+  A compound phase combining sub-steps must document each in its XML summary and must not mix unrelated concerns.
+  
+  Verify: the `Transform` method should only instantiate visitors or rewriters serving its declared category. Distinct visitor types spanning multiple categories without XML-summary justification are non-compliant.
+- ARCH-008: A phase receives `AstThing` and returns a new or mutated `AstThing` via `PhaseResult`. No phase may retain a reference to the input AST and mutate it after returning. The pipeline owns the AST reference between phases.
+  
+  Verify: phase `Transform` methods must not store the input `ast` parameter in instance or static fields. `PhaseResult.TransformedAst` is the only valid output path.
+- ARCH-011: The phase sequence in `TransformationPipeline.CreateDefault()` is the canonical compilation order. Phases must not be conditionally reordered at runtime. Skipping via `PipelineOptions.SkipPhases` is permitted, but reordering is not.
+  
+  Verify: `CreateDefault()` contains only `RegisterPhase` calls in a fixed sequence with no conditional logic such as `if`, loops, or configuration-driven ordering.
+- ARCH-012: Phases must not communicate through static mutable state, singletons, or thread-local storage. All inter-phase data flows through the AST or `PhaseContext`. The only exception is `DebugHelpers.DebugEnabled` as a read-only diagnostic flag.
+  
+  Verify: phase classes under `src/compiler/Pipeline/Phases/` must not declare `static` mutable fields. Visitors or rewriters they instantiate must not read or write `static` mutable fields other than `DebugHelpers`.
+- OVR-002: The canonical compiler flow is:
+  
+  1. Lexical analysis and parsing into an ANTLR parse tree
+  2. Parse-tree transformation into a high-level AST through `AstBuilderVisitor.cs`
+  3. High-level AST lowering through multiple language-transformation passes
+  4. Roslyn code generation from the lowered AST into a PE assembly
+- PIPE-001: The compiler applies these passes sequentially in `ParserManager.cs`:
+  
+  1. `TreeLinkageVisitor` for parent-child relationships
+  2. `BuiltinInjectorVisitor` for built-in function definitions
+  3. `ClassCtorInserter` for default constructors
+  4. `SymbolTableBuilderVisitor` for scoping symbol tables
+  5. `PropertyToFieldExpander` for property syntax expansion
+  6. `OverloadGatheringVisitor` for overload grouping
+  7. `OverloadTransformingVisitor` for guard and subclause transformation
+  8. `DestructuringVisitor` for destructuring property references
+  9. `DestructuringLoweringRewriter` for lowering destructuring into variable declarations
+  10. `TypeAnnotationVisitor` for type inference and annotation
+- PR-005: Transformation changes must be integrated correctly into the pipeline in `ParserManager.cs`.
+## Lowering
+- ARCH-009: Transformation phases lower high-level AST constructs toward simpler forms consumable by `LoweredAstToRoslynTranslator`. No phase may introduce a higher-level construct than what it received.
+  
+  Verify: for any rewriter phase, output node types must be equal to or simpler than input node types, where simpler means closer to what `LoweredAstToRoslynTranslator.TranslateStatement` or `TranslateExpression` directly handle.
+- PR-011: Validate that AST transformations maintain correct lowering semantics through the pipeline.
+## Diagnostics
+- ARCH-010: Phases report errors and warnings exclusively through `PhaseResult.Diagnostics` or `PhaseContext.Diagnostics`. Direct `Console.Error` writes are permitted only when `DebugHelpers.DebugEnabled` is true. No phase may write to `Console.Out`.
+  
+  Verify: `Console.Error.WriteLine` in phase `Transform` methods must be guarded by `DebugHelpers.DebugEnabled`. `Console.WriteLine` or `Console.Out` calls are non-compliant.
+- BUILD-012: The following warnings are expected and safe to ignore unless they change unexpectedly:
+  
+  - ANTLR `assoc` option warnings
+  - C# nullable reference warnings
+  - Switch exhaustiveness warnings
+## Parser
+- ARCH-013 [MANDATORY]: All parseable Fifth syntax is defined in `FifthLexer.g4` for tokens and `FifthParser.g4` for rules. No code outside the ANTLR grammar files may define new syntax. `AstBuilderVisitor` translates parse trees to AST but must not accept token sequences the grammar rejects.
+  
+  Verify: every `Visit*` method suffix in `AstBuilderVisitor.cs` must match a named rule in `FifthParser.g4`.
+- ARCH-014 [MANDATORY]: Every named parser rule in `FifthParser.g4` that produces a semantic construct must have a corresponding `Visit*` method in `AstBuilderVisitor.cs`, and vice versa.
+  
+  Verify: extract rule names from `FifthParser.g4` using lines matching `ruleName :`. Extract `Visit*` method names from `AstBuilderVisitor.cs`. The sets must align, allowing for ANTLR alternation labels such as `#labeledAlt`.
+- BUILD-010: ANTLR grammar compilation happens automatically during the parser project build. Do not add redundant manual generation steps to the normal workflow.
+- CODE-012 [MANDATORY]: When grammar behavior changes, update both `FifthLexer.g4` and `FifthParser.g4` as needed.
+- CODE-013 [MANDATORY]: Always update `AstBuilderVisitor.cs` when grammar changes alter the parse tree or surface syntax.
+- PR-004: Any grammar change must have corresponding updates in both the parser grammar and the AST builder visitor.
+- PR-017: When adding or updating `.5th` examples or test programs:
+  
+  1. Validate parsing locally with parser or syntax tests
+  2. Use grammar-supported forms only and avoid legacy shorthand
+  3. Add `CopyToOutputDirectory` metadata in the test `.csproj` when an integration test consumes the sample
+  4. Run the relevant integration tests before committing
+  5. Update the grammar files and constitution if the change intentionally introduces new surface syntax
+## Visitor
+- ARCH-015: Use the visitor and rewriter base classes according to the operation being performed:
+  
+  | Operation | Base class | When to use |
+  |---|---|---|
+  | Read-only analysis | `BaseAstVisitor` | Never modifies AST |
+  | Type-preserving AST modification | `DefaultRecursiveDescentVisitor` | Same node types in and out |
+  | Cross-type rewrites, statement hoisting, desugaring | `DefaultAstRewriter` | Returns `RewriteResult` with prologue or changes node types |
+  
+  A visitor returning `RewriteResult` with non-empty prologue must extend `DefaultAstRewriter`. A visitor that only collects information must not extend `DefaultAstRewriter` or `DefaultRecursiveDescentVisitor`.
+  
+  Verify: for each visitor or rewriter under `src/compiler/LanguageTransformations/`, confirm the base class matches the operation kind. A `BaseAstVisitor` subclass mutating AST nodes, or a `DefaultAstRewriter` that never returns prologue and never changes node types, is non-compliant.
+- GEN-005: Use `BaseAstVisitor` for read-only analysis such as symbol tables, diagnostics, and validation. This pattern must not modify the AST.
+- GEN-006: Use `DefaultRecursiveDescentVisitor` for type-preserving AST modifications. This pattern must not change node types or hoist statements.
+- GEN-007: Use `DefaultAstRewriter` for statement-level desugaring, cross-type rewrites, and expression hoisting. This is the preferred pattern for new lowering passes because it returns `RewriteResult` with a node and prologue.
+  
+  Choose this pattern when introducing temporary variables, breaking down high-level constructs, transforming expression types, or performing any lowering that requires statement insertion.
+## Prerequisites
+- BUILD-001 [MANDATORY]: The local environment must include:
+  
+  - .NET 10.0 SDK pinned by `global.json` to `10.0.100`
+  - Java 17 or newer for ANTLR grammar compilation
+  - The ANTLR runtime package and the jar at `src/parser/tools/antlr-4.13.2-complete.jar`
+## Commands
+- BUILD-002: Use the solution restore command as the standard restore entry point:
+  
+  ```bash
+  dotnet restore fifthlang.sln
+  ```
+  
+  This operation typically takes about 70 seconds. Do not cancel it. Use a timeout of at least 120 seconds when automation controls execution time.
+- BUILD-003: Use the solution build command as the standard build entry point:
+  
+  ```bash
+  dotnet build fifthlang.sln
+  ```
+  
+  This operation typically takes about 60 seconds. Do not cancel it. Use a timeout of at least 120 seconds when automation controls execution time.
+- TEST-007: The default regression command is:
+  
+  ```bash
+  dotnet test fifthlang.sln
+  ```
+- TEST-008: Use this quick smoke command while iterating:
+  
+  ```bash
+  dotnet test test/ast-tests/ast_tests.csproj
+  ```
+- TEST-009: Use this focused parser command when grammar behavior changes:
+  
+  ```bash
+  dotnet test test/syntax-parser-tests/ -v minimal
+  ```
+- TEST-010: Use filtered runtime integration tests for focused investigation:
+  
+  ```bash
+  dotnet test test/runtime-integration-tests/runtime-integration-tests.csproj --filter "FullyQualifiedName~YourTestName" -v minimal
+  ```
+- TEST-011: Validate knowledge-graph changes with:
+  
+  ```bash
+  dotnet test test/kg-smoke-tests/kg-smoke-tests.csproj
+  ```
+## Testing
+- BUILD-004: Use the solution test command as the default regression gate:
+  
+  ```bash
+  dotnet test fifthlang.sln
+  ```
+  
+  Do not cancel this run. Use a timeout of at least 5 minutes when automation controls execution time.
+- BUILD-005: Use this command for a quick smoke-test subset while iterating locally:
+  
+  ```bash
+  dotnet test test/ast-tests/ast_tests.csproj
+  ```
+- BUILD-014: These targeted commands are available for narrower local validation:
+  
+  ```bash
+  just test-ast
+  just test-runtime
+  just test-syntax
+  just test-all-roslyn
+  ```
+  
+  Use them to iterate locally, but retain the full solution test run as the regression gate.
+- PR-002: Pull requests that change behavior must add or update tests, and all relevant suites must pass locally.
+- TEST-004 [MANDATORY]: Test code should use property-based testing (PBT) using FsCheck.xunit in preference to unit tests.
+- TEST-004a [MANDATORY]: Never just test single-point scenarios and  happy paths, instead use a property-based test that will test all positive, negative and edge cases.
+- TEST-005: Avoid testing internal implementation details and avoid depending on concrete implementations where looser behavioral validation is possible.
+- TEST-013 [MANDATORY]: Define properties as universal rules that must hold for all valid inputs, rather than relying on specific example cases.
+- TEST-014 [MANDATORY]: Design generators to produce diverse, realistic, and edge-case inputs across the full input space.
+- TEST-015 [MANDATORY]: Ensure failing cases can be minimized automatically through shrinking to aid debugging.
+- TEST-016 [MANDATORY]: Specify preconditions clearly or constrain generators so properties are only evaluated in valid domains.
+- TEST-017 [MANDATORY]: Keep tests deterministic and reproducible by controlling randomness and eliminating hidden state or side effects.
+- TEST-018 [MANDATORY]: Use strong oracles, models, or metamorphic relationships to validate correctness beyond simple assertions.
+  
+  - Every property must have an oracle: a mechanical way to decide pass/fail that is stronger than “doesn’t throw” or “looks plausible”.
+  - Prefer a reference (spec) model oracle when you can: compute expected behaviour using a simpler, obviously-correct implementation and compare.
+  - If you can’t compute the exact expected output, use a metamorphic oracle: apply a transformation to inputs and assert a predictable relationship between outputs.
+  - Use multiple weak oracles together (invariants + metamorphic + cross-check) rather than one weak check.
+  - Fail with evidence: when a property fails, ensure the counterexample is informative (shrinks well; includes classification/labels).
+- TEST-019 [MANDATORY]: When making significant changes to a pre-existing unit test, convert it to a Property based test that tests a whole class of invariants and pre and post conditions. 
+## Verification
+- BUILD-007: Confirm the toolchain before debugging restore or build failures:
+  
+  ```bash
+  dotnet --version
+  java -version
+  ```
+  
+  The .NET command should report `10.0.x`, and Java should report version 17 or newer.
+## Workflow
+- BUILD-009: Do not cancel restore, build, test, or generation operations. The documented timings in this repository are normal and expected.
+- GEN-003: To change generated AST output:
+  
+  1. Edit `src/ast-model/AstMetamodel.cs`
+  2. Update templates under `src/ast_generator/Templates/` when template behavior must change
+  3. Regenerate with `just run-generator`
+  4. Build the full solution with `dotnet build fifthlang.sln`
+- GRAM-002: When grammar behavior changes:
+  
+  1. Edit `FifthLexer.g4` for tokens and keywords and `FifthParser.g4` for syntax rules as needed
+  2. Update `AstBuilderVisitor.cs` for the new syntax constructs
+  3. Add test samples under `src/parser/grammar/test_samples/*.5th`
+  4. Rely on the normal build to run ANTLR compilation automatically
+  5. Run parser tests with `dotnet test test/syntax-parser-tests/ -v minimal`
+  6. Run the full regression suite with `dotnet test fifthlang.sln`
+- PIPE-008: To add a new transformation:
+  
+  1. Create the visitor or rewriter in `src/compiler/LanguageTransformations/`
+  2. Choose the correct base pattern using the code-generation steering guidance
+  3. Register the transformation in `src/compiler/ParserManager.cs`
+  4. Add tests in `test/ast-tests/` or `test/runtime-integration-tests/`
+  5. Build the solution and run the full test suite
+## Validation
+- BUILD-013: After any change, validate in this order:
+  
+  1. `dotnet build fifthlang.sln`
+  2. `dotnet test fifthlang.sln`
+  3. Verify runtime behavior
+  
+  Compilation alone is not sufficient validation.
+- GRAM-003 [MANDATORY]: All `.5th` files in `docs/`, `specs/`, `test/`, and `src/parser/grammar/test_samples/` must parse with the current grammar. CI enforces this with the `Validate .5th samples (parser-check)` step.
+  
+  Run `just validate-examples` locally before committing.
+- GRAM-008: Intentionally invalid files are excluded from example validation by these heuristics:
+  
+  - directory matches under `*/Invalid/*`
+  - filenames containing `invalid`
+  - an explicit negative-test comment marker in the file
+  
+  For debugging, force validation of negative examples with:
+  
+  ```bash
+  dotnet run --project src/tools/validate-examples/validate-examples.csproj -- --include-negatives
+  ```
+- PR-001: Before opening or updating a pull request:
+  
+  1. Build the full solution with `dotnet build fifthlang.sln` and do not cancel the run
+  2. Run the full test suite with `dotnet test fifthlang.sln`
+  3. Validate grammar examples with `just validate-examples`
+## Design
+- CODE-001: Every feature should start as a focused library under `src/` with a clear public contract.
+- CODE-002: Prefer the simplest design that works. Do not introduce incidental complexity or abstractions that are not required.
+- GEN-004: `AstMetamodel.cs` defines rich, high-level constructs that mirror source language features. These constructs are lowered through transformation passes before Roslyn code generation.
+- PIPE-002: Each visitor or rewriter in the transformation pipeline must have one well-defined responsibility.
+- PIPE-004: Prefer several simple, comprehensible passes over a single pass that mixes unrelated transformation logic.
+- PIPE-007: Prefer expressing language adaptation as AST transformations rather than pushing additional complexity into code generation.
+## Maintainability
+- CODE-003: Make targeted, minimal changes that respect existing structure and public APIs.
+- PR-007: When a change increases complexity, document the rationale in the pull request.
+## Quality
+- CODE-004: Do not add catch-all error handling that hides defects. Any change that increases complexity must be justified explicitly.
+- PR-008: Favor the smallest viable change and keep diffs focused.
+- PR-009: Confirm reproducibility by re-running the documented commands rather than relying on assumptions.
+- PR-010: Verify that generated outputs and diagnostics remain deterministic.
+## Platform
+- CODE-005: Target C# 14, or the latest language version supported by the .NET 10 SDK, and target .NET 10.0.
+## Versioning
+- CODE-006: Use Semantic Versioning in `MAJOR.MINOR.PATCH` form for all packages.
+- PR-014: Apply a minor or major version bump when the change warrants it.
+## Cli
+- CODE-007: Use stdin and arguments for input, stdout for primary output, and stderr for errors and diagnostics.
+- CODE-008: Support human-readable text by default and add JSON output where it materially improves automation.
+- CODE-009: Favor deterministic, scriptable commands. Output must be stable and must not depend on timestamps or non-deterministic ordering.
+## Repository
+- CODE-014 [MANDATORY]: Do not commit temporary debugging helpers, IL dumps, or scratch `.5th` programs.
+- CODE-015 [MANDATORY]: The `scripts/` directory is reserved for durable automation only.
+- CODE-016 [MANDATORY]: Do not commit `tmp_*.5th`, `build_debug_il/`, `KEEP_FIFTH_TEMP`, or outputs produced by `--keep-temp`.
+- CODE-017 [MANDATORY]: Use `.gitignore` patterns and local temporary directories for experiments rather than leaving scratch assets in the repository.
+## Security
+- CODE-018 [MANDATORY]: Avoid executing arbitrary code during generation or parsing.
+- CODE-019: Validate inputs and keep user inputs separated from internal templates.
+- CODE-020: Do not introduce network calls or file-system side effects without explicit review.
+## Dependencies
+- CODE-021: The core package set in this repository includes:
+  
+  - `Antlr4.Runtime.Standard` for the ANTLR runtime
+  - `RazorLight` for code-generation templates
+  - `System.CommandLine` for CLI parsing
+  - `xUnit` and `FluentAssertions` for testing
+  - `dunet` for discriminated unions
+  - `Vogen` for value-object generation
+## Reference
+- GEN-008: Use `src/ast_generator/README.md` as the detailed reference for visitor and rewriter pattern selection.
+- OVR-004: Use these reference files according to their role:
+  
+  - `.specify/memory/constitution.md` for architectural decisions and principles
+  - `AGENTS.md` for operational commands and workflow guidance
+  - `.specify/config.yml` for build and test command definitions
+- SYN-007: Use these locations when looking for canonical syntax examples:
+  
+  - `test/ast-tests/CodeSamples/*.5th`
+  - `src/parser/grammar/test_samples/*.5th`
+  - `docs/Getting-Started/`
+## Review
+- GEN-009: Any pull request modifying `src/ast-generated/` must include:
+  
+  - The upstream metamodel or template changes
+  - The regeneration command used
+  - Confirmation that the generated files were not hand-edited
+## Architecture
+- GRAM-001: The parser surface is divided across three primary assets:
+  
+  - `src/parser/grammar/FifthLexer.g4` for tokens, keywords, literals, and lexical structure
+  - `src/parser/grammar/FifthParser.g4` for syntactic rules and grammar structure
+  - `src/parser/AstBuilderVisitor.cs` for parse-tree to high-level AST transformation
+## Syntax
+- GRAM-004 [MANDATORY]: Do not use `var <name> =` in examples or tests. Use `name: type =` or the appropriate canonical Fifth form.
+- GRAM-005 [MANDATORY]: Do not use declarations such as `graph g =` or `triple t =`. Use `g: graph =` or `t: triple =`.
+- GRAM-006 [MANDATORY]: Do not use the legacy `when` guard shorthand. Use the parameter constraint form `param: Type | <expr>` together with block bodies.
+- SYN-001: Basic syntax looks like this:
+  
+  ```fifth
+  class Person {
+      Name: string;
+      Height: float;
+  }
+  
+  main() => myprint(5 + 6);
+  myprint(int x) => std.print(x);
+  ```
+- SYN-002: Use `name: type = value` form. Never use `var name =` in C# or JavaScript style, and never use type-first forms such as `type name =`.
+  
+  ```fifth
+  x: int = 42;
+  g: graph = KG.CreateGraph();
+  ```
+## Guards
+- GRAM-007: The canonical contrast for guard syntax is:
+  
+  ```fifth
+  // INVALID
+  myprint(int x) when x == 0 => std.print(x);
+  
+  // VALID
+  myprint(int x | x == 0) { std.print(x); }
+  ```
+- SYN-004: Use the parameter constraint form with block bodies:
+  
+  ```fifth
+  myprint(int x | x == 0) { std.print(x); }
+  ```
+  
+  Do not use the legacy `when` shorthand.
+  
+  ```fifth
+  // INVALID
+  // myprint(int x) when x == 0 => std.print(x);
+  ```
+## Knowledge Graph
+- GRAM-009: Use these canonical knowledge-graph forms in examples and tests:
+  
+  - `name: store = sparql_store(<iri>);`
+  - `store default = sparql_store(<iri>);`
+  - `KG.CreateGraph()` to create graphs
+  - `graph += triple` to add triples
+  
+  Validate these flows with `dotnet test test/kg-smoke-tests/kg-smoke-tests.csproj`.
+- SYN-005: Use the canonical knowledge-graph forms:
+  
+  ```fifth
+  myStore: store = sparql_store(<http://example.org/store>);
+  store default = sparql_store(<http://example.org/default>);
+  
+  g: graph = KG.CreateGraph();
+  // Add triples with += operator
+  ```
+- SYN-006: Use these literal forms in syntax and examples:
+  
+  - TriG literals use `<{...}>`
+  - SPARQL literals use `?<...>`
+  - Object-position literal values may be strings, booleans, chars, signed integers, unsigned integers, `float`, `double`, or `decimal`
+## Overview
+- OVR-001: Fifth Language is a C# .NET 10.0 compiler for the Fifth programming language. It uses an ANTLR-based split lexer and parser, AST code generation for builders and visitors, and a multi-pass compiler that lowers the AST through intermediate transformation stages.
+## Structure
+- OVR-003: The major repository areas are:
+  
+  - `src/ast-model/` for AST metamodel definitions including `AstMetamodel.cs`
+  - `src/ast-generated/` for generated builders, visitors, and rewriters that must not be hand-edited
+  - `src/ast_generator/` for the generator that produces `ast-generated/`
+  - `src/parser/grammar/` for `FifthLexer.g4` and `FifthParser.g4`
+  - `src/parser/AstBuilderVisitor.cs` for parse-tree to AST conversion
+  - `src/compiler/LanguageTransformations/` for AST transformation passes
+  - `src/compiler/ParserManager.cs` for transformation pipeline coordination
+  - `src/fifthlang.system/` for built-in system functions and knowledge graph support
+  - `test/ast-tests/` for AST and generator tests
+  - `test/syntax-parser-tests/` for grammar parsing tests
+  - `test/runtime-integration-tests/` for end-to-end verification tests
+## Documentation
+- PIPE-005: Document dependencies between transformation passes whenever later stages rely on earlier ones.
+## Correctness
+- PIPE-006: Each transformation pass must preserve AST validity and type safety.
+## Code Generation
+- PIPE-009: The compiler uses `LoweredAstToRoslynTranslator` to emit C# syntax trees from the lowered AST for Roslyn compilation and PE or PDB emission. Roslyn-generated PDBs must include full line-and-column sequence points so debugging fidelity is preserved.
+## Contracts
+- PR-006: When behavior changes affect public contracts or CLI behavior, update the relevant contracts and CLI help text.
+## Breaking Change
+- PR-012: Every breaking change must include a migration note in the pull request.
+- PR-013: Breaking changes must include updated tests that reflect the new behavior.
+## Deprecation
+- PR-016: Every deprecation must be documented and covered by tests.
+## Functions
+- SYN-003: Function definitions can use either expression bodies or block bodies:
+  
+  ```fifth
+  add(int a, int b) => a + b;
+  
+  greet(string name) {
+      std.print("Hello " + name);
+  }
+  ```
+## Framework
+- TEST-001: The standard test stack is:
+  
+  - `xUnit` as the test framework
+  - `FluentAssertions` for assertions
+  - `test/ast-tests/`, `test/syntax-parser-tests/`, and `test/runtime-integration-tests/` as the primary test projects
+## Process
+- TEST-002 [MANDATORY]: Practice TDD by writing tests, seeing them fail, and then implementing the change. Never mask failing tests with broad `try` or `catch` blocks. Let failures surface so CI reflects the true repository state.
+## Completion
+- TEST-003: A feature is not complete until end-to-end tests prove that it:
+  
+  1. Uses actual Fifth language syntax including constructs such as TriG literals, SPARQL literals, and operators
+  2. Executes successfully at runtime rather than merely compiling
+  3. Produces results that are accessible and correct
+  4. Exercises the major code paths and result types involved
+  
+  Features with only compilation tests or with failing runtime tests are incomplete.
+## Fixtures
+- TEST-006: Tests that reference `.5th` sample files must declare `CopyToOutputDirectory` metadata in the owning test `.csproj`.

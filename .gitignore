@@ -11,7 +11,8 @@ quadstore_data/
 *.user
 *.userosscache
 *.sln.docstates
-
+*.lscache
+.speckit/
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
