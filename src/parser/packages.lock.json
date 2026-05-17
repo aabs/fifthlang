@@ -58,7 +58,7 @@
       "ast_generated": {
         "type": "Project",
         "dependencies": {
-          "ast_model": "[1.0.0, )""ast_model": "[1.0.0, )"
+          "ast_model": "[1.0.0, )"
         }
       },
       "ast_model": {

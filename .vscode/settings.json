@@ -26,6 +26,6 @@
     // Help C# Dev Kit target the correct solution for discovery
     "dotnet.defaultSolution": "fifthlang.sln",
     "dotrush.roslyn.projectOrSolutionFiles": [
-        "d:\\aabs\\fifthlang\\fifthlang.sln"
+        "fifthlang.sln"
     ]
 }

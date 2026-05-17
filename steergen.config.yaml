@@ -1,5 +1,5 @@
 globalRoot: $HOME/steering/global
-projectRoot: docs/steering
+projectRoot: docs/Steering
 generationRoot: .
 registeredTargets:
   - speckit
